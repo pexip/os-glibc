@@ -1,3 +1,9 @@
+glibc (2.19-18+deb8u7pexip1) pexip; urgency=low
+
+  * Prepare Pexip packaging
+
+ -- John-Mark Bell <jmb@pexip.com>  Fri, 31 Mar 2017 00:32:39 +0000
+
 glibc (2.19-18+deb8u7) stable; urgency=medium
 
   [ Aurelien Jarno ]
