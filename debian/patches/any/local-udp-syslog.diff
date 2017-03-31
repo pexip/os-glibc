@@ -1,0 +1,115 @@
+diff --git a/misc/syslog.c b/misc/syslog.c
+index 7156b4f..0584832 100644
+--- a/misc/syslog.c
++++ b/misc/syslog.c
+@@ -328,7 +328,7 @@ __vsyslog(int pri, const char *fmt, va_list ap)
+ ldbl_hidden_def (__vsyslog, vsyslog)
+ ldbl_strong_alias (__vsyslog, vsyslog)
+ 
+-static struct sockaddr_un SyslogAddr;	/* AF_UNIX address of local logger */
++static struct sockaddr_in SyslogAddr;	/* AF_INET address of local logger */
+ 
+ 
+ static void
+@@ -341,68 +341,55 @@ openlog_internal(const char *ident, int logstat, int logfac)
+ 	if (logfac != 0 && (logfac &~ LOG_FACMASK) == 0)
+ 		LogFacility = logfac;
+ 
+-	int retry = 0;
+-	while (retry < 2) {
+-		if (LogFile == -1) {
+-			SyslogAddr.sun_family = AF_UNIX;
+-			(void)strncpy(SyslogAddr.sun_path, _PATH_LOG,
+-				      sizeof(SyslogAddr.sun_path));
+-			if (LogStat & LOG_NDELAY) {
++	if (LogFile == -1) {
++		SyslogAddr.sin_family = AF_INET;
++		SyslogAddr.sin_port = htons(514);
++		SyslogAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++		if (LogStat & LOG_NDELAY) {
+ #ifdef SOCK_CLOEXEC
+ # ifndef __ASSUME_SOCK_CLOEXEC
+-				if (__have_sock_cloexec >= 0) {
++			if (__have_sock_cloexec >= 0) {
+ # endif
+-					LogFile = __socket(AF_UNIX,
+-							   LogType
+-							   | SOCK_CLOEXEC, 0);
++				LogFile = __socket(AF_INET,
++						   LogType
++						   | SOCK_CLOEXEC, 0);
+ # ifndef __ASSUME_SOCK_CLOEXEC
+-					if (__have_sock_cloexec == 0)
+-						__have_sock_cloexec
+-						  = ((LogFile != -1
+-						      || errno != EINVAL)
+-						     ? 1 : -1);
+-				}
++				if (__have_sock_cloexec == 0)
++					__have_sock_cloexec
++					  = ((LogFile != -1
++					      || errno != EINVAL)
++					     ? 1 : -1);
++			}
+ # endif
+ #endif
+ #ifndef __ASSUME_SOCK_CLOEXEC
+ # ifdef SOCK_CLOEXEC
+-				if (__have_sock_cloexec < 0)
++			if (__have_sock_cloexec < 0)
+ # endif
+-				  LogFile = __socket(AF_UNIX, LogType, 0);
++			  LogFile = __socket(AF_INET, LogType, 0);
+ #endif
+-				if (LogFile == -1)
+-					return;
++			if (LogFile == -1)
++				return;
+ #ifndef __ASSUME_SOCK_CLOEXEC
+ # ifdef SOCK_CLOEXEC
+-				if (__have_sock_cloexec < 0)
++			if (__have_sock_cloexec < 0)
+ # endif
+-					__fcntl(LogFile, F_SETFD, FD_CLOEXEC);
++				__fcntl(LogFile, F_SETFD, FD_CLOEXEC);
+ #endif
+-			}
+ 		}
+-		if (LogFile != -1 && !connected)
++	}
++	if (LogFile != -1 && !connected)
++	{
++		int old_errno = errno;
++		if (__connect(LogFile, &SyslogAddr, sizeof(SyslogAddr))
++		    == -1)
+ 		{
+-			int old_errno = errno;
+-			if (__connect(LogFile, &SyslogAddr, sizeof(SyslogAddr))
+-			    == -1)
+-			{
+-				int saved_errno = errno;
+-				int fd = LogFile;
+-				LogFile = -1;
+-				(void)__close(fd);
+-				__set_errno (old_errno);
+-				if (saved_errno == EPROTOTYPE)
+-				{
+-					/* retry with the other type: */
+-					LogType = (LogType == SOCK_DGRAM
+-						   ? SOCK_STREAM : SOCK_DGRAM);
+-					++retry;
+-					continue;
+-				}
+-			} else
+-				connected = 1;
+-		}
+-		break;
++			int fd = LogFile;
++			LogFile = -1;
++			(void)__close(fd);
++			__set_errno (old_errno);
++		} else
++			connected = 1;
+ 	}
+ }
+ 
