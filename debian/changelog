@@ -3,6 +3,8 @@ glibc (2.19-18+deb8u7pexip1) pexip; urgency=low
   * Prepare Pexip packaging
   * debian/rules.d/build.mk: Massage pkgversion and bugurl
   * debian/patches/any/local-udp-syslog.diff: Use UDP/IP for syslog
+  * debian/control, debian/control.in/main: Make locales conflict/replace
+    old libc-bin
 
  -- John-Mark Bell <jmb@pexip.com>  Fri, 31 Mar 2017 00:32:39 +0000
 

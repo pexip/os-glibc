@@ -86,8 +86,8 @@ Architecture: all
 Section: localization
 Priority: standard
 Depends: libc-bin (>> 2.19), ${misc:Depends}, debconf | debconf-2.0
-Conflicts: base-config, belocs-locales-bin, belocs-locales-data
-Replaces: base-config, lliurex-belocs-locales-data, manpages-fr-extra (<< 20141022)
+Conflicts: base-config, belocs-locales-bin, belocs-locales-data, libc-bin (<< 2.19)
+Replaces: base-config, lliurex-belocs-locales-data, manpages-fr-extra (<< 20141022), libc-bin (<< 2.19)
 Build-Profiles: <!stage1>
 Description: GNU C Library: National Language (locale) data [support]
  Machine-readable data files, shared objects and programs used by the
