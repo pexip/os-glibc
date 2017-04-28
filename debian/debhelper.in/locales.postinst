@@ -18,6 +18,14 @@ if [ "$1" = configure ]; then
     db_get locales/locales_to_be_generated && SELECTED_LOCALES=$RET
     SELECTED_LOCALES="$(echo $SELECTED_LOCALES | sed -e 's/, /\n/g')"
 
+    # Forcibly default to en_US.UTF-8
+    if [ -z "$DEFAULT_ENVIRONMENT" ] || [ "$DEFAULT_ENVIRONMENT" = "None" ]; then
+        DEFAULT_ENVIRONMENT="en_US.UTF-8"
+    fi
+    if [ -z "$SELECTED_LOCALES" ]; then
+        SELECTED_LOCALES="en_US.UTF-8 UTF-8"
+    fi
+
     if [ "$SELECTED_LOCALES" = "All locales" ]; then
         [ -e $LG ] && rm -f $LG
         ln -s /usr/share/i18n/SUPPORTED $LG
