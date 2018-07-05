@@ -18,7 +18,7 @@ Vcs-Browser: http://svn.debian.org/wsvn/pkg-glibc/glibc-package/
 Vcs-Svn: svn://svn.debian.org/pkg-glibc/glibc-package/
 Homepage: http://www.gnu.org/software/libc/libc.html
 XS-Testsuite: autopkgtest
-XS-Pexip-Upstream: http://ftp.debian.org/debian/ jessie
+XS-Pexip-Upstream: http://ftp.debian.org/debian/ stretch
 
 Package: libc-bin
 Architecture: any
