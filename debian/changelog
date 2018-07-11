@@ -1,6 +1,7 @@
 glibc (2.24-11+deb9u3pexip1) pexip; urgency=medium
 
   * Migrate to Stretch
+  * debian/patches/any/local-udp-syslog.diff: Refresh
 
  -- John-Mark Bell <jmb@pexip.com>  Wed, 11 Jul 2018 15:41:57 +0100
 
