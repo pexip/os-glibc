@@ -1,3 +1,9 @@
+glibc (2.19-18+deb8u10pexip2) pexip; urgency=low
+
+  * debian/debhelper.in/libc.postinst: avoid telinit u for upstart
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 03 Sep 2018 12:01:51 +0100
+
 glibc (2.19-18+deb8u10pexip1) pexip; urgency=low
 
   * New upstream release
