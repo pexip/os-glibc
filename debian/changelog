@@ -1,3 +1,9 @@
+glibc (2.24-11+deb9u3pexip2) pexip; urgency=medium
+
+  * Backport fix for CVE-2018-1000001
+
+ -- John-Mark Bell <jmb@pexip.com>  Tue, 13 Nov 2018 00:38:22 +0000
+
 glibc (2.24-11+deb9u3pexip1) pexip; urgency=medium
 
   * Migrate to Stretch
