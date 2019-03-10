@@ -1,3 +1,43 @@
+glibc (2.24-11+deb9u4pexip1) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Vincent Sanders <vince@pexip.com>  Fri, 08 Mar 2019 22:22:25 +0000
+
+glibc (2.24-11+deb9u4) stretch; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix buffer overflow in glob with GLOB_TILDE (CVE-2017-15670).  Closes:
+      #879501.
+    - Fix memory leak in glob with GLOB_TILDE (CVE-2017-15671).  Closes:
+      #879500.
+    - Fix a buffer overflow in glob with GLOB_TILDE in unescaping
+      (CVE-2017-15804).  Closes: #879955.
+    - Fix a memory leak in ld.so (CVE-2017-1000408).  Closes: #884132.
+    - Fix a buffer overflow in ld.so (CVE-2017-1000409).  Closes: #884133.
+    - Fixes incorrect RPATH/RUNPATH handling for SUID binaries
+      (CVE-2017-16997).  Closes: #884615.
+    - Fix a data corruption in SSE2-optimized memmove implementation for
+      i386 (CVE-2017-18269).
+    - Fix a stack-based buffer overflow in the realpath function
+      (CVE-2018-11236).  Closes: #899071.
+    - Fix a buffer overflow in the AVX-512-optimized implementation of the
+      mempcpy function (CVE-2018-11237).  Closes: #899070.
+    - Fix stack guard size accounting and reduce stack usage during
+      unwinding to avoid segmentation faults on CPUs with AVX512-F.  Closes:
+      #903554.
+    - Fix a use after free in pthread_create().  Closes: #916925.
+  * debian/debhelper.in/libc.postinst, script.in/nsscheck.sh: check for
+    postgresql in NSS check.  Closes: #710275.
+
+  [ Sebastian Andrzej Siewior ]
+  * patches/any/local-condvar-do-not-use-requeue-for-pshared-condvars.patch:
+    patch to fix pthread_cond_wait() in the pshared case on non-x86.  Closes:
+    #904158.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 06 Feb 2019 22:17:41 +0100
+
 glibc (2.24-11+deb9u3pexip2) pexip; urgency=medium
 
   * Backport fix for CVE-2018-1000001

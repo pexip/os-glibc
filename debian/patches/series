@@ -217,5 +217,8 @@ any/local-bootstrap-headers.diff
 any/submitted-dlopen-noload.diff
 any/submitted-unicode-9.0.0.diff
 any/cvs-malloc-hardening.diff
+any/local-condvar-do-not-use-requeue-for-pshared-condvars.patch
+
+# Pexip
 any/local-udp-syslog.diff
 any/CVE-2018-1000001.patch
