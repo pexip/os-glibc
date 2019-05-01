@@ -39,6 +39,7 @@ static char rcsid[] = "$NetBSD: $";
 #include <float.h>
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const long double one = 1.0, shuge = 1.0e4931L;
 
@@ -46,7 +47,7 @@ long double
 __ieee754_sinhl(long double x)
 {
 	long double t,w,h;
-	u_int32_t jx,ix,i0,i1;
+	uint32_t jx,ix,i0,i1;
 
     /* Words of |x|. */
 	GET_LDOUBLE_WORDS(jx,i0,i1,x);

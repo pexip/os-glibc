@@ -1,5 +1,5 @@
 /* Low-level statistical profiling support function.  Mach/Hurd version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -70,6 +70,8 @@ update_waiter (u_short *sample_buffer, size_t size, size_t offset, u_int scale)
       if (! err)
 	err = __mach_setup_thread (__mach_task_self (), profile_thread,
 				   &profile_waiter, NULL, NULL);
+      if (! err)
+	err = __mach_setup_tls(profile_thread);
     }
   else
     err = 0;
@@ -138,8 +140,10 @@ __profil (u_short *sample_buffer, size_t size, size_t offset, u_int scale)
 }
 weak_alias (__profil, profil)
 
+static volatile error_t special_profil_failure;
+
 /* Fetch PC samples.  This function must be very careful not to depend
-   on Hurd threadvar variables.  We arrange that by using a special
+   on Hurd TLS variables.  We arrange that by using a special
    stub arranged for at the end of this file. */
 static void
 fetch_samples (void)
@@ -154,14 +158,13 @@ fetch_samples (void)
 				     pc_samples, &nsamples);
   if (err)
     {
-      static error_t special_profil_failure;
-      static volatile int a, b, c;
+      static volatile int a, b;
 
       special_profil_failure = err;
       a = 1;
       b = 0;
       while (1)
-	c = a / b;
+	a = a / b;
     }
 
   for (i = 0; i < nsamples; ++i)
@@ -175,7 +178,7 @@ fetch_samples (void)
 }
 
 
-/* This function must be very careful not to depend on Hurd threadvar
+/* This function must be very careful not to depend on Hurd TLS
    variables.  We arrange that by using special stubs arranged for at the
    end of this file. */
 static void
@@ -266,7 +269,7 @@ text_set_element (_hurd_fork_child_hook, fork_profil_child);
    are fatal in profile_waiter anyhow. */
 #define __mig_put_reply_port(foo)
 
-/* Use our static variable instead of the usual threadvar mechanism for
+/* Use our static variable instead of the usual TLS mechanism for
    this. */
 #define __mig_get_reply_port() profil_reply_port
 

@@ -1,6 +1,6 @@
 /* Generate table of tests in tst-strtod-round.c from
    tst-strtod-round-data.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,17 +45,18 @@
 static int
 string_to_fp (mpfr_t f, const char *s, mpfr_rnd_t rnd)
 {
+  mpfr_clear_overflow ();
 #ifdef WORKAROUND
   mpfr_t f2;
   mpfr_init2 (f2, 100000);
   int r0 = mpfr_strtofr (f2, s, NULL, 0, rnd);
   int r = mpfr_set (f, f2, rnd);
-  mpfr_subnormalize (f, r, rnd);
+  r |= mpfr_subnormalize (f, r, rnd);
   mpfr_clear (f2);
   return r0 | r;
 #else
   int r = mpfr_strtofr (f, s, NULL, 0, rnd);
-  mpfr_subnormalize (f, r, rnd);
+  r |= mpfr_subnormalize (f, r, rnd);
   return r;
 #endif
 }
@@ -73,34 +74,45 @@ static void
 round_str (FILE *fout, const char *s, int prec, int emin, int emax,
 	   bool ibm_ld)
 {
+  mpfr_t max_value;
   mpfr_t f;
   mpfr_set_default_prec (prec);
   mpfr_set_emin (emin);
   mpfr_set_emax (emax);
   mpfr_init (f);
   int r = string_to_fp (f, s, MPFR_RNDD);
+  bool overflow = mpfr_overflow_p () != 0;
   if (ibm_ld)
     {
       assert (prec == 106 && emin == -1073 && emax == 1024);
       /* The maximum value in IBM long double has discontiguous
 	 mantissa bits.  */
-      mpfr_t max_value;
       mpfr_init2 (max_value, 107);
       mpfr_set_str (max_value, "0x1.fffffffffffff7ffffffffffffcp+1023", 0,
 		    MPFR_RNDN);
       if (mpfr_cmpabs (f, max_value) > 0)
-	r = 1;
-      mpfr_clear (max_value);
+	{
+	  r = 1;
+	  overflow = true;
+	}
     }
   mpfr_fprintf (fout, "\t%s,\n", r ? "false" : "true");
-  print_fp (fout, f, ",\n");
+  print_fp (fout, f, overflow ? ", true,\n" : ", false,\n");
   string_to_fp (f, s, MPFR_RNDN);
-  print_fp (fout, f, ",\n");
+  overflow = (mpfr_overflow_p () != 0
+	      || (ibm_ld && mpfr_cmpabs (f, max_value) > 0));
+  print_fp (fout, f, overflow ? ", true,\n" : ", false,\n");
   string_to_fp (f, s, MPFR_RNDZ);
-  print_fp (fout, f, ",\n");
+  overflow = (mpfr_overflow_p () != 0
+	      || (ibm_ld && mpfr_cmpabs (f, max_value) > 0));
+  print_fp (fout, f, overflow ? ", true,\n" : ", false,\n");
   string_to_fp (f, s, MPFR_RNDU);
-  print_fp (fout, f, "");
+  overflow = (mpfr_overflow_p () != 0
+	      || (ibm_ld && mpfr_cmpabs (f, max_value) > 0));
+  print_fp (fout, f, overflow ? ", true" : ", false");
   mpfr_clear (f);
+  if (ibm_ld)
+    mpfr_clear (max_value);
 }
 
 static void

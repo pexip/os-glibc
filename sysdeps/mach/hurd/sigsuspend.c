@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -79,5 +79,4 @@ __sigsuspend (const sigset_t *set)
   return -1;
 }
 libc_hidden_def (__sigsuspend)
-strong_alias (__sigsuspend, sigsuspend_not_cancel)
 weak_alias (__sigsuspend, sigsuspend)

@@ -1,5 +1,5 @@
 /* PowerPC64 mpn_lshift -- rp[] = up[] << cnt
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
 #define U1      r31
 #define RETVAL   r5
 
-EALIGN(__mpn_lshift, 5, 0)
+ENTRY_TOCLESS (__mpn_lshift, 5)
 	std	U1, -8(r1)
 	std	U0, -16(r1)
 	subfic	TNC, CNT, 64

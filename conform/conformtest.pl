@@ -7,8 +7,11 @@ use POSIX;
 $standard = "XOPEN2K8";
 $CC = "gcc";
 $tmpdir = "/tmp";
+$cross = "";
+$xfail_str = "";
 GetOptions ('headers=s' => \@headers, 'standard=s' => \$standard,
-	    'flags=s' => \$flags, 'cc=s' => \$CC, 'tmpdir=s' => \$tmpdir);
+	    'flags=s' => \$flags, 'cc=s' => \$CC, 'tmpdir=s' => \$tmpdir,
+	    'cross' => \$cross, 'xfail=s' => \$xfail_str);
 @headers = split(/,/,join(',',@headers));
 
 # List of the headers we are testing.
@@ -190,6 +193,8 @@ sub runtest
       }
       note_error($xfail);
       $result = 1;
+    } elsif ($cross) {
+      printf (" SKIP\n");
     } else {
       # Now run the program.  If the exit code is not zero something is wrong.
       $result = system "$fnamebase > $fnamebase.out2 2>&1";
@@ -347,13 +352,22 @@ while ($#headers >= 0) {
     if (/^xfail-/) {
       s/^xfail-//;
       $xfail = 1;
+    } elsif (/^xfail\[([^\]]*)\]-/) {
+      my($xfail_cond) = $1;
+      s/^xfail\[([^\]]*)\]-//;
+      # "xfail[cond]-" or "xfail[cond1|cond2|...]-" means a failure of
+      # the test is allowed if any of the listed conditions are in the
+      # --xfail command-line option argument.
+      if ($xfail_str =~ /\b($xfail_cond)\b/) {
+	$xfail = 1;
+      }
     }
     my($optional) = 0;
     if (/^optional-/) {
       s/^optional-//;
       $optional = 1;
     }
-    if (/^element *({([^}]*)}|([^{ ]*)) *({([^}]*)}|([^{ ]*)) *([A-Za-z0-9_]*) *(.*)/) {
+    if (/^element *(\{([^}]*)\}|([^{ ]*)) *(\{([^}]*)\}|([^{ ]*)) *([A-Za-z0-9_]*) *(.*)/) {
       my($struct) = "$2$3";
       my($type) = "$5$6";
       my($member) = "$7";
@@ -472,11 +486,11 @@ while ($#headers >= 0) {
 	}
 	print TESTFILE "# define conformtest_value ($s)\n";
 	print TESTFILE "#endif\n";
-	print TESTFILE "int main (void) { return !((($symbol < 0) == conformtest_negative) && ($symbol == conformtest_value)); }\n";
+	print TESTFILE "_Static_assert ((($symbol < 0) == conformtest_negative) && ($symbol == conformtest_value), \"value match inside and outside #if\");\n";
 	close (TESTFILE);
 
-	runtest ($fnamebase, "Testing for #if usability of symbol $symbol",
-		 "Symbol \"$symbol\" not usable in #if.", $res, $xfail);
+	compiletest ($fnamebase, "Testing for #if usability of symbol $symbol",
+		     "Symbol \"$symbol\" not usable in #if.", $res, 0, $xfail);
       }
 
       if (defined ($type) && ($res == 0 || !$optional)) {
@@ -503,13 +517,12 @@ while ($#headers >= 0) {
 	open (TESTFILE, ">$fnamebase.c");
 	print TESTFILE "$prepend";
 	print TESTFILE "#include <$h>\n";
-	# Negate the value since 0 means ok
-	print TESTFILE "int main (void) { return !($symbol $op $value); }\n";
+	print TESTFILE "_Static_assert ($symbol $op $value, \"value constraint\");\n";
 	close (TESTFILE);
 
-	$res = runtest ($fnamebase, "Testing for value of symbol $symbol",
-			"Symbol \"$symbol\" has not the right value.", $res,
-			$xfail);
+	$res = compiletest ($fnamebase, "Testing for value of symbol $symbol",
+			    "Symbol \"$symbol\" has not the right value.",
+			    $res, 0, $xfail);
       }
     } elsif (/^symbol *([a-zA-Z0-9_]*) *([A-Za-z0-9_-]*)?/) {
       my($symbol) = $1;
@@ -543,7 +556,7 @@ while ($#headers >= 0) {
 			"Symbol \"$symbol\" has not the right value.", $res,
 			$xfail);
       }
-    } elsif (/^type *({([^}]*)|([a-zA-Z0-9_]*))/) {
+    } elsif (/^type *(\{([^}]*)|([a-zA-Z0-9_]*))/) {
       my($type) = "$2$3";
       my($maybe_opaque) = 0;
 
@@ -573,7 +586,7 @@ while ($#headers >= 0) {
 		    ? "NOT AVAILABLE"
 		    : "Type \"$type\" not available."), $missing, $optional,
 		   $xfail);
-    } elsif (/^tag *({([^}]*)|([a-zA-Z0-9_]*))/) {
+    } elsif (/^tag *(\{([^}]*)|([a-zA-Z0-9_]*))/) {
       my($type) = "$2$3";
 
       # Remember that this name is allowed.
@@ -594,7 +607,7 @@ while ($#headers >= 0) {
 
       compiletest ($fnamebase, "Testing for type $type",
 		   "Type \"$type\" not available.", $missing, 0, $xfail);
-    } elsif (/^function *({([^}]*)}|([a-zA-Z0-9_]*)) [(][*]([a-zA-Z0-9_]*) ([(].*[)])/) {
+    } elsif (/^function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) [(][*]([a-zA-Z0-9_]*) ([(].*[)])/) {
       my($rettype) = "$2$3";
       my($fname) = "$4";
       my($args) = "$5";
@@ -631,7 +644,7 @@ while ($#headers >= 0) {
 		     "Function \"$fname\" has incorrect type.", $res, 0,
 		     $xfail);
       }
-    } elsif (/^function *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
+    } elsif (/^function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
       my($rettype) = "$2$3";
       my($fname) = "$4";
       my($args) = "$5";
@@ -668,7 +681,7 @@ while ($#headers >= 0) {
 		     "Function \"$fname\" has incorrect type.", $res, 0,
 		     $xfail);
       }
-    } elsif (/^variable *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) *(.*)/) {
+    } elsif (/^variable *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) *(.*)/) {
       my($type) = "$2$3";
       my($vname) = "$4";
       my($rest) = "$5";
@@ -700,7 +713,7 @@ while ($#headers >= 0) {
 
       compiletest ($fnamebase, "Test for type of variable $fname",
 		   "Variable \"$vname\" has incorrect type.", $res, 0, $xfail);
-    } elsif (/^macro-function *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
+    } elsif (/^macro-function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
       my($rettype) = "$2$3";
       my($fname) = "$4";
       my($args) = "$5";
@@ -797,13 +810,13 @@ while ($#headers >= 0) {
       next acontrol if (/^#/);
       next acontrol if (/^[	]*$/);
 
-      s/^xfail-//;
+      s/^xfail(\[([^\]]*)\])?-//;
       s/^optional-//;
-      if (/^element *({([^}]*)}|([^ ]*)) *({([^}]*)}|([^ ]*)) *([A-Za-z0-9_]*) *(.*)/) {
+      if (/^element *(\{([^}]*)\}|([^ ]*)) *(\{([^}]*)\}|([^ ]*)) *([A-Za-z0-9_]*) *(.*)/) {
 	push @allow, $7;
       } elsif (/^(macro|constant|macro-constant|macro-int-constant) +([a-zA-Z0-9_]*) *(?:{([^}]*)} *)?(?:([>=<!]+) ([A-Za-z0-9_-]*))?/) {
 	push @allow, $2;
-      } elsif (/^(type|tag) *({([^}]*)|([a-zA-Z0-9_]*))/) {
+      } elsif (/^(type|tag) *(\{([^}]*)|([a-zA-Z0-9_]*))/) {
 	my($type) = "$3$4";
 
 	# Remember that this name is allowed.
@@ -814,13 +827,13 @@ while ($#headers >= 0) {
 	} else {
 	  push @allow, $type;
 	}
-      } elsif (/^function *({([^}]*)}|([a-zA-Z0-9_]*)) [(][*]([a-zA-Z0-9_]*) ([(].*[)])/) {
+      } elsif (/^function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) [(][*]([a-zA-Z0-9_]*) ([(].*[)])/) {
 	push @allow, $4;
-      } elsif (/^function *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
+      } elsif (/^function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
 	push @allow, $4;
-      } elsif (/^variable *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*)/) {
+      } elsif (/^variable *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*)/) {
 	push @allow, $4;
-      } elsif (/^macro-function *({([^}]*)}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
+      } elsif (/^macro-function *(\{([^}]*)\}|([a-zA-Z0-9_]*)) ([a-zA-Z0-9_]*) ([(].*[)])/) {
 	push @allow, $4;
       } elsif (/^symbol *([a-zA-Z0-9_]*) *([A-Za-z0-9_-]*)?/) {
 	push @allow, $1;

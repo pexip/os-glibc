@@ -134,7 +134,11 @@ libc {
   GLIBC_2.11 {
     execvpe;
   }
+  GLIBC_2.27 {
+    glob; glob64;
+  }
   GLIBC_PRIVATE {
     __libc_fork; __libc_pread; __libc_pwrite;
+    __nanosleep_nocancel; __pause_nocancel;
   }
 }

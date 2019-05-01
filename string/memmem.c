@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@
 
 #define RETURN_TYPE void *
 #define AVAILABLE(h, h_l, j, n_l) ((j) <= (h_l) - (n_l))
+#define FASTSEARCH(S,C,N) (void*) memchr ((void *)(S), (C), (N))
 #include "str-two-way.h"
 
 #undef memmem

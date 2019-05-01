@@ -1,5 +1,5 @@
 /* memmove/memcpy/mempcpy with unaligned load/store and rep movsb
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -90,7 +90,6 @@
 #  define PREFETCH_ONE_SET(dir, base, offset) \
 	PREFETCH ((offset)base); \
 	PREFETCH ((offset + dir * PREFETCH_SIZE)base); \
-	PREFETCH ((offset + dir * PREFETCH_SIZE)base); \
 	PREFETCH ((offset + dir * PREFETCH_SIZE * 2)base); \
 	PREFETCH ((offset + dir * PREFETCH_SIZE * 3)base)
 # else
@@ -112,13 +111,11 @@ ENTRY (MEMMOVE_CHK_SYMBOL (__mempcpy_chk, unaligned))
 END (MEMMOVE_CHK_SYMBOL (__mempcpy_chk, unaligned))
 #endif
 
-#if VEC_SIZE == 16 || defined SHARED
 ENTRY (MEMPCPY_SYMBOL (__mempcpy, unaligned))
 	movq	%rdi, %rax
 	addq	%rdx, %rax
 	jmp	L(start)
 END (MEMPCPY_SYMBOL (__mempcpy, unaligned))
-#endif
 
 #if defined SHARED && IS_IN (libc)
 ENTRY (MEMMOVE_CHK_SYMBOL (__memmove_chk, unaligned))
@@ -151,17 +148,31 @@ L(nop):
 END (MEMMOVE_SYMBOL (__memmove, unaligned))
 
 # if VEC_SIZE == 16
-#  if defined SHARED
+ENTRY (__mempcpy_chk_erms)
+	cmpq	%rdx, %rcx
+	jb	HIDDEN_JUMPTARGET (__chk_fail)
+END (__mempcpy_chk_erms)
+
 /* Only used to measure performance of REP MOVSB.  */
 ENTRY (__mempcpy_erms)
 	movq	%rdi, %rax
+	/* Skip zero length.  */
+	testq	%rdx, %rdx
+	jz	2f
 	addq	%rdx, %rax
 	jmp	L(start_movsb)
 END (__mempcpy_erms)
-#  endif
+
+ENTRY (__memmove_chk_erms)
+	cmpq	%rdx, %rcx
+	jb	HIDDEN_JUMPTARGET (__chk_fail)
+END (__memmove_chk_erms)
 
 ENTRY (__memmove_erms)
 	movq	%rdi, %rax
+	/* Skip zero length.  */
+	testq	%rdx, %rdx
+	jz	2f
 L(start_movsb):
 	movq	%rdx, %rcx
 	cmpq	%rsi, %rdi
@@ -183,9 +194,8 @@ L(movsb_backward):
 	cld
 	ret
 END (__memmove_erms)
-#  if defined SHARED
 strong_alias (__memmove_erms, __memcpy_erms)
-#  endif
+strong_alias (__memmove_chk_erms, __memcpy_chk_erms)
 # endif
 
 # ifdef SHARED
@@ -193,6 +203,7 @@ ENTRY (MEMMOVE_CHK_SYMBOL (__mempcpy_chk, unaligned_erms))
 	cmpq	%rdx, %rcx
 	jb	HIDDEN_JUMPTARGET (__chk_fail)
 END (MEMMOVE_CHK_SYMBOL (__mempcpy_chk, unaligned_erms))
+# endif
 
 ENTRY (MEMMOVE_SYMBOL (__mempcpy, unaligned_erms))
 	movq	%rdi, %rax
@@ -200,6 +211,7 @@ ENTRY (MEMMOVE_SYMBOL (__mempcpy, unaligned_erms))
 	jmp	L(start_erms)
 END (MEMMOVE_SYMBOL (__mempcpy, unaligned_erms))
 
+# ifdef SHARED
 ENTRY (MEMMOVE_CHK_SYMBOL (__memmove_chk, unaligned_erms))
 	cmpq	%rdx, %rcx
 	jb	HIDDEN_JUMPTARGET (__chk_fail)
@@ -535,19 +547,19 @@ L(loop_large_backward):
 #endif
 END (MEMMOVE_SYMBOL (__memmove, unaligned_erms))
 
-#ifdef SHARED
-# if IS_IN (libc)
-#  ifdef USE_MULTIARCH
+#if IS_IN (libc)
+# ifdef USE_MULTIARCH
 strong_alias (MEMMOVE_SYMBOL (__memmove, unaligned_erms),
 	      MEMMOVE_SYMBOL (__memcpy, unaligned_erms))
+#  ifdef SHARED
 strong_alias (MEMMOVE_SYMBOL (__memmove_chk, unaligned_erms),
 	      MEMMOVE_SYMBOL (__memcpy_chk, unaligned_erms))
 #  endif
+# endif
+# ifdef SHARED
 strong_alias (MEMMOVE_CHK_SYMBOL (__memmove_chk, unaligned),
 	      MEMMOVE_CHK_SYMBOL (__memcpy_chk, unaligned))
 # endif
 #endif
-#if VEC_SIZE == 16 || defined SHARED
 strong_alias (MEMMOVE_SYMBOL (__memmove, unaligned),
 	      MEMCPY_SYMBOL (__memcpy, unaligned))
-#endif

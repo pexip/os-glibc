@@ -61,7 +61,9 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <math-narrow-eval.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static double pone (double), qone (double);
 
@@ -112,11 +114,11 @@ __ieee754_j1 (double x)
        * y1(x) = 1/sqrt(pi) * (P(1,x)*ss + Q(1,x)*cc) / sqrt(x)
        */
       if (ix > 0x48000000)
-	z = (invsqrtpi * cc) / __ieee754_sqrt (y);
+	z = (invsqrtpi * cc) / sqrt (y);
       else
 	{
 	  u = pone (y); v = qone (y);
-	  z = invsqrtpi * (u * cc - v * ss) / __ieee754_sqrt (y);
+	  z = invsqrtpi * (u * cc - v * ss) / sqrt (y);
 	}
       if (hx < 0)
 	return -z;
@@ -174,7 +176,7 @@ __ieee754_y1 (double x)
   if (__glibc_unlikely (ix >= 0x7ff00000))
     return one / (x + x * x);
   if (__glibc_unlikely ((ix | lx) == 0))
-    return -HUGE_VAL + x;
+    return -1 / zero; /* -inf and divide by zero exception.  */
   /* -inf and overflow exception.  */;
   if (__glibc_unlikely (hx < 0))
     return zero / (zero * x);
@@ -203,11 +205,11 @@ __ieee754_y1 (double x)
        * to compute the worse one.
        */
       if (ix > 0x48000000)
-	z = (invsqrtpi * ss) / __ieee754_sqrt (x);
+	z = (invsqrtpi * ss) / sqrt (x);
       else
 	{
 	  u = pone (x); v = qone (x);
-	  z = invsqrtpi * (u * ss + v * cc) / __ieee754_sqrt (x);
+	  z = invsqrtpi * (u * ss + v * cc) / sqrt (x);
 	}
       return z;
     }

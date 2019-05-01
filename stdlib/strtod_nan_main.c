@@ -1,5 +1,5 @@
 /* Convert string for NaN payload to corresponding NaN.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,6 @@
    return a default NAN.  If ENDPTR is not NULL, set *ENDPTR to point
    to the character after the initial n-char-sequence.  */
 
-internal_function
 FLOAT
 STRTOD_NAN (const STRING_TYPE *str, STRING_TYPE **endptr, STRING_TYPE endc)
 {
@@ -53,7 +52,7 @@ STRTOD_NAN (const STRING_TYPE *str, STRING_TYPE **endptr, STRING_TYPE endc)
 
   mant = STRTOULL (str, &endp, 0);
   if (endp == cp)
-    SET_MANTISSA (retval, mant);
+    SET_NAN_PAYLOAD (retval, mant);
 
  out:
   if (endptr != NULL)

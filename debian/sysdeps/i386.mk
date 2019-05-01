@@ -1,10 +1,7 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch
-MIN_KERNEL_SUPPORTED := 2.6.32
+extra_config_options = --enable-multi-arch --enable-static-pie
 
-# Transitional dummy package, should be removed after Stretch release
-DEB_ARCH_REGULAR_PACKAGES += libc6-i686
-
+ifeq (,$(filter stage1 stage2, $(DEB_BUILD_PROFILES)))
 # We use -mno-tls-direct-seg-refs to not wrap-around segments, as it
 # greatly increase the speed when running under the 32bit Xen hypervisor.
 GLIBC_PASSES += xen
@@ -22,8 +19,18 @@ echo '# in the ld.so.cache file.'                                             >>
 echo 'hwcap 1 nosegneg'                                                       >> debian/libc6-xen/etc/ld.so.conf.d/libc6-xen.conf
 endef
 
+define libc6-dev_extra_pkg_install
+mkdir -p debian/libc6-dev/$(libdir)/xen
+cp -af debian/tmp-xen/$(libdir)/*.a \
+	debian/libc6-dev/$(libdir)/xen
+endef
+endif
+
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (amd64) alternative library
-GLIBC_MULTILIB_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
@@ -41,14 +48,6 @@ cp debian/tmp-amd64/usr/bin/ldd \
 	debian/tmp-libc/usr/bin
 endef
 
-ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-define libc6-dev_extra_pkg_install
-mkdir -p debian/libc6-dev/$(libdir)/xen
-cp -af debian/tmp-xen/$(libdir)/*.a \
-	debian/libc6-dev/$(libdir)/xen
-endef
-endif
-
 define libc6-dev-amd64_extra_pkg_install
 
 mkdir -p debian/libc6-dev-amd64/usr/include
@@ -57,8 +56,9 @@ ln -sf i386-linux-gnu/gnu debian/libc6-dev-amd64/usr/include/
 ln -sf i386-linux-gnu/fpu_control.h debian/libc6-dev-amd64/usr/include/
 
 mkdir -p debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
-        debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
+cp -a debian/tmp-amd64/usr/include/gnu/lib-names-64.h \
+	debian/tmp-amd64/usr/include/gnu/stubs-64.h \
+	debian/libc6-dev-amd64/usr/include/i386-linux-gnu/gnu
 
 mkdir -p debian/libc6-dev-amd64/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/i386-linux-gnu/sys` ; do \
@@ -68,7 +68,7 @@ done
 endef
 
 # build x32 ABI alternative library
-GLIBC_MULTILIB_PASSES += x32
+GLIBC_PASSES += x32
 DEB_ARCH_MULTILIB_PACKAGES += libc6-x32 libc6-dev-x32
 libc6-x32_shlib_dep = libc6-x32 (>= $(shlib_dep_ver))
 x32_configure_target = x86_64-linux-gnux32
@@ -82,7 +82,10 @@ x32_libdir = /usr/libx32
 define libc6-dev-x32_extra_pkg_install
 
 mkdir -p debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
-cp -a debian/tmp-x32/usr/include/gnu/stubs-x32.h \
+cp -a debian/tmp-x32/usr/include/gnu/lib-names-x32.h \
+	debian/tmp-x32/usr/include/gnu/stubs-x32.h \
 	debian/libc6-dev-x32/usr/include/i386-linux-gnu/gnu
 
 endef
+
+endif # multilib

@@ -1,5 +1,5 @@
 /* Convert string representing a number to float value, using given locale.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
@@ -17,9 +17,16 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <xlocale.h>
+#include <bits/floatn.h>
 
-extern float ____strtof_l_internal (const char *, char **, int, __locale_t);
+#if __HAVE_FLOAT32 && !__HAVE_DISTINCT_FLOAT32
+# define strtof32_l __hide_strtof32_l
+# define wcstof32_l __hide_wcstof32_l
+#endif
+
+#include <locale.h>
+
+extern float ____strtof_l_internal (const char *, char **, int, locale_t);
 
 #define	FLOAT		float
 #define	FLT		FLT
@@ -36,3 +43,13 @@ extern float ____strtof_l_internal (const char *, char **, int, __locale_t);
 #define	FLOAT_HUGE_VAL	HUGE_VALF
 
 #include "strtod_l.c"
+
+#if __HAVE_FLOAT32 && !__HAVE_DISTINCT_FLOAT32
+# undef strtof32_l
+# undef wcstof32_l
+# ifdef USE_WIDE_CHAR
+weak_alias (wcstof_l, wcstof32_l)
+# else
+weak_alias (strtof_l, strtof32_l)
+# endif
+#endif

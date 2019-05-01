@@ -59,6 +59,7 @@
  */
 
 #include <math.h>
+#include <math-barriers.h>
 #include <math_private.h>
 
 static double pzero (double), qzero (double);
@@ -109,11 +110,11 @@ __ieee754_j0 (double x)
        * y0(x) = 1/sqrt(pi) * (P(0,x)*ss + Q(0,x)*cc) / sqrt(x)
        */
       if (ix > 0x48000000)
-	z = (invsqrtpi * cc) / __ieee754_sqrt (x);
+	z = (invsqrtpi * cc) / sqrt (x);
       else
 	{
 	  u = pzero (x); v = qzero (x);
-	  z = invsqrtpi * (u * cc - v * ss) / __ieee754_sqrt (x);
+	  z = invsqrtpi * (u * cc - v * ss) / sqrt (x);
 	}
       return z;
     }
@@ -169,7 +170,7 @@ __ieee754_y0 (double x)
   if (ix >= 0x7ff00000)
     return one / (x + x * x);
   if ((ix | lx) == 0)
-    return -HUGE_VAL + x;                  /* -inf and overflow exception.  */
+    return -1 / zero; /* -inf and divide by zero exception.  */
   if (hx < 0)
     return zero / (zero * x);
   if (ix >= 0x40000000)         /* |x| >= 2.0 */
@@ -200,11 +201,11 @@ __ieee754_y0 (double x)
 	    ss = z / cc;
 	}
       if (ix > 0x48000000)
-	z = (invsqrtpi * ss) / __ieee754_sqrt (x);
+	z = (invsqrtpi * ss) / sqrt (x);
       else
 	{
 	  u = pzero (x); v = qzero (x);
-	  z = invsqrtpi * (u * ss + v * cc) / __ieee754_sqrt (x);
+	  z = invsqrtpi * (u * ss + v * cc) / sqrt (x);
 	}
       return z;
     }

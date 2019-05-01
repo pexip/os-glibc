@@ -1,5 +1,5 @@
 /* Measure string and memory functions.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,18 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <getopt.h>
 #include <sys/cdefs.h>
+
+/* We are compiled under _ISOMAC, so libc-symbols.h does not do this
+   for us.  */
+#include "config.h"
+#ifdef HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
+# define inhibit_loop_to_libcall \
+    __attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
+#else
+# define inhibit_loop_to_libcall
+#endif
 
 typedef struct
 {
@@ -55,7 +66,7 @@ extern impl_t __start_impls[], __stop_impls[];
 # include "bench-timing.h"
 
 
-# define TEST_FUNCTION test_main ()
+# define TEST_FUNCTION test_main
 # ifndef TIMEOUT
 #  define TIMEOUT (4 * 60)
 # endif
@@ -87,24 +98,31 @@ size_t iterations = 100000;
 # define CMDLINE_OPTIONS ITERATIONS_OPTIONS \
     { "random", no_argument, NULL, OPT_RANDOM },			      \
     { "seed", required_argument, NULL, OPT_SEED },
-# define CMDLINE_PROCESS ITERATIONS_PROCESS \
-    case OPT_RANDOM:							      \
-      {									      \
-	int fdr = open ("/dev/urandom", O_RDONLY);			      \
-									      \
-	if (fdr < 0 || read (fdr, &seed, sizeof(seed)) != sizeof (seed))      \
-	  seed = time (NULL);						      \
-	if (fdr >= 0)							      \
-	  close (fdr);							      \
-	do_srandom = 1;							      \
-	break;								      \
-      }									      \
-									      \
-    case OPT_SEED:							      \
-      seed = strtoul (optarg, NULL, 0);					      \
-      do_srandom = 1;							      \
-      break;
 
+static void __attribute__ ((used))
+cmdline_process_function (int c)
+{
+  switch (c)
+    {
+      ITERATIONS_PROCESS
+      case OPT_RANDOM:
+	{
+	  int fdr = open ("/dev/urandom", O_RDONLY);
+	  if (fdr < 0 || read (fdr, &seed, sizeof(seed)) != sizeof (seed))
+	    seed = time (NULL);
+	  if (fdr >= 0)
+	    close (fdr);
+	  do_srandom = 1;
+	  break;
+	}
+
+      case OPT_SEED:
+	seed = strtoul (optarg, NULL, 0);
+	do_srandom = 1;
+      break;
+    }
+}
+# define CMDLINE_PROCESS cmdline_process_function
 # define CALL(impl, ...)	\
     (* (proto_t) (impl)->fn) (__VA_ARGS__)
 
@@ -165,14 +183,8 @@ static impl_t *impl_array;
 # endif
 
 static void
-test_init (void)
+alloc_bufs (void)
 {
-# ifdef TEST_NAME
-  func_count = __libc_ifunc_impl_list (TEST_NAME, func_list,
-				       (sizeof func_list
-					/ sizeof func_list[0]));
-# endif
-
   page_size = 2 * getpagesize ();
 # ifdef MIN_PAGE_SIZE
   if (page_size < MIN_PAGE_SIZE)
@@ -181,23 +193,54 @@ test_init (void)
   buf1 = mmap (0, (BUF1PAGES + 1) * page_size, PROT_READ | PROT_WRITE,
 	       MAP_PRIVATE | MAP_ANON, -1, 0);
   if (buf1 == MAP_FAILED)
-    error (EXIT_FAILURE, errno, "mmap failed");
+    error (EXIT_FAILURE, errno, "mmap failed for buf1");
   if (mprotect (buf1 + BUF1PAGES * page_size, page_size, PROT_NONE))
-    error (EXIT_FAILURE, errno, "mprotect failed");
+    error (EXIT_FAILURE, errno, "mprotect failed for buf1");
   buf2 = mmap (0, 2 * page_size, PROT_READ | PROT_WRITE,
 	       MAP_PRIVATE | MAP_ANON, -1, 0);
   if (buf2 == MAP_FAILED)
-    error (EXIT_FAILURE, errno, "mmap failed");
+    error (EXIT_FAILURE, errno, "mmap failed for buf2");
   if (mprotect (buf2 + page_size, page_size, PROT_NONE))
-    error (EXIT_FAILURE, errno, "mprotect failed");
+    error (EXIT_FAILURE, errno, "mprotect failed for buf2");
+}
+
+static void
+__attribute__ ((unused))
+realloc_bufs (void)
+{
+  int ret = 0;
+
+  if (buf1)
+    ret = munmap (buf1, (BUF1PAGES + 1) * page_size);
+
+  if (ret != 0)
+    error (EXIT_FAILURE, errno, "munmap failed for buf1");
+
+  if (buf2)
+    ret = munmap (buf2, 2 * page_size);
+
+  if (ret != 0)
+    error (EXIT_FAILURE, errno, "munmap failed for buf2");
+
+  alloc_bufs ();
+}
+
+static void
+test_init (void)
+{
+# ifdef TEST_NAME
+  func_count = __libc_ifunc_impl_list (TEST_NAME, func_list,
+				       (sizeof func_list
+					/ sizeof func_list[0]));
+# endif
+
+  alloc_bufs ();
+
   if (do_srandom)
     {
       printf ("Setting seed to 0x%x\n", seed);
       srandom (seed);
     }
-
-  memset (buf1, 0xa5, BUF1PAGES * page_size);
-  memset (buf2, 0x5a, page_size);
 }
 
 #endif /* TEST_MAIN */

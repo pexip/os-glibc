@@ -1,6 +1,6 @@
 /* Copy a sign bit between floating-point values.
    IBM extended format long double version.
-   Copyright (C) 2004-2016 Free Software Foundation, Inc.
+   Copyright (C) 2004-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #include <sysdep.h>
 #include <math_ldbl_opt.h>
 
-ENTRY(__fabsl)
+ENTRY_TOCLESS (__fabsl)
 /* long double [f1,f2] fabs (long double [f1,f2] x);
    fabs(x,y) returns a value with the magnitude of x and
    with the sign bit of y.  */

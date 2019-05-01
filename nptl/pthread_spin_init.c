@@ -1,5 +1,5 @@
 /* pthread_spin_init -- initialize a spin lock.  Generic version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
@@ -22,6 +22,7 @@
 int
 pthread_spin_init (pthread_spinlock_t *lock, int pshared)
 {
-  *lock = 0;
+  /* Relaxed MO is fine because this is an initializing store.  */
+  atomic_store_relaxed (lock, 0);
   return 0;
 }

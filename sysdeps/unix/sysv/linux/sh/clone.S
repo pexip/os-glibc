@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -66,57 +66,21 @@ ENTRY(__clone)
 2:
 	/* terminate the stack frame */
 	mov	#0, r14
-	mov	r4, r0
-	shlr8	r0
-	tst	#1, r0			// CLONE_VM = (1 << 8)
-	bf/s	4f
-	 mov	r4, r0
-	/* new pid */
-	mov	#+SYS_ify(getpid), r3
-	trapa	#0x15
-3:
-	stc	gbr, r1
-	mov.w	.Lpidoff, r2
-	add	r1, r2
-	mov.l	r0, @r2
-	mov.w	.Ltidoff, r2
-	add	r1, r2
-	mov.l	r0, @r2
-4:
+
 	/* thread starts */
 	mov.l	@r15, r1
 	jsr	@r1
 	 mov.l	@(4,r15), r4
 
 	/* we are done, passing the return value through r0  */
-	mov.l	.L3, r1
-#ifdef SHARED
-	mov.l	r12, @-r15
-	sts.l	pr, @-r15
-	mov	r0, r4
-	mova	.LG, r0
-	mov.l	.LG, r12
-	add	r0, r12
-	mova	.L3, r0
-	add	r0, r1
-	jsr	@r1
-	 nop
-	lds.l	@r15+, pr
-	rts
-	 mov.l	@r15+, r12
-#else
-	jmp	@r1
-	 mov	r0, r4
-#endif
+	mov     r0, r4
+	mov	#+SYS_ify(exit), r3
+	trapa	#0x15
 	.align	2
 .LG:
 	.long	_GLOBAL_OFFSET_TABLE_
 .L3:
 	.long	PLTJMP(C_SYMBOL_NAME(_exit))
-.Lpidoff:
-	.word	PID - TLS_PRE_TCB_SIZE
-.Ltidoff:
-	.word	TID - TLS_PRE_TCB_SIZE
 PSEUDO_END (__clone)
 
 libc_hidden_def (__clone)

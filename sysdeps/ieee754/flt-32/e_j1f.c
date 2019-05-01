@@ -16,7 +16,9 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <math-narrow-eval.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static float ponef(float), qonef(float);
 
@@ -61,10 +63,10 @@ __ieee754_j1f(float x)
 	 * j1(x) = 1/sqrt(pi) * (P(1,x)*cc - Q(1,x)*ss) / sqrt(x)
 	 * y1(x) = 1/sqrt(pi) * (P(1,x)*ss + Q(1,x)*cc) / sqrt(x)
 	 */
-		if(ix>0x48000000) z = (invsqrtpi*cc)/__ieee754_sqrtf(y);
+		if(ix>0x48000000) z = (invsqrtpi*cc)/sqrtf(y);
 		else {
 		    u = ponef(y); v = qonef(y);
-		    z = invsqrtpi*(u*cc-v*ss)/__ieee754_sqrtf(y);
+		    z = invsqrtpi*(u*cc-v*ss)/sqrtf(y);
 		}
 		if(hx<0) return -z;
 		else	 return  z;
@@ -112,7 +114,7 @@ __ieee754_y1f(float x)
     /* if Y1(NaN) is NaN, Y1(-inf) is NaN, Y1(inf) is 0 */
 	if(__builtin_expect(ix>=0x7f800000, 0)) return  one/(x+x*x);
 	if(__builtin_expect(ix==0, 0))
-		return -HUGE_VALF+x;  /* -inf and overflow exception.  */
+		return -1/zero; /* -inf and divide by zero exception.  */
 	if(__builtin_expect(hx<0, 0)) return zero/(zero*x);
 	if(ix >= 0x40000000) {  /* |x| >= 2.0 */
 		SET_RESTORE_ROUNDF (FE_TONEAREST);
@@ -135,10 +137,10 @@ __ieee754_y1f(float x)
 	 *              sin(x) +- cos(x) = -cos(2x)/(sin(x) -+ cos(x))
 	 * to compute the worse one.
 	 */
-		if(ix>0x48000000) z = (invsqrtpi*ss)/__ieee754_sqrtf(x);
+		if(ix>0x48000000) z = (invsqrtpi*ss)/sqrtf(x);
 		else {
 		    u = ponef(x); v = qonef(x);
-		    z = invsqrtpi*(u*ss+v*cc)/__ieee754_sqrtf(x);
+		    z = invsqrtpi*(u*ss+v*cc)/sqrtf(x);
 		}
 		return z;
 	}

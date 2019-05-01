@@ -3,14 +3,6 @@
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
 
-# We want to log output to a logfile but we also need to preserve the
-# return code of the command being run.
-# This little bit of magic makes it possible:
-# $(call logme, [-a] <log file>, <cmd>)
-define logme
-(exec 3>&1; exit `( ( ( $(2) ) 2>&1 3>&-; echo $$? >&4) | tee $(1) >&3) 4>&1`)
-endef
-
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \
                                --enable-hacker-mode
@@ -20,14 +12,19 @@ ifdef WITH_SYSROOT
     libc_extra_config_options += --with-headers=$(WITH_SYSROOT)/$(includedir)
 endif
 
+$(stamp)config_sub_guess: $(stamp)patch
+	@echo Updating config.sub and config.guess
+	dh_update_autotools_config
+	touch $@
+
 $(patsubst %,mkbuilddir_%,$(GLIBC_PASSES)) :: mkbuilddir_% : $(stamp)mkbuilddir_%
-$(stamp)mkbuilddir_%: $(stamp)patch $(KERNEL_HEADER_DIR)
+$(stamp)mkbuilddir_%:
 	@echo Making builddir for $(curpass)
 	test -d $(DEB_BUILDDIR) || mkdir -p $(DEB_BUILDDIR)
 	touch $@
 
 $(patsubst %,configure_%,$(GLIBC_PASSES)) :: configure_% : $(stamp)configure_%
-$(stamp)configure_%: $(stamp)mkbuilddir_%
+$(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR) $(stamp)mkbuilddir_%
 	@echo Configuring $(curpass)
 	rm -f $(DEB_BUILDDIR)/configparms
 	echo "MIG = $(call xx,MIG)"               >> $(DEB_BUILDDIR)/configparms
@@ -75,9 +72,9 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	$(call logme, -a $(log_build), echo -n "Build started: " ; date --rfc-2822 ; echo "---------------") ; \
-	$(call logme, -a $(log_build), \
-		cd $(DEB_BUILDDIR) && \
+	echo -n "Build started: " ; date --rfc-2822
+	echo "---------------"
+	cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
 		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX)") \
 		MIG="$(call xx,MIG)" \
@@ -89,13 +86,15 @@ $(stamp)configure_%: $(stamp)mkbuilddir_%
 		--enable-add-ons=$(standard-add-ons)"$(call xx,add-ons)" \
 		--without-selinux \
 		--enable-stackguard-randomization \
+		--enable-stack-protector=strong \
 		--enable-obsolete-rpc \
+		--enable-obsolete-nsl \
 		--with-pkgversion="Debian GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
 		$(if $(filter $(call xx,mvec),no),--disable-mathvec) \
-		$(call xx,with_headers) $(call xx,extra_config_options))
+		$(call xx,with_headers) $(call xx,extra_config_options)
 	touch $@
 
 $(patsubst %,build_%,$(GLIBC_PASSES)) :: build_% : $(stamp)build_%
@@ -105,8 +104,9 @@ $(stamp)build_%: $(stamp)configure_%
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	$(MAKE) cross-compiling=yes -C $(DEB_BUILDDIR) $(NJOBS) csu/subdir_lib
 else
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS))
-	$(call logme, -a $(log_build), echo "---------------" ; echo -n "Build ended: " ; date --rfc-2822)
+	$(MAKE) -C $(DEB_BUILDDIR) $(NJOBS)
+	echo "---------------"
+	echo -n "Build ended: " ; date --rfc-2822
 endif
 	touch $@
 
@@ -124,7 +124,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	else \
 	  find $(DEB_BUILDDIR) -name '*.out' -delete ; \
-	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="15" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check 2>&1 | tee $(log_test) ; \
+	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
 	  if ! test -f $(DEB_BUILDDIR)/tests.sum ; then \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "|                     Testsuite failed to build.                      |" ; \
@@ -159,14 +159,25 @@ $(stamp)check_%: $(stamp)build_%
 	fi
 	touch $@
 
+# Make sure to use the just built iconvconfig for native builds. When
+# cross-compiling use the system iconvconfig. A cross-specific
+# build-dependency makes sure that the correct version is used, as
+# the format might change between upstream versions.
+ifeq ($(DEB_BUILD_ARCH),$(DEB_HOST_ARCH))
+ICONVCONFIG = $(CURDIR)/$(DEB_BUILDDIRLIBC)/elf/ld.so --library-path $(CURDIR)/$(DEB_BUILDDIRLIBC) \
+	      $(CURDIR)/$(DEB_BUILDDIRLIBC)/iconv/iconvconfig
+else
+ICONVCONFIG = /usr/sbin/iconvconfig
+endif
+
 $(patsubst %,install_%,$(GLIBC_PASSES)) :: install_% : $(stamp)install_%
 $(stamp)install_%: $(stamp)build_%
 	@echo Installing $(curpass)
 	rm -rf $(CURDIR)/debian/tmp-$(curpass)
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
-	$(call logme, -a $(log_build), $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS)	\
+	$(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) \
 	    cross-compiling=yes install_root=$(CURDIR)/debian/tmp-$(curpass)	\
-	    install-bootstrap-headers=yes install-headers )
+	    install-bootstrap-headers=yes install-headers
 
 	install -d $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)
 	install -m 644 $(DEB_BUILDDIR)/csu/crt[01in].o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/.
@@ -201,9 +212,9 @@ else
 
 	# Generate gconv-modules.cache
 	case $(curpass)-$(call xx,slibdir) in libc-* | *-/lib32 | *-/lib64 | *-/libo32 | *-/libx32) \
-	  /usr/sbin/iconvconfig --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
-				-o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
-				$(call xx,libdir)/gconv \
+	  $(ICONVCONFIG) --nostdlib --prefix=$(CURDIR)/debian/tmp-$(curpass) \
+			 -o $(CURDIR)/debian/tmp-$(curpass)/$(call xx,libdir)/gconv/gconv-modules.cache \
+			 $(call xx,libdir)/gconv \
 	  ;; \
 	esac
 
@@ -212,6 +223,13 @@ else
 	  $(MAKE) -f debian/generate-supported.mk IN=localedata/SUPPORTED \
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
+
+ifeq ($(DEB_HOST_ARCH_OS),linux)
+	# Install the Python pretty printers
+	mkdir -p $(CURDIR)/debian/tmp-$(curpass)/usr/share/gdb/auto-load/$(call xx,slibdir)
+	perl -pe 'BEGIN {undef $$/; open(IN, "$(DEB_BUILDDIR)/nptl/nptl_lock_constants.py"); $$j=<IN>;} s/from nptl_lock_constants import \*/$$j/g;' \
+		$(CURDIR)/nptl/nptl-printers.py > $(CURDIR)/debian/tmp-$(curpass)/usr/share/gdb/auto-load/$(call xx,slibdir)/libpthread-$(GLIBC_VERSION).so-gdb.py
+endif
 endif
 
 	# Create the multiarch directories, and the configuration file in /etc/ld.so.conf.d
@@ -219,9 +237,11 @@ endif
 	  mkdir -p debian/tmp-$(curpass)/etc/ld.so.conf.d; \
 	  conffile="debian/tmp-$(curpass)/etc/ld.so.conf.d/$(DEB_HOST_MULTIARCH).conf"; \
 	  echo "# Multiarch support" > $$conffile; \
+	  echo "/usr/local/lib/$(DEB_HOST_MULTIARCH)" >> $$conffile; \
 	  echo "$(call xx,slibdir)" >> $$conffile; \
 	  echo "$(call xx,libdir)" >> $$conffile; \
 	  if [ "$(DEB_HOST_GNU_TYPE)" != "$(DEB_HOST_MULTIARCH)" ]; then \
+	    echo "/usr/local/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
 	    echo "/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
 	    echo "/usr/lib/$(DEB_HOST_GNU_TYPE)" >> $$conffile; \
 	  fi; \
@@ -317,14 +337,14 @@ $(stamp)build_locales-all: $(stamp)/build_libc
 
 $(stamp)source: $(stamp)patch
 	mkdir -p $(build-tree)
-	cd .. && \
-		find $(GLIBC_SOURCES) -print0 | \
-		LC_ALL=C sort -z | \
-		tar -c -J --null --no-recursion -T - \
-			--mode=go=rX,u+rw,a-s \
-			--clamp-mtime --mtime "@$(SOURCE_DATE_EPOCH)" \
-			--owner=root --group=root --numeric-owner \
-			-f $(CURDIR)/$(build-tree)/glibc-$(GLIBC_VERSION).tar.xz
+	find $(GLIBC_SOURCES) -print0 | \
+	LC_ALL=C sort -z | \
+	tar -c -J --null --no-recursion -T - \
+		--mode=go=rX,u+rw,a-s \
+		--clamp-mtime --mtime "@$(SOURCE_DATE_EPOCH)" \
+		--owner=root --group=root --numeric-owner \
+		--xform='s=^=glibc-$(GLIBC_VERSION)/=' \
+		-f $(CURDIR)/$(build-tree)/glibc-$(GLIBC_VERSION).tar.xz
 	mkdir -p debian/glibc-source/usr/src/glibc
 	tar cf - --files-from debian/glibc-source.filelist \
 		--clamp-mtime --mtime "@$(SOURCE_DATE_EPOCH)" \

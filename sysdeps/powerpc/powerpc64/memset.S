@@ -1,5 +1,5 @@
 /* Optimized memset implementation for PowerPC64.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,14 +24,18 @@
 	.section	".text"
 	.align 2
 
-/* __ptr_t [r3] memset (__ptr_t s [r3], int c [r4], size_t n [r5]));
+/* void * [r3] memset (void *s [r3], int c [r4], size_t n [r5]));
    Returns 's'.
 
    The memset is done in three sizes: byte (8 bits), word (32 bits),
    cache line (256 bits). There is a special case for setting cache lines
    to 0, to take advantage of the dcbz instruction.  */
 
-EALIGN (memset, 5, 0)
+#ifndef MEMSET
+# define MEMSET memset
+#endif
+
+ENTRY (MEMSET, 5)
 	CALL_MCOUNT 3
 
 #define rTMP	r0
@@ -244,7 +248,7 @@ L(medium_27f):
 L(medium_28t):
 	std	rCHR, -8(rMEMP)
 	blr
-END_GEN_TB (memset,TB_TOCLESS)
+END_GEN_TB (MEMSET,TB_TOCLESS)
 libc_hidden_builtin_def (memset)
 
 #ifndef NO_BZERO_IMPL

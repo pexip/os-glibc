@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  IA-64 version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -45,7 +45,7 @@ __ia64_init_bootstrap_fdesc_table (struct link_map *map)
 }
 
 #define ELF_MACHINE_BEFORE_RTLD_RELOC(dynamic_info)		\
-	__ia64_init_bootstrap_fdesc_table (&bootstrap_map);
+	__ia64_init_bootstrap_fdesc_table (BOOTSTRAP_MAP);
 
 /* Return nonzero iff ELF header is compatible with the running host.  */
 static inline int __attribute__ ((unused))
@@ -333,6 +333,7 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 /* Fixup a PLT entry to bounce directly to the function at VALUE.  */
 static inline struct fdesc __attribute__ ((always_inline))
 elf_machine_fixup_plt (struct link_map *l, lookup_t t,
+		       const ElfW(Sym) *refsym, const ElfW(Sym) *sym,
 		       const Elf64_Rela *reloc,
 		       Elf64_Addr *reloc_addr, struct fdesc value)
 {
@@ -418,13 +419,13 @@ elf_machine_rela (struct link_map *map,
       /* RESOLVE_MAP() will return NULL if it fail to locate the symbol.  */
       if ((sym_map = RESOLVE_MAP (&sym, version, r_type)))
 	{
-	  value = sym_map->l_addr + sym->st_value + reloc->r_addend;
+	  value = SYMBOL_ADDRESS (sym_map, sym, true) + reloc->r_addend;
 
 	  if (R_IA64_TYPE (r_type) == R_IA64_TYPE (R_IA64_DIR64LSB))
 	    ;/* No adjustment.  */
 	  else if (r_type == R_IA64_IPLTLSB)
 	    {
-	      elf_machine_fixup_plt (NULL, NULL, reloc, reloc_addr,
+	      elf_machine_fixup_plt (NULL, NULL, NULL, NULL, reloc, reloc_addr,
 				     DL_FIXUP_MAKE_VALUE (sym_map, value));
 	      return;
 	    }

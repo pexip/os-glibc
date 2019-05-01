@@ -5,12 +5,6 @@ dnl It is always possible to access static and hidden symbols in an
 dnl position independent way.
 AC_DEFINE(PI_STATIC_AND_HIDDEN)
 
-dnl Accept as 2.24 or newer.
-AC_CHECK_PROG_VER(AS, $AS, --version,
-		  [GNU assembler.* \([0-9]*\.[0-9.]*\)],
-		  [2.2[4-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*], critic_missing="$critic_missing The program AS is required in version >= 2.24 for target S390.")
-
-
 AC_CACHE_CHECK(for __builtin_tbegin, libc_cv_gcc_builtin_tbegin, [dnl
 cat > conftest.c <<\EOF
 #include <htmintrin.h>
@@ -32,7 +26,7 @@ else
 fi
 rm -f conftest* ])
 
-if test "$enable_lock_elision" = yes && test "$libc_cv_gcc_builtin_tbegin" = no ; then
+if test "$libc_cv_gcc_builtin_tbegin" = no ; then
    critic_missing="$critic_missing The used GCC has no support for __builtin_tbegin, which is needed for lock-elision on target S390."
 fi
 
@@ -84,6 +78,32 @@ rm -f conftest* ])
 if test "$libc_cv_gcc_s390_vx" = yes ;
 then
   AC_DEFINE(HAVE_S390_VX_GCC_SUPPORT)
+fi
+
+AC_CACHE_CHECK(for S390 z196 zarch instruction support as default,
+	       libc_cv_asm_s390_min_z196_zarch, [dnl
+cat > conftest.c <<\EOF
+float testinsn (double e)
+{
+    float d;
+    __asm__ ("ledbra %0,5,%1,4" : "=f" (d) : "f" (e) );
+    return d;
+}
+EOF
+dnl
+dnl test, if assembler supports S390 z196 zarch instructions as default
+if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS --shared conftest.c
+			-o conftest.o &> /dev/null]) ;
+then
+  libc_cv_asm_s390_min_z196_zarch=yes
+else
+  libc_cv_asm_s390_min_z196_zarch=no
+fi
+rm -f conftest* ])
+
+if test "$libc_cv_asm_s390_min_z196_zarch" = yes ;
+then
+  AC_DEFINE(HAVE_S390_MIN_Z196_ZARCH_ASM_SUPPORT)
 fi
 
 test -n "$critic_missing" && AC_MSG_ERROR([

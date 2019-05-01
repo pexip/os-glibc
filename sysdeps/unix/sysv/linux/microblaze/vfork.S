@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -43,3 +43,4 @@ PSEUDO_END (__vfork)
 libc_hidden_def (__vfork)
 
 weak_alias (__vfork, vfork)
+strong_alias (__vfork, __libc_vfork)

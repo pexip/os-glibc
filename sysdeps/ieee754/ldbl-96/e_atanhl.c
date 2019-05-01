@@ -34,7 +34,9 @@
 
 #include <float.h>
 #include <math.h>
+#include <math-barriers.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const long double one = 1.0, huge = 1e4900L;
 
@@ -45,7 +47,7 @@ __ieee754_atanhl(long double x)
 {
 	long double t;
 	int32_t ix;
-	u_int32_t se,i0,i1;
+	uint32_t se,i0,i1;
 	GET_LDOUBLE_WORDS(se,i0,i1,x);
 	ix = se&0x7fff;
 	if ((ix+((((i0&0x7fffffff)|i1)|(-((i0&0x7fffffff)|i1)))>>31))>0x3fff)

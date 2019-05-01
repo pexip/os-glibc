@@ -1,5 +1,5 @@
 /* Determine protocol families for which interfaces exist.  Linux version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -313,7 +313,7 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
     }
   else
     {
-      int fd = __socket (PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+      int fd = __socket (PF_NETLINK, SOCK_RAW | SOCK_CLOEXEC, NETLINK_ROUTE);
 
       if (__glibc_likely (fd >= 0))
 	{
@@ -328,7 +328,7 @@ __check_pf (bool *seen_ipv4, bool *seen_ipv6,
 				&addr_len) == 0)
 	    data = make_request (fd, nladdr.nl_pid);
 
-	  close_not_cancel_no_status (fd);
+	  __close_nocancel_nostatus (fd);
 	}
 
       if (data != NULL)

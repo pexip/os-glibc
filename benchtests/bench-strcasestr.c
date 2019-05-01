@@ -1,5 +1,5 @@
 /* Measure strcasestr functions.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #define STRCASESTR simple_strcasestr
 #define NO_ALIAS
 #define __strncasecmp strncasecmp
+#define __strnlen strnlen
 #include "../string/strcasestr.c"
 
 
@@ -177,4 +178,4 @@ test_main (void)
   return ret;
 }
 
-#include "../test-skeleton.c"
+#include <support/test-driver.c>

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Ulrich Drepper <drepper@gnu.org>, 1995.
 
@@ -665,7 +665,7 @@ do_xfrm_cached (STRING_TYPE *dest, size_t n, const locale_data_t *l_data,
 }
 
 size_t
-STRXFRM (STRING_TYPE *dest, const STRING_TYPE *src, size_t n, __locale_t l)
+STRXFRM (STRING_TYPE *dest, const STRING_TYPE *src, size_t n, locale_t l)
 {
   locale_data_t l_data;
   struct __locale_data *current = l->__locales[LC_COLLATE];

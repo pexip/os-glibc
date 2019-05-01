@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,11 +39,12 @@
 #define	IP_RECVDSTADDR	7	/* bool; Receive IP dst addr w/datagram.  */
 #define	IP_RETOPTS	8	/* ip_opts; Set/get IP per-packet options.  */
 #define IP_MULTICAST_IF 9	/* in_addr; set/get IP multicast i/f */
-#define IP_MULTICAST_TTL 10	/* u_char; set/get IP multicast ttl */
-#define IP_MULTICAST_LOOP 11	/* i_char; set/get IP multicast loopback */
+#define IP_MULTICAST_TTL 10	/* unsigned char; set/get IP multicast ttl */
+#define IP_MULTICAST_LOOP 11	/* bool; set/get IP multicast loopback */
 #define IP_ADD_MEMBERSHIP 12	/* ip_mreq; add an IP group membership */
 #define IP_DROP_MEMBERSHIP 13	/* ip_mreq; drop an IP group membership */
 
+#ifdef __USE_MISC
 /* Structure used to describe IP options for IP_OPTIONS and IP_RETOPTS.
    The `ip_dst' field is used for the first-hop gateway when using a
    source route (this gets put into the header proper).  */
@@ -52,6 +53,7 @@ struct ip_opts
     struct in_addr ip_dst;	/* First hop; zero without source route.  */
     char ip_opts[40];		/* Actually variable in size.  */
   };
+#endif
 
 /* Socket-level values for IPv6.  */
 #define SOL_IPV6		41

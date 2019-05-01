@@ -1,5 +1,5 @@
 /* pthread_spin_unlock -- unlock a spin lock.  Generic version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
@@ -23,7 +23,9 @@
 int
 pthread_spin_unlock (pthread_spinlock_t *lock)
 {
-  atomic_full_barrier ();
-  *lock = 0;
+  /* The atomic_store_release synchronizes-with the atomic_exchange_acquire
+     or atomic_compare_exchange_weak_acquire in pthread_spin_lock /
+     pthread_spin_trylock.  */
+  atomic_store_release (lock, 0);
   return 0;
 }

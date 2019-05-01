@@ -1,5 +1,5 @@
 /* Multiple versions of isnan.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,17 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#define __isnan __redirect___isnan
+
+/* The following definitions, although not related to the 'double'
+   version of 'isnan', are required to guarantee macro expansions
+   (e.g.: from __isnanf to __redirect_isnanf) in include/math.h, thus
+   compensating for the unintended macro expansions in
+   math/bits/mathcalls-helper-functions.h.  */
+#define __isnanf __redirect___isnanf
+#define __isnanl __redirect___isnanl
+#define __isnanf128 __redirect___isnanf128
+
 #include <math.h>
 #include <math_ldbl_opt.h>
 #include <shlib-compat.h>
@@ -27,19 +38,23 @@ extern __typeof (__isnan) __isnan_power6 attribute_hidden;
 extern __typeof (__isnan) __isnan_power6x attribute_hidden;
 extern __typeof (__isnan) __isnan_power7 attribute_hidden;
 extern __typeof (__isnan) __isnan_power8 attribute_hidden;
+#undef __isnan
+#undef __isnanf
+#undef __isnanl
+#undef __isnanf128
 
-libc_ifunc (__isnan,
-	    (hwcap2 & PPC_FEATURE2_ARCH_2_07)
-	    ? __isnan_power8 :
-	      (hwcap & PPC_FEATURE_ARCH_2_06)
-	      ? __isnan_power7 :
-		(hwcap & PPC_FEATURE_POWER6_EXT)
-		? __isnan_power6x :
-		  (hwcap & PPC_FEATURE_ARCH_2_05)
-		    ? __isnan_power6 :
-		    (hwcap & PPC_FEATURE_POWER5)
-		      ? __isnan_power5
-            : __isnan_ppc64);
+libc_ifunc_redirected (__redirect___isnan, __isnan,
+		       (hwcap2 & PPC_FEATURE2_ARCH_2_07)
+		       ? __isnan_power8
+		       : (hwcap & PPC_FEATURE_ARCH_2_06)
+			 ? __isnan_power7
+			 : (hwcap & PPC_FEATURE_POWER6_EXT)
+			   ? __isnan_power6x
+			   : (hwcap & PPC_FEATURE_ARCH_2_05)
+			     ? __isnan_power6
+			     : (hwcap & PPC_FEATURE_POWER5)
+			       ? __isnan_power5
+			       : __isnan_ppc64);
 
 weak_alias (__isnan, isnan)
 

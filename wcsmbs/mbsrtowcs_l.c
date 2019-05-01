@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@gnu.org>, 2002.
 
@@ -38,7 +38,7 @@
 size_t
 attribute_hidden
 __mbsrtowcs_l (wchar_t *dst, const char **src, size_t len, mbstate_t *ps,
-	       __locale_t l)
+	       locale_t l)
 {
   struct __gconv_step_data data;
   size_t result;

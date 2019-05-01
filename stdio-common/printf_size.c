@@ -1,5 +1,5 @@
 /* Print size value using units for orders of magnitude.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
    Based on a proposal by Larry McVoy <lm@sgi.com>.
@@ -24,18 +24,12 @@
 #include <printf.h>
 #include <libioP.h>
 
-
-/* This defines make it possible to use the same code for GNU C library and
-   the GNU I/O library.	 */
 #define PUT(f, s, n) _IO_sputn (f, s, n)
 #define PAD(f, c, n) (wide ? _IO_wpadn (f, c, n) : _IO_padn (f, c, n))
-/* We use this file GNU C library and GNU I/O library.	So make
-   names equal.	 */
 #undef putc
 #define putc(c, f) (wide \
 		    ? (int)_IO_putwc_unlocked (c, f) : _IO_putc_unlocked (c, f))
-#define size_t	_IO_size_t
-#define FILE	_IO_FILE
+
 
 /* Macros for doing the actual output.  */
 
@@ -104,6 +98,9 @@ __printf_size (FILE *fp, const struct printf_info *info,
     {
       union ieee754_double dbl;
       long double ldbl;
+#if __HAVE_DISTINCT_FLOAT128
+      _Float128 f128;
+#endif
     }
   fpnum;
   const void *ptr = &fpnum;
@@ -118,57 +115,45 @@ __printf_size (FILE *fp, const struct printf_info *info,
   int done = 0;
   int wide = info->wide;
 
+#define PRINTF_SIZE_FETCH(FLOAT, VAR)					\
+  {									\
+    (VAR) = *(const FLOAT *) args[0];					\
+									\
+    /* Check for special values: not a number or infinity.  */		\
+    if (isnan (VAR))							\
+      {									\
+	special = "nan";						\
+	wspecial = L"nan";						\
+	/* is_neg = 0; Already zero */					\
+      }									\
+    else if (isinf (VAR))						\
+      {									\
+	is_neg = signbit (VAR);						\
+	special = "inf";						\
+	wspecial = L"inf";						\
+      }									\
+    else								\
+      while ((VAR) >= divisor && tag[1] != '\0')			\
+	{								\
+	  (VAR) /= divisor;						\
+	  ++tag;							\
+	}								\
+  }
+
   /* Fetch the argument value.	*/
+#if __HAVE_DISTINCT_FLOAT128
+  if (info->is_binary128)
+    PRINTF_SIZE_FETCH (_Float128, fpnum.f128)
+  else
+#endif
 #ifndef __NO_LONG_DOUBLE_MATH
   if (info->is_long_double && sizeof (long double) > sizeof (double))
-    {
-      fpnum.ldbl = *(const long double *) args[0];
-
-      /* Check for special values: not a number or infinity.  */
-      if (isnan (fpnum.ldbl))
-	{
-	  special = "nan";
-	  wspecial = L"nan";
-	  // is_neg = 0;	Already zero
-	}
-      else if (isinf (fpnum.ldbl))
-	{
-	  is_neg = signbit (fpnum.ldbl);
-	  special = "inf";
-	  wspecial = L"inf";
-	}
-      else
-	while (fpnum.ldbl >= divisor && tag[1] != '\0')
-	  {
-	    fpnum.ldbl /= divisor;
-	    ++tag;
-	  }
-    }
+    PRINTF_SIZE_FETCH (long double, fpnum.ldbl)
   else
-#endif	/* no long double */
-    {
-      fpnum.dbl.d = *(const double *) args[0];
+#endif
+    PRINTF_SIZE_FETCH (double, fpnum.dbl.d)
 
-      /* Check for special values: not a number or infinity.  */
-      if (isnan (fpnum.dbl.d))
-	{
-	  special = "nan";
-	  wspecial = L"nan";
-	  // is_neg = 0;	Already zero
-	}
-      else if (isinf (fpnum.dbl.d))
-	{
-	  is_neg = signbit (fpnum.dbl.d);
-	  special = "inf";
-	  wspecial = L"inf";
-	}
-      else
-	while (fpnum.dbl.d >= divisor && tag[1] != '\0')
-	  {
-	    fpnum.dbl.d /= divisor;
-	    ++tag;
-	  }
-    }
+#undef PRINTF_SIZE_FETCH
 
   if (special)
     {

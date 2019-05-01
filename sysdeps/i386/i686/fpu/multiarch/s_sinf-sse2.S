@@ -1,5 +1,5 @@
 /* Optimized with sse2 version of sinf
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,8 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#define __need_Emath
-#include <bits/errno.h>
+#include <errno.h>
 
 /* Short algorithm description:
  *

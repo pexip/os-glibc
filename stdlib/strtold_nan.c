@@ -1,6 +1,6 @@
 /* Convert string for NaN payload to corresponding NaN.  Narrow
    strings, long double.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
    representation.  */
 #ifndef __NO_LONG_DOUBLE_MATH
 # include <strtod_nan_narrow.h>
-# include <strtod_nan_ldouble.h>
+# include <math-type-macros-ldouble.h>
 
 # define STRTOD_NAN __strtold_nan
 # include <strtod_nan_main.c>

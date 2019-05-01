@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,8 @@ subdir	:= locale
 
 include ../Makeconfig
 
-headers		= locale.h bits/locale.h langinfo.h xlocale.h
+headers		= langinfo.h locale.h bits/locale.h \
+		  bits/types/locale_t.h bits/types/__locale_t.h
 routines	= setlocale findlocale loadlocale loadarchive \
 		  localeconv nl_langinfo nl_langinfo_l mb_cur_max \
 		  newlocale duplocale freelocale uselocale
@@ -52,7 +53,8 @@ localedef-modules	:= localedef $(categories:%=ld-%) \
 			   repertoire locarchive
 localedef-aux		:= md5
 locale-modules		:= locale locale-spec
-lib-modules		:= charmap-dir simple-hash xmalloc xstrdup
+lib-modules		:= charmap-dir simple-hash xmalloc xstrdup \
+			   record-status
 
 
 GPERF = gperf
@@ -60,7 +62,7 @@ GPERFFLAGS = -acCgopt -k1,2,5,9,$$ -L ANSI-C
 
 include ../Rules
 
-CFLAGS-md5.c = -I../crypt
+CFLAGS-md5.c += -I../crypt
 
 programs/%-kw.h: programs/%-kw.gperf
 	cd programs \
@@ -93,12 +95,12 @@ CPPFLAGS-locale-programs = -DLOCALE_PATH='$(localepath)' \
 			   -DREPERTOIREMAP_PATH='"$(i18ndir)/repertoiremaps"' \
 			   -DLOCSRCDIR='"$(i18ndir)/locales"'
 
-CFLAGS-charmap.c = -Wno-write-strings -Wno-char-subscripts
-CFLAGS-locfile.c = -Wno-write-strings -Wno-char-subscripts
-CFLAGS-charmap-dir.c = -Wno-write-strings
+CFLAGS-charmap.c += -Wno-write-strings -Wno-char-subscripts
+CFLAGS-locfile.c += -Wno-write-strings -Wno-char-subscripts
+CFLAGS-charmap-dir.c += -Wno-write-strings
 
 # Set libof-* for each routine.
 cpp-srcs-left := $(localedef-modules) $(localedef-aux) $(locale-modules) \
 		 $(lib-modules)
 lib := locale-programs
-include $(patsubst %,$(..)cppflags-iterator.mk,$(cpp-srcs-left))
+include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))

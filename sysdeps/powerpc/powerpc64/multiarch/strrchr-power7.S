@@ -1,5 +1,5 @@
 /* Optimized strrchr implementation for POWER7.
-   Copyright (C) 2014-2016 Free Software Foundation, Inc.
+   Copyright (C) 2014-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,22 +16,7 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
-
-#undef ENTRY
-#define ENTRY(name)						\
-  .section ".text";						\
-  ENTRY_2(__strrchr_power7)					\
-  .align ALIGNARG(2);						\
-  BODY_LABEL(__strrchr_power7):					\
-  cfi_startproc;						\
-  LOCALENTRY(__strrchr_power7)
-
-#undef END
-#define END(name)						\
-  cfi_endproc;							\
-  TRACEBACK(__strrchr_power7)					\
-  END_2(__strrchr_power7)
+#define STRRCHR __strrchr_power7
 
 #undef libc_hidden_builtin_def
 #define libc_hidden_builtin_def(name)

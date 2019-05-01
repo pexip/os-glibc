@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@gnu.org>, 1996.
 
@@ -23,7 +23,7 @@
 #include <locale/localeinfo.h>
 
 wctype_t
-__wctype_l (const char *property, __locale_t locale)
+__wctype_l (const char *property, locale_t locale)
 {
   const char *names;
   unsigned int result;

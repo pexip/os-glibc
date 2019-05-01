@@ -184,15 +184,15 @@ idouble: 1
 ifloat: 2
 
 Function: Imaginary part of "cacos":
-double: 1
-float: 2
-idouble: 1
-ifloat: 2
-
-Function: Real part of "cacos_downward":
 double: 2
 float: 2
 idouble: 2
+ifloat: 2
+
+Function: Real part of "cacos_downward":
+double: 3
+float: 2
+idouble: 3
 ifloat: 2
 
 Function: Imaginary part of "cacos_downward":
@@ -202,9 +202,9 @@ idouble: 5
 ifloat: 3
 
 Function: Real part of "cacos_towardzero":
-double: 2
+double: 3
 float: 2
-idouble: 2
+idouble: 3
 ifloat: 2
 
 Function: Imaginary part of "cacos_towardzero":
@@ -220,15 +220,15 @@ idouble: 2
 ifloat: 2
 
 Function: Imaginary part of "cacos_upward":
-double: 4
-float: 4
-idouble: 4
-ifloat: 4
+double: 5
+float: 7
+idouble: 5
+ifloat: 7
 
 Function: Real part of "cacosh":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Imaginary part of "cacosh":
@@ -244,10 +244,10 @@ idouble: 5
 ifloat: 3
 
 Function: Imaginary part of "cacosh_downward":
-double: 2
-float: 2
-idouble: 2
-ifloat: 2
+double: 3
+float: 3
+idouble: 3
+ifloat: 3
 
 Function: Real part of "cacosh_towardzero":
 double: 5
@@ -256,9 +256,9 @@ idouble: 5
 ifloat: 3
 
 Function: Imaginary part of "cacosh_towardzero":
-double: 2
+double: 3
 float: 2
-idouble: 2
+idouble: 3
 ifloat: 2
 
 Function: Real part of "cacosh_upward":
@@ -268,9 +268,9 @@ idouble: 4
 ifloat: 4
 
 Function: Imaginary part of "cacosh_upward":
-double: 2
+double: 3
 float: 2
-idouble: 2
+idouble: 3
 ifloat: 2
 
 Function: "carg":
@@ -304,16 +304,16 @@ ildouble: 1
 ldouble: 1
 
 Function: Imaginary part of "casin":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Real part of "casin_downward":
 double: 3
-float: 1
+float: 2
 idouble: 3
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "casin_downward":
 double: 5
@@ -334,16 +334,16 @@ idouble: 5
 ifloat: 3
 
 Function: Real part of "casin_upward":
-double: 2
-float: 1
-idouble: 2
-ifloat: 1
+double: 3
+float: 2
+idouble: 3
+ifloat: 2
 
 Function: Imaginary part of "casin_upward":
-double: 4
-float: 4
-idouble: 4
-ifloat: 4
+double: 5
+float: 7
+idouble: 5
+ifloat: 7
 
 Function: Real part of "casinh":
 double: 5
@@ -369,9 +369,9 @@ ifloat: 3
 
 Function: Imaginary part of "casinh_downward":
 double: 3
-float: 1
+float: 2
 idouble: 3
-ifloat: 1
+ifloat: 2
 
 Function: Real part of "casinh_towardzero":
 double: 5
@@ -386,19 +386,21 @@ idouble: 3
 ifloat: 1
 
 Function: Real part of "casinh_upward":
-double: 4
-float: 4
-idouble: 4
-ifloat: 4
+double: 5
+float: 7
+idouble: 5
+ifloat: 7
 
 Function: Imaginary part of "casinh_upward":
-double: 2
+double: 3
 float: 2
-idouble: 2
+idouble: 3
 ifloat: 2
 
 Function: Real part of "catan":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: Imaginary part of "catan":
@@ -411,9 +413,9 @@ ldouble: 1
 
 Function: Real part of "catan_downward":
 double: 1
-float: 1
+float: 2
 idouble: 1
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "catan_downward":
 double: 2
@@ -423,15 +425,15 @@ ifloat: 2
 
 Function: Real part of "catan_towardzero":
 double: 1
-float: 1
+float: 2
 idouble: 1
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "catan_towardzero":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 
 Function: Real part of "catan_upward":
 double: 1
@@ -454,7 +456,9 @@ ildouble: 4
 ldouble: 4
 
 Function: Imaginary part of "catanh":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: Real part of "catanh_downward":
@@ -471,9 +475,9 @@ ifloat: 2
 
 Function: Real part of "catanh_towardzero":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "catanh_towardzero":
 double: 1
@@ -483,9 +487,9 @@ ifloat: 2
 
 Function: Real part of "catanh_upward":
 double: 4
-float: 3
+float: 4
 idouble: 4
-ifloat: 3
+ifloat: 4
 
 Function: Imaginary part of "catanh_upward":
 double: 1
@@ -693,9 +697,9 @@ ldouble: 1
 
 Function: Real part of "clog10_downward":
 double: 5
-float: 4
+float: 5
 idouble: 5
-ifloat: 4
+ifloat: 5
 
 Function: Imaginary part of "clog10_downward":
 double: 3
@@ -777,10 +781,6 @@ float: 2
 idouble: 1
 ifloat: 2
 
-Function: "cos_tonearest":
-float: 1
-ifloat: 1
-
 Function: "cos_towardzero":
 double: 1
 float: 1
@@ -805,12 +805,6 @@ float: 1
 idouble: 1
 ifloat: 1
 
-Function: "cosh_tonearest":
-double: 1
-float: 1
-idouble: 1
-ifloat: 1
-
 Function: "cosh_towardzero":
 double: 1
 float: 1
@@ -825,9 +819,9 @@ ifloat: 2
 
 Function: Real part of "cpow":
 double: 2
-float: 4
+float: 5
 idouble: 2
-ifloat: 4
+ifloat: 5
 ildouble: 2
 ldouble: 2
 
@@ -1021,9 +1015,9 @@ ifloat: 1
 
 Function: Imaginary part of "ctan":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 ildouble: 1
 ldouble: 1
 
@@ -1035,21 +1029,9 @@ ifloat: 5
 
 Function: Imaginary part of "ctan_downward":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
-
-Function: Real part of "ctan_tonearest":
-double: 1
-float: 1
-idouble: 1
-ifloat: 1
-
-Function: Imaginary part of "ctan_tonearest":
-double: 2
-float: 1
-idouble: 2
-ifloat: 1
+ifloat: 2
 
 Function: Real part of "ctan_towardzero":
 double: 5
@@ -1065,9 +1047,9 @@ ifloat: 2
 
 Function: Real part of "ctan_upward":
 double: 2
-float: 3
+float: 4
 idouble: 2
-ifloat: 3
+ifloat: 4
 
 Function: Imaginary part of "ctan_upward":
 double: 2
@@ -1077,9 +1059,9 @@ ifloat: 3
 
 Function: Real part of "ctanh":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 ildouble: 1
 ldouble: 1
 
@@ -1091,27 +1073,15 @@ ifloat: 2
 
 Function: Real part of "ctanh_downward":
 double: 4
-float: 1
+float: 2
 idouble: 4
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "ctanh_downward":
 double: 6
 float: 5
 idouble: 6
 ifloat: 5
-
-Function: Real part of "ctanh_tonearest":
-double: 2
-float: 1
-idouble: 2
-ifloat: 1
-
-Function: Imaginary part of "ctanh_tonearest":
-double: 2
-float: 2
-idouble: 2
-ifloat: 2
 
 Function: Real part of "ctanh_towardzero":
 double: 2
@@ -1207,10 +1177,6 @@ float: 1
 idouble: 2
 ifloat: 1
 
-Function: "exp10_tonearest":
-double: 1
-idouble: 1
-
 Function: "exp10_towardzero":
 double: 2
 float: 1
@@ -1274,12 +1240,6 @@ ildouble: 1
 ldouble: 1
 
 Function: "expm1_downward":
-double: 1
-float: 1
-idouble: 1
-ifloat: 1
-
-Function: "expm1_tonearest":
 double: 1
 float: 1
 idouble: 1
@@ -1349,9 +1309,9 @@ ldouble: 2
 
 Function: "j0_downward":
 double: 2
-float: 3
+float: 4
 idouble: 2
-ifloat: 3
+ifloat: 4
 
 Function: "j0_towardzero":
 double: 3
@@ -1375,9 +1335,9 @@ ldouble: 1
 
 Function: "j1_downward":
 double: 3
-float: 2
+float: 3
 idouble: 3
-ifloat: 2
+ifloat: 3
 
 Function: "j1_towardzero":
 double: 3
@@ -1536,39 +1496,15 @@ idouble: 1
 ifloat: 2
 
 Function: "pow":
+double: 1
 float: 1
-ifloat: 1
-
-Function: "pow10":
-double: 2
-idouble: 2
-
-Function: "pow10_downward":
-double: 2
-float: 1
-idouble: 2
-ifloat: 1
-
-Function: "pow10_towardzero":
-double: 2
-float: 1
-idouble: 2
-ifloat: 1
-
-Function: "pow10_upward":
-double: 2
-float: 1
-idouble: 2
+idouble: 1
 ifloat: 1
 
 Function: "pow_downward":
 double: 1
 float: 1
 idouble: 1
-ifloat: 1
-
-Function: "pow_tonearest":
-float: 1
 ifloat: 1
 
 Function: "pow_towardzero":
@@ -1584,7 +1520,9 @@ idouble: 1
 ifloat: 1
 
 Function: "sin":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: "sin_downward":
@@ -1592,10 +1530,6 @@ double: 1
 float: 2
 idouble: 1
 ifloat: 2
-
-Function: "sin_tonearest":
-float: 1
-ifloat: 1
 
 Function: "sin_towardzero":
 double: 1
@@ -1745,9 +1679,9 @@ ldouble: 2
 
 Function: "y0_downward":
 double: 3
-float: 2
+float: 4
 idouble: 3
-ifloat: 2
+ifloat: 4
 
 Function: "y0_towardzero":
 double: 3
@@ -1757,9 +1691,9 @@ ifloat: 3
 
 Function: "y0_upward":
 double: 3
-float: 4
+float: 5
 idouble: 3
-ifloat: 4
+ifloat: 5
 
 Function: "y1":
 double: 3
@@ -1789,17 +1723,17 @@ ifloat: 2
 
 Function: "yn":
 double: 3
-float: 2
+float: 3
 idouble: 3
-ifloat: 2
+ifloat: 3
 ildouble: 3
 ldouble: 3
 
 Function: "yn_downward":
 double: 3
-float: 2
+float: 4
 idouble: 3
-ifloat: 2
+ifloat: 4
 
 Function: "yn_towardzero":
 double: 3
@@ -1809,8 +1743,8 @@ ifloat: 3
 
 Function: "yn_upward":
 double: 4
-float: 4
+float: 5
 idouble: 4
-ifloat: 4
+ifloat: 5
 
 # end of automatic generation

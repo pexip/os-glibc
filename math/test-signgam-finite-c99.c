@@ -1,5 +1,5 @@
 /* Test lgamma functions do not set signgam for -ffinite-math-only for ISO C.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,6 @@
 #undef _LIBC
 #undef __LIBC_INTERNAL_MATH_INLINES
 #undef _GNU_SOURCE
-#undef _Mlong_double_
-#define _ISOMAC
 
 #include <math.h>
 #include <stdio.h>
@@ -60,8 +58,6 @@ main (void)
   int result = 0;
   RUN_TESTS (lgammaf, float);
   RUN_TESTS (lgamma, double);
-#ifndef NO_LONG_DOUBLE
   RUN_TESTS (lgammal, long double);
-#endif
   return result;
 }

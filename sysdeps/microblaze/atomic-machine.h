@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -37,6 +37,9 @@ typedef uintmax_t uatomic_max_t;
 
 #define __HAVE_64B_ATOMICS 0
 #define USE_ATOMIC_COMPILER_BUILTINS 0
+
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
 
 
 /* Microblaze does not have byte and halfword forms of load and reserve and

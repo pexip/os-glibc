@@ -1,5 +1,5 @@
 /* Measure strstr functions.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@
 
 
 #define STRSTR simple_strstr
+#define libc_hidden_builtin_def(X)
+#define __strnlen strnlen
 #include "../string/strstr.c"
 
 
@@ -174,4 +176,4 @@ test_main (void)
   return ret;
 }
 
-#include "../test-skeleton.c"
+#include <support/test-driver.c>

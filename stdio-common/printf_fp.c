@@ -1,5 +1,5 @@
 /* Floating point output for `printf'.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
    Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.
@@ -21,6 +21,7 @@
 /* The gmp headers need some configuration frobs.  */
 #define HAVE_ALLOCA 1
 
+#include <array_length.h>
 #include <libioP.h>
 #include <alloca.h>
 #include <ctype.h>
@@ -55,17 +56,12 @@
 #endif
 #include <assert.h>
 
-/* This defines make it possible to use the same code for GNU C library and
-   the GNU I/O library.	 */
 #define PUT(f, s, n) _IO_sputn (f, s, n)
 #define PAD(f, c, n) (wide ? _IO_wpadn (f, c, n) : _IO_padn (f, c, n))
-/* We use this file GNU C library and GNU I/O library.	So make
-   names equal.	 */
 #undef putc
 #define putc(c, f) (wide \
 		    ? (int)_IO_putwc_unlocked (c, f) : _IO_putc_unlocked (c, f))
-#define size_t     _IO_size_t
-#define FILE	     _IO_FILE
+
 
 /* Macros for doing the actual output.  */
 
@@ -139,14 +135,11 @@ extern mp_size_t __mpn_extract_double (mp_ptr res_ptr, mp_size_t size,
 extern mp_size_t __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
 					    int *expt, int *is_neg,
 					    long double value);
-extern unsigned int __guess_grouping (unsigned int intdig_max,
-				      const char *grouping);
 
 
 static wchar_t *group_number (wchar_t *buf, wchar_t *bufend,
 			      unsigned int intdig_no, const char *grouping,
-			      wchar_t thousands_sep, int ngroups)
-     internal_function;
+			      wchar_t thousands_sep, int ngroups);
 
 struct hack_digit_param
 {
@@ -217,7 +210,10 @@ __printf_fp_l (FILE *fp, locale_t loc,
   union
     {
       double dbl;
-      __long_double_t ldbl;
+      long double ldbl;
+#if __HAVE_DISTINCT_FLOAT128
+      _Float128 f128;
+#endif
     }
   fpnum;
 
@@ -234,9 +230,17 @@ __printf_fp_l (FILE *fp, locale_t loc,
   const char *special = NULL;
   const wchar_t *wspecial = NULL;
 
+  /* When _Float128 is enabled in the library and ABI-distinct from long
+     double, we need mp_limbs enough for any of them.  */
+#if __HAVE_DISTINCT_FLOAT128
+# define GREATER_MANT_DIG FLT128_MANT_DIG
+#else
+# define GREATER_MANT_DIG LDBL_MANT_DIG
+#endif
   /* We need just a few limbs for the input before shifting to the right
      position.	*/
-  mp_limb_t fp_input[(LDBL_MANT_DIG + BITS_PER_MP_LIMB - 1) / BITS_PER_MP_LIMB];
+  mp_limb_t fp_input[(GREATER_MANT_DIG + BITS_PER_MP_LIMB - 1)
+		     / BITS_PER_MP_LIMB];
   /* We need to shift the contents of fp_input by this amount of bits.	*/
   int to_shift = 0;
 
@@ -327,94 +331,62 @@ __printf_fp_l (FILE *fp, locale_t loc,
   else
     grouping = NULL;
 
+#define PRINTF_FP_FETCH(FLOAT, VAR, SUFFIX, MANT_DIG)			\
+  {									\
+    (VAR) = *(const FLOAT *) args[0];					\
+									\
+    /* Check for special values: not a number or infinity.  */		\
+    if (isnan (VAR))							\
+      {									\
+	is_neg = signbit (VAR);						\
+	if (isupper (info->spec))					\
+	  {								\
+	    special = "NAN";						\
+	    wspecial = L"NAN";						\
+	  }								\
+	else								\
+	  {								\
+	    special = "nan";						\
+	    wspecial = L"nan";						\
+	  }								\
+      }									\
+    else if (isinf (VAR))						\
+      {									\
+	is_neg = signbit (VAR);						\
+	if (isupper (info->spec))					\
+	  {								\
+	    special = "INF";						\
+	    wspecial = L"INF";						\
+	  }								\
+	else								\
+	  {								\
+	    special = "inf";						\
+	    wspecial = L"inf";						\
+	  }								\
+      }									\
+    else								\
+      {									\
+	p.fracsize = __mpn_extract_##SUFFIX				\
+		     (fp_input, array_length (fp_input),		\
+		      &p.exponent, &is_neg, VAR);			\
+	to_shift = 1 + p.fracsize * BITS_PER_MP_LIMB - MANT_DIG;	\
+      }									\
+  }
+
   /* Fetch the argument value.	*/
+#if __HAVE_DISTINCT_FLOAT128
+  if (info->is_binary128)
+    PRINTF_FP_FETCH (_Float128, fpnum.f128, float128, FLT128_MANT_DIG)
+  else
+#endif
 #ifndef __NO_LONG_DOUBLE_MATH
   if (info->is_long_double && sizeof (long double) > sizeof (double))
-    {
-      fpnum.ldbl = *(const long double *) args[0];
-
-      /* Check for special values: not a number or infinity.  */
-      if (isnan (fpnum.ldbl))
-	{
-	  is_neg = signbit (fpnum.ldbl);
-	  if (isupper (info->spec))
-	    {
-	      special = "NAN";
-	      wspecial = L"NAN";
-	    }
-	    else
-	      {
-		special = "nan";
-		wspecial = L"nan";
-	      }
-	}
-      else if (isinf (fpnum.ldbl))
-	{
-	  is_neg = signbit (fpnum.ldbl);
-	  if (isupper (info->spec))
-	    {
-	      special = "INF";
-	      wspecial = L"INF";
-	    }
-	  else
-	    {
-	      special = "inf";
-	      wspecial = L"inf";
-	    }
-	}
-      else
-	{
-	  p.fracsize = __mpn_extract_long_double (fp_input,
-						(sizeof (fp_input) /
-						 sizeof (fp_input[0])),
-						&p.exponent, &is_neg,
-						fpnum.ldbl);
-	  to_shift = 1 + p.fracsize * BITS_PER_MP_LIMB - LDBL_MANT_DIG;
-	}
-    }
+    PRINTF_FP_FETCH (long double, fpnum.ldbl, long_double, LDBL_MANT_DIG)
   else
-#endif	/* no long double */
-    {
-      fpnum.dbl = *(const double *) args[0];
+#endif
+    PRINTF_FP_FETCH (double, fpnum.dbl, double, DBL_MANT_DIG)
 
-      /* Check for special values: not a number or infinity.  */
-      if (isnan (fpnum.dbl))
-	{
-	  is_neg = signbit (fpnum.dbl);
-	  if (isupper (info->spec))
-	    {
-	      special = "NAN";
-	      wspecial = L"NAN";
-	    }
-	  else
-	    {
-	      special = "nan";
-	      wspecial = L"nan";
-	    }
-	}
-      else if (isinf (fpnum.dbl))
-	{
-	  is_neg = signbit (fpnum.dbl);
-	  if (isupper (info->spec))
-	    {
-	      special = "INF";
-	      wspecial = L"INF";
-	    }
-	  else
-	    {
-	      special = "inf";
-	      wspecial = L"inf";
-	    }
-	}
-      else
-	{
-	  p.fracsize = __mpn_extract_double (fp_input,
-					   (sizeof (fp_input)
-					    / sizeof (fp_input[0])),
-					   &p.exponent, &is_neg, fpnum.dbl);
-	  to_shift = 1 + p.fracsize * BITS_PER_MP_LIMB - DBL_MANT_DIG;
-	}
-    }
+#undef PRINTF_FP_FETCH
 
   if (special)
     {
@@ -450,7 +422,8 @@ __printf_fp_l (FILE *fp, locale_t loc,
   {
     mp_size_t bignum_size = ((abs (p.exponent) + BITS_PER_MP_LIMB - 1)
 			     / BITS_PER_MP_LIMB
-			     + (LDBL_MANT_DIG / BITS_PER_MP_LIMB > 2 ? 8 : 4))
+			     + (GREATER_MANT_DIG / BITS_PER_MP_LIMB > 2
+				? 8 : 4))
 			    * sizeof (mp_limb_t);
     p.frac = (mp_limb_t *) alloca (bignum_size);
     p.tmp = (mp_limb_t *) alloca (bignum_size);
@@ -465,7 +438,15 @@ __printf_fp_l (FILE *fp, locale_t loc,
     {
       /* |FP| >= 8.0.  */
       int scaleexpo = 0;
-      int explog = LDBL_MAX_10_EXP_LOG;
+      int explog;
+#if __HAVE_DISTINCT_FLOAT128
+      if (info->is_binary128)
+	explog = FLT128_MAX_10_EXP_LOG;
+      else
+	explog = LDBL_MAX_10_EXP_LOG;
+#else
+      explog = LDBL_MAX_10_EXP_LOG;
+#endif
       int exp10 = 0;
       const struct mp_power *powers = &_fpioconst_pow10[explog + 1];
       int cnt_h, cnt_l, i;
@@ -499,6 +480,27 @@ __printf_fp_l (FILE *fp, locale_t loc,
 	    {
 	      if (p.scalesize == 0)
 		{
+#if __HAVE_DISTINCT_FLOAT128
+		  if ((FLT128_MANT_DIG
+			    > _FPIO_CONST_OFFSET * BITS_PER_MP_LIMB)
+			   && info->is_binary128)
+		    {
+#define _FLT128_FPIO_CONST_SHIFT \
+  (((FLT128_MANT_DIG + BITS_PER_MP_LIMB - 1) / BITS_PER_MP_LIMB) \
+   - _FPIO_CONST_OFFSET)
+		      /* 64bit const offset is not enough for
+			 IEEE 854 quad long double (_Float128).  */
+		      p.tmpsize = powers->arraysize + _FLT128_FPIO_CONST_SHIFT;
+		      memcpy (p.tmp + _FLT128_FPIO_CONST_SHIFT,
+			      &__tens[powers->arrayoff],
+			      p.tmpsize * sizeof (mp_limb_t));
+		      MPN_ZERO (p.tmp, _FLT128_FPIO_CONST_SHIFT);
+		      /* Adjust p.exponent, as scaleexpo will be this much
+			 bigger too.  */
+		      p.exponent += _FLT128_FPIO_CONST_SHIFT * BITS_PER_MP_LIMB;
+		    }
+		  else
+#endif /* __HAVE_DISTINCT_FLOAT128 */
 #ifndef __NO_LONG_DOUBLE_MATH
 		  if (LDBL_MANT_DIG > _FPIO_CONST_OFFSET * BITS_PER_MP_LIMB
 		      && info->is_long_double)
@@ -639,7 +641,15 @@ __printf_fp_l (FILE *fp, locale_t loc,
     {
       /* |FP| < 1.0.  */
       int exp10 = 0;
-      int explog = LDBL_MAX_10_EXP_LOG;
+      int explog;
+#if __HAVE_DISTINCT_FLOAT128
+      if (info->is_binary128)
+	explog = FLT128_MAX_10_EXP_LOG;
+      else
+	explog = LDBL_MAX_10_EXP_LOG;
+#else
+      explog = LDBL_MAX_10_EXP_LOG;
+#endif
       const struct mp_power *powers = &_fpioconst_pow10[explog + 1];
 
       /* Now shift the input value to its right place.	*/
@@ -1303,7 +1313,6 @@ __guess_grouping (unsigned int intdig_max, const char *grouping)
    Return the new end of buffer.  */
 
 static wchar_t *
-internal_function
 group_number (wchar_t *buf, wchar_t *bufend, unsigned int intdig_no,
 	      const char *grouping, wchar_t thousands_sep, int ngroups)
 {

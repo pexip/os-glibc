@@ -1,5 +1,5 @@
 /* uselocale -- fetch and set the current per-thread locale
-   Copyright (C) 2002-2016 Free Software Foundation, Inc.
+   Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ __uselocale (locale_t newloc)
     {
       const locale_t locobj
 	= newloc == LC_GLOBAL_LOCALE ? &_nl_global_locale : newloc;
-      __libc_tsd_set (__locale_t, LOCALE, locobj);
+      __libc_tsd_set (locale_t, LOCALE, locobj);
 
 #ifdef NL_CURRENT_INDIRECT
       /* Now we must update all the per-category thread-local variables to

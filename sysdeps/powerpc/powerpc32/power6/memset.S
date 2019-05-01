@@ -1,5 +1,5 @@
 /* Optimized 32-bit memset implementation for POWER6.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 
 #include <sysdep.h>
 
-/* __ptr_t [r3] memset (__ptr_t s [r3], int c [r4], size_t n [r5]));
+/* void * [r3] memset (void *s [r3], int c [r4], size_t n [r5]));
    Returns 's'.
 
    The memset is done in three sizes: byte (8 bits), word (32 bits),
@@ -394,7 +394,7 @@ L(cacheAlignedx):
 /* A simple loop for the longer (>640 bytes) lengths.  This form limits
    the branch miss-predicted to exactly 1 at loop exit.*/
 L(cacheAligned512):
-	cmpli	cr1,rLEN,128
+	cmplwi	cr1,rLEN,128
 	blt	cr1,L(cacheAligned1)
 	dcbz	0,rMEMP
 	addi	rLEN,rLEN,-128

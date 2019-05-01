@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,11 +26,17 @@
 #endif
 
 #include <float.h>
-#include <libc-internal.h>
+#include <libc-diag.h>
 
 /* This whole file is picayune tests of corner cases of printf format strings.
    The compiler warnings are not useful here.  */
 DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wformat");
+
+#if __GNUC_PREREQ (7, 0)
+/* Compiler warnings about snprintf output truncation should also be
+   ignored.  */
+DIAG_IGNORE_NEEDS_COMMENT (7.0, "-Wformat-truncation");
+#endif
 
 static void rfg1 (void);
 static void rfg2 (void);
@@ -63,75 +69,7 @@ fmtst2chk (const char *fmt)
   (void) printf(fmt, 4, 4, 0x12);
   (void) printf("'\n");
 }
-
-/* This page is covered by the following copyright: */
 
-/* (C) Copyright C E Chew
- *
- * Feel free to copy, use and distribute this software provided:
- *
- *	1. you do not pretend that you wrote it
- *	2. you leave this copyright notice intact.
- */
-
-/*
- * Extracted from exercise.c for glibc-1.05 bug report by Bruce Evans.
- */
-
-#define DEC -123
-#define INT 255
-#define UNS (~0)
-
-/* Formatted Output Test
- *
- * This exercises the output formatting code.
- */
-
-static void
-fp_test (void)
-{
-  int i, j, k, l;
-  char buf[7];
-  char *prefix = buf;
-  char tp[20];
-
-  puts("\nFormatted output test");
-  printf("prefix  6d      6o      6x      6X      6u\n");
-  strcpy(prefix, "%");
-  for (i = 0; i < 2; i++) {
-    for (j = 0; j < 2; j++) {
-      for (k = 0; k < 2; k++) {
-	for (l = 0; l < 2; l++) {
-	  strcpy(prefix, "%");
-	  if (i == 0) strcat(prefix, "-");
-	  if (j == 0) strcat(prefix, "+");
-	  if (k == 0) strcat(prefix, "#");
-	  if (l == 0) strcat(prefix, "0");
-	  printf("%5s |", prefix);
-	  strcpy(tp, prefix);
-	  strcat(tp, "6d |");
-	  printf(tp, DEC);
-	  strcpy(tp, prefix);
-	  strcat(tp, "6o |");
-	  printf(tp, INT);
-	  strcpy(tp, prefix);
-	  strcat(tp, "6x |");
-	  printf(tp, INT);
-	  strcpy(tp, prefix);
-	  strcat(tp, "6X |");
-	  printf(tp, INT);
-	  strcpy(tp, prefix);
-	  strcat(tp, "6u |");
-	  printf(tp, UNS);
-	  printf("\n");
-	}
-      }
-    }
-  }
-  printf("%10s\n", (char *) NULL);
-  printf("%-10s\n", (char *) NULL);
-}
-
 static int
 do_test (void)
 {
@@ -175,6 +113,8 @@ I am ready for my first lesson today.";
   printf("null string:\t\"%s\"\n", (char *)NULL);
   printf("limited string:\t\"%.22s\"\n", longstr);
 
+  printf("a-style max:\t\"%a\"\n", DBL_MAX);
+  printf("a-style -max:\t\"%a\"\n", -DBL_MAX);
   printf("e-style >= 1:\t\"%e\"\n", 12.34);
   printf("e-style >= .1:\t\"%e\"\n", 0.1234);
   printf("e-style < .1:\t\"%e\"\n", 0.001234);
@@ -229,8 +169,8 @@ I am ready for my first lesson today.";
 	    snprintf(buf2, sizeof(buf2), "%.999999u", 10));
   }
 
-  fp_test ();
-
+  printf("%.8f\n", DBL_MAX);
+  printf("%.8f\n", -DBL_MAX);
   printf ("%e should be 1.234568e+06\n", 1234567.8);
   printf ("%f should be 1234567.800000\n", 1234567.8);
   printf ("%g should be 1.23457e+06\n", 1234567.8);

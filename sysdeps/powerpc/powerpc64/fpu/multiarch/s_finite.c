@@ -1,5 +1,5 @@
 /* Multiple versions of finite.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,17 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#define __finite __redirect___finite
+
+/* The following definitions, although not related to the 'double'
+   version of 'finite', are required to guarantee macro expansions
+   (e.g.: from __finitef to __redirect_finitef) in include/math.h, thus
+   compensating for the unintended macro expansions in
+   math/bits/mathcalls-helper-functions.h.  */
+#define __finitef __redirect___finitef
+#define __finitel __redirect___finitel
+#define __finitef128 __redirect___finitef128
+
 #include <math.h>
 #include <math_ldbl_opt.h>
 #include <shlib-compat.h>
@@ -24,13 +35,17 @@
 extern __typeof (__finite) __finite_ppc64 attribute_hidden;
 extern __typeof (__finite) __finite_power7 attribute_hidden;
 extern __typeof (__finite) __finite_power8 attribute_hidden;
+#undef __finite
+#undef __finitef
+#undef __finitel
+#undef __finitef128
 
-libc_ifunc (__finite,
-	    (hwcap2 & PPC_FEATURE2_ARCH_2_07)
-	    ? __finite_power8 :
-	      (hwcap & PPC_FEATURE_ARCH_2_06)
-	      ? __finite_power7
-            : __finite_ppc64);
+libc_ifunc_redirected (__redirect___finite, __finite,
+		       (hwcap2 & PPC_FEATURE2_ARCH_2_07)
+		       ? __finite_power8
+		       : (hwcap & PPC_FEATURE_ARCH_2_06)
+			 ? __finite_power7
+			 : __finite_ppc64);
 
 weak_alias (__finite, finite)
 

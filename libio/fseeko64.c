@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 #ifndef __OFF_T_MATCHES_OFF64_T
 
 int
-fseeko64 (_IO_FILE *fp, __off64_t offset, int whence)
+__fseeko64 (FILE *fp, off64_t offset, int whence)
 {
   int result;
   CHECK_FILE (fp, -1);
@@ -41,5 +41,6 @@ fseeko64 (_IO_FILE *fp, __off64_t offset, int whence)
   _IO_release_lock (fp);
   return result;
 }
-
+libc_hidden_def (__fseeko64)
+weak_alias (__fseeko64, fseeko64)
 #endif

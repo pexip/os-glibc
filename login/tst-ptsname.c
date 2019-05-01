@@ -1,5 +1,5 @@
 /* Test for ptsname/ptsname_r.
-   Copyright (C) 2014-2016 Free Software Foundation, Inc.
+   Copyright (C) 2014-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Aurelien Jarno <aurelien@aurel32.net>, 2014.
 
@@ -70,7 +70,6 @@ do_test (void)
   if (fd != -1)
     {
       result |= do_single_test (fd, buf, sizeof (buf), 0);
-      result |= do_single_test (fd, NULL, sizeof (buf), EINVAL);
       result |= do_single_test (fd, buf, 1, ERANGE);
       close (fd);
     }

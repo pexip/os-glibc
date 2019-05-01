@@ -1,4 +1,4 @@
-# Copyright (C) 1997-2016 Free Software Foundation, Inc.
+# Copyright (C) 1997-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -36,9 +36,9 @@ modules	:= ISO8859-1 ISO8859-2 ISO8859-3 ISO8859-4 ISO8859-5		 \
 	   IBM874 CP737 CP775 ISO-2022-KR HP-TURKISH8 HP-THAI8 HP-GREEK8 \
 	   KOI8-R LATIN-GREEK LATIN-GREEK-1 IBM256 IBM273 IBM277 IBM278	 \
 	   IBM280 IBM281 IBM284 IBM285 IBM290 IBM297 IBM420 IBM424	 \
-	   IBM437 IBM850 IBM851 IBM852 IBM855 IBM857 IBM860 IBM861	 \
-	   IBM862 IBM863 IBM864 IBM865 IBM868 IBM869 IBM875 IBM880	 \
-	   IBM866 CP1258 IBM922 IBM1124 IBM1129 IBM932 IBM943		 \
+	   IBM437 IBM850 IBM851 IBM852 IBM855 IBM857 IBM858 IBM860	 \
+	   IBM861 IBM862 IBM863 IBM864 IBM865 IBM868 IBM869 IBM875	 \
+	   IBM880 IBM866 CP1258 IBM922 IBM1124 IBM1129 IBM932 IBM943	 \
 	   IBM856 IBM930 IBM933 IBM935 IBM937 IBM939 IBM1046		 \
 	   IBM1132 IBM1133 IBM1160 IBM1161 IBM1162 IBM1163 IBM1164	 \
 	   IBM918 IBM1004 IBM1026 CP1125 CP1250 CP1251 CP1252 CP1253	 \
@@ -62,6 +62,11 @@ modules	:= ISO8859-1 ISO8859-2 ISO8859-3 ISO8859-4 ISO8859-5		 \
 	   IBM1364 IBM1371 IBM1388 IBM1390 IBM1399 ISO_11548-1 MIK BRF	 \
 	   MAC-CENTRALEUROPE KOI8-RU ISO8859-9E				 \
 	   CP770 CP771 CP772 CP773 CP774
+
+# If lazy binding is disabled, use BIND_NOW for the gconv modules.
+ifeq ($(bind-now),yes)
+LDFLAGS.so += -Wl,-z,now
+endif
 
 modules.so := $(addsuffix .so, $(modules))
 
@@ -148,11 +153,11 @@ gen-8bit-modules := iso8859-2 iso8859-3 iso8859-4 iso8859-6 iso8859-9 koi-8 \
 gen-8bit-gap-modules := koi8-r latin-greek latin-greek-1 ibm256 ibm273	   \
 			ibm277 ibm278 ibm280 ibm281 ibm284 ibm285 ibm290   \
 			ibm297 ibm420 ibm424 ibm437 ibm850 ibm851 ibm852   \
-			ibm855 ibm857 ibm860 ibm861 ibm862 ibm863 ibm864   \
-			ibm865 ibm868 ibm869 ibm875 ibm880 ibm918 ibm1004  \
-			ibm1026 cp1125 cp1250 cp1251 cp1252 cp1253 cp1254  \
-			cp1256 cp1257 ibm866 iso8859-5 iso8859-7 iso8859-8 \
-			iso8859-10 macintosh iec_p27-1 asmo_449		   \
+			ibm855 ibm857 ibm858 ibm860 ibm861 ibm862 ibm863   \
+			ibm864 ibm865 ibm868 ibm869 ibm875 ibm880 ibm918   \
+			ibm1004 ibm1026 cp1125 cp1250 cp1251 cp1252 cp1253 \
+			cp1254 cp1256 cp1257 ibm866 iso8859-5 iso8859-7    \
+			iso8859-8 iso8859-10 macintosh iec_p27-1 asmo_449  \
 			csn_369103 cwi dec-mcs ecma-cyrillic gost_19768-74 \
 			greek-ccitt greek7 greek7-old inis inis-8	   \
 			inis-cyrillic iso_2033 iso_5427 iso_5427-ext	   \
@@ -285,7 +290,7 @@ cpp-srcs-left := $(modules) $(generated-modules) $(libJIS-routines) \
 		 $(libKSC-routines) $(libGB-routines) $(libCNS-routines) \
 		 $(libISOIR165-routines) $(libJISX0213-routines)
 lib := iconvdata
-include $(patsubst %,$(..)cppflags-iterator.mk,$(cpp-srcs-left))
+include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 
 tst-loading-ENV = MALLOC_TRACE=$(objpfx)tst-loading.mtrace
 $(objpfx)mtrace-tst-loading.out: $(objpfx)tst-loading.out

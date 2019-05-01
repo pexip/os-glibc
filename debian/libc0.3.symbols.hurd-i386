@@ -10,8 +10,6 @@ libBrokenLocale.so.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
 libSegFault.so #PACKAGE# #MINVER#
 #include "symbols.wildcards"
-libcidn.so.1 #PACKAGE# #MINVER#
-#include "symbols.wildcards"
 libcrypt.so.1 #PACKAGE# #MINVER#
 #include "symbols.wildcards"
 libdl.so.2 #PACKAGE# #MINVER#
@@ -85,6 +83,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __dir_unlink@Base 2.11
  __exec_exec@Base 2.11
  __exec_exec_file_name@Base 2.13-33~
+ __exec_exec_paths@Base 2.26-3~
  __exec_init@Base 2.11
  __exec_setexecdata@Base 2.11
  __exec_startup_get_info@Base 2.11
@@ -95,9 +94,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __file_chown@Base 2.11
  __file_exec@Base 2.11
  __file_exec_file_name@Base 2.13-33~
- __file_get_children@Base 2.18-5
+ __file_exec_paths@Base 2.26-3~
  __file_get_fs_options@Base 2.11
- __file_get_source@Base 2.18-5
  __file_get_storage_info@Base 2.11
  __file_get_translator@Base 2.11
  __file_get_translator_cntl@Base 2.11
@@ -114,8 +112,11 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __file_sync@Base 2.11
  __file_syncfs@Base 2.11
  __file_utimes@Base 2.11
+ __file_utimens@Base 2.27-2~
  __fsys_forward@Base 2.11
+ __fsys_get_children@Base 2.25-3
  __fsys_get_options@Base 2.11
+ __fsys_get_source@Base 2.25-3
  __fsys_getfile@Base 2.11
  __fsys_getpriv@Base 2.11
  __fsys_getroot@Base 2.11
@@ -254,6 +255,11 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __msg_sig_post_untraced_request@Base 2.11
  __password_check_group@Base 2.11
  __password_check_user@Base 2.11
+ __pci_conf_read@Base 2.27-8+hurd.1
+ __pci_conf_write@Base 2.27-8+hurd.1
+ __pci_get_dev_regions@Base 2.27-8+hurd.1
+ __pci_get_dev_rom@Base 2.27-8+hurd.1
+ __pci_get_ndevs@Base 2.27-8+hurd.1
  __pfinet_siocgifconf@Base 2.11
  __proc_child@Base 2.11
  __proc_child_request@Base 2.11
@@ -265,6 +271,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __proc_get_arg_locations_request@Base 2.11
  __proc_get_code@Base 2.17-93~
  __proc_get_code_request@Base 2.17-93~
+ __proc_get_entry@Base 2.25-4
+ __proc_get_exe@Base 2.24-17
  __proc_get_tty@Base 2.11
  __proc_get_tty_request@Base 2.11
  __proc_getallpids@Base 2.11
@@ -341,6 +349,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  __proc_set_arg_locations_request@Base 2.11
  __proc_set_code@Base 2.17-93~
  __proc_set_code_request@Base 2.17-93~
+ __proc_set_entry@Base 2.25-4
+ __proc_set_exe@Base 2.24-17
  __proc_set_init_task@Base 2.17-94~
  __proc_set_init_task_request@Base 2.17-94~
  __proc_setexecdata@Base 2.11
@@ -450,6 +460,7 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  dir_unlink@Base 2.11
  exec_exec@Base 2.11
  exec_exec_file_name@Base 2.13-33~
+ exec_exec_paths@Base 2.26-3~
  exec_init@Base 2.11
  exec_setexecdata@Base 2.11
  exec_startup_get_info@Base 2.11
@@ -460,9 +471,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  file_chown@Base 2.11
  file_exec@Base 2.11
  file_exec_file_name@Base 2.13-33~
- file_get_children@Base 2.18-5
+ file_exec_paths@Base 2.26-3~
  file_get_fs_options@Base 2.11
- file_get_source@Base 2.18-5
  file_get_storage_info@Base 2.11
  file_get_translator@Base 2.11
  file_get_translator_cntl@Base 2.11
@@ -479,8 +489,11 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  file_sync@Base 2.11
  file_syncfs@Base 2.11
  file_utimes@Base 2.11
+ file_utimens@Base 2.27-2~
  fsys_forward@Base 2.11
+ fsys_get_children@Base 2.25-3
  fsys_get_options@Base 2.11
+ fsys_get_source@Base 2.25-3
  fsys_getfile@Base 2.11
  fsys_getpriv@Base 2.11
  fsys_getroot@Base 2.11
@@ -619,6 +632,11 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  msg_sig_post_untraced_request@Base 2.11
  password_check_group@Base 2.11
  password_check_user@Base 2.11
+ pci_conf_read@Base 2.27-8+hurd.1
+ pci_conf_write@Base 2.27-8+hurd.1
+ pci_get_dev_regions@Base 2.27-8+hurd.1
+ pci_get_dev_rom@Base 2.27-8+hurd.1
+ pci_get_ndevs@Base 2.27-8+hurd.1
  pfinet_siocgifconf@Base 2.11
  proc_child@Base 2.11
  proc_child_request@Base 2.11
@@ -630,6 +648,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  proc_get_arg_locations_request@Base 2.11
  proc_get_code@Base 2.17-93~
  proc_get_code_request@Base 2.17-93~
+ proc_get_entry@Base 2.25-4
+ proc_get_exe@Base 2.24-17
  proc_get_tty@Base 2.11
  proc_get_tty_request@Base 2.11
  proc_getallpids@Base 2.11
@@ -706,6 +726,8 @@ libhurduser.so.0.3 #PACKAGE# #MINVER#
  proc_set_arg_locations_request@Base 2.11
  proc_set_code@Base 2.17-93~
  proc_set_code_request@Base 2.17-93~
+ proc_set_entry@Base 2.25-4
+ proc_set_exe@Base 2.24-17
  proc_set_init_task@Base 2.17-94~
  proc_set_init_task_request@Base 2.17-94~
  proc_setexecdata@Base 2.11
@@ -945,6 +967,8 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  __vm_inherit@Base 2.11
  __vm_machine_attribute@Base 2.11
  __vm_map_rpc@Base 2.11
+ __vm_msync@Base 2.27-9
+ __vm_object_sync@Base 2.27-9
  __vm_protect@Base 2.11
  __vm_read@Base 2.11
  __vm_region@Base 2.11
@@ -1102,6 +1126,8 @@ libmachuser.so.1 #PACKAGE# #MINVER#
  vm_inherit@Base 2.11
  vm_machine_attribute@Base 2.11
  vm_map_rpc@Base 2.11
+ vm_msync@Base 2.27-9
+ vm_object_sync@Base 2.27-9
  vm_protect@Base 2.11
  vm_read@Base 2.11
  vm_region@Base 2.11

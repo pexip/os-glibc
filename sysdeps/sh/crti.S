@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for SH.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@
 	.section	.init,"ax",@progbits
 	.align 5
 	.global	_init
+	.hidden	_init
 	.type	_init, @function
 _init:
 	mov.l	r12,@-r15
@@ -103,6 +104,7 @@ _init:
 	.section	.fini,"ax",@progbits
 	.align 5
 	.global	_fini
+	.hidden	_fini
 	.type	_fini, @function
 _fini:
 	mov.l	r12,@-r15

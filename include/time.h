@@ -1,11 +1,8 @@
 #ifndef _TIME_H
-#if defined __need_time_t  || defined __need_clock_t || defined __need_timespec || defined _ISOMAC
-# include <time/time.h>
-#else
-# include <time/time.h>
-# include <xlocale.h>
+#include <time/time.h>
 
-__BEGIN_DECLS
+#ifndef _ISOMAC
+# include <bits/types/locale_t.h>
 
 extern __typeof (strftime_l) __strftime_l;
 libc_hidden_proto (__strftime_l)
@@ -29,6 +26,10 @@ extern __typeof (clock_getcpuclockid) __clock_getcpuclockid;
 /* Now define the internal interfaces.  */
 struct tm;
 
+/* time_t variant for representing time zone data, independent of
+   time_t.  */
+typedef __int64_t internal_time_t;
+
 /* Defined in mktime.c.  */
 extern const unsigned short int __mon_yday[2][13] attribute_hidden;
 
@@ -36,24 +37,21 @@ extern const unsigned short int __mon_yday[2][13] attribute_hidden;
 extern struct tm _tmbuf attribute_hidden;
 
 /* Defined in tzset.c.  */
-extern char *__tzstring (const char *string);
-
-/* Defined in tzset.c. */
-extern size_t __tzname_cur_max attribute_hidden;
-
+extern char *__tzstring (const char *string) attribute_hidden;
 
 extern int __use_tzfile attribute_hidden;
 
 extern void __tzfile_read (const char *file, size_t extra,
-			   char **extrap);
-extern void __tzfile_compute (time_t timer, int use_localtime,
+			   char **extrap) attribute_hidden;
+extern void __tzfile_compute (internal_time_t timer, int use_localtime,
 			      long int *leap_correct, int *leap_hit,
-			      struct tm *tp);
+			      struct tm *tp) attribute_hidden;
 extern void __tzfile_default (const char *std, const char *dst,
-			      long int stdoff, long int dstoff);
-extern void __tzset_parse_tz (const char *tz);
+			      long int stdoff, long int dstoff)
+  attribute_hidden;
+extern void __tzset_parse_tz (const char *tz) attribute_hidden;
 extern void __tz_compute (time_t timer, struct tm *tm, int use_localtime)
-     __THROW internal_function;
+  __THROW attribute_hidden;
 
 /* Subroutine of `mktime'.  Return the `time_t' representation of TP and
    normalize TP, given that a `struct tm *' maps to a `time_t' as performed
@@ -61,7 +59,7 @@ extern void __tz_compute (time_t timer, struct tm *tm, int use_localtime)
 extern time_t __mktime_internal (struct tm *__tp,
 				 struct tm *(*__func) (const time_t *,
 						       struct tm *),
-				 time_t *__offset);
+				 time_t *__offset) attribute_hidden;
 extern struct tm *__localtime_r (const time_t *__timer,
 				 struct tm *__tp) attribute_hidden;
 
@@ -75,36 +73,31 @@ libc_hidden_proto (__gmtime_r)
    Return nonzero if successful.  */
 extern int __offtime (const time_t *__timer,
 		      long int __offset,
-		      struct tm *__tp);
+		      struct tm *__tp) attribute_hidden;
 
-extern char *__asctime_r (const struct tm *__tp, char *__buf);
-extern void __tzset (void);
+extern char *__asctime_r (const struct tm *__tp, char *__buf)
+  attribute_hidden;
+extern void __tzset (void) attribute_hidden;
 
 /* Prototype for the internal function to get information based on TZ.  */
-extern struct tm *__tz_convert (const time_t *timer, int use_localtime, struct tm *tp);
-
-/* Return the maximum length of a timezone name.
-   This is what `sysconf (_SC_TZNAME_MAX)' does.  */
-extern long int __tzname_max (void);
+extern struct tm *__tz_convert (const time_t *timer, int use_localtime,
+				struct tm *tp) attribute_hidden;
 
 extern int __nanosleep (const struct timespec *__requested_time,
 			struct timespec *__remaining);
-libc_hidden_proto (__nanosleep)
-extern int __nanosleep_nocancel (const struct timespec *__requested_time,
-				 struct timespec *__remaining)
+hidden_proto (__nanosleep)
+extern int __getdate_r (const char *__string, struct tm *__resbufp)
   attribute_hidden;
-extern int __getdate_r (const char *__string, struct tm *__resbufp);
 
 
 /* Determine CLK_TCK value.  */
-extern int __getclktck (void);
+extern int __getclktck (void) attribute_hidden;
 
 
 /* strptime support.  */
 extern char * __strptime_internal (const char *rp, const char *fmt,
 				   struct tm *tm, void *statep,
-				   __locale_t locparam)
-     internal_function;
+				   locale_t locparam) attribute_hidden;
 
 extern double __difftime (time_t time1, time_t time0);
 
@@ -112,8 +105,6 @@ extern double __difftime (time_t time1, time_t time0);
 /* Use in the clock_* functions.  Size of the field representing the
    actual clock ID.  */
 #define CLOCK_IDFIELD_SIZE	3
-
-__END_DECLS
 
 #endif
 #endif

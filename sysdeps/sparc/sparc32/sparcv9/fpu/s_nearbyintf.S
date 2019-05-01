@@ -1,7 +1,7 @@
 /* Round float to int floating-point values without generating
    an inexact exception, sparc32 v9 version.
 
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by David S. Miller <davem@davemloft.net>, 2013.
 
@@ -20,6 +20,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <libm-alias-float.h>
 
 	/* We pop constants into the FPU registers using the incoming
 	   argument stack slots, since this avoid having to use any PIC
@@ -35,9 +36,10 @@
 #define SIGN_BIT	%f12			/* -0.0 */
 
 ENTRY (__nearbyintf)
+	st	%o0, [%sp + 68]
+	ld	[%sp + 68], %f1
 	fcmps	%fcc3, %f1, %f1			/* Check for sNaN */
 	st	%fsr, [%sp + 88]
-	st	%o0, [%sp + 68]
 	sethi	%hi(TWO_TWENTYTHREE), %o2
 	sethi	%hi(0xf8003e0), %o5
 	ld	[%sp + 88], %o4
@@ -46,7 +48,6 @@ ENTRY (__nearbyintf)
 	fnegs	ZERO, SIGN_BIT
 	andn	%o4, %o5, %o4
 	st	%o4, [%sp + 80]
-	ld	[%sp + 68], %f1
 	ld	[%sp + 80], %fsr
 	st	%o2, [%sp + 68]
 	fabss	%f1, %f14
@@ -62,4 +63,4 @@ ENTRY (__nearbyintf)
 	retl
 	 ld	[%sp + 88], %fsr
 END (__nearbyintf)
-weak_alias (__nearbyintf, nearbyintf)
+libm_alias_float (__nearbyint, nearbyint)

@@ -1,5 +1,5 @@
 /* Return error detail for failing <dlfcn.h> functions.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <string.h>
 #include <libc-lock.h>
 #include <ldsodefs.h>
+#include <libc-symbols.h>
 
 #if !defined SHARED && IS_IN (libdl)
 
@@ -63,7 +64,7 @@ __dlerror (void)
   struct dl_action_result *result;
 
 # ifdef SHARED
-  if (__glibc_unlikely (_dlfcn_hook != NULL))
+  if (!rtld_active ())
     return _dlfcn_hook->dlerror ();
 # endif
 
@@ -120,7 +121,6 @@ strong_alias (__dlerror, dlerror)
 # endif
 
 int
-internal_function
 _dlerror_run (void (*operate) (void *), void *args)
 {
   struct dl_action_result *result;
@@ -160,8 +160,8 @@ _dlerror_run (void (*operate) (void *), void *args)
       result->errstring = NULL;
     }
 
-  result->errcode = GLRO(dl_catch_error) (&result->objname, &result->errstring,
-					  &result->malloced, operate, args);
+  result->errcode = _dl_catch_error (&result->objname, &result->errstring,
+				     &result->malloced, operate, args);
 
   /* If no error we mark that no error string is available.  */
   result->returned = result->errstring == NULL;
@@ -222,6 +222,19 @@ free_key_mem (void *mem)
 }
 
 # ifdef SHARED
+
+/* Free the dlerror-related resources.  */
+void
+__dlerror_main_freeres (void)
+{
+  void *mem;
+  /* Free the global memory if used.  */
+  check_free (&last_result);
+  /* Free the TSD memory if used.  */
+  mem = __libc_getspecific (key);
+  if (mem != NULL)
+    free_key_mem (mem);
+}
 
 struct dlfcn_hook *_dlfcn_hook __attribute__((nocommon));
 libdl_hidden_data_def (_dlfcn_hook)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <ieee754.h>
 #include <float.h>
 #include <math.h>
+#include <math_private.h>
 #include <stdlib.h>
 
 /* Convert a `long double' in IEEE854 quad-precision format to a
@@ -31,7 +32,7 @@
 mp_size_t
 __mpn_extract_long_double (mp_ptr res_ptr, mp_size_t size,
 			   int *expt, int *is_neg,
-			   long double value)
+			   _Float128 value)
 {
   union ieee854_long_double u;
   u.d = value;

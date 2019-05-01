@@ -1,5 +1,5 @@
 /* The `struct utmp' type, describing entries in the utmp file.  GNU version.
-   Copyright (C) 1993-2016 Free Software Foundation, Inc.
+   Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
    previous logins.  */
 struct lastlog
   {
-#ifdef __WORDSIZE_TIME64_COMPAT32
+#if __WORDSIZE_TIME64_COMPAT32
     int32_t ll_time;
 #else
     __time_t ll_time;
@@ -59,16 +59,19 @@ struct utmp
 {
   short int ut_type;		/* Type of login.  */
   pid_t ut_pid;			/* Process ID of login process.  */
-  char ut_line[UT_LINESIZE];	/* Devicename.  */
+  char ut_line[UT_LINESIZE]
+    __attribute_nonstring__;	/* Devicename.  */
   char ut_id[4];		/* Inittab ID.  */
-  char ut_user[UT_NAMESIZE];	/* Username.  */
-  char ut_host[UT_HOSTSIZE];	/* Hostname for remote login.  */
+  char ut_user[UT_NAMESIZE]
+    __attribute_nonstring__;	/* Username.  */
+  char ut_host[UT_HOSTSIZE]
+    __attribute_nonstring__;	/* Hostname for remote login.  */
   struct exit_status ut_exit;	/* Exit status of a process marked
 				   as DEAD_PROCESS.  */
 /* The ut_session and ut_tv fields must be the same size when compiled
    32- and 64-bit.  This allows data files and shared memory to be
    shared between 32- and 64-bit applications.  */
-#ifdef __WORDSIZE_TIME64_COMPAT32
+#if __WORDSIZE_TIME64_COMPAT32
   int32_t ut_session;		/* Session ID, used for windowing.  */
   struct
   {

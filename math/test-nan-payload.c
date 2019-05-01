@@ -1,5 +1,5 @@
 /* Test nan functions payload handling (bug 16961).
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -112,9 +112,7 @@ do_test (void)
   int result = 0;
   RUN_TESTS (float, strtof, nanf, FLT_MANT_DIG);
   RUN_TESTS (double, strtod, nan, DBL_MANT_DIG);
-#ifndef NO_LONG_DOUBLE
   RUN_TESTS (long double, strtold, nanl, LDBL_MANT_DIG);
-#endif
   return result;
 }
 

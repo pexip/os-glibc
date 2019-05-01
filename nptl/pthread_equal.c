@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -24,4 +24,4 @@ __pthread_equal (pthread_t thread1, pthread_t thread2)
 {
   return thread1 == thread2;
 }
-strong_alias (__pthread_equal, pthread_equal)
+weak_alias (__pthread_equal, pthread_equal)

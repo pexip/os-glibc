@@ -46,15 +46,15 @@ idouble: 1
 ifloat: 2
 
 Function: Imaginary part of "cacos":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Real part of "cacosh":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Imaginary part of "cacosh":
@@ -74,15 +74,15 @@ idouble: 1
 ifloat: 1
 
 Function: Imaginary part of "casin":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Real part of "casinh":
-double: 1
+double: 2
 float: 2
-idouble: 1
+idouble: 2
 ifloat: 2
 
 Function: Imaginary part of "casinh":
@@ -92,7 +92,9 @@ idouble: 1
 ifloat: 1
 
 Function: Real part of "catan":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: Imaginary part of "catan":
@@ -108,7 +110,9 @@ idouble: 1
 ifloat: 1
 
 Function: Imaginary part of "catanh":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: "cbrt":
@@ -176,7 +180,9 @@ idouble: 2
 ifloat: 2
 
 Function: "cos":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: "cosh":
@@ -187,9 +193,9 @@ ifloat: 1
 
 Function: Real part of "cpow":
 double: 2
-float: 4
+float: 5
 idouble: 2
-ifloat: 4
+ifloat: 5
 
 Function: Imaginary part of "cpow":
 float: 2
@@ -231,15 +237,15 @@ ifloat: 1
 
 Function: Imaginary part of "ctan":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 
 Function: Real part of "ctanh":
 double: 2
-float: 1
+float: 2
 idouble: 2
-ifloat: 1
+ifloat: 2
 
 Function: Imaginary part of "ctanh":
 double: 2
@@ -336,19 +342,21 @@ idouble: 2
 ifloat: 1
 
 Function: "pow":
+double: 1
 float: 3
+idouble: 1
 ifloat: 3
 
-Function: "pow10":
-double: 2
-idouble: 2
-
 Function: "sin":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: "sincos":
+double: 1
 float: 1
+idouble: 1
 ifloat: 1
 
 Function: "sinh":
@@ -387,8 +395,8 @@ ifloat: 2
 
 Function: "yn":
 double: 3
-float: 2
+float: 3
 idouble: 3
-ifloat: 2
+ifloat: 3
 
 # end of automatic generation

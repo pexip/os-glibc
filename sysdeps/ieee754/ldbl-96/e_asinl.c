@@ -61,6 +61,7 @@
 #include <float.h>
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const long double
   one = 1.0L,
@@ -96,7 +97,7 @@ __ieee754_asinl (long double x)
 {
   long double t, w, p, q, c, r, s;
   int32_t ix;
-  u_int32_t se, i0, i1, k;
+  uint32_t se, i0, i1, k;
 
   GET_LDOUBLE_WORDS (se, i0, i1, x);
   ix = se & 0x7fff;
@@ -132,7 +133,7 @@ __ieee754_asinl (long double x)
   t = w * 0.5;
   p = t * (pS0 + t * (pS1 + t * (pS2 + t * (pS3 + t * (pS4 + t * pS5)))));
   q = qS0 + t * (qS1 + t * (qS2 + t * (qS3 + t * (qS4 + t))));
-  s = __ieee754_sqrtl (t);
+  s = sqrtl (t);
   if (ix >= 0x3ffef999)
     {				/* if |x| > 0.975 */
       w = p / q;

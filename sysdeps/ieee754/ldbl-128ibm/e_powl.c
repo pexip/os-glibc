@@ -66,6 +66,7 @@
 
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const long double bp[] = {
   1.0L,
@@ -165,11 +166,11 @@ __ieee754_powl (long double x, long double y)
   iy = hy & 0x7fffffff;
 
   /* y==zero: x**0 = 1 */
-  if ((iy | ly) == 0)
+  if ((iy | ly) == 0 && !issignaling (x))
     return one;
 
   /* 1.0**y = 1; -1.0**+-Inf = 1 */
-  if (x == one)
+  if (x == one && !issignaling (y))
     return one;
   if (x == -1.0L && ((iy - 0x7ff00000) | ly) == 0)
     return one;
@@ -233,7 +234,7 @@ __ieee754_powl (long double x, long double y)
 	  if (hy == 0x3fe00000)
 	    {			/* y is  0.5 */
 	      if (hx >= 0)		/* x >= +0 */
-		return __ieee754_sqrtl (x);
+		return sqrtl (x);
 	    }
 	}
     }
@@ -260,12 +261,12 @@ __ieee754_powl (long double x, long double y)
     }
 
   /* (x<0)**(non-int) is NaN */
-  if (((((u_int32_t) hx >> 31) - 1) | yisint) == 0)
+  if (((((uint32_t) hx >> 31) - 1) | yisint) == 0)
     return (x - x) / (x - x);
 
   /* sgn (sign of result -ve**odd) = -1 else = 1 */
   sgn = one;
-  if (((((u_int32_t) hx >> 31) - 1) | (yisint - 1)) == 0)
+  if (((((uint32_t) hx >> 31) - 1) | (yisint - 1)) == 0)
     sgn = -one;			/* (-ve)**(odd int) */
 
   /* |y| is huge.

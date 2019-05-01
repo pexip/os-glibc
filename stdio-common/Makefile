@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -35,11 +35,11 @@ routines	:=							      \
 	perror psignal							      \
 	tmpfile tmpfile64 tmpnam tmpnam_r tempnam tempname		      \
 	getline getw putw						      \
-	remove rename renameat						      \
+	remove rename renameat renameat2				      \
 	flockfile ftrylockfile funlockfile				      \
 	isoc99_scanf isoc99_vscanf isoc99_fscanf isoc99_vfscanf isoc99_sscanf \
 	isoc99_vsscanf							      \
-	psiginfo
+	psiginfo gentempfd
 
 aux	:= errlist siglist printf-parsemb printf-parsewc fxprintf
 
@@ -58,15 +58,20 @@ tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
 	 scanf16 scanf17 tst-setvbuf1 tst-grouping bug23 bug24 \
 	 bug-vfprintf-nargs tst-long-dbl-fphex tst-fphex-wide tst-sprintf3 \
 	 bug25 tst-printf-round bug23-2 bug23-3 bug23-4 bug26 tst-fmemopen3 \
-	 tst-printf-bz18872 tst-vfprintf-width-prec tst-fmemopen4
+	 tst-printf-bz18872 tst-vfprintf-width-prec tst-fmemopen4 \
+	 tst-vfprintf-user-type \
+	 tst-vfprintf-mbs-prec \
+	 tst-scanf-round \
+	 tst-renameat2 \
 
-test-srcs = tst-unbputc tst-printf
+test-srcs = tst-unbputc tst-printf tst-printfsz-islongdouble
 
 ifeq ($(run-built-tests),yes)
 tests-special += $(objpfx)tst-unbputc.out $(objpfx)tst-printf.out \
 		 $(objpfx)tst-printf-bz18872-mem.out \
 		 $(objpfx)tst-setvbuf1-cmp.out \
-		 $(objpfx)tst-vfprintf-width-prec-mem.out
+		 $(objpfx)tst-vfprintf-width-prec-mem.out \
+		 $(objpfx)tst-printfsz-islongdouble.out
 generated += tst-printf-bz18872.c tst-printf-bz18872.mtrace \
 	     tst-printf-bz18872-mem.out \
 	     tst-vfprintf-width-prec.mtrace tst-vfprintf-width-prec-mem.out
@@ -85,6 +90,7 @@ $(objpfx)tst-grouping.out: $(gen-locales)
 $(objpfx)tst-sprintf.out: $(gen-locales)
 $(objpfx)tst-sscanf.out: $(gen-locales)
 $(objpfx)tst-swprintf.out: $(gen-locales)
+$(objpfx)tst-vfprintf-mbs-prec.out: $(gen-locales)
 endif
 
 tst-printf-bz18872-ENV = MALLOC_TRACE=$(objpfx)tst-printf-bz18872.mtrace
@@ -92,11 +98,16 @@ tst-vfprintf-width-prec-ENV = \
   MALLOC_TRACE=$(objpfx)tst-vfprintf-width-prec.mtrace
 
 $(objpfx)tst-unbputc.out: tst-unbputc.sh $(objpfx)tst-unbputc
-	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)'; \
+	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)' > $@; \
 	$(evaluate-test)
 
 $(objpfx)tst-printf.out: tst-printf.sh $(objpfx)tst-printf
-	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)'; \
+	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)' > $@; \
+	$(evaluate-test)
+
+$(objpfx)tst-printfsz-islongdouble.out: \
+  tst-printfsz-islongdouble.sh $(objpfx)tst-printfsz-islongdouble
+	$(SHELL) $^ '$(test-program-prefix)' $@; \
 	$(evaluate-test)
 
 # We generate this source because it requires a printf invocation with
@@ -108,15 +119,15 @@ $(objpfx)tst-%-mem.out: $(objpfx)tst-%.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-$*.mtrace > $@; \
 	$(evaluate-test)
 
-CFLAGS-vfprintf.c = -Wno-uninitialized
-CFLAGS-vfwprintf.c = -Wno-uninitialized
+CFLAGS-vfprintf.c += -Wno-uninitialized
+CFLAGS-vfwprintf.c += -Wno-uninitialized
 
-CFLAGS-tmpfile.c = -fexceptions
-CFLAGS-tmpfile64.c = -fexceptions
-CFLAGS-tempname.c = -fexceptions
-CFLAGS-psignal.c = -fexceptions
-CFLAGS-vprintf.c = -fexceptions
-CFLAGS-cuserid.c = -fexceptions
+CFLAGS-tmpfile.c += -fexceptions
+CFLAGS-tmpfile64.c += -fexceptions
+CFLAGS-tempname.c += -fexceptions
+CFLAGS-psignal.c += -fexceptions
+CFLAGS-vprintf.c += -fexceptions
+CFLAGS-cuserid.c += -fexceptions
 
 CFLAGS-vfprintf.c += -fexceptions
 CFLAGS-fprintf.c += -fexceptions
@@ -130,16 +141,26 @@ CFLAGS-isoc99_vfscanf.c += -fexceptions
 CFLAGS-isoc99_vscanf.c += -fexceptions
 CFLAGS-isoc99_fscanf.c += -fexceptions
 CFLAGS-isoc99_scanf.c += -fexceptions
-CFLAGS-errlist.c = $(fno-unit-at-a-time)
-CFLAGS-siglist.c = $(fno-unit-at-a-time)
+CFLAGS-errlist.c += $(fno-unit-at-a-time)
+CFLAGS-siglist.c += $(fno-unit-at-a-time)
 
 # The following is a hack since we must compile scanf1{5,7}.c without any
 # GNU extension.  The latter are needed, though, when internal headers
 # are used.  So made sure we see the installed headers first.
-CFLAGS-scanf15.c = -I../libio -I../stdlib -I../wcsmbs -I../time -I../string \
+CFLAGS-scanf15.c += -I../libio -I../stdlib -I../wcsmbs -I../time -I../string \
 		   -I../wctype
-CFLAGS-scanf17.c = -I../libio -I../stdlib -I../wcsmbs -I../time -I../string \
+CFLAGS-scanf17.c += -I../libio -I../stdlib -I../wcsmbs -I../time -I../string \
 		   -I../wctype
+
+CFLAGS-bug3.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-bug4.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-bug5.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-test-fseek.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-test-popen.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-test_rdwr.c += -DOBJPFX=\"$(objpfx)\"
+
+# tst-gets.c tests a deprecated function.
+CFLAGS-tst-gets.c += -Wno-deprecated-declarations
 
 CPPFLAGS += $(libio-mtsafe)
 
@@ -152,3 +173,4 @@ $(objpfx)tst-setvbuf1-cmp.out: tst-setvbuf1.expect $(objpfx)tst-setvbuf1.out
 	$(evaluate-test)
 
 $(objpfx)tst-printf-round: $(libm)
+$(objpfx)tst-scanf-round: $(libm)

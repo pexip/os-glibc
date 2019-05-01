@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  PowerPC version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -235,6 +235,7 @@ extern Elf32_Addr __elf_machine_fixup_plt (struct link_map *map,
 
 static inline Elf32_Addr
 elf_machine_fixup_plt (struct link_map *map, lookup_t t,
+		       const ElfW(Sym) *refsym, const ElfW(Sym) *sym,
 		       const Elf32_Rela *reloc,
 		       Elf32_Addr *reloc_addr, Elf64_Addr finaladdr)
 {
@@ -309,11 +310,14 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
      against local symbols.  */
   if (__builtin_expect (ELF32_ST_BIND (sym->st_info) == STB_LOCAL, 0)
       && sym->st_shndx != SHN_UNDEF)
-    value = map->l_addr;
+    {
+      sym_map = map;
+      value = map->l_addr;
+    }
   else
     {
       sym_map = RESOLVE_MAP (&sym, version, r_type);
-      value = sym_map == NULL ? 0 : sym_map->l_addr + sym->st_value;
+      value = SYMBOL_ADDRESS (sym_map, sym, true);
     }
   value += reloc->r_addend;
 #else

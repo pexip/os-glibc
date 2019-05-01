@@ -1,7 +1,7 @@
 /*
  * UFC-crypt: ultra fast crypt(3) implementation
  *
- * Copyright (C) 1991-2016 Free Software Foundation, Inc.
+ * Copyright (C) 1991-2018 Free Software Foundation, Inc.
  *
  * The GNU C Library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,6 +35,7 @@
 #endif
 
 #include "crypt-private.h"
+#include <shlib-compat.h>
 
 /* Prototypes for local functions.  */
 #ifndef __GNU_LIBRARY__
@@ -141,6 +142,15 @@ __crypt_r (const char *key, const char *salt,
    * And convert back to 6 bit ASCII
    */
   _ufc_output_conversion_r (res[0], res[1], salt, data);
+
+  /*
+   * Erase key-dependent intermediate data.  Data dependent only on
+   * the salt is not considered sensitive.
+   */
+  explicit_bzero (ktab, sizeof (ktab));
+  explicit_bzero (data->keysched, sizeof (data->keysched));
+  explicit_bzero (res, sizeof (res));
+
   return data->crypt_3_buf;
 }
 weak_alias (__crypt_r, crypt_r)
@@ -167,17 +177,7 @@ crypt (const char *key, const char *salt)
   return __crypt_r (key, salt, &_ufc_foobar);
 }
 
-
-/*
- * To make fcrypt users happy.
- * They don't need to call init_des.
- */
-#ifdef _LIBC
+#if SHLIB_COMPAT (libcrypt, GLIBC_2_0, GLIBC_2_28)
 weak_alias (crypt, fcrypt)
-#else
-char *
-__fcrypt (const char *key, const char *salt)
-{
-  return crypt (key, salt);
-}
+compat_symbol (libcrypt, fcrypt, fcrypt, GLIBC_2_0);
 #endif

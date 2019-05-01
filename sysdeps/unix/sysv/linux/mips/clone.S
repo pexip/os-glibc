@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ralf Baechle <ralf@linux-mips.org>, 1996.
 
@@ -24,9 +24,6 @@
 #define _ERRNO_H	1
 #include <bits/errno.h>
 #include <tls.h>
-
-#define CLONE_VM      0x00000100
-#define CLONE_THREAD  0x00010000
 
 /* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
 	     void *parent_tidptr, void *tls, void *child_tidptr) */
@@ -130,11 +127,6 @@ L(thread_start):
 	SAVE_GP (GPOFF)
 	/* The stackframe has been created on entry of clone().  */
 
-	/* Check and see if we need to reset the PID.  */
-	and	a1,a0,CLONE_VM
-	beqz	a1,L(restore_pid)
-L(donepid):
-
 	/* Restore the arg for user's function.  */
 	PTR_L		t9,0(sp)	/* Function pointer.  */
 	PTR_L		a0,PTRSIZE(sp)	/* Argument pointer.  */
@@ -142,22 +134,9 @@ L(donepid):
 	/* Call the user's function.  */
 	jal		t9
 
-	/* Call _exit rather than doing it inline for breakpoint purposes.  */
 	move		a0,v0
-#ifdef __PIC__
-	PTR_LA		t9,_exit
-	jalr		t9
-#else
-	jal		_exit
-#endif
-
-L(restore_pid):
-	li		v0,__NR_getpid
+	li		v0,__NR_exit
 	syscall
-	READ_THREAD_POINTER(v1)
-	INT_S		v0,PID_OFFSET(v1)
-	INT_S		v0,TID_OFFSET(v1)
-	b		L(donepid)
 
 	END(__thread_start)
 

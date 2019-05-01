@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2018 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -108,7 +108,7 @@
 .Lsyscall_error:						\
 	adrp	x1, :gottprel:errno;				\
 	neg	w2, w0;						\
-	ldr	x1, [x1, :gottprel_lo12:errno];			\
+	ldr	PTR_REG(1), [x1, :gottprel_lo12:errno];		\
 	mrs	x3, tpidr_el0;					\
 	mov	x0, -1;						\
 	str	w2, [x1, x3];					\
@@ -156,6 +156,12 @@
 # define HAVE_CLOCK_GETRES_VSYSCALL	1
 # define HAVE_CLOCK_GETTIME_VSYSCALL	1
 # define HAVE_GETTIMEOFDAY_VSYSCALL	1
+
+/* Previously AArch64 used the generic version without the libc_hidden_def
+   which lead in a non existent __send symbol in libc.so.  */
+# undef HAVE_INTERNAL_SEND_SYMBOL
+
+# define SINGLE_THREAD_BY_GLOBAL		1
 
 /* Define a macro which expands into the inline wrapper code for a system
    call.  */
@@ -250,12 +256,14 @@
      (!defined SHARED && (IS_IN (libc) \
 			  || IS_IN (libpthread))))
 # ifdef __ASSEMBLER__
+/* Note, dst, src, guard, and tmp are all register numbers rather than
+   register names so they will work with both ILP32 and LP64. */
 #  define PTR_MANGLE(dst, src, guard, tmp)                                \
   LDST_PCREL (ldr, guard, tmp, C_SYMBOL_NAME(__pointer_chk_guard_local)); \
   PTR_MANGLE2 (dst, src, guard)
 /* Use PTR_MANGLE2 for efficiency if guard is already loaded.  */
 #  define PTR_MANGLE2(dst, src, guard)\
-  eor dst, src, guard
+  eor x##dst, x##src, x##guard
 #  define PTR_DEMANGLE(dst, src, guard, tmp)\
   PTR_MANGLE (dst, src, guard, tmp)
 #  define PTR_DEMANGLE2(dst, src, guard)\
@@ -268,12 +276,14 @@ extern uintptr_t __pointer_chk_guard_local attribute_relro attribute_hidden;
 # endif
 #else
 # ifdef __ASSEMBLER__
+/* Note, dst, src, guard, and tmp are all register numbers rather than
+   register names so they will work with both ILP32 and LP64. */
 #  define PTR_MANGLE(dst, src, guard, tmp)                             \
   LDST_GLOBAL (ldr, guard, tmp, C_SYMBOL_NAME(__pointer_chk_guard));   \
   PTR_MANGLE2 (dst, src, guard)
 /* Use PTR_MANGLE2 for efficiency if guard is already loaded.  */
 #  define PTR_MANGLE2(dst, src, guard)\
-  eor dst, src, guard
+  eor x##dst, x##src, x##guard
 #  define PTR_DEMANGLE(dst, src, guard, tmp)\
   PTR_MANGLE (dst, src, guard, tmp)
 #  define PTR_DEMANGLE2(dst, src, guard)\

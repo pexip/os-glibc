@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 	Contribute by David Mosberger-Tang <davidm@hpl.hp.com>
 
@@ -58,6 +58,7 @@ struct msqid_ds
 /* ipcs ctl commands */
 # define MSG_STAT 11
 # define MSG_INFO 12
+# define MSG_STAT_ANY 13
 
 /* buffer for msgctl calls IPC_INFO, MSG_INFO */
 struct msginfo

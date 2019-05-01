@@ -1,5 +1,5 @@
 /* Thread-local storage handling in the ELF dynamic linker.  x86-64 version.
-   Copyright (C) 2002-2016 Free Software Foundation, Inc.
+   Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,9 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#ifndef _X86_64_DL_TLS_H
+#define _X86_64_DL_TLS_H
+
 #include <stdint.h>
 
 /* Type used for the representation of TLS information in the GOT.  */
@@ -27,3 +30,5 @@ typedef struct dl_tls_index
 
 
 extern void *__tls_get_addr (tls_index *ti);
+
+#endif /* _X86_64_DL_TLS_H */

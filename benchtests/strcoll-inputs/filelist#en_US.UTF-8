@@ -9667,7 +9667,6 @@ hr.po
 libc.pot
 ko.po
 ru.po
-extra-modules.mk
 intl
 tst-gettext4-fr.po
 tstcodeset.po
@@ -11233,6 +11232,7 @@ ISO-8859-9E
 UTF-8
 ISO-8859-2
 IBM850
+IBM858
 EUC-TW
 KOI8-U
 IBM903
@@ -13252,7 +13252,6 @@ sigset.h
 atomic.h
 utmp.h
 stdlib-bsearch.h
-cppflags-iterator.mk
 iconvdata
 MISSING
 ibm1164.h
@@ -13922,6 +13921,7 @@ ibm12712.c
 ibm1145.h
 ibm932.c
 ibm850.c
+ibm858.c
 ibm437.c
 ibm1399.c
 stdio-common
@@ -15245,3 +15245,4 @@ w_exp2l.c
 bug-nexttoward.c
 w_dreml.c
 s_nanf.c
+libof-iterator.mk

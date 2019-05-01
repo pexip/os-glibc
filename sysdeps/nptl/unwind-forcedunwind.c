@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>.
 
@@ -49,6 +49,7 @@ pthread_cancel_init (void)
       return;
     }
 
+  /* See include/dlfcn.h. Use of __libc_dlopen requires RTLD_NOW.  */
   handle = __libc_dlopen (LIBGCC_S_SO);
 
   if (handle == NULL
@@ -78,9 +79,9 @@ pthread_cancel_init (void)
   libgcc_s_handle = handle;
 }
 
+/* Register for cleanup in libpthread.so.  */
 void
-__libc_freeres_fn_section
-__unwind_freeres (void)
+__nptl_unwind_freeres (void)
 {
   void *handle = libgcc_s_handle;
   if (handle != NULL)

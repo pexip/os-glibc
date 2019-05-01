@@ -36,6 +36,7 @@
 
 #include <rpc/rpc.h>
 #include <rpc/svc.h>
+#include <shlib-compat.h>
 
 /*
  * This is the "network" that we will be moving data over
@@ -47,11 +48,7 @@ struct svcraw_private_s
     XDR xdr_stream;
     char verf_body[MAX_AUTH_BYTES];
   };
-#ifdef _RPC_THREAD_SAFE_
 #define svcraw_private RPC_THREAD_VARIABLE(svcraw_private_s)
-#else
-static struct svcraw_private_s *svcraw_private;
-#endif
 
 static bool_t svcraw_recv (SVCXPRT *, struct rpc_msg *);
 static enum xprt_stat svcraw_stat (SVCXPRT *);

@@ -1,5 +1,5 @@
 /* External function version of isblank_l.
-   Copyright (C) 1991-2016 Free Software Foundation, Inc.
+   Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #include <ctype.h>
 
 int
-__isblank_l (int c, __locale_t l)
+__isblank_l (int c, locale_t l)
 {
   return __isctype_l (c, _ISblank, l);
 }

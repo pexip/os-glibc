@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,17 +28,19 @@
 #include "stdio.h"
 
 int
-fputc (int c, _IO_FILE *fp)
+fputc (int c, FILE *fp)
 {
   int result;
   CHECK_FILE (fp, EOF);
+  if (!_IO_need_lock (fp))
+    return _IO_putc_unlocked (c, fp);
   _IO_acquire_lock (fp);
   result = _IO_putc_unlocked (c, fp);
   _IO_release_lock (fp);
   return result;
 }
 
-#if defined weak_alias && !defined _IO_MTSAFE_IO
+#ifndef _IO_MTSAFE_IO
 #undef fputc_unlocked
 weak_alias (fputc, fputc_unlocked)
 #endif

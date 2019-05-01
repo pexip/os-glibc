@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,19 +28,9 @@
 #include "libioP.h"
 #include <fcntl.h>
 
-#ifdef _LIBC
-# include <shlib-compat.h>
-#endif
+#include <shlib-compat.h>
 
-#ifndef _IO_fcntl
-#ifdef _LIBC
-#define _IO_fcntl __fcntl
-#else
-#define _IO_fcntl fcntl
-#endif
-#endif
-
-_IO_FILE *
+FILE *
 _IO_new_fdopen (int fd, const char *mode)
 {
   int read_write;
@@ -72,7 +62,7 @@ _IO_new_fdopen (int fd, const char *mode)
       read_write = _IO_NO_READS|_IO_IS_APPENDING;
       break;
     default:
-      MAYBE_SET_EINVAL;
+      __set_errno (EINVAL);
       return NULL;
   }
   for (i = 1; i < 5; ++i)
@@ -95,18 +85,14 @@ _IO_new_fdopen (int fd, const char *mode)
 	}
       break;
     }
-#ifdef F_GETFL
-  int fd_flags = _IO_fcntl (fd, F_GETFL);
-#ifndef O_ACCMODE
-#define O_ACCMODE (O_RDONLY|O_WRONLY|O_RDWR)
-#endif
+  int fd_flags = __fcntl (fd, F_GETFL);
   if (fd_flags == -1)
     return NULL;
 
   if (((fd_flags & O_ACCMODE) == O_RDONLY && !(read_write & _IO_NO_WRITES))
       || ((fd_flags & O_ACCMODE) == O_WRONLY && !(read_write & _IO_NO_READS)))
     {
-      MAYBE_SET_EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 
@@ -129,12 +115,9 @@ _IO_new_fdopen (int fd, const char *mode)
   if ((read_write & _IO_IS_APPENDING) && !(fd_flags & O_APPEND))
     {
       do_seek = true;
-#ifdef F_SETFL
-      if (_IO_fcntl (fd, F_SETFL, fd_flags | O_APPEND) == -1)
-#endif
+      if (__fcntl (fd, F_SETFL, fd_flags | O_APPEND) == -1)
 	return NULL;
     }
-#endif
 
   new_f = (struct locked_FILE *) malloc (sizeof (struct locked_FILE));
   if (new_f == NULL)
@@ -143,20 +126,17 @@ _IO_new_fdopen (int fd, const char *mode)
   new_f->fp.file._lock = &new_f->lock;
 #endif
   _IO_no_init (&new_f->fp.file, 0, 0, &new_f->wd,
-#ifdef _G_HAVE_MMAP
+#if _G_HAVE_MMAP
 	       (use_mmap && (read_write & _IO_NO_WRITES))
 	       ? &_IO_wfile_jumps_maybe_mmap :
 #endif
 	       &_IO_wfile_jumps);
   _IO_JUMPS (&new_f->fp) =
-#ifdef _G_HAVE_MMAP
+#if _G_HAVE_MMAP
     (use_mmap && (read_write & _IO_NO_WRITES)) ? &_IO_file_jumps_maybe_mmap :
 #endif
       &_IO_file_jumps;
   _IO_new_file_init_internal (&new_f->fp);
-#if  !_IO_UNIFIED_JUMPTABLES
-  new_f->fp.vtable = NULL;
-#endif
   /* We only need to record the fd because _IO_file_init_internal will
      have unset the offset.  It is important to unset the cached
      offset because the real offset in the file could change between
@@ -174,7 +154,7 @@ _IO_new_fdopen (int fd, const char *mode)
   if (do_seek && ((read_write & (_IO_IS_APPENDING | _IO_NO_READS))
 		  == (_IO_IS_APPENDING | _IO_NO_READS)))
     {
-      _IO_off64_t new_pos = _IO_SYSSEEK (&new_f->fp.file, 0, _IO_seek_end);
+      off64_t new_pos = _IO_SYSSEEK (&new_f->fp.file, 0, _IO_seek_end);
       if (new_pos == _IO_pos_BAD && errno != ESPIPE)
 	return NULL;
     }

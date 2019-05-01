@@ -1,5 +1,5 @@
 /* Test locale dependence of strfmon_l.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -70,14 +70,22 @@ static bool errors;
 
 /* Test one value using the locale loc.  */
 static void
-test_one (const char *format, double value, const char *expected)
+test_one (const char *format, double value, const char *ldformat,
+	  long double ldvalue, const char *expected)
 {
-  static char actual[64];
+  static char actual[64], actualld[64];
   int result = strfmon_l (actual, sizeof (actual), loc, format, value);
+  int res_ld = strfmon_l (actualld, sizeof (actualld), loc, ldformat, ldvalue);
   if (result < 0)
     {
       printf ("error: locale %s, format \"%s\", value %g: strfmon_l: %m\n",
               loc_name, format, value);
+      errors = true;
+    }
+  else if (res_ld < 0)
+    {
+      printf ("error: locale %s, format \"%s\", value %Lg: strfmon_l: %m\n",
+	      loc_name, ldformat, ldvalue);
       errors = true;
     }
   else if (strcmp (actual, expected) != 0)
@@ -88,21 +96,31 @@ test_one (const char *format, double value, const char *expected)
       printf ("error:   actual:   \"%s\"\n", actual);
       errors = true;
     }
+  else if (strcmp (actualld, expected) != 0)
+    {
+      printf ("error: locale %s, format \"%s\", value %Lg: mismatch\n",
+	      loc_name, ldformat, ldvalue);
+      printf ("error:   expected: \"%s\"\n", expected);
+      printf ("error:   actual:   \"%s\"\n", actualld);
+      errors = true;
+    }
 }
 
 static void
 test_pair (const struct testcase_pair *pair)
 {
   double positive = 1234567.89;
-  test_one ("%i", positive, pair->positive.i);
-  test_one ("%n", positive, pair->positive.n);
-  test_one ("%^i", positive, pair->positive.i_ungrouped);
-  test_one ("%^n", positive, pair->positive.n_ungrouped);
+  long double pos = 1234567.89L;
+  test_one ("%i", positive, "%Li", pos, pair->positive.i);
+  test_one ("%n", positive, "%Ln", pos, pair->positive.n);
+  test_one ("%^i", positive, "%^Li", pos, pair->positive.i_ungrouped);
+  test_one ("%^n", positive, "%^Ln", pos, pair->positive.n_ungrouped);
   double negative = -1234567.89;
-  test_one ("%i", negative, pair->negative.i);
-  test_one ("%n", negative, pair->negative.n);
-  test_one ("%^i", negative, pair->negative.i_ungrouped);
-  test_one ("%^n", negative, pair->negative.n_ungrouped);
+  long double neg = -1234567.89L;
+  test_one ("%i", negative, "%Li", neg, pair->negative.i);
+  test_one ("%n", negative, "%Ln", neg, pair->negative.n);
+  test_one ("%^i", negative, "%^Li", neg, pair->negative.i_ungrouped);
+  test_one ("%^n", negative, "%^Ln", neg, pair->negative.n_ungrouped);
 }
 
 static const struct testcase_pair en_us =
@@ -150,17 +168,30 @@ static const struct locale_pair tests[] =
       "tg_TJ.UTF-8",
       {
         {
-          "1 234 567.89 TJS", "1 234 567.89 \u0440\u0443\u0431",
+          "1\u202f234\u202f567.89 TJS", "1\u202f234\u202f567.89 \u0440\u0443\u0431",
           "1234567.89 TJS", "1234567.89 \u0440\u0443\u0431"
         },
         {
-          "-1 234 567.89 TJS", "-1 234 567.89 \u0440\u0443\u0431",
+          "-1\u202f234\u202f567.89 TJS", "-1\u202f234\u202f567.89 \u0440\u0443\u0431",
           "-1234567.89 TJS", "-1234567.89 \u0440\u0443\u0431"
         }
       }
     },
     {
-      "te_IN.UTF-8",
+      "hr_HR.UTF-8",
+      {
+        {
+          "HRK 1.234.567,89", "1.234.567,89 kn",
+          "HRK 1234567,89", "1234567,89 kn"
+        },
+        {
+          "-HRK 1.234.567,89", "-1.234.567,89 kn",
+          "-HRK 1234567,89", "-1234567,89 kn"
+        }
+      }
+    },
+    {
+      "hi_IN.UTF-8",
       {
         {
           "INR12,34,567.89", "\u20b912,34,567.89",
@@ -173,19 +204,6 @@ static const struct locale_pair tests[] =
       }
     },
     {
-      "bn_IN.UTF-8",
-      {
-        {
-          "INR 12,345,67.89", "\u20b9 12,345,67.89",
-          "INR 1234567.89", "\u20b9 1234567.89"
-        },
-        {
-          "-INR 12,345,67.89", "-\u20b9 12,345,67.89",
-          "-INR 1234567.89", "-\u20b9 1234567.89"
-        }
-      }
-    },
-    {
       "el_GR.UTF-8",
       {
         {
@@ -193,8 +211,8 @@ static const struct locale_pair tests[] =
           "1234567,89EUR", "1234567,89\u20ac"
         },
         {
-          "-EUR1.234.567,89", "-\u20ac1.234.567,89",
-          "-EUR1234567,89", "-\u20ac1234567,89",
+          "-1.234.567,89EUR", "-1.234.567,89\u20ac",
+          "-1234567,89EUR", "-1234567,89\u20ac",
         }
       }
     },

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Update abilist files based on differences on one architecture.
-# Copyright (C) 2015-2016 Free Software Foundation, Inc.
+# Copyright (C) 2015-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -20,9 +20,12 @@
 set -e
 export LC_ALL=C
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
   echo "usage: $0 OLD-FILE NEW-FILE FILES-TO-BE-PATCHED..." 1>&2
   exit 2
+elif [ $# -eq 2 ]; then
+  echo "info: no files to patch" 1>&2
+  exit 0
 fi
 
 old_file="$1"

@@ -1,5 +1,5 @@
 /* Cache handling for netgroup lookup.
-   Copyright (C) 2011-2016 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
@@ -413,33 +413,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
 	 since while inserting this thread might block and so would
 	 unnecessarily let the receiver wait.  */
     writeout:
-#ifdef HAVE_SENDFILE
-      if (__builtin_expect (db->mmap_used, 1) && cacheable)
-	{
-	  assert (db->wr_fd != -1);
-	  assert ((char *) &dataset->resp > (char *) db->data);
-	  assert ((char *) dataset - (char *) db->head + total
-		  <= (sizeof (struct database_pers_head)
-		      + db->head->module * sizeof (ref_t)
-		      + db->head->data_size));
-# ifndef __ASSUME_SENDFILE
-	  ssize_t written =
-# endif
-	    sendfileall (fd, db->wr_fd, (char *) &dataset->resp
-			 - (char *) db->head, dataset->head.recsize);
-# ifndef __ASSUME_SENDFILE
-	  if (written == -1 && errno == ENOSYS)
-	    goto use_write;
-# endif
-	}
-      else
-#endif
-	{
-#if defined HAVE_SENDFILE && !defined __ASSUME_SENDFILE
-	use_write:
-#endif
-	  writeall (fd, &dataset->resp, dataset->head.recsize);
-	}
+      writeall (fd, &dataset->resp, dataset->head.recsize);
     }
 
   if (cacheable)
@@ -480,7 +454,7 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
 {
   const char *group = key;
   key = (char *) rawmemchr (key, '\0') + 1;
-  size_t group_len = key - group - 1;
+  size_t group_len = key - group;
   const char *host = *key++ ? key : NULL;
   if (host != NULL)
     key = (char *) rawmemchr (key, '\0') + 1;
@@ -584,6 +558,8 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
       dh->timeout = timeout;
       dh->ttl = dataset->head.ttl;
       ++dh->nreloads;
+      if (cacheable)
+        pthread_rwlock_unlock (&db->lock);
       return timeout;
     }
 
@@ -592,36 +568,9 @@ addinnetgrX (struct database_dyn *db, int fd, request_header *req,
       /* We write the dataset before inserting it to the database
 	 since while inserting this thread might block and so would
 	 unnecessarily let the receiver wait.  */
-       assert (fd != -1);
+      assert (fd != -1);
 
-#ifdef HAVE_SENDFILE
-      if (__builtin_expect (db->mmap_used, 1) && cacheable)
-	{
-	  assert (db->wr_fd != -1);
-	  assert ((char *) &dataset->resp > (char *) db->data);
-	  assert ((char *) dataset - (char *) db->head + sizeof (*dataset)
-		  <= (sizeof (struct database_pers_head)
-		      + db->head->module * sizeof (ref_t)
-		      + db->head->data_size));
-# ifndef __ASSUME_SENDFILE
-	  ssize_t written =
-# endif
-	    sendfileall (fd, db->wr_fd,
-			 (char *) &dataset->resp - (char *) db->head,
-			 sizeof (innetgroup_response_header));
-# ifndef __ASSUME_SENDFILE
-	  if (written == -1 && errno == ENOSYS)
-	    goto use_write;
-# endif
-	}
-      else
-#endif
-	{
-#if defined HAVE_SENDFILE && !defined __ASSUME_SENDFILE
-	use_write:
-#endif
-	  writeall (fd, &dataset->resp, sizeof (innetgroup_response_header));
-	}
+      writeall (fd, &dataset->resp, sizeof (innetgroup_response_header));
     }
 
   if (cacheable)

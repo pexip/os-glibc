@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2016 Free Software Foundation, Inc.
+# Copyright (C) 1993-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 # Contributed by Brendan Kehoe (brendan@zen.org).
 
@@ -60,3 +60,15 @@ sysdep-CFLAGS += -mieee -mfp-rounding-mode=d
 # libc.so requires about 16k for the small data area, which is well
 # below the 64k maximum.
 pic-ccflag = -fpic
+
+#  Software floating-point emulation.
+
+ifeq ($(subdir),soft-fp)
+sysdep_routines += ots_add ots_sub ots_mul ots_div ots_cmp ots_cmpe	\
+	ots_cvtxq ots_cvtqx ots_cvtqux ots_cvttx ots_cvtxt ots_nintxq	\
+	fraiseexcpt
+endif
+
+ifeq ($(subdir),math)
+CPPFLAGS += -I../soft-fp
+endif

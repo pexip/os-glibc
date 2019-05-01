@@ -32,7 +32,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glibc 2.13-24\n"
 "Report-Msgid-Bugs-To: glibc@packages.debian.org\n"
-"POT-Creation-Date: 2015-12-07 14:56+0100\n"
+"POT-Creation-Date: 2017-08-26 13:35+0200\n"
 "PO-Revision-Date: 2012-01-14 11:44+0100\n"
 "Last-Translator: Omar Campagne <ocampagne@gmail.com>\n"
 "Language-Team: Debian L10n Spanish <debian-l10n-spanish@lists.debian.org>\n"
@@ -216,10 +216,10 @@ msgstr ""
 #. Description
 #: ../debhelper.in/libc.templates:3001
 msgid ""
-"You will need to start these manually by running '/etc/init.d/<service> "
+"You will need to start these manually by running 'invoke-rc.d <service> "
 "start'."
 msgstr ""
-"Tendrá que iniciarlos manualmente ejecutando «/etc/init.d/<servicio> start»."
+"Tendrá que iniciarlos manualmente ejecutando «invoke-rc.d <servicio> start»."
 
 #. Type: error
 #. Description
@@ -299,6 +299,6 @@ msgstr ""
 #: ../debhelper.in/libc.templates:7001
 msgid ""
 "This version of the GNU libc requires kernel version ${kernel_ver} or "
-"later.  Older versions might work but are not officially supported.  Please "
-"consider upgrading your kernel."
+"later.  Older versions might work but are not officially supported by "
+"Debian.  Please consider upgrading your kernel."
 msgstr ""

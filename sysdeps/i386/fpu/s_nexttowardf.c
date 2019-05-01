@@ -20,13 +20,14 @@ static char rcsid[] = "$NetBSD: $";
 
 #include <errno.h>
 #include <math.h>
+#include <math-barriers.h>
 #include <math_private.h>
 #include <float.h>
 
 float __nexttowardf(float x, long double y)
 {
 	int32_t hx,ix,iy;
-	u_int32_t hy,ly,esy;
+	uint32_t hy,ly,esy;
 
 	GET_FLOAT_WORD(hx,x);
 	GET_LDOUBLE_WORDS(esy,hy,ly,y);

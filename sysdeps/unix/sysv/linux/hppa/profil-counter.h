@@ -1,5 +1,5 @@
 /* Machine-dependent SIGPROF signal handler.  PA-RISC version
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 static void
-__profil_counter (int signr, siginfo_t *si, struct ucontext *uctx)
+__profil_counter (int signr, siginfo_t *si, ucontext_t *uctx)
 {
   unsigned long ip = uctx->uc_mcontext.sc_iaoq[0] & ~0x3;
   profil_count ((void *) ip);

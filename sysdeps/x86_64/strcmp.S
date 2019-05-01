@@ -1,5 +1,5 @@
 /* Highly optimized version for x86-64.
-   Copyright (C) 1999-2016 Free Software Foundation, Inc.
+   Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Based on i686 version contributed by Ulrich Drepper
    <drepper@cygnus.com>, 1999.
@@ -233,7 +233,7 @@ LABEL(bigger):
 	lea	LABEL(unaligned_table)(%rip), %r10
 	movslq	(%r10, %r9,4), %r9
 	lea	(%r10, %r9), %r10
-	jmp	*%r10				/* jump to corresponding case */
+	_CET_NOTRACK jmp *%r10			/* jump to corresponding case */
 
 /*
  * The following cases will be handled by ashr_0

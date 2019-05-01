@@ -1,6 +1,6 @@
 /* Optimized strspn implementation for Power8.
 
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@
 	/* This can be updated to power8 once the minimum version of
 	   binutils supports power8 and the above instructions.  */
 	.machine power7
-EALIGN(STRSPN, 4, 0)
+ENTRY_TOCLESS (STRSPN, 4)
 	CALL_MCOUNT 2
 
 	/* Generate useful constants for later on.  */

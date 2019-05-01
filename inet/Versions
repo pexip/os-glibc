@@ -85,5 +85,10 @@ libc {
     # functions used in other libraries
     __internal_endnetgrent; __internal_getnetgrent_r;
     __internal_setnetgrent;
+
+    # Used from nscd.
+    __inet6_scopeid_pton;
+    __idna_to_dns_encoding;
+    __idna_from_dns_encoding;
   }
 }

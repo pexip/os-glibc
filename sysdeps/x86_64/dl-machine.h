@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  x86-64 version.
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Andreas Jaeger <aj@suse.de>.
 
@@ -66,9 +66,9 @@ static inline int __attribute__ ((unused, always_inline))
 elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 {
   Elf64_Addr *got;
-  extern void _dl_runtime_resolve_sse (ElfW(Word)) attribute_hidden;
-  extern void _dl_runtime_resolve_avx (ElfW(Word)) attribute_hidden;
-  extern void _dl_runtime_resolve_avx512 (ElfW(Word)) attribute_hidden;
+  extern void _dl_runtime_resolve_fxsave (ElfW(Word)) attribute_hidden;
+  extern void _dl_runtime_resolve_xsave (ElfW(Word)) attribute_hidden;
+  extern void _dl_runtime_resolve_xsavec (ElfW(Word)) attribute_hidden;
   extern void _dl_runtime_profile_sse (ElfW(Word)) attribute_hidden;
   extern void _dl_runtime_profile_avx (ElfW(Word)) attribute_hidden;
   extern void _dl_runtime_profile_avx512 (ElfW(Word)) attribute_hidden;
@@ -117,12 +117,14 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 	  /* This function will get called to fix up the GOT entry
 	     indicated by the offset on the stack, and then jump to
 	     the resolved address.  */
-	  if (HAS_ARCH_FEATURE (AVX512F_Usable))
-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx512;
-	  else if (HAS_ARCH_FEATURE (AVX_Usable))
-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_avx;
+	  if (GLRO(dl_x86_cpu_features).xsave_state_size != 0)
+	    *(ElfW(Addr) *) (got + 2)
+	      = (HAS_ARCH_FEATURE (XSAVEC_Usable)
+		 ? (ElfW(Addr)) &_dl_runtime_resolve_xsavec
+		 : (ElfW(Addr)) &_dl_runtime_resolve_xsave);
 	  else
-	    *(ElfW(Addr) *) (got + 2) = (ElfW(Addr)) &_dl_runtime_resolve_sse;
+	    *(ElfW(Addr) *) (got + 2)
+	      = (ElfW(Addr)) &_dl_runtime_resolve_fxsave;
 	}
     }
 
@@ -220,19 +222,20 @@ _dl_start_user:\n\
 static inline void __attribute__ ((unused))
 dl_platform_init (void)
 {
-  if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
-    /* Avoid an empty string which would disturb us.  */
-    GLRO(dl_platform) = NULL;
-
-#ifdef SHARED
+#if IS_IN (rtld)
   /* init_cpu_features has been called early from __libc_start_main in
      static executable.  */
   init_cpu_features (&GLRO(dl_x86_cpu_features));
+#else
+  if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
+    /* Avoid an empty string which would disturb us.  */
+    GLRO(dl_platform) = NULL;
 #endif
 }
 
 static inline ElfW(Addr)
 elf_machine_fixup_plt (struct link_map *map, lookup_t t,
+		       const ElfW(Sym) *refsym, const ElfW(Sym) *sym,
 		       const ElfW(Rela) *reloc,
 		       ElfW(Addr) *reloc_addr, ElfW(Addr) value)
 {
@@ -303,15 +306,29 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
       const ElfW(Sym) *const refsym = sym;
 # endif
       struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
-      ElfW(Addr) value = (sym == NULL ? 0
-			  : (ElfW(Addr)) sym_map->l_addr + sym->st_value);
+      ElfW(Addr) value = SYMBOL_ADDRESS (sym_map, sym, true);
 
       if (sym != NULL
-	  && __builtin_expect (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC,
-			       0)
-	  && __builtin_expect (sym->st_shndx != SHN_UNDEF, 1)
-	  && __builtin_expect (!skip_ifunc, 1))
-	value = ((ElfW(Addr) (*) (void)) value) ();
+	  && __glibc_unlikely (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC)
+	  && __glibc_likely (sym->st_shndx != SHN_UNDEF)
+	  && __glibc_likely (!skip_ifunc))
+	{
+# ifndef RTLD_BOOTSTRAP
+	  if (sym_map != map
+	      && sym_map->l_type != lt_executable
+	      && !sym_map->l_relocated)
+	    {
+	      const char *strtab
+		= (const char *) D_PTR (map, l_info[DT_STRTAB]);
+	      _dl_error_printf ("\
+%s: Relink `%s' with `%s' for IFUNC symbol `%s'\n",
+				RTLD_PROGNAME, map->l_name,
+				sym_map->l_name,
+				strtab + refsym->st_name);
+	    }
+# endif
+	  value = ((ElfW(Addr) (*) (void)) value) ();
+	}
 
       switch (r_type)
 	{
@@ -481,8 +498,8 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 	    break;
 	  memcpy (reloc_addr_arg, (void *) value,
 		  MIN (sym->st_size, refsym->st_size));
-	  if (__builtin_expect (sym->st_size > refsym->st_size, 0)
-	      || (__builtin_expect (sym->st_size < refsym->st_size, 0)
+	  if (__glibc_unlikely (sym->st_size > refsym->st_size)
+	      || (__glibc_unlikely (sym->st_size < refsym->st_size)
 		  && GLRO(dl_verbose)))
 	    {
 	      fmt = "\
@@ -535,7 +552,8 @@ elf_machine_lazy_rel (struct link_map *map,
   /* Check for unexpected PLT reloc type.  */
   if (__glibc_likely (r_type == R_X86_64_JUMP_SLOT))
     {
-      if (__builtin_expect (map->l_mach.plt, 0) == 0)
+      /* Prelink has been deprecated.  */
+      if (__glibc_likely (map->l_mach.plt == 0))
 	*reloc_addr += l_addr;
       else
 	*reloc_addr =

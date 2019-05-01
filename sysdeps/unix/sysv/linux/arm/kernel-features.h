@@ -1,6 +1,6 @@
 /* Set flags signalling availability of kernel features based on given
    kernel version number.
-   Copyright (C) 2006-2016 Free Software Foundation, Inc.
+   Copyright (C) 2006-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,10 +23,22 @@
    futex_atomic_cmpxchg_inatomic, depending on kernel
    configuration.  */
 #if __LINUX_KERNEL_VERSION < 0x030E03
-# undef __ASSUME_REQUEUE_PI
 # undef __ASSUME_SET_ROBUST_LIST
 #endif
+
+/* ARM fadvise64_64 reorganize the syscall arguments.  */
+#define __ASSUME_FADVISE64_64_6ARG	1
 
 /* Define this if your 32-bit syscall API requires 64-bit register
    pairs to start with an even-number register.  */
 #define __ASSUME_ALIGNED_REGISTER_PAIRS	1
+
+/* ARM only has a syscall for fadvise64{_64} and it is defined with a
+   non-standard name.  */
+#define __NR_fadvise64_64 __NR_arm_fadvise64_64
+
+#define __ASSUME_RECV_SYSCALL   1
+#define __ASSUME_SEND_SYSCALL	1
+
+#undef __ASSUME_CLONE_DEFAULT
+#define __ASSUME_CLONE_BACKWARDS	1

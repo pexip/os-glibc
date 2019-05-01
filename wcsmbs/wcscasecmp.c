@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
 #endif
 
 #ifdef USE_IN_EXTENDED_LOCALE_MODEL
-# define LOCALE_PARAM , __locale_t loc
+# define LOCALE_PARAM , locale_t loc
 #else
 # define LOCALE_PARAM
 #endif

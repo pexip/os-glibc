@@ -57,9 +57,11 @@
  */
 
 #include <float.h>
-#include <libc-internal.h>
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
+#include <libc-diag.h>
+
 static const long double
   one = 1.0L,
   pio4hi = 7.8539816339744830961566084581987569936977E-1L,

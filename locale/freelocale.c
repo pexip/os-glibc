@@ -1,5 +1,5 @@
 /* Free data allocated by a call to setlocale_r
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
@@ -29,7 +29,7 @@ __libc_rwlock_define (extern , __libc_setlocale_lock attribute_hidden)
 
 
 void
-__freelocale (__locale_t dataset)
+__freelocale (locale_t dataset)
 {
   int cnt;
 

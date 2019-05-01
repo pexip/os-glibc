@@ -1,5 +1,5 @@
 /* Assembler macros for 64 bit S/390.
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Contributed by Martin Schwidefsky (schwidefsky@de.ibm.com).
    This file is part of the GNU C Library.
 
@@ -77,7 +77,7 @@ lose: SYSCALL_PIC_SETUP			\
   END (name)
 
 #undef JUMPTARGET
-#ifdef PIC
+#ifdef SHARED
 #define JUMPTARGET(name)	name##@PLT
 #define SYSCALL_PIC_SETUP \
     larl  %r12,_GLOBAL_OFFSET_TABLE_

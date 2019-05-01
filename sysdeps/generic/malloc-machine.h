@@ -1,6 +1,6 @@
 /* Basic platform-independent macro definitions for mutexes,
    thread-specific data and parameters for malloc.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #define _GENERIC_MALLOC_MACHINE_H
 
 #include <atomic.h>
+#include <malloc-alignment.h>
 
 #ifndef atomic_full_barrier
 # define atomic_full_barrier() __asm ("" ::: "memory")
