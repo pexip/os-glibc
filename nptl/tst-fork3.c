@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Roland McGrath <roland@redhat.com>, 2002.
 
@@ -87,8 +87,8 @@ tf1 (void *arg)
 }
 
 
-int
-main (void)
+static int
+do_test (void)
 {
   initial_pid = getpid ();
 
@@ -104,3 +104,5 @@ main (void)
 
   return 1;
 }
+
+#include <support/test-driver.c>

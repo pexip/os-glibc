@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ struct elf_prstatus
     unsigned long int pr_sigpend;	/* Set of pending signals.  */
     unsigned long int pr_sighold;	/* Set of held signals.  */
 #if 0
-    struct sigaltstack pr_altstack;	/* Alternate stack info.  */
+    stack_t pr_altstack;		/* Alternate stack info.  */
     struct sigaction pr_action;		/* Signal action for current sig.  */
 #endif
     __pid_t pr_pid;

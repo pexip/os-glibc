@@ -1,5 +1,5 @@
 /* Test signaling NaNs in issignaling, isnan, isinf, and similar functions.
-   Copyright (C) 2008-2016 Free Software Foundation, Inc.
+   Copyright (C) 2008-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Andreas Jaeger <aj@suse.de>, 2005.
 
@@ -123,9 +123,7 @@ NAME (void)								      \
 
 TEST_FUNC (float_test, float, f)
 TEST_FUNC (double_test, double, )
-#ifndef NO_LONG_DOUBLE
 TEST_FUNC (ldouble_test, long double, l)
-#endif
 
 static int
 do_test (void)
@@ -134,9 +132,7 @@ do_test (void)
 
   float_test ();
   double_test ();
-#ifndef NO_LONG_DOUBLE
   ldouble_test ();
-#endif
 
   return errors != 0;
 }

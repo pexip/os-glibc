@@ -1,5 +1,5 @@
 /* Compatibility symbols for the obsolete <regexp.h> interface.
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
@@ -29,14 +29,15 @@
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_23)
 
-/* Define the variables used for the interface.  */
-char *loc1;
-char *loc2;
+/* Define the variables used for the interface.  Avoid .symver on common
+   symbol, which just creates a new common symbol, not an alias.  */
+char *loc1 __attribute__ ((nocommon));
+char *loc2 __attribute__ ((nocommon));
 compat_symbol (libc, loc1, loc1, GLIBC_2_0);
 compat_symbol (libc, loc2, loc2, GLIBC_2_0);
 
 /* Although we do not support the use we define this variable as well.  */
-char *locs;
+char *locs __attribute__ ((nocommon));
 compat_symbol (libc, locs, locs, GLIBC_2_0);
 
 

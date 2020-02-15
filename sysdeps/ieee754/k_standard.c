@@ -16,27 +16,30 @@ static char rcsid[] = "$NetBSD: k_standard.c,v 1.6 1995/05/10 20:46:35 jtc Exp $
 
 #include <math.h>
 #include <math_private.h>
+#include <math-svid-compat.h>
 #include <errno.h>
 
 #include <assert.h>
 
-#ifndef _USE_WRITE
-#include <stdio.h>			/* fputs(), stderr */
-#define	WRITE2(u,v)	fputs(u, stderr)
-#else	/* !defined(_USE_WRITE) */
-#include <unistd.h>			/* write */
-#define	WRITE2(u,v)	write(2, u, v)
-#undef fflush
-#endif	/* !defined(_USE_WRITE) */
+#if LIBM_SVID_COMPAT
+
+# ifndef _USE_WRITE
+#  include <stdio.h>			/* fputs(), stderr */
+#  define	WRITE2(u,v)	fputs(u, stderr)
+# else	/* !defined(_USE_WRITE) */
+#  include <unistd.h>			/* write */
+#  define	WRITE2(u,v)	write(2, u, v)
+#  undef fflush
+# endif	/* !defined(_USE_WRITE) */
 
 /* XXX gcc versions until now don't delay the 0.0/0.0 division until
    runtime but produce NaN at compile time.  This is wrong since the
    exceptions are not set correctly.  */
-#if 0
+# if 0
 static const double zero = 0.0;	/* used as const */
-#else
+# else
 static double zero = 0.0;	/* used as const */
-#endif
+# endif
 
 /*
  * Standard conformance (non-IEEE) on exception cases.
@@ -60,7 +63,6 @@ static double zero = 0.0;	/* used as const */
  *	17-- log(x<0)
  *	18-- log10(0)
  *	19-- log10(x<0)
- *	20-- pow(0.0,0.0)
  *	21-- pow(x,y) overflow
  *	22-- pow(x,y) underflow
  *	23-- pow(0,negative)
@@ -82,7 +84,6 @@ static double zero = 0.0;	/* used as const */
  *	39-- yn(x>X_TLOSS, n)
  *	40-- tgamma(finite) overflow
  *	41-- tgamma(-integer)
- *	42-- pow(NaN,0.0)
  *	43-- +0**neg
  *	44-- exp2 overflow
  *	45-- exp2 underflow
@@ -98,21 +99,21 @@ double
 __kernel_standard(double x, double y, int type)
 {
 	struct exception exc;
-#ifndef HUGE_VAL	/* this is the only routine that uses HUGE_VAL */
-#define HUGE_VAL inf
+# ifndef HUGE_VAL	/* this is the only routine that uses HUGE_VAL */
+# define HUGE_VAL inf
 	double inf = 0.0;
 
 	SET_HIGH_WORD(inf,0x7ff00000);	/* set inf to infinite */
-#endif
+# endif
 
 	/* The SVID struct exception uses a field "char *name;".  */
-#define CSTR(func) ((char *) (type < 100				\
+# define CSTR(func) ((char *) (type < 100				\
 			      ? func					\
 			      : (type < 200 ? func "f" : func "l")))
 
-#ifdef _USE_WRITE
+# ifdef _USE_WRITE
 	(void) fflush(stdout);
-#endif
+# endif
 	exc.arg1 = x;
 	exc.arg2 = y;
 	switch(type) {
@@ -459,20 +460,6 @@ __kernel_standard(double x, double y, int type)
 			(void) WRITE2("log10: DOMAIN error\n", 20);
 		      }
 		  __set_errno (EDOM);
-		}
-		break;
-	    case 20:
-	    case 120:
-	    case 220:
-		/* pow(0.0,0.0) */
-		/* error only if _LIB_VERSION == _SVID_ */
-		exc.type = DOMAIN;
-		exc.name = CSTR ("pow");
-		exc.retval = zero;
-		if (_LIB_VERSION != _SVID_) exc.retval = 1.0;
-		else if (!matherr(&exc)) {
-			(void) WRITE2("pow(0,0): DOMAIN error\n", 23);
-			__set_errno (EDOM);
 		}
 		break;
 	    case 21:
@@ -845,20 +832,6 @@ __kernel_standard(double x, double y, int type)
 		  __set_errno (EDOM);
 		}
 		break;
-	    case 42:
-	    case 142:
-	    case 242:
-		/* pow(NaN,0.0) */
-		/* error only if _LIB_VERSION == _SVID_ & _XOPEN_ */
-		exc.type = DOMAIN;
-		exc.name = CSTR ("pow");
-		exc.retval = x;
-		if (_LIB_VERSION == _IEEE_ ||
-		    _LIB_VERSION == _POSIX_) exc.retval = 1.0;
-		else if (!matherr(&exc)) {
-			__set_errno (EDOM);
-		}
-		break;
 
 	    case 44:
 	    case 144:
@@ -968,6 +941,10 @@ __kernel_standard(double x, double y, int type)
 		break;
 
 		/* #### Last used is 50/150/250 ### */
+
+	    default:
+		__builtin_unreachable ();
 	}
 	return exc.retval;
 }
+#endif

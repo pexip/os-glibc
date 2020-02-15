@@ -1,5 +1,5 @@
 /* Operating system support for run-time dynamic linker.  Hurd version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <sysdep.h>
 #include <mach/mig_support.h>
+#include <mach/machine/vm_param.h>
 #include "hurdstartup.h"
 #include <hurd/lookup.h>
 #include <hurd/auth.h>
@@ -43,6 +44,9 @@
 #include <entry.h>
 #include <dl-machine.h>
 #include <dl-procinfo.h>
+
+#include <dl-tunables.h>
+#include <not-errno.h>
 
 extern void __mach_init (void);
 
@@ -62,27 +66,10 @@ rtld_hidden_data_def(__libc_stack_end)
 hp_timing_t _dl_cpuclock_offset;
 #endif
 
+/* TODO: Initialize.  */
+void *_dl_random attribute_relro = NULL;
 
 struct hurd_startup_data *_dl_hurd_data;
-
-/* This is used only within ld.so, via dl-minimal.c's __errno_location.  */
-#undef errno
-int errno attribute_hidden;
-
-/* Defining these variables here avoids the inclusion of hurdsig.c.  */
-unsigned long int __hurd_sigthread_stack_base;
-unsigned long int __hurd_sigthread_stack_end;
-unsigned long int *__hurd_sigthread_variables;
-
-/* Defining these variables here avoids the inclusion of init-first.c.
-   We need to provide temporary storage for the per-thread variables
-   of the main user thread here, since it is used for storing the
-   `errno' variable.  Note that this information is lost once we
-   relocate the dynamic linker.  */
-static unsigned long int threadvars[_HURD_THREADVAR_MAX];
-unsigned long int __hurd_threadvar_stack_offset
-  = (unsigned long int) &threadvars;
-unsigned long int __hurd_threadvar_stack_mask;
 
 #define FMH defined(__i386__)
 #if ! FMH
@@ -143,6 +130,8 @@ _dl_sysdep_start (void **start_argptr,
 
       __libc_enable_secure = _dl_hurd_data->flags & EXEC_SECURE;
 
+      __tunables_init (_environ);
+
       if (_dl_hurd_data->flags & EXEC_STACK_ARGS &&
 	  _dl_hurd_data->user_entry == 0)
 	_dl_hurd_data->user_entry = (vm_address_t) ENTRY_POINT;
@@ -200,7 +189,7 @@ unfmh();			/* XXX */
 	 up and leave us to transfer control to USER_ENTRY.  */
       (*dl_main) ((const ElfW(Phdr) *) _dl_hurd_data->phdr,
 		  _dl_hurd_data->phdrsz / sizeof (ElfW(Phdr)),
-		  &_dl_hurd_data->user_entry, NULL);
+		  (ElfW(Addr) *) &_dl_hurd_data->user_entry, NULL);
 
       /* The call above might screw a few things up.
 
@@ -273,7 +262,6 @@ fmh();				/* XXX */
 }
 
 void
-internal_function
 _dl_sysdep_start_cleanup (void)
 {
   /* Deallocate the reply port and task port rights acquired by
@@ -287,7 +275,16 @@ _dl_sysdep_start_cleanup (void)
 /* Minimal open/close/mmap implementation sufficient for initial loading of
    shared libraries.  These are weak definitions so that when the
    dynamic linker re-relocates itself to be user-visible (for -ldl),
-   it will get the user's definition (i.e. usually libc's).  */
+   it will get the user's definition (i.e. usually libc's).
+
+   They also need to be set in the ld section of sysdeps/mach/hurd/Versions, to
+   be overridable, and in libc.abilist and ld.abilist to be checked. */
+
+/* This macro checks that the function does not get renamed to be hidden: we do
+   need these to be overridable by libc's.  */
+#define check_no_hidden(name)				\
+  static __typeof (name) __check_##name##_no_hidden	\
+       __attribute__ ((alias (#name)));
 
 /* Open FILE_NAME and return a Hurd I/O for it in *PORT, or return an
    error.  If STAT is non-zero, stat the file into that stat buffer.  */
@@ -344,6 +341,8 @@ open_file (const char *file_name, int flags,
   return err;
 }
 
+check_no_hidden(__open);
+check_no_hidden (__open64);
 int weak_function
 __open (const char *file_name, int mode, ...)
 {
@@ -354,7 +353,9 @@ __open (const char *file_name, int mode, ...)
   else
     return (int)port;
 }
+weak_alias (__open, __open64)
 
+check_no_hidden(__close);
 int weak_function
 __close (int fd)
 {
@@ -363,8 +364,9 @@ __close (int fd)
   return 0;
 }
 
+check_no_hidden(__read);
 __ssize_t weak_function
-__libc_read (int fd, void *buf, size_t nbytes)
+__read (int fd, void *buf, size_t nbytes)
 {
   error_t err;
   char *data;
@@ -384,10 +386,11 @@ __libc_read (int fd, void *buf, size_t nbytes)
 
   return nread;
 }
-libc_hidden_weak (__libc_read)
+libc_hidden_weak (__read)
 
+check_no_hidden(__write);
 __ssize_t weak_function
-__libc_write (int fd, const void *buf, size_t nbytes)
+__write (int fd, const void *buf, size_t nbytes)
 {
   error_t err;
   mach_msg_type_number_t nwrote;
@@ -400,9 +403,10 @@ __libc_write (int fd, const void *buf, size_t nbytes)
 
   return nwrote;
 }
-libc_hidden_weak (__libc_write)
+libc_hidden_weak (__write)
 
 /* This is only used for printing messages (see dl-misc.c).  */
+check_no_hidden(__writev);
 __ssize_t weak_function
 __writev (int fd, const struct iovec *iov, int niov)
 {
@@ -436,7 +440,7 @@ __writev (int fd, const struct iovec *iov, int niov)
   return 0;
 }
 
-
+check_no_hidden(__libc_lseek64);
 off64_t weak_function
 __libc_lseek64 (int fd, off64_t offset, int whence)
 {
@@ -449,8 +453,9 @@ __libc_lseek64 (int fd, off64_t offset, int whence)
   return offset;
 }
 
-__ptr_t weak_function
-__mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
+check_no_hidden(__mmap);
+void *weak_function
+__mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
   error_t err;
   vm_prot_t vmprot;
@@ -473,7 +478,8 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
       err = __io_map ((mach_port_t) fd, &memobj_rd, &memobj_wr);
       if (err)
 	return __hurd_fail (err), MAP_FAILED;
-      __mach_port_deallocate (__mach_task_self (), memobj_wr);
+      if (memobj_wr != MACH_PORT_NULL)
+	__mach_port_deallocate (__mach_task_self (), memobj_wr);
     }
 
   mapaddr = (vm_address_t) addr;
@@ -507,9 +513,10 @@ __mmap (__ptr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   if (err)
     return __hurd_fail (err), MAP_FAILED;
-  return (__ptr_t) mapaddr;
+  return (void *) mapaddr;
 }
 
+check_no_hidden(__fxstat64);
 int weak_function
 __fxstat64 (int vers, int fd, struct stat64 *buf)
 {
@@ -525,6 +532,7 @@ __fxstat64 (int vers, int fd, struct stat64 *buf)
 }
 libc_hidden_def (__fxstat64)
 
+check_no_hidden(__xstat64);
 int weak_function
 __xstat64 (int vers, const char *file, struct stat64 *buf)
 {
@@ -547,13 +555,21 @@ libc_hidden_def (__xstat64)
    whether debugging malloc is allowed even for SUID binaries.  This
    stub will always fail, which means that malloc-debugging is always
    disabled for SUID binaries.  */
+check_no_hidden(__access);
 int weak_function
 __access (const char *file, int type)
 {
   errno = ENOSYS;
   return -1;
 }
+check_no_hidden(__access_noerrno);
+int weak_function
+__access_noerrno (const char *file, int type)
+{
+  return -1;
+}
 
+check_no_hidden(__getpid);
 pid_t weak_function
 __getpid (void)
 {
@@ -567,20 +583,50 @@ __getpid (void)
   return pid;
 }
 
+/* We need this alias to satisfy references from libc_pic.a objects
+   that were affected by the libc_hidden_proto declaration for __getpid.  */
+strong_alias (__getpid, __GI___getpid)
+
 /* This is called only in some strange cases trying to guess a value
    for $ORIGIN for the executable.  The dynamic linker copes with
    getcwd failing (dl-object.c), and it's too much hassle to include
    the functionality here.  (We could, it just requires duplicating or
    reusing getcwd.c's code but using our special lookup function as in
    `open', above.)  */
-char *
-weak_function
+check_no_hidden(__getcwd);
+char *weak_function
 __getcwd (char *buf, size_t size)
 {
   errno = ENOSYS;
   return NULL;
 }
 
+/* This is used by dl-tunables.c to strdup strings.  We can just make this a
+   mere allocation.  */
+check_no_hidden(__sbrk);
+void *weak_function
+__sbrk (intptr_t increment)
+{
+  vm_address_t addr;
+  __vm_allocate (__mach_task_self (), &addr, increment, 1);
+  return (void *) addr;
+}
+
+check_no_hidden(__strtoul_internal);
+unsigned long int weak_function
+__strtoul_internal (const char *nptr, char **endptr, int base, int group)
+{
+  assert (base == 0 || base == 10);
+  assert (group == 0);
+  return _dl_strtoul (nptr, endptr);
+}
+
+/* We need this alias to satisfy references from libc_pic.a objects
+   that were affected by the libc_hidden_proto declaration for __strtoul_internal.  */
+strong_alias (__strtoul_internal, __GI___strtoul_internal)
+strong_alias (__strtoul_internal, __GI_____strtoul_internal)
+
+check_no_hidden(_exit);
 void weak_function attribute_hidden
 _exit (int status)
 {
@@ -588,6 +634,9 @@ _exit (int status)
 		    W_EXITCODE (status, 0), 0);
   while (__task_terminate (__mach_task_self ()))
     __mach_task_self_ = (__mach_task_self) ();
+
+  LOSE;
+  abort ();
 }
 /* We need this alias to satisfy references from libc_pic.a objects
    that were affected by the libc_hidden_proto declaration for _exit.  */
@@ -601,6 +650,7 @@ strong_alias (_exit, __GI__exit)
 # define ABORT_INSTRUCTION
 #endif
 
+check_no_hidden(abort);
 void weak_function
 abort (void)
 {
@@ -619,6 +669,10 @@ abort (void)
 /* We need this alias to satisfy references from libc_pic.a objects
    that were affected by the libc_hidden_proto declaration for abort.  */
 strong_alias (abort, __GI_abort)
+strong_alias (abort, __GI___chk_fail)
+strong_alias (abort, __GI___fortify_fail)
+strong_alias (abort, __GI___assert_fail)
+strong_alias (abort, __GI___assert_perror_fail)
 
 /* This function is called by interruptible RPC stubs.  For initial
    dynamic linking, just use the normal mach_msg.  Since this defn is
@@ -640,7 +694,6 @@ _hurd_intr_rpc_mach_msg (mach_msg_header_t *msg,
 
 
 void
-internal_function
 _dl_show_auxv (void)
 {
   /* There is nothing to print.  Hurd has no auxiliary vector.  */

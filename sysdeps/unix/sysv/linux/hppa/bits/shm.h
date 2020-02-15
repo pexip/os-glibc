@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@
 #define SHM_UNLOCK	12		/* unlock segment (root only) */
 
 /* Segment low boundary address multiple.  */
-#define SHMLBA 0x00400000		/* address needs to be 4 Mb aligned */
+#define SHMLBA		0x1000
 
 /* Type to count number of attaches.  */
 typedef unsigned long int shmatt_t;
@@ -74,6 +74,7 @@ struct shmid_ds
 /* ipcs ctl commands */
 # define SHM_STAT 	13
 # define SHM_INFO 	14
+# define SHM_STAT_ANY	15
 
 /* shm_mode upper byte flags */
 # define SHM_DEST	01000	/* segment will be destroyed on last detach */

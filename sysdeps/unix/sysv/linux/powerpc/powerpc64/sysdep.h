@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -235,5 +235,14 @@
 #  define PTR_DEMANGLE(var)	PTR_MANGLE (var)
 # endif
 #endif
+
+/* In the PowerPC64 ABI, the unadorned F_GETLK* opcodes should be used
+   even by largefile64 code.  */
+#define FCNTL_ADJUST_CMD(__cmd)				\
+  ({ int cmd_ = (__cmd);				\
+     if (cmd_ >= F_GETLK64 && cmd_ <= F_SETLKW64)	\
+       cmd_ -= F_GETLK64 - F_GETLK;			\
+     cmd_; })
+
 
 #endif /* linux/powerpc/powerpc64/sysdep.h */

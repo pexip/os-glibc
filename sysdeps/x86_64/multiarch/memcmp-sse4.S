@@ -1,5 +1,5 @@
 /* memcmp with SSE4.1, wmemcmp with SSE4.1
-   Copyright (C) 2010-2016 Free Software Foundation, Inc.
+   Copyright (C) 2010-2018 Free Software Foundation, Inc.
    Contributed by Intel Corporation.
    This file is part of the GNU C Library.
 
@@ -31,7 +31,7 @@
   lea		TABLE(%rip), %r11;				\
   movslq	(%r11, INDEX, SCALE), %rcx;			\
   add		%r11, %rcx;					\
-  jmp		*%rcx;						\
+  _CET_NOTRACK jmp *%rcx;					\
   ud2
 
 /* Warning!

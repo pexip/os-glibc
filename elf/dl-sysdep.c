@@ -1,5 +1,5 @@
 /* Operating system support for run-time dynamic linker.  Generic Unix version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,8 +41,10 @@
 #include <dl-machine.h>
 #include <dl-procinfo.h>
 #include <dl-osinfo.h>
-#include <hp-timing.h>
+#include <libc-internal.h>
 #include <tls.h>
+
+#include <dl-tunables.h>
 
 extern char **_environ attribute_hidden;
 extern char _end[] attribute_hidden;
@@ -219,6 +221,8 @@ _dl_sysdep_start (void **start_argptr,
     }
 #endif
 
+  __tunables_init (_environ);
+
 #ifdef DL_SYSDEP_INIT
   DL_SYSDEP_INIT;
 #endif
@@ -251,13 +255,11 @@ _dl_sysdep_start (void **start_argptr,
 }
 
 void
-internal_function
 _dl_sysdep_start_cleanup (void)
 {
 }
 
 void
-internal_function
 _dl_show_auxv (void)
 {
   char buf[64];

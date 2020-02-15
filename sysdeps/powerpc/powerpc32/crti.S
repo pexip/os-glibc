@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for PowerPC.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -58,6 +58,7 @@
 	.section .init,"ax",@progbits
 	.align	2
 	.globl	_init
+	.hidden	_init
 	.type	_init, @function
 _init:
 	stwu r1, -16(r1)
@@ -80,6 +81,7 @@ _init:
 	.section .fini,"ax",@progbits
 	.align	2
 	.globl	_fini
+	.hidden	_fini
 	.type	_fini, @function
 _fini:
 	stwu r1, -16(r1)

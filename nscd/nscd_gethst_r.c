@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <resolv.h>
+#include <resolv/resolv-internal.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -32,7 +32,7 @@ int __nss_not_use_nscd_hosts;
 static int nscd_gethst_r (const char *key, size_t keylen, request_type type,
 			  struct hostent *resultbuf, char *buffer,
 			  size_t buflen, struct hostent **result,
-			  int *h_errnop) internal_function;
+			  int *h_errnop);
 
 
 int
@@ -42,7 +42,7 @@ __nscd_gethostbyname_r (const char *name, struct hostent *resultbuf,
 {
   request_type reqtype;
 
-  reqtype = (_res.options & RES_USE_INET6) ? GETHOSTBYNAMEv6 : GETHOSTBYNAME;
+  reqtype = res_use_inet6 () ? GETHOSTBYNAMEv6 : GETHOSTBYNAME;
 
   return nscd_gethst_r (name, strlen (name) + 1, reqtype, resultbuf,
 			buffer, buflen, result, h_errnop);
@@ -135,7 +135,6 @@ __nscd_get_nl_timestamp (void)
 int __nss_have_localdomain attribute_hidden;
 
 static int
-internal_function
 nscd_gethst_r (const char *key, size_t keylen, request_type type,
 	       struct hostent *resultbuf, char *buffer, size_t buflen,
 	       struct hostent **result, int *h_errnop)
@@ -436,7 +435,7 @@ nscd_gethst_r (const char *key, size_t keylen, request_type type,
 
  out_close:
   if (sock != -1)
-    close_not_cancel_no_status (sock);
+    __close_nocancel_nostatus (sock);
  out:
   if (__nscd_drop_map_ref (mapped, &gc_cycle) != 0)
     {

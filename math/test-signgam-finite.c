@@ -1,5 +1,5 @@
 /* Test lgamma functions set signgam for -ffinite-math-only (bug 19211).
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,10 +54,8 @@ do_test (void)
   RUN_TESTS (gammaf, float);
   RUN_TESTS (lgamma, double);
   RUN_TESTS (gamma, double);
-#ifndef NO_LONG_DOUBLE
   RUN_TESTS (lgammal, long double);
   RUN_TESTS (gammal, long double);
-#endif
   return result;
 }
 

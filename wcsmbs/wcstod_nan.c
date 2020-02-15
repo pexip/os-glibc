@@ -1,5 +1,5 @@
 /* Convert string for NaN payload to corresponding NaN.  Wide strings, double.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include "../stdlib/strtod_nan_wide.h"
-#include "../stdlib/strtod_nan_double.h"
+#include <math-type-macros-double.h>
 
 #define STRTOD_NAN __wcstod_nan
 #include "../stdlib/strtod_nan_main.c"

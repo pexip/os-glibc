@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2018 Free Software Foundation, Inc.
    Contributed by David Mosberger-Tang <davidm@hpl.hp.com>.
    This file is part of the GNU C Library.
 
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sigsetops.h>
 
 #include <sys/time.h>
 #include <sys/profil.h>

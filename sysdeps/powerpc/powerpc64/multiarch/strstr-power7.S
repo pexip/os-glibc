@@ -1,5 +1,5 @@
 /* Optimized strstr implementation for POWER7.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,23 +16,7 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
-
-#undef EALIGN
-#define EALIGN(name, alignt, words)				\
-  .section ".text";						\
-  ENTRY_2(__strstr_power7)					\
-  .align ALIGNARG(alignt);					\
-  EALIGN_W_##words;						\
-  BODY_LABEL(__strstr_power7):					\
-  cfi_startproc;						\
-  LOCALENTRY(__strstr_power7)
-
-#undef END
-#define END(name)						\
-  cfi_endproc;							\
-  TRACEBACK(__strstr_power7)					\
-  END_2(__strstr_power7)
+#define STRSTR __strstr_power7
 
 #undef libc_hidden_builtin_def
 #define libc_hidden_builtin_def(name)
@@ -40,5 +24,10 @@
 #define STRLEN __strlen_power7
 #define STRNLEN __strnlen_power7
 #define STRCHR __strchr_power7
+#ifdef SHARED
+#define STRLEN_is_local
+#define STRNLEN_is_local
+#define STRCHR_is_local
+#endif
 
 #include <sysdeps/powerpc/powerpc64/power7/strstr.S>

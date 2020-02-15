@@ -1,38 +1,9 @@
 #ifndef FENV_PRIVATE_H
 #define FENV_PRIVATE_H 1
 
+#include <bits/floatn.h>
 #include <fenv.h>
 #include <fpu_control.h>
-
-#ifdef __SSE2_MATH__
-# define math_opt_barrier(x) \
-  ({ __typeof(x) __x;					\
-     if (sizeof (x) <= sizeof (double))			\
-       __asm ("" : "=x" (__x) : "0" (x));		\
-     else						\
-       __asm ("" : "=t" (__x) : "0" (x));		\
-     __x; })
-# define math_force_eval(x) \
-  do {							\
-    if (sizeof (x) <= sizeof (double))			\
-      __asm __volatile ("" : : "x" (x));		\
-    else						\
-      __asm __volatile ("" : : "f" (x));		\
-  } while (0)
-#else
-# define math_opt_barrier(x) \
-  ({ __typeof (x) __x;					\
-     __asm ("" : "=t" (__x) : "0" (x));			\
-     __x; })
-# define math_force_eval(x) \
-  do {							\
-    __typeof (x) __x = (x);				\
-    if (sizeof (x) <= sizeof (double))			\
-      __asm __volatile ("" : : "m" (__x));		\
-    else						\
-      __asm __volatile ("" : : "f" (__x));		\
-  } while (0)
-#endif
 
 /* This file is used by both the 32- and 64-bit ports.  The 64-bit port
    has a field in the fenv_t for the mxcsr; the 32-bit port does not.
@@ -322,6 +293,21 @@ libc_feresetround_387 (fenv_t *e)
 # define libc_feholdsetround_53bit	libc_feholdsetround_387_53bit
 #endif
 
+#ifdef __x86_64__
+/* The SSE rounding mode is used by soft-fp (libgcc and glibc) on
+   x86_64, so that must be set for float128 computations.  */
+# define SET_RESTORE_ROUNDF128(RM) \
+  SET_RESTORE_ROUND_GENERIC (RM, libc_feholdsetround_sse, libc_feresetround_sse)
+# define libc_feholdexcept_setroundf128	libc_feholdexcept_setround_sse
+# define libc_feupdateenv_testf128	libc_feupdateenv_test_sse
+#else
+/* The 387 rounding mode is used by soft-fp for 32-bit, but whether
+   387 or SSE exceptions are used depends on whether libgcc was built
+   for SSE math, which is not known when glibc is being built.  */
+# define libc_feholdexcept_setroundf128	default_libc_feholdexcept_setround
+# define libc_feupdateenv_testf128	default_libc_feupdateenv_test
+#endif
+
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
 
@@ -474,11 +460,19 @@ libc_feupdateenv_387_ctx (struct rm_ctx *ctx)
 #endif /* __SSE_MATH__ */
 
 #ifdef __SSE2_MATH__
-# define libc_feholdexcept_setround_ctx	libc_feholdexcept_setround_sse_ctx
-# define libc_fesetenv_ctx		libc_fesetenv_sse_ctx
-# define libc_feupdateenv_ctx		libc_feupdateenv_sse_ctx
-# define libc_feholdsetround_ctx	libc_feholdsetround_sse_ctx
-# define libc_feresetround_ctx		libc_feresetround_sse_ctx
+# if defined (__x86_64__) || !defined (MATH_SET_BOTH_ROUNDING_MODES)
+#  define libc_feholdexcept_setround_ctx libc_feholdexcept_setround_sse_ctx
+#  define libc_fesetenv_ctx		libc_fesetenv_sse_ctx
+#  define libc_feupdateenv_ctx		libc_feupdateenv_sse_ctx
+#  define libc_feholdsetround_ctx	libc_feholdsetround_sse_ctx
+#  define libc_feresetround_ctx		libc_feresetround_sse_ctx
+# else
+#  define libc_feholdexcept_setround_ctx default_libc_feholdexcept_setround_ctx
+#  define libc_fesetenv_ctx		default_libc_fesetenv_ctx
+#  define libc_feupdateenv_ctx		default_libc_feupdateenv_ctx
+#  define libc_feholdsetround_ctx	default_libc_feholdsetround_ctx
+#  define libc_feresetround_ctx		default_libc_feresetround_ctx
+# endif
 #else
 # define libc_feholdexcept_setround_ctx	libc_feholdexcept_setround_387_ctx
 # define libc_feupdateenv_ctx		libc_feupdateenv_387_ctx

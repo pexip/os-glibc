@@ -1,5 +1,5 @@
 /* Optional code to distinguish library flavours.
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>, 2001.
 
@@ -28,7 +28,7 @@ _dl_osversion_init (char *assume_kernel)
 
   for (i = 0; i < 3; i++, p = q + 1)
     {
-      j = __strtoul_internal (p, &q, 0, 0);
+      j = _dl_strtoul (p, &q);
       if (j >= 255 || p == q || (i < 2 && *q && *q != '.'))
 	{
 	  osversion = 0;

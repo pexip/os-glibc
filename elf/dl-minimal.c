@@ -1,5 +1,5 @@
 /* Minimal replacements for basic facilities used in the dynamic linker.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,28 +27,25 @@
 #include <sys/types.h>
 #include <ldsodefs.h>
 #include <_itoa.h>
+#include <malloc/malloc-internal.h>
 
 #include <assert.h>
 
-/* Minimal `malloc' allocator for use while loading shared libraries.
-   No block is ever freed.  */
+/* Minimal malloc allocator for used during initial link.  After the
+   initial link, a full malloc implementation is interposed, either
+   the one in libc, or a different one supplied by the user through
+   interposition.  */
 
 static void *alloc_ptr, *alloc_end, *alloc_last_block;
 
 /* Declarations of global functions.  */
 extern void weak_function free (void *ptr);
 extern void * weak_function realloc (void *ptr, size_t n);
-extern unsigned long int weak_function __strtoul_internal (const char *nptr,
-							   char **endptr,
-							   int base,
-							   int group);
-extern unsigned long int weak_function strtoul (const char *nptr,
-						char **endptr, int base);
 
 
 /* Allocate an aligned memory block.  */
 void * weak_function
-__libc_memalign (size_t align, size_t n)
+malloc (size_t n)
 {
   if (alloc_end == 0)
     {
@@ -61,8 +58,8 @@ __libc_memalign (size_t align, size_t n)
     }
 
   /* Make sure the allocation pointer is ideally aligned.  */
-  alloc_ptr = (void *) 0 + (((alloc_ptr - (void *) 0) + align - 1)
-			    & ~(align - 1));
+  alloc_ptr = (void *) 0 + (((alloc_ptr - (void *) 0) + MALLOC_ALIGNMENT - 1)
+			    & ~(MALLOC_ALIGNMENT - 1));
 
   if (alloc_ptr + n >= alloc_end || n >= -(uintptr_t) alloc_ptr)
     {
@@ -85,12 +82,6 @@ __libc_memalign (size_t align, size_t n)
   alloc_last_block = (void *) alloc_ptr;
   alloc_ptr += n;
   return alloc_last_block;
-}
-
-void * weak_function
-malloc (size_t n)
-{
-  return __libc_memalign (sizeof (double), n);
 }
 
 /* We use this function occasionally since the real implementation may
@@ -239,84 +230,6 @@ Inconsistency detected by ld.so: %s: %u: %s%sUnexpected error: %s.\n",
 rtld_hidden_weak (__assert_perror_fail)
 #endif
 
-unsigned long int weak_function
-__strtoul_internal (const char *nptr, char **endptr, int base, int group)
-{
-  unsigned long int result = 0;
-  long int sign = 1;
-  unsigned max_digit;
-
-  while (*nptr == ' ' || *nptr == '\t')
-    ++nptr;
-
-  if (*nptr == '-')
-    {
-      sign = -1;
-      ++nptr;
-    }
-  else if (*nptr == '+')
-    ++nptr;
-
-  if (*nptr < '0' || *nptr > '9')
-    {
-      if (endptr != NULL)
-	*endptr = (char *) nptr;
-      return 0UL;
-    }
-
-  assert (base == 0);
-  base = 10;
-  max_digit = 9;
-  if (*nptr == '0')
-    {
-      if (nptr[1] == 'x' || nptr[1] == 'X')
-	{
-	  base = 16;
-	  nptr += 2;
-	}
-      else
-	{
-	  base = 8;
-	  max_digit = 7;
-	}
-    }
-
-  while (1)
-    {
-      unsigned long int digval;
-      if (*nptr >= '0' && *nptr <= '0' + max_digit)
-        digval = *nptr - '0';
-      else if (base == 16)
-        {
-	  if (*nptr >= 'a' && *nptr <= 'f')
-	    digval = *nptr - 'a' + 10;
-	  else if (*nptr >= 'A' && *nptr <= 'F')
-	    digval = *nptr - 'A' + 10;
-	  else
-	    break;
-	}
-      else
-        break;
-
-      if (result > ULONG_MAX / base
-	  || (result == ULONG_MAX / base && digval > ULONG_MAX % base))
-	{
-	  errno = ERANGE;
-	  if (endptr != NULL)
-	    *endptr = (char *) nptr;
-	  return ULONG_MAX;
-	}
-      result *= base;
-      result += digval;
-      ++nptr;
-    }
-
-  if (endptr != NULL)
-    *endptr = (char *) nptr;
-  return result * sign;
-}
-
-
 #undef _itoa
 /* We always use _itoa instead of _itoa_word in ld.so since the former
    also has to be present and it is never about speed when these

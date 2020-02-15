@@ -1,12 +1,6 @@
 GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 # Local configure fragment for sysdeps/x86_64.
 
-dnl Accept as 2.24 or newer for AVX512 load and store.
-AC_CHECK_PROG_VER(AS, $AS, --version,
-		  [GNU assembler.* \([0-9]*\.[0-9.]*\)],
-		  [2.2[4-9]*|2.[3-9][0-9]*|[3-9].*|[1-9][0-9]*],
-		  critic_missing="$critic_missing The program AS is required in version >= 2.24 for target x86_64.")
-
 dnl Check if asm supports AVX512DQ.
 AC_CACHE_CHECK(for AVX512DQ support in assembler, libc_cv_asm_avx512dq, [dnl
 cat > conftest.s <<\EOF
@@ -48,6 +42,31 @@ fi
 
 if test x"$build_mathvec" = xnotset; then
   build_mathvec=yes
+fi
+
+dnl Check if linker supports static PIE with the fix for
+dnl
+dnl https://sourceware.org/bugzilla/show_bug.cgi?id=21782
+dnl
+if test "$static_pie" = yes; then
+  AC_CACHE_CHECK(for linker static PIE support, libc_cv_ld_static_pie, [dnl
+cat > conftest.s <<\EOF
+	.text
+	.global _start
+	.weak foo
+_start:
+	leaq	foo(%rip), %rax
+EOF
+  libc_cv_pie_option="-Wl,-pie"
+  if AC_TRY_COMMAND(${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -nostartfiles -nostdlib $no_ssp $libc_cv_pie_option -o conftest conftest.s 1>&AS_MESSAGE_LOG_FD); then
+    libc_cv_ld_static_pie=yes
+  else
+    libc_cv_ld_static_pie=no
+  fi
+rm -f conftest*])
+  if test "$libc_cv_ld_static_pie" != yes; then
+    AC_MSG_ERROR([linker support for static PIE needed])
+  fi
 fi
 
 dnl It is always possible to access static and hidden symbols in an

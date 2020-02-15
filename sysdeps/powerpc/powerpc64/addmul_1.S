@@ -1,6 +1,6 @@
 /* PowerPC64 __mpn_addmul_1 -- Multiply a limb vector with a limb and add
    the result to a second limb vector.
-   Copyright (C) 1999-2016 Free Software Foundation, Inc.
+   Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@
 #define N   r5
 #define VL  r6
 
-EALIGN(FUNC, 5, 0)
+ENTRY_TOCLESS (FUNC, 5)
 	std	r31, -8(r1)
 	rldicl.	r0, N, 0, 62
 	std	r30, -16(r1)

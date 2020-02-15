@@ -1,5 +1,5 @@
 /* Catch segmentation faults and print backtrace.
-   Copyright (C) 1998-2016 Free Software Foundation, Inc.
+   Copyright (C) 1998-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
@@ -156,7 +156,7 @@ install_handler (void)
   if (getenv ("SEGFAULT_USE_ALTSTACK") != 0)
     {
       void *stack_mem = malloc (2 * SIGSTKSZ);
-      struct sigaltstack ss;
+      stack_t ss;
 
       if (stack_mem != NULL)
 	{

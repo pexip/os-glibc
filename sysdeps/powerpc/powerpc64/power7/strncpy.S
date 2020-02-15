@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,17 +40,26 @@
       memset.  */
 
 #ifdef USE_AS_STPNCPY
-# define FUNC_NAME __stpncpy
+# ifndef STPNCPY
+#  define FUNC_NAME __stpncpy
+# else
+#  define FUNC_NAME STPNCPY
+# endif
 #else
-# define FUNC_NAME strncpy
-#endif
+# ifndef STRNCPY
+#  define FUNC_NAME strncpy
+# else
+#  define FUNC_NAME STRNCPY
+# endif
+#endif  /* !USE_AS_STPNCPY  */
 
-#define		FRAMESIZE	(FRAME_MIN_SIZE+32)
+#define		FRAMESIZE	(FRAME_MIN_SIZE+16)
 
 #ifndef MEMSET
 /* For builds with no IFUNC support, local calls should be made to internal
    GLIBC symbol (created by libc_hidden_builtin_def).  */
 # ifdef SHARED
+#  define MEMSET_is_local
 #  define MEMSET   __GI_memset
 # else
 #  define MEMSET   memset
@@ -58,17 +67,20 @@
 #endif
 
 	.machine  power7
-EALIGN(FUNC_NAME, 4, 0)
+#ifdef MEMSET_is_local
+ENTRY_TOCLESS (FUNC_NAME, 4)
+#else
+ENTRY (FUNC_NAME, 4)
+#endif
 	CALL_MCOUNT 3
 
-	mflr r0			/* load link register LR to r0  */
 	or r10, r3, r4		/* to verify source and destination  */
 	rldicl. r8, r10, 0, 61	/* is double word aligned .. ?  */
 
 	std r19, -8(r1)		/* save callers register , r19  */
 	std r18, -16(r1)	/* save callers register , r18  */
-	std r0, 16(r1)		/* store the link register  */
-	stdu r1, -FRAMESIZE(r1)	/* create the stack frame  */
+	cfi_offset(r19, -8)
+	cfi_offset(r18, -16)
 
 	mr r9, r3		/* save r3 into r9 for use  */
 	mr r18, r3		/* save r3 for retCode of strncpy  */
@@ -211,11 +223,23 @@ L(zeroFill):
 	cmpdi cr7, r8, 0	/* compare if length is zero  */
 	beq cr7, L(update3return)
 
+	mflr r0			/* load link register LR to r0  */
+	std r0, 16(r1)		/* store the link register  */
+	stdu r1, -FRAMESIZE(r1)	/* create the stack frame  */
+	cfi_adjust_cfa_offset(FRAMESIZE)
+	cfi_offset(lr, 16)
 	mr r3, r19		/* fill buffer with  */
 	li r4, 0		/* zero fill buffer  */
 	mr r5, r8		/* how many bytes to fill buffer with  */
 	bl MEMSET		/* call optimized memset  */
+#ifndef MEMSET_is_local
 	nop
+#endif
+	ld r0, FRAMESIZE+16(r1) /* read the saved link register  */
+	addi r1, r1, FRAMESIZE	/* restore stack pointer  */
+	cfi_adjust_cfa_offset(-FRAMESIZE)
+	mtlr r0
+	cfi_restore(lr)
 
 L(update3return):
 #ifdef USE_AS_STPNCPY
@@ -226,11 +250,8 @@ L(hop2return):
 #ifndef USE_AS_STPNCPY
 	mr r3, r18		/* set return value  */
 #endif
-	addi r1, r1, FRAMESIZE	/* restore stack pointer  */
-	ld r0, 16(r1)		/* read the saved link register  */
 	ld r18, -16(r1)		/* restore callers save register, r18  */
 	ld r19, -8(r1)		/* restore callers save register, r19  */
-	mtlr r0			/* branch to link register  */
 	blr			/* return  */
 
 	.p2align 4
@@ -264,16 +285,13 @@ L(oneBYone):
 
 	.p2align 4
 L(done):
-	addi r1, r1, FRAMESIZE	/* restore stack pointer  */
 #ifdef USE_AS_STPNCPY
 	mr r3, r19		/* set the return value  */
 #else
 	mr r3, r18		/* set the return value  */
 #endif
-	ld r0, 16(r1)		/* read the saved link register  */
 	ld r18, -16(r1)		/* restore callers save register, r18  */
 	ld r19, -8(r1)		/* restore callers save register, r19  */
-	mtlr r0			/* branch to link register  */
 	blr			/* return  */
 
 L(update1):

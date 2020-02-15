@@ -1,5 +1,5 @@
 /* ABI compatibility for 'longjmp' and 'siglongjmp' symbols in libpthread ABI.
-   Copyright (C) 2002-2016 Free Software Foundation, Inc.
+   Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -25,33 +25,14 @@
    symbol in libpthread, but the historical ABI requires it.  For static
    linking, there is no need to provide anything here--the libc version
    will be linked in.  For shared library ABI compatibility, there must be
-   longjmp and siglongjmp symbols in libpthread.so; so we define them using
-   IFUNC to redirect to the libc function.  */
+   longjmp and siglongjmp symbols in libpthread.so.
+
+   With an IFUNC resolver, it would be possible to avoid the indirection,
+   but the IFUNC resolver might run before the __libc_longjmp symbol has
+   been relocated, in which case the IFUNC resolver would not be able to
+   provide the correct address.  */
 
 #if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_22)
-
-# if HAVE_IFUNC
-
-static __typeof (longjmp) *
-__attribute__ ((used))
-longjmp_resolve (void)
-{
-  return &__libc_longjmp;
-}
-
-#  ifdef HAVE_ASM_SET_DIRECTIVE
-#   define DEFINE_LONGJMP(name) \
-  asm (".set " #name ", longjmp_resolve\n" \
-       ".globl " #name "\n" \
-       ".type " #name ", %gnu_indirect_function");
-#  else
-#   define DEFINE_LONGJMP(name) \
-  asm (#name " = longjmp_resolve\n" \
-       ".globl " #name "\n" \
-       ".type " #name ", %gnu_indirect_function");
-#  endif
-
-# else  /* !HAVE_IFUNC */
 
 static void __attribute__ ((noreturn, used))
 longjmp_compat (jmp_buf env, int val)
@@ -59,14 +40,10 @@ longjmp_compat (jmp_buf env, int val)
   __libc_longjmp (env, val);
 }
 
-# define DEFINE_LONGJMP(name) strong_alias (longjmp_compat, name)
+strong_alias (longjmp_compat, longjmp_alias)
+compat_symbol (libpthread, longjmp_alias, longjmp, GLIBC_2_0);
 
-# endif  /* HAVE_IFUNC */
-
-DEFINE_LONGJMP (longjmp_ifunc)
-compat_symbol (libpthread, longjmp_ifunc, longjmp, GLIBC_2_0);
-
-DEFINE_LONGJMP (siglongjmp_ifunc)
-compat_symbol (libpthread, siglongjmp_ifunc, siglongjmp, GLIBC_2_0);
+strong_alias (longjmp_alias, siglongjmp_alias)
+compat_symbol (libpthread, siglongjmp_alias, siglongjmp, GLIBC_2_0);
 
 #endif

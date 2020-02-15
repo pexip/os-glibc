@@ -1,5 +1,5 @@
 /* Optimized strncpy/stpncpy implementation for PowerPC64/POWER8.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,15 +19,24 @@
 #include <sysdep.h>
 
 #ifdef USE_AS_STPNCPY
-# define FUNC_NAME __stpncpy
+# ifndef STPNCPY
+#   define FUNC_NAME __stpncpy
+# else
+#   define FUNC_NAME STPNCPY
+# endif
 #else
-# define FUNC_NAME strncpy
-#endif
+# ifndef STRNCPY
+#  define FUNC_NAME strncpy
+# else
+#  define FUNC_NAME STRNCPY
+# endif
+#endif  /* !USE_AS_STPNCPY  */
 
 #ifndef MEMSET
 /* For builds without IFUNC support, local calls should be made to internal
    GLIBC symbol (created by libc_hidden_builtin_def).  */
 # ifdef SHARED
+#  define MEMSET_is_local
 #  define MEMSET   __GI_memset
 # else
 #  define MEMSET   memset
@@ -52,7 +61,12 @@
    4k.  */
 
 	.machine  power7
-EALIGN (FUNC_NAME, 4, 0)
+#ifdef MEMSET_is_local
+ENTRY_TOCLESS (FUNC_NAME, 4)
+#else
+ENTRY (FUNC_NAME, 4)
+#endif
+	CALL_MCOUNT 3
 
         /* Check if the [src]+15 will cross a 4K page by checking if the bit
            indicating the page size changes.  Basically:
@@ -227,21 +241,18 @@ L(zero_pad_start_1):
 	/* Save the link register.  */
 	mflr	r0
 	std	r0,16(r1)
-	cfi_offset(lr, 16)
 
 	/* Create the stack frame.  */
 	stdu	r1,-FRAMESIZE(r1)
 	cfi_adjust_cfa_offset(FRAMESIZE)
+	cfi_offset(lr, 16)
 
 	bl	MEMSET
+#ifndef MEMSET_is_local
 	nop
+#endif
 
-	/* Restore the stack frame.  */
-	addi	r1,r1,FRAMESIZE
-	cfi_adjust_cfa_offset(-FRAMESIZE)
-	/* Restore the link register.  */
-	ld	r0,16(r1)
-	mtlr	r0
+	ld	r0,FRAMESIZE+16(r1)
 
 #ifndef USE_AS_STPNCPY
 	mr	r3,r30       /* Restore the return value of strncpy, i.e.:
@@ -250,12 +261,18 @@ L(zero_pad_start_1):
 #endif
 
 	/* Restore non-volatile registers and return.  */
-	ld	r26,-48(r1)
-	ld	r27,-40(r1)
-	ld	r28,-32(r1)
-	ld	r29,-24(r1)
-	ld	r30,-16(r1)
-	ld	r31,-8(r1)
+	ld	r26,FRAMESIZE-48(r1)
+	ld	r27,FRAMESIZE-40(r1)
+	ld	r28,FRAMESIZE-32(r1)
+	ld	r29,FRAMESIZE-24(r1)
+	ld	r30,FRAMESIZE-16(r1)
+	ld	r31,FRAMESIZE-8(r1)
+	/* Restore the stack frame.  */
+	addi	r1,r1,FRAMESIZE
+	cfi_adjust_cfa_offset(-FRAMESIZE)
+	/* Restore the link register.  */
+	mtlr	r0
+	cfi_restore(lr)
 	blr
 
 	/* The common case where [src]+16 will not cross a 4K page boundary.

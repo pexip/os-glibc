@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,18 +24,19 @@
    This exception applies to code released by its copyright holders
    in files containing the exception.  */
 
-#include <libio.h>
-#ifdef TODO
-Merge into  libio.h ?
-#endif
+#include <stdio.h>
+#include "libioP.h"
 
-typedef void *(*_IO_alloc_type) (_IO_size_t);
+typedef void *(*_IO_alloc_type) (size_t);
 typedef void (*_IO_free_type) (void*);
 
 struct _IO_str_fields
 {
-  _IO_alloc_type _allocate_buffer;
-  _IO_free_type _free_buffer;
+  /* These members are preserved for ABI compatibility.  The glibc
+     implementation always calls malloc/free for user buffers if
+     _IO_USER_BUF or _IO_FLAGS2_USER_WBUF are not set.  */
+  _IO_alloc_type _allocate_buffer_unused;
+  _IO_free_type _free_buffer_unused;
 };
 
 /* This is needed for the Irix6 N32 ABI, which has a 64 bit off_t type,
@@ -45,7 +46,7 @@ struct _IO_str_fields
 
 struct _IO_streambuf
 {
-  struct _IO_FILE _f;
+  FILE _f;
   const struct _IO_jump_t *vtable;
 };
 
@@ -55,13 +56,9 @@ typedef struct _IO_strfile_
   struct _IO_str_fields _s;
 } _IO_strfile;
 
-/* dynamic: set when the array object is allocated (or reallocated)  as
-   necessary to hold a character sequence that can change in length. */
-#define _IO_STR_DYNAMIC(FP) ((FP)->_s._allocate_buffer != (_IO_alloc_type)0)
-
 /* frozen: set when the program has requested that the array object not
    be altered, reallocated, or freed. */
-#define _IO_STR_FROZEN(FP) ((FP)->_f._IO_file_flags & _IO_USER_BUF)
+#define _IO_STR_FROZEN(FP) ((FP)->_f._flags & _IO_USER_BUF)
 
 typedef struct
 {

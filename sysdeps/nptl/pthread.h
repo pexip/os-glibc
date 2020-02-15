@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include <bits/pthreadtypes.h>
 #include <bits/setjmp.h>
 #include <bits/wordsize.h>
+#include <bits/types/struct_timespec.h>
 
 
 /* Detach state.  */
@@ -82,7 +83,7 @@ enum
 #endif
 
 
-#ifdef __PTHREAD_MUTEX_HAVE_PREV
+#if __PTHREAD_MUTEX_HAVE_PREV
 # define PTHREAD_MUTEX_INITIALIZER \
   { { 0, 0, 0, 0, 0, __PTHREAD_SPINS, { 0, 0 } } }
 # ifdef __USE_GNU
@@ -183,7 +184,7 @@ enum
 
 
 /* Conditional variable handling.  */
-#define PTHREAD_COND_INITIALIZER { { 0, 0, 0, 0, 0, (void *) 0, 0, 0 } }
+#define PTHREAD_COND_INITIALIZER { { {0}, {0}, {0, 0}, {0, 0}, 0, 0, {0, 0} } }
 
 
 /* Cleanup buffers */

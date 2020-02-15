@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@
 #include "../locale/localeinfo.h"
 
 wctrans_t
-__wctrans_l (const char *property, __locale_t locale)
+__wctrans_l (const char *property, locale_t locale)
 {
   const char *names;
   size_t cnt;

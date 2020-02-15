@@ -1,5 +1,5 @@
 /* Round to int floating-point values.  PowerPC64 version.
-   Copyright (C) 2011-2016 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Adhemerval Zanella <azanella@br.ibm.com>, 2011
 
@@ -21,6 +21,7 @@
    when it's coded in C.  */
 
 #include <sysdep.h>
+#include <libm-alias-float.h>
 
 
 /* float [fp1] nearbyintf(float [fp1]) */
@@ -32,7 +33,7 @@
 	.long 0x0
 	.section	".text"
 
-EALIGN (__nearbyintf, 4, 0)
+ENTRY (__nearbyintf, 4)
 	CALL_MCOUNT 0
 	fabs	fp0,fp1
 	lfs	fp13,.LC0@toc(2)
@@ -65,4 +66,4 @@ L(lessthanzero):
 	blr
 END (__nearbyintf)
 
-weak_alias (__nearbyintf, nearbyintf)
+libm_alias_float (__nearbyint, nearbyint)

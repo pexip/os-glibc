@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Thorsten Kukuk <kukuk@vt.uni-paderborn.de>, 1997.
 
@@ -18,6 +18,7 @@
 
 #include <string.h>
 #include <rpcsvc/nis.h>
+#include <shlib-compat.h>
 
 nis_error
 nis_verifygroup (const_nis_name group)
@@ -48,3 +49,4 @@ nis_verifygroup (const_nis_name group)
   else
     return NIS_FAIL;
 }
+libnsl_hidden_nolink_def (nis_verifygroup, GLIBC_2_1)

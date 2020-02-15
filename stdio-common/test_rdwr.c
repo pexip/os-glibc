@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ main (int argc, char **argv)
   else
     name = *argv;
 
-  (void) sprintf (filename, "/tmp/%s.test", name);
+  (void) sprintf (filename, OBJPFX "%s.test", name);
 
   f = fopen (filename, "w+");
   if (f == NULL)

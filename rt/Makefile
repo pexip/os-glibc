@@ -1,4 +1,4 @@
-# Copyright (C) 1997-2016 Free Software Foundation, Inc.
+# Copyright (C) 1997-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -53,16 +53,18 @@ tests := tst-shm tst-clock tst-clock_nanosleep tst-timer tst-timer2 \
 	 tst-timer3 tst-timer4 tst-timer5 \
 	 tst-cpuclock1 tst-cpuclock2 \
 	 tst-cputimer1 tst-cputimer2 tst-cputimer3 \
-	 tst-clock2
+	 tst-clock2 tst-shm-cancel
 
 extra-libs := librt
 extra-libs-others := $(extra-libs)
 
 include ../Rules
 
-CFLAGS-aio_suspend.c = -fexceptions
-CFLAGS-clock_nanosleep.c = -fexceptions -fasynchronous-unwind-tables
-CFLAGS-librt-cancellation.c = -fasynchronous-unwind-tables
+CFLAGS-aio_suspend.c += -fexceptions
+CFLAGS-mq_timedreceive.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-mq_timedsend.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-clock_nanosleep.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-librt-cancellation.c += -fasynchronous-unwind-tables
 
 LDFLAGS-rt.so = -Wl,--enable-new-dtags,-z,nodelete
 

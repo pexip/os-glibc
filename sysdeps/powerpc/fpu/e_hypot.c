@@ -1,5 +1,5 @@
 /* Pythagorean addition using doubles
-   Copyright (C) 2011-2016 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library
    Contributed by Adhemerval Zanella <azanella@br.ibm.com>, 2011
 
@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
 #include <stdint.h>
 
 static const double two60   = 1.152921504606847e+18;
@@ -41,10 +42,11 @@ static const double pdnum   = 2.225073858507201e-308;
 #ifdef _ARCH_PWR7
 /* POWER7 isinf and isnan optimization are fast. */
 # define TEST_INF_NAN(x, y)                                       \
-   if (isinf(x) || isinf(y))                                      \
+   if ((isinf(x) || isinf(y))					  \
+       && !issignaling (x) && !issignaling (y))			  \
        return INFINITY;                                           \
    if (isnan(x) || isnan(y))                                      \
-       return NAN;
+       return x + y;
 # else
 /* For POWER6 and below isinf/isnan triggers LHS and PLT calls are
  * costly (especially for POWER6). */
@@ -66,9 +68,10 @@ static const double pdnum   = 2.225073858507201e-308;
      uint32_t ht = hx; hx = hy; hy = ht;                         \
    }                                                             \
    if (hx >= 0x7ff00000) {                                       \
-     if (hx == 0x7ff00000 || hy == 0x7ff00000)                   \
+     if ((hx == 0x7ff00000 || hy == 0x7ff00000)			 \
+	 && !issignaling (x) && !issignaling (y))		 \
        return INFINITY;                                          \
-     return NAN;                                                 \
+     return x + y;						 \
    }                                                             \
  } while (0)
 
@@ -108,7 +111,7 @@ __ieee754_hypot (double x, double y)
     {
       x *= twoM600;
       y *= twoM600;
-      return __ieee754_sqrt (x * x + y * y) / twoM600;
+      return sqrt (x * x + y * y) / twoM600;
     }
   if (y < twoM500)
     {
@@ -116,7 +119,7 @@ __ieee754_hypot (double x, double y)
 	{
 	  x *= two1022;
 	  y *= two1022;
-	  double ret = __ieee754_sqrt (x * x + y * y) / two1022;
+	  double ret = sqrt (x * x + y * y) / two1022;
 	  math_check_force_underflow_nonneg (ret);
 	  return ret;
 	}
@@ -124,9 +127,9 @@ __ieee754_hypot (double x, double y)
 	{
 	  x *= two600;
 	  y *= two600;
-	  return __ieee754_sqrt (x * x + y * y) / two600;
+	  return sqrt (x * x + y * y) / two600;
 	}
     }
-  return __ieee754_sqrt (x * x + y * y);
+  return sqrt (x * x + y * y);
 }
 strong_alias (__ieee754_hypot, __hypot_finite)

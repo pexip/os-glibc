@@ -28,12 +28,13 @@ static char rcsid[] = "$NetBSD: $";
 
 #include <errno.h>
 #include <math.h>
+#include <math-barriers.h>
 #include <math_private.h>
 
 long double __nextafterl(long double x, long double y)
 {
 	int32_t ix,iy,esx,esy;
-	u_int32_t hx,hy,lx,ly;
+	uint32_t hx,hy,lx,ly;
 
 	GET_LDOUBLE_WORDS(esx,hx,lx,x);
 	GET_LDOUBLE_WORDS(esy,hy,ly,y);

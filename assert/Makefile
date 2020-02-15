@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -25,6 +25,15 @@ include ../Makeconfig
 headers	:= assert.h
 
 routines := assert assert-perr __assert
-tests := test-assert test-assert-perr
+tests := test-assert test-assert-perr tst-assert-c++ tst-assert-g++
+
+ifeq ($(have-cxx-thread_local),yes)
+CFLAGS-tst-assert-c++.o = -std=c++11
+LDLIBS-tst-assert-c++ = -lstdc++
+CFLAGS-tst-assert-g++.o = -std=gnu++11
+LDLIBS-tst-assert-g++ = -lstdc++
+else
+tests-unsupported += tst-assert-c++ tst-assert-g++
+endif
 
 include ../Rules

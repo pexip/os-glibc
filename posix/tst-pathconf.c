@@ -1,5 +1,5 @@
 /* Test that values of pathconf and fpathconf are consistent for a file.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 
 static void prepare (void);
@@ -158,12 +159,6 @@ out_nofifo:
   if (unlink (filename) != 0)
     {
       printf ("Could not remove fifo (%s)\n", strerror (errno));
-      ret = 1;
-    }
-
-  if (rmdir (dirbuf) != 0)
-    {
-      printf ("Could not remove directory (%s)\n", strerror (errno));
       ret = 1;
     }
 

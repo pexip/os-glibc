@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,9 +15,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <spawn.h>
-#include "spawn_int.h"
-
 #include <sys/types.h>
 #include <regex.h>
 #include <locale.h>
@@ -32,6 +29,10 @@ do_test (void)
 
   if (setlocale (LC_ALL, "de_DE.ISO-8859-1") == NULL)
     puts ("cannot set locale");
+  /* Range expressions in non-POSIX locales are unspecified, but
+     for now in glibc we maintain lowercase/uppercase distinction
+     in our collation element order (but not in collation weights
+     which means strcoll_l still collates as expected).  */
   else if (regcomp (&re, "[a-f]*", 0) != REG_NOERROR)
     puts ("cannot compile expression \"[a-f]*\"");
   else if (regexec (&re, "abcdefCDEF", 1, mat, 0) == REG_NOMATCH)

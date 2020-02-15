@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -38,7 +38,6 @@ extern int __libc_multiple_threads attribute_hidden;
 
 int *
 #endif
-internal_function
 __libc_pthread_init (unsigned long int *ptr, void (*reclaim) (void),
 		     const struct pthread_functions *functions)
 {
@@ -78,11 +77,3 @@ __libc_pthread_init (unsigned long int *ptr, void (*reclaim) (void),
   return &__libc_multiple_threads;
 #endif
 }
-
-#ifdef SHARED
-libc_freeres_fn (freeres_libptread)
-{
-  if (__libc_pthread_functions_init)
-    PTHFCT_CALL (ptr_freeres, ());
-}
-#endif

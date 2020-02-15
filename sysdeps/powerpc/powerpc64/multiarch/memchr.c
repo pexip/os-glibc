@@ -1,5 +1,5 @@
 /* Multiple versions of memchr.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,10 +23,13 @@
 
 extern __typeof (__memchr) __memchr_ppc attribute_hidden;
 extern __typeof (__memchr) __memchr_power7 attribute_hidden;
+extern __typeof (__memchr) __memchr_power8 attribute_hidden;
 
 /* Avoid DWARF definition DIE on ifunc symbol so that GDB can handle
    ifunc symbol properly.  */
 libc_ifunc (__memchr,
+	    (hwcap2 & PPC_FEATURE2_ARCH_2_07)
+	    ? __memchr_power8 :
 	    (hwcap & PPC_FEATURE_HAS_VSX)
             ? __memchr_power7
             : __memchr_ppc);

@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Thorsten Kukuk <kukuk@vt.uni-paderborn.de>, 1997.
 
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <libintl.h>
 #include <rpcsvc/nis.h>
+#include <shlib-compat.h>
 
 void
 nis_print_group_entry (const_nis_name group)
@@ -171,3 +172,4 @@ nis_print_group_entry (const_nis_name group)
       nis_freeresult (res);
     }
 }
+libnsl_hidden_nolink_def (nis_print_group_entry, GLIBC_2_1)

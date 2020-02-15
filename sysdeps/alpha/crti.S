@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for Alpha.
-   Copyright (C) 2001-2016 Free Software Foundation, Inc.
+   Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@
 
 	.section .init, "ax", @progbits
 	.globl	_init
+	.hidden	_init
 	.type	_init, @function
 	.usepv	_init, std
 _init:
@@ -89,6 +90,7 @@ _init:
 
 	.section .fini, "ax", @progbits
 	.globl	_fini
+	.hidden	_fini
 	.type	_fini,@function
 	.usepv	_fini,std
 _fini:

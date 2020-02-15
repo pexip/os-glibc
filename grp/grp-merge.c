@@ -1,5 +1,5 @@
 /* Group merging implementation.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,7 +36,6 @@
   })
 
 int
-internal_function
 __copy_grp (const struct group srcgrp, const size_t buflen,
 	    struct group *destgrp, char *destbuf, char **endptr)
 {
@@ -85,6 +84,14 @@ __copy_grp (const struct group srcgrp, const size_t buflen,
     }
   members[i] = NULL;
 
+  /* Align for pointers.  We can't simply align C because we need to
+     align destbuf[c].  */
+  if ((((uintptr_t)destbuf + c) & (__alignof__(char **) - 1)) != 0)
+    {
+      uintptr_t mis_align = ((uintptr_t)destbuf + c) & (__alignof__(char **) - 1);
+      c += __alignof__(char **) - mis_align;
+    }
+
   /* Copy the pointers from the members array into the buffer and assign them
      to the gr_mem member of destgrp.  */
   destgrp->gr_mem = (char **) &destbuf[c];
@@ -109,7 +116,6 @@ libc_hidden_def (__copy_grp)
 /* Check that the name, GID and passwd fields match, then
    copy in the gr_mem array.  */
 int
-internal_function
 __merge_grp (struct group *savedgrp, char *savedbuf, char *savedend,
 	     size_t buflen, struct group *mergegrp, char *mergebuf)
 {
@@ -129,7 +135,7 @@ __merge_grp (struct group *savedgrp, char *savedbuf, char *savedend,
 
   /* Get the count of group members from the last sizeof (size_t) bytes in the
      mergegrp buffer.  */
-  savedmemcount = (size_t) *(savedend - sizeof (size_t));
+  savedmemcount = *(size_t *) (savedend - sizeof (size_t));
 
   /* Get the count of new members to add.  */
   for (memcount = 0; mergegrp->gr_mem[memcount]; memcount++)
@@ -167,6 +173,14 @@ __merge_grp (struct group *savedgrp, char *savedbuf, char *savedend,
     }
   /* Add the NULL-terminator.  */
   members[savedmemcount + memcount] = NULL;
+
+  /* Align for pointers.  We can't simply align C because we need to
+     align savedbuf[c].  */
+  if ((((uintptr_t)savedbuf + c) & (__alignof__(char **) - 1)) != 0)
+    {
+      uintptr_t mis_align = ((uintptr_t)savedbuf + c) & (__alignof__(char **) - 1);
+      c += __alignof__(char **) - mis_align;
+    }
 
   /* Copy the member array back into the buffer after the member list and free
      the member array.  */

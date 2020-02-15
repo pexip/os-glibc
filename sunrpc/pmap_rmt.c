@@ -44,12 +44,13 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <errno.h>
-#undef	 _POSIX_SOURCE		/* Ultrix <sys/param.h> needs --roland@gnu */
-#include <sys/param.h>		/* Ultrix needs before net/if --roland@gnu */
+#include <sys/param.h>
 #include <net/if.h>
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
+#include <shlib-compat.h>
+
 #define MAX_BROADCAST_SIZE 1400
 
 extern u_long _create_xid (void);
@@ -164,7 +165,6 @@ libc_hidden_nolink_sunrpc (xdr_rmtcallres, GLIBC_2_0)
  */
 
 static int
-internal_function
 getbroadcastnets (struct in_addr *addrs, int naddrs)
 {
   struct ifaddrs *ifa;
@@ -256,7 +256,7 @@ clnt_broadcast (/* program number */
   fd.fd = sock;
   fd.events = POLLIN;
   nets = getbroadcastnets (addrs, sizeof (addrs) / sizeof (addrs[0]));
-  __bzero ((char *) &baddr, sizeof (baddr));
+  memset ((char *) &baddr, 0, sizeof (baddr));
   baddr.sin_family = AF_INET;
   baddr.sin_port = htons (PMAPPORT);
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
@@ -351,7 +351,7 @@ clnt_broadcast (/* program number */
       xdrmem_create (xdrs, inbuf, (u_int) inlen, XDR_DECODE);
       if (xdr_replymsg (xdrs, &msg))
 	{
-	  if (((u_int32_t) msg.rm_xid == (u_int32_t) xid) &&
+	  if (((uint32_t) msg.rm_xid == (uint32_t) xid) &&
 	      (msg.rm_reply.rp_stat == MSG_ACCEPTED) &&
 	      (msg.acpted_rply.ar_stat == SUCCESS))
 	    {
@@ -364,7 +364,7 @@ clnt_broadcast (/* program number */
 	{
 #ifdef notdef
 	  /* some kind of deserialization problem ... */
-	  if ((u_int32_t) msg.rm_xid == (u_int32_t) xid)
+	  if ((uint32_t) msg.rm_xid == (uint32_t) xid)
 	    fprintf (stderr, "Broadcast deserialization problem");
 	  /* otherwise, just random garbage */
 #endif

@@ -72,6 +72,7 @@
  */
 
 #include <math.h>
+#include <math-barriers.h>
 #include <math_private.h>
 
 static long double pzero (long double), qzero (long double);
@@ -108,7 +109,7 @@ __ieee754_j0l (long double x)
 {
   long double z, s, c, ss, cc, r, u, v;
   int32_t ix;
-  u_int32_t se;
+  uint32_t se;
 
   GET_LDOUBLE_EXP (se, x);
   ix = se & 0x7fff;
@@ -133,12 +134,12 @@ __ieee754_j0l (long double x)
        * y0(x) = 1/sqrt(pi) * (P(0,x)*ss + Q(0,x)*cc) / sqrt(x)
        */
       if (__glibc_unlikely (ix > 0x4080))      	/* 2^129 */
-	z = (invsqrtpi * cc) / __ieee754_sqrtl (x);
+	z = (invsqrtpi * cc) / sqrtl (x);
       else
 	{
 	  u = pzero (x);
 	  v = qzero (x);
-	  z = invsqrtpi * (u * cc - v * ss) / __ieee754_sqrtl (x);
+	  z = invsqrtpi * (u * cc - v * ss) / sqrtl (x);
 	}
       return z;
     }
@@ -194,7 +195,7 @@ __ieee754_y0l (long double x)
 {
   long double z, s, c, ss, cc, u, v;
   int32_t ix;
-  u_int32_t se, i0, i1;
+  uint32_t se, i0, i1;
 
   GET_LDOUBLE_WORDS (se, i0, i1, x);
   ix = se & 0x7fff;
@@ -235,12 +236,12 @@ __ieee754_y0l (long double x)
 	    ss = z / cc;
 	}
       if (__glibc_unlikely (ix > 0x4080))      	/* 1e39 */
-	z = (invsqrtpi * ss) / __ieee754_sqrtl (x);
+	z = (invsqrtpi * ss) / sqrtl (x);
       else
 	{
 	  u = pzero (x);
 	  v = qzero (x);
-	  z = invsqrtpi * (u * ss + v * cc) / __ieee754_sqrtl (x);
+	  z = invsqrtpi * (u * ss + v * cc) / sqrtl (x);
 	}
       return z;
     }
@@ -352,7 +353,7 @@ pzero (long double x)
   const long double *p, *q;
   long double z, r, s;
   int32_t ix;
-  u_int32_t se, i0, i1;
+  uint32_t se, i0, i1;
 
   GET_LDOUBLE_WORDS (se, i0, i1, x);
   ix = se & 0x7fff;
@@ -490,7 +491,7 @@ qzero (long double x)
   const long double *p, *q;
   long double s, r, z;
   int32_t ix;
-  u_int32_t se, i0, i1;
+  uint32_t se, i0, i1;
 
   GET_LDOUBLE_WORDS (se, i0, i1, x);
   ix = se & 0x7fff;

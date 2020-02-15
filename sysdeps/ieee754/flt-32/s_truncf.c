@@ -1,5 +1,5 @@
 /* Truncate argument to nearest integral value not larger than the argument.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
@@ -20,6 +20,7 @@
 #include <math.h>
 
 #include <math_private.h>
+#include <libm-alias-float.h>
 
 
 float
@@ -48,4 +49,6 @@ __truncf (float x)
 
   return x;
 }
-weak_alias (__truncf, truncf)
+#ifndef __truncf
+libm_alias_float (__trunc, trunc)
+#endif

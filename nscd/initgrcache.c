@@ -1,5 +1,5 @@
 /* Cache handling for host lookup.
-   Copyright (C) 2004-2016 Free Software Foundation, Inc.
+   Copyright (C) 2004-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
@@ -25,15 +25,18 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <scratch_buffer.h>
+#include <config.h>
 
 #include "dbg_log.h"
 #include "nscd.h"
-#ifdef HAVE_SENDFILE
-# include <kernel-features.h>
-#endif
 
 #include "../nss/nsswitch.h"
 
+#ifdef LINK_OBSOLETE_NSL
+# define DEFAULT_CONFIG "compat [NOTFOUND=return] files"
+#else
+# define DEFAULT_CONFIG "files"
+#endif
 
 /* Type of the lookup function.  */
 typedef enum nss_status (*initgroups_dyn_function) (const char *, gid_t,
@@ -85,8 +88,7 @@ addinitgroupsX (struct database_dyn *db, int fd, request_header *req,
   int no_more;
 
   if (group_database == NULL)
-    no_more = __nss_database_lookup ("group", NULL,
-				     "compat [NOTFOUND=return] files",
+    no_more = __nss_database_lookup ("group", NULL, DEFAULT_CONFIG,
 				     &group_database);
   else
     no_more = 0;
@@ -348,37 +350,9 @@ addinitgroupsX (struct database_dyn *db, int fd, request_header *req,
 	     unnecessarily let the receiver wait.  */
 	  assert (fd != -1);
 
-#ifdef HAVE_SENDFILE
-	  if (__builtin_expect (db->mmap_used, 1) && !alloca_used)
-	    {
-	      assert (db->wr_fd != -1);
-	      assert ((char *) &dataset->resp > (char *) db->data);
-	      assert ((char *) dataset - (char *) db->head
-		      + total
-		      <= (sizeof (struct database_pers_head)
-			  + db->head->module * sizeof (ref_t)
-			  + db->head->data_size));
-	      ssize_t written = sendfileall (fd, db->wr_fd,
-					     (char *) &dataset->resp
-					     - (char *) db->head,
-					     dataset->head.recsize);
-	      if (written != dataset->head.recsize)
-		{
-# ifndef __ASSUME_SENDFILE
-		  if (written == -1 && errno == ENOSYS)
-		    goto use_write;
-# endif
-		  all_written = false;
-		}
-	    }
-	  else
-# ifndef __ASSUME_SENDFILE
-	  use_write:
-# endif
-#endif
-	    if (writeall (fd, &dataset->resp, dataset->head.recsize)
-		!= dataset->head.recsize)
-	      all_written = false;
+	  if (writeall (fd, &dataset->resp, dataset->head.recsize)
+	      != dataset->head.recsize)
+	    all_written = false;
 	}
 
 

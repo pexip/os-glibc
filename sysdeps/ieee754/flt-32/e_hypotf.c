@@ -26,9 +26,9 @@ __ieee754_hypotf(float x, float y)
 	ha &= 0x7fffffff;
 	GET_FLOAT_WORD(hb,y);
 	hb &= 0x7fffffff;
-	if (ha == 0x7f800000)
+	if (ha == 0x7f800000 && !issignaling (y))
 	  return fabsf(x);
-	else if (hb == 0x7f800000)
+	else if (hb == 0x7f800000 && !issignaling (x))
 	  return fabsf(y);
 	else if (ha > 0x7f800000 || hb > 0x7f800000)
 	  return fabsf(x) * fabsf(y);
@@ -40,6 +40,6 @@ __ieee754_hypotf(float x, float y)
 	d_x = (double) x;
 	d_y = (double) y;
 
-	return (float) __ieee754_sqrt(d_x * d_x + d_y * d_y);
+	return (float) sqrt(d_x * d_x + d_y * d_y);
 }
 strong_alias (__ieee754_hypotf, __hypotf_finite)

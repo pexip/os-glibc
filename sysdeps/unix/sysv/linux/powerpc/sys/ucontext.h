@@ -1,4 +1,4 @@
-/* Copyright (C) 1998-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,25 +19,35 @@
 #define _SYS_UCONTEXT_H	1
 
 #include <features.h>
-#include <signal.h>
 
-/* We need the signal context definitions even if they are not used
-   included in <signal.h>.  */
-#include <bits/sigcontext.h>
+#include <bits/types/sigset_t.h>
+#include <bits/types/stack_t.h>
+
+
+#ifdef __USE_MISC
+# define __ctx(fld) fld
+#else
+# define __ctx(fld) __ ## fld
+#endif
+
+struct __ctx(pt_regs);
 
 #if __WORDSIZE == 32
 
 /* Number of general registers.  */
-# define NGREG	48
+# define __NGREG	48
+# ifdef __USE_MISC
+#  define NGREG	__NGREG
+# endif
 
 /* Container for all general registers.  */
-typedef unsigned long gregset_t[NGREG];
+typedef unsigned long gregset_t[__NGREG];
 
 /* Container for floating-point registers and status */
 typedef struct _libc_fpstate
 {
-	double fpregs[32];
-	double fpscr;
+	double __ctx(fpregs)[32];
+	double __ctx(fpscr);
 	unsigned int _pad[2];
 } fpregset_t;
 
@@ -45,18 +55,18 @@ typedef struct _libc_fpstate
    Needs to be aligned on a 16-byte boundary. */
 typedef struct _libc_vrstate
 {
-	unsigned int vrregs[32][4];
-	unsigned int vrsave;
+	unsigned int __ctx(vrregs)[32][4];
+	unsigned int __ctx(vrsave);
 	unsigned int _pad[2];
-	unsigned int vscr;
+	unsigned int __ctx(vscr);
 } vrregset_t;
 
 /* Context to describe whole processor state.  */
 typedef struct
 {
-	gregset_t gregs;
-	fpregset_t fpregs;
-	vrregset_t vrregs __attribute__((__aligned__(16)));
+	gregset_t __ctx(gregs);
+	fpregset_t __ctx(fpregs);
+	vrregset_t __ctx(vrregs) __attribute__((__aligned__(16)));
 } mcontext_t;
 
 #else
@@ -70,12 +80,18 @@ typedef struct
  * is set in AT_HWCAP.  */
 
 /* Number of general registers.  */
-# define NGREG	48	/* includes r0-r31, nip, msr, lr, etc.   */
-# define NFPREG	33	/* includes fp0-fp31 &fpscr.  */
-# define NVRREG	34	/* includes v0-v31, vscr, & vrsave in split vectors */
+# define __NGREG	48	/* includes r0-r31, nip, msr, lr, etc.   */
+# define __NFPREG	33	/* includes fp0-fp31 &fpscr.  */
+# define __NVRREG	34	/* includes v0-v31, vscr, & vrsave in
+				   split vectors */
+# ifdef __USE_MISC
+#  define NGREG	__NGREG
+#  define NFPREG	__NFPREG
+#  define NVRREG	__NVRREG
+# endif
 
-typedef unsigned long gregset_t[NGREG];
-typedef double fpregset_t[NFPREG];
+typedef unsigned long gregset_t[__NGREG];
+typedef double fpregset_t[__NFPREG];
 
 /* Container for Altivec/VMX Vector Status and Control Register.  Only 32-bits
    but can only be copied to/from a 128-bit vector register.  So we allocated
@@ -83,28 +99,28 @@ typedef double fpregset_t[NFPREG];
 typedef struct _libc_vscr
 {
 	unsigned int __pad[3];
-	unsigned int vscr_word;
+	unsigned int __ctx(vscr_word);
 } vscr_t;
 
 /* Container for Altivec/VMX registers and status.
    Must to be aligned on a 16-byte boundary. */
 typedef struct _libc_vrstate
 {
-	unsigned int	vrregs[32][4];
-	vscr_t		vscr;
-	unsigned int	vrsave;
+	unsigned int	__ctx(vrregs)[32][4];
+	vscr_t		__ctx(vscr);
+	unsigned int	__ctx(vrsave);
 	unsigned int	__pad[3];
 } vrregset_t  __attribute__((__aligned__(16)));
 
 typedef struct {
 	unsigned long	__glibc_reserved[4];
-	int		signal;
+	int		__ctx(signal);
 	int		__pad0;
-	unsigned long	handler;
-	unsigned long	oldmask;
-	struct pt_regs	*regs;
-	gregset_t	gp_regs;
-	fpregset_t	fp_regs;
+	unsigned long	__ctx(handler);
+	unsigned long	__ctx(oldmask);
+	struct __ctx(pt_regs)	*__ctx(regs);
+	gregset_t	__ctx(gp_regs);
+	fpregset_t	__ctx(fp_regs);
 /*
  * To maintain compatibility with current implementations the sigcontext is
  * extended by appending a pointer (v_regs) to a quadword type (elf_vrreg_t)
@@ -124,17 +140,17 @@ typedef struct {
  * The entry with index 33 contains the vrsave as the first word (offset 0)
  * within the quadword.
  */
-	vrregset_t	*v_regs;
-	long		vmx_reserve[NVRREG+NVRREG+1];
+	vrregset_t	*__ctx(v_regs);
+	long		__ctx(vmx_reserve)[__NVRREG+__NVRREG+1];
 } mcontext_t;
 
 #endif
 
 /* Userlevel context.  */
-typedef struct ucontext
+typedef struct ucontext_t
   {
-    unsigned long int uc_flags;
-    struct ucontext *uc_link;
+    unsigned long int __ctx(uc_flags);
+    struct ucontext_t *uc_link;
     stack_t uc_stack;
 #if __WORDSIZE == 32
     /*
@@ -160,17 +176,20 @@ typedef struct ucontext
      * old ucontext_t; it ensures that uc_mcontext.regs and uc_sigmask
      * are at the same offset as previously.
      */
-    int uc_pad[7];
-    union uc_regs_ptr {
-      struct pt_regs *regs;
-      mcontext_t *uc_regs;
+    int __glibc_reserved1[7];
+    union __ctx(uc_regs_ptr) {
+      struct __ctx(pt_regs) *__ctx(regs);
+      mcontext_t *__ctx(uc_regs);
     } uc_mcontext;
     sigset_t    uc_sigmask;
-    char uc_reg_space[sizeof(mcontext_t) + 12];  /* last for extensibility */
+    /* last for extensibility */
+    char __ctx(uc_reg_space)[sizeof(mcontext_t) + 12];
 #else /* 64-bit */
     sigset_t    uc_sigmask;
     mcontext_t  uc_mcontext;  /* last for extensibility */
 #endif
   } ucontext_t;
+
+#undef __ctx
 
 #endif /* sys/ucontext.h */

@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Carlos O'Donell <carlos@baldric.uwo.ca>, 2005.
 
@@ -17,13 +17,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <stdint.h> /*  Required for type definitions e.g. uint8_t.  */
-#include <abort-instr.h> /*  Required for ABORT_INSTRUCTIUON.  */
-
-/* We need EFAULT, ENONSYS */
-#if !defined EFAULT && !defined ENOSYS
-#define EFAULT	14
-#define ENOSYS	251
-#endif
 
 #ifndef _ATOMIC_MACHINE_H
 #define _ATOMIC_MACHINE_H	1
@@ -46,6 +39,9 @@ typedef uintmax_t uatomic_max_t;
 #define __HAVE_64B_ATOMICS 0
 #define USE_ATOMIC_COMPILER_BUILTINS 0
 
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
+
 /* prev = *addr;
    if (prev == old)
      *addr = new;
@@ -62,7 +58,7 @@ typedef uintmax_t uatomic_max_t;
 #define _ASM_EDEADLOCK "-45"
 
 /* The only basic operation needed is compare and exchange.  The mem
-   pointer must be word aligned.  */
+   pointer must be word aligned.  We no longer loop on deadlock.  */
 #define atomic_compare_and_exchange_val_acq(mem, newval, oldval)	\
   ({									\
      register long lws_errno asm("r21");				\
@@ -74,19 +70,14 @@ typedef uintmax_t uatomic_max_t;
 	"0:					\n\t"			\
 	"ble	" _LWS "(%%sr2, %%r0)		\n\t"			\
 	"ldi	" _LWS_CAS ", %%r20		\n\t"			\
-	"ldi	" _ASM_EAGAIN ", %%r20		\n\t"			\
-	"cmpb,=,n %%r20, %%r21, 0b		\n\t"			\
-	"nop					\n\t"			\
-	"ldi	" _ASM_EDEADLOCK ", %%r20	\n\t"			\
-	"cmpb,=,n %%r20, %%r21, 0b		\n\t"			\
-	"nop					\n\t"			\
+	"cmpiclr,<> " _ASM_EAGAIN ", %%r21, %%r0\n\t"			\
+	"b,n 0b					\n\t"			\
+	"cmpclr,= %%r0, %%r21, %%r0		\n\t"			\
+	"iitlbp %%r0,(%%sr0, %%r0)		\n\t"			\
 	: "=r" (lws_ret), "=r" (lws_errno)				\
 	: "r" (lws_mem), "r" (lws_old), "r" (lws_new)			\
 	: _LWS_CLOBBER							\
      );									\
-									\
-     if (lws_errno == -EFAULT || lws_errno == -ENOSYS)			\
-	ABORT_INSTRUCTION;						\
 									\
      (__typeof (oldval)) lws_ret;					\
    })

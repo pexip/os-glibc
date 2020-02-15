@@ -1,5 +1,5 @@
 /* Definitions for thread-local data handling.  NPTL/sparc version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,9 +44,6 @@ typedef struct
   uintptr_t pointer_guard;
 #if __WORDSIZE != 64
   int gscope_flag;
-#endif
-#ifndef __ASSUME_PRIVATE_FUTEX
-  int private_futex;
 #endif
 } tcbhead_t;
 
@@ -141,6 +138,7 @@ register struct pthread *__thread_self __asm__("%g7");
   ((descr)->header.pointer_guard = THREAD_GET_POINTER_GUARD ())
 
 /* Get and set the global scope generation counter in struct pthread.  */
+#define THREAD_GSCOPE_IN_TCB      1
 #define THREAD_GSCOPE_FLAG_UNUSED 0
 #define THREAD_GSCOPE_FLAG_USED   1
 #define THREAD_GSCOPE_FLAG_WAIT   2

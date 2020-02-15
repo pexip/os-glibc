@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2016 Free Software Foundation, Inc.
+# Copyright (C) 1993-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,14 +22,9 @@ pic-ccflag = -fpic
 long-double-fcts = no
 
 ifeq ($(subdir),soft-fp)
-sysdep_routines += $(filter-out sqrtsf2,$(gcc-single-routines)) \
-  $(filter-out sqrtdf2,$(gcc-double-routines))
+sysdep_routines += $(gcc-single-routines) $(gcc-double-routines)
 endif
 
 ifeq ($(subdir),csu)
 gen-as-const-headers += tcb-offsets.sym
-endif
-
-ifeq ($(subdir),debug)
-CFLAGS-backtrace.c += -funwind-tables
 endif

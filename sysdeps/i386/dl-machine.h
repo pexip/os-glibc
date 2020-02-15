@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  i386 version.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -150,9 +150,11 @@ extern ElfW(Addr) _dl_profile_fixup (struct link_map *l,
 .globl _start\n\
 .globl _dl_start_user\n\
 _start:\n\
-	# Note that _dl_start gets the parameter in %eax.\n\
 	movl %esp, %eax\n\
+        subl $12, %esp\n\
+        pushl %eax\n\
 	call _dl_start\n\
+        addl $16, %esp\n\
 _dl_start_user:\n\
 	# Save the user entry point address in %edi.\n\
 	movl %eax, %edi\n\
@@ -175,17 +177,20 @@ _dl_start_user:\n\
 	# switch stacks if it moves these contents over.\n\
 " RTLD_START_SPECIAL_INIT "\n\
 	# Load the parameters again.\n\
-	# (eax, edx, ecx, *--esp) = (_dl_loaded, argc, argv, envp)\n\
+	# (eax, edx, ecx, esi) = (_dl_loaded, argc, argv, envp)\n\
 	movl _rtld_local@GOTOFF(%ebx), %eax\n\
 	leal 8(%esp,%edx,4), %esi\n\
 	leal 4(%esp), %ecx\n\
 	movl %esp, %ebp\n\
 	# Make sure _dl_init is run with 16 byte aligned stack.\n\
 	andl $-16, %esp\n\
-	pushl %eax\n\
-	pushl %eax\n\
+        subl $12, %esp\n\
 	pushl %ebp\n\
+        # Arguments for _dl_init.\n\
 	pushl %esi\n\
+	pushl %ecx\n\
+	pushl %edx\n\
+	pushl %eax\n\
 	# Clear %ebp, so that even constructors have terminated backchain.\n\
 	xorl %ebp, %ebp\n\
 	# Call the function to run the initializers.\n\
@@ -193,7 +198,7 @@ _dl_start_user:\n\
 	# Pass our finalizer function to the user in %edx, as per ELF ABI.\n\
 	leal _dl_fini@GOTOFF(%ebx), %edx\n\
 	# Restore %esp _start expects.\n\
-	movl (%esp), %esp\n\
+	movl 16(%esp), %esp\n\
 	# Jump to the user's entry point.\n\
 	jmp *%edi\n\
 	.previous\n\
@@ -233,19 +238,20 @@ _dl_start_user:\n\
 static inline void __attribute__ ((unused))
 dl_platform_init (void)
 {
-  if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
-    /* Avoid an empty string which would disturb us.  */
-    GLRO(dl_platform) = NULL;
-
-#ifdef SHARED
+#if IS_IN (rtld)
   /* init_cpu_features has been called early from __libc_start_main in
      static executable.  */
   init_cpu_features (&GLRO(dl_x86_cpu_features));
+#else
+  if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
+    /* Avoid an empty string which would disturb us.  */
+    GLRO(dl_platform) = NULL;
 #endif
 }
 
 static inline Elf32_Addr
 elf_machine_fixup_plt (struct link_map *map, lookup_t t,
+		       const ElfW(Sym) *refsym, const ElfW(Sym) *sym,
 		       const Elf32_Rel *reloc,
 		       Elf32_Addr *reloc_addr, Elf32_Addr value)
 {
@@ -314,14 +320,29 @@ elf_machine_rel (struct link_map *map, const Elf32_Rel *reloc,
       const Elf32_Sym *const refsym = sym;
 # endif
       struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
-      Elf32_Addr value = sym_map == NULL ? 0 : sym_map->l_addr + sym->st_value;
+      Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
 
       if (sym != NULL
-	  && __builtin_expect (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC,
-			       0)
-	  && __builtin_expect (sym->st_shndx != SHN_UNDEF, 1)
-	  && __builtin_expect (!skip_ifunc, 1))
-	value = ((Elf32_Addr (*) (void)) value) ();
+	  && __glibc_unlikely (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC)
+	  && __glibc_likely (sym->st_shndx != SHN_UNDEF)
+	  && __glibc_likely (!skip_ifunc))
+	{
+# ifndef RTLD_BOOTSTRAP
+	  if (sym_map != map
+	      && sym_map->l_type != lt_executable
+	      && !sym_map->l_relocated)
+	    {
+	      const char *strtab
+		= (const char *) D_PTR (map, l_info[DT_STRTAB]);
+	      _dl_error_printf ("\
+%s: Relink `%s' with `%s' for IFUNC symbol `%s'\n",
+				RTLD_PROGNAME, map->l_name,
+				sym_map->l_name,
+				strtab + refsym->st_name);
+	    }
+# endif
+	  value = ((Elf32_Addr (*) (void)) value) ();
+	}
 
       switch (r_type)
 	{
@@ -434,8 +455,8 @@ elf_machine_rel (struct link_map *map, const Elf32_Rel *reloc,
 	    /* This can happen in trace mode if an object could not be
 	       found.  */
 	    break;
-	  if (__builtin_expect (sym->st_size > refsym->st_size, 0)
-	      || (__builtin_expect (sym->st_size < refsym->st_size, 0)
+	  if (__glibc_unlikely (sym->st_size > refsym->st_size)
+	      || (__glibc_unlikely(sym->st_size < refsym->st_size)
 		  && GLRO(dl_verbose)))
 	    {
 	      const char *strtab;
@@ -479,12 +500,12 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
       const Elf32_Sym *const refsym = sym;
 #  endif
       struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
-      Elf32_Addr value = sym == NULL ? 0 : sym_map->l_addr + sym->st_value;
+      Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
 
       if (sym != NULL
-	  && __builtin_expect (sym->st_shndx != SHN_UNDEF, 1)
-	  && __builtin_expect (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC, 0)
-	  && __builtin_expect (!skip_ifunc, 1))
+	  && __glibc_likely (sym->st_shndx != SHN_UNDEF)
+	  && __glibc_unlikely (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC)
+	  && __glibc_likely (!skip_ifunc))
 	value = ((Elf32_Addr (*) (void)) value) ();
 
       switch (ELF32_R_TYPE (reloc->r_info))
@@ -579,8 +600,8 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	    /* This can happen in trace mode if an object could not be
 	       found.  */
 	    break;
-	  if (__builtin_expect (sym->st_size > refsym->st_size, 0)
-	      || (__builtin_expect (sym->st_size < refsym->st_size, 0)
+	  if (__glibc_unlikely (sym->st_size > refsym->st_size)
+	      || (__glibc_unlikely (sym->st_size < refsym->st_size)
 		  && GLRO(dl_verbose)))
 	    {
 	      const char *strtab;
@@ -641,7 +662,8 @@ elf_machine_lazy_rel (struct link_map *map,
   /* Check for unexpected PLT reloc type.  */
   if (__glibc_likely (r_type == R_386_JMP_SLOT))
     {
-      if (__builtin_expect (map->l_mach.plt, 0) == 0)
+      /* Prelink has been deprecated.  */
+      if (__glibc_likely (map->l_mach.plt == 0))
 	*reloc_addr += l_addr;
       else
 	*reloc_addr = (map->l_mach.plt

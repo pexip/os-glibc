@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 int
 sigstack (struct sigstack *ss, struct sigstack *oss)
 {
-  struct sigaltstack as, oas;
+  stack_t as, oas;
 
   as.ss_sp = ss->ss_sp;
   as.ss_size = 0;

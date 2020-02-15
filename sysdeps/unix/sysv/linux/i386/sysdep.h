@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper, <drepper@gnu.org>, August 1995.
 
@@ -34,19 +34,21 @@
 #undef SYS_ify
 #define SYS_ify(syscall_name)	__NR_##syscall_name
 
-#if defined USE_DL_SYSINFO \
-    && (IS_IN (libc) || IS_IN (libpthread))
-# define I386_USE_SYSENTER	1
-#else
-# undef I386_USE_SYSENTER
+#ifndef I386_USE_SYSENTER
+# if defined USE_DL_SYSINFO \
+     && (IS_IN (libc) || IS_IN (libpthread))
+#  define I386_USE_SYSENTER	1
+# else
+#  define I386_USE_SYSENTER	0
+# endif
 #endif
 
 /* Since GCC 5 and above can properly spill %ebx with PIC when needed,
    we can inline syscalls with 6 arguments if GCC 5 or above is used
    to compile glibc.  Disable GCC 5 optimization when compiling for
-   profiling since asm ("ebp") can't be used to put the 6th argument
-   in %ebp for syscall.  */
-#if __GNUC_PREREQ (5,0) && !defined PROF
+   profiling or when -fno-omit-frame-pointer is used since asm ("ebp")
+   can't be used to put the 6th argument in %ebp for syscall.  */
+#if __GNUC_PREREQ (5,0) && !defined PROF && CAN_USE_REGISTER_ASM_EBP
 # define OPTIMIZE_FOR_GCC_5
 #endif
 
@@ -110,8 +112,8 @@
 
 /* The original calling convention for system calls on Linux/i386 is
    to use int $0x80.  */
-#ifdef I386_USE_SYSENTER
-# ifdef SHARED
+#if I386_USE_SYSENTER
+# ifdef PIC
 #  define ENTER_KERNEL call *%gs:SYSINFO_OFFSET
 # else
 #  define ENTER_KERNEL call *_dl_sysinfo
@@ -357,9 +359,9 @@ struct libc_do_syscall_args
     register unsigned int resultvar;					      \
     INTERNAL_SYSCALL_MAIN_##nr (name, err, args);			      \
     (int) resultvar; })
-#ifdef I386_USE_SYSENTER
+#if I386_USE_SYSENTER
 # ifdef OPTIMIZE_FOR_GCC_5
-#  ifdef SHARED
+#  ifdef PIC
 #   define INTERNAL_SYSCALL_MAIN_INLINE(name, err, nr, args...) \
     LOADREGS_##nr(args)							\
     asm volatile (							\
@@ -395,7 +397,7 @@ struct libc_do_syscall_args
     (int) resultvar; })
 #  endif
 # else /* GCC 5  */
-#  ifdef SHARED
+#  ifdef PIC
 #   define INTERNAL_SYSCALL_MAIN_INLINE(name, err, nr, args...) \
     EXTRAVAR_##nr							      \
     asm volatile (							      \
@@ -494,7 +496,7 @@ struct libc_do_syscall_args
 
 #define LOADARGS_0
 #ifdef __PIC__
-# if defined I386_USE_SYSENTER && defined SHARED
+# if I386_USE_SYSENTER && defined PIC
 #  define LOADARGS_1 \
     "bpushl .L__X'%k3, %k3\n\t"
 #  define LOADARGS_5 \
@@ -521,7 +523,7 @@ struct libc_do_syscall_args
 
 #define RESTOREARGS_0
 #ifdef __PIC__
-# if defined I386_USE_SYSENTER && defined SHARED
+# if I386_USE_SYSENTER && defined PIC
 #  define RESTOREARGS_1 \
     "bpopl .L__X'%k3, %k3\n\t"
 #  define RESTOREARGS_5 \

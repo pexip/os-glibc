@@ -1,5 +1,5 @@
 /* Atomic operations.  sparc32 version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>, 2003.
 
@@ -49,6 +49,9 @@ typedef uintmax_t uatomic_max_t;
 
 #define __HAVE_64B_ATOMICS 0
 #define USE_ATOMIC_COMPILER_BUILTINS 0
+
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
 
 
 /* We have no compare and swap, just test and set.

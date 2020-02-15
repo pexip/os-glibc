@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -37,13 +37,28 @@ divrem := sdiv udiv rem urem
 +divrem-S-udiv := false
 +divrem-S-urem := false
 $(divrem:%=$(sysdep_dir)/sparc/sparc32/%.S): $(sysdep_dir)/sparc/sparc32/divrem.m4
-	(echo "define(NAME,\`.$(+divrem-NAME)')\
-	       define(OP,\`$(+divrem-OP-$(+divrem-NAME))')\
-	       define(S,\`$(+divrem-S-$(+divrem-NAME))')\
-	       /* This file is generated from divrem.m4; DO NOT EDIT! */"; \
+	(echo -n "define(NAME,\`.$(+divrem-NAME)')"; \
+	 echo -n " define(OP,\`$(+divrem-OP-$(+divrem-NAME))')"; \
+	 echo -n " define(S,\`$(+divrem-S-$(+divrem-NAME))')"; \
+	 echo " /* This file is generated from divrem.m4; DO NOT EDIT! */"; \
 	 cat $<) | $(M4) > $@-tmp
 # Make it unwritable so noone will edit it by mistake.
 	-chmod a-w $@-tmp
 	mv -f $@-tmp $@
 
 sysdep-realclean := $(sysdep-realclean) $(divrem:%=sysdeps/sparc/sparc32/%.S)
+
+# libgcc __divdi3 and __moddi3 uses .udiv and since it is also exported by
+# libc.so linker will create PLTs for the symbol.  To avoid it we strong alias
+# the exported libc one to __wrap_.udiv and use linker option --wrap to make any
+# call to .udiv to call the wrapper symbol.
+libc.so-gnulib += -Wl,--wrap=.udiv
+
+ifeq ($(subdir),soft-fp)
+sparc32-quad-routines := q_add q_cmp q_cmpe q_div q_dtoq q_feq q_fge	\
+	q_fgt q_fle q_flt q_fne q_itoq q_mul q_neg q_qtod q_qtoi	\
+	q_qtos q_qtou q_qtoull q_qtoll q_sqrt q_stoq q_sub q_utoq	\
+	q_ulltoq q_lltoq q_util
+sysdep_routines += $(sparc32-quad-routines)
+
+endif

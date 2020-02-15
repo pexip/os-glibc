@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,13 +33,15 @@ int
 getchar (void)
 {
   int result;
+  if (!_IO_need_lock (_IO_stdin))
+    return _IO_getc_unlocked (_IO_stdin);
   _IO_acquire_lock (_IO_stdin);
   result = _IO_getc_unlocked (_IO_stdin);
   _IO_release_lock (_IO_stdin);
   return result;
 }
 
-#if defined weak_alias && !defined _IO_MTSAFE_IO
+#ifndef _IO_MTSAFE_IO
 #undef getchar_unlocked
 weak_alias (getchar, getchar_unlocked)
 #endif

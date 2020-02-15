@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -23,13 +23,16 @@ subdir	:= socket
 include ../Makeconfig
 
 headers	:= sys/socket.h sys/un.h bits/sockaddr.h bits/socket.h \
-	   bits/socket2.h sys/socketvar.h net/if.h
+	   bits/socket2.h bits/types/struct_osockaddr.h \
+	   sys/socketvar.h net/if.h
 
 routines := accept bind connect getpeername getsockname getsockopt	\
 	    listen recv recvfrom recvmsg send sendmsg sendto		\
 	    setsockopt shutdown socket socketpair isfdtype opensock	\
 	    sockatmark accept4 recvmmsg sendmmsg
 
-aux	 := have_sock_cloexec sa_len
+tests := tst-accept4
+
+aux	 := sa_len
 
 include ../Rules

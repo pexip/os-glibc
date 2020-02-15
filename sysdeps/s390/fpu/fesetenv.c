@@ -1,5 +1,5 @@
 /* Install given floating-point environment.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Denis Joseph Barrow (djbarrow@de.ibm.com).
 
@@ -20,8 +20,6 @@
 #include <fenv_libc.h>
 #include <fpu_control.h>
 #include <stddef.h>
-#include <asm/ptrace.h>
-#include <sys/ptrace.h>
 #include <unistd.h>
 
 int

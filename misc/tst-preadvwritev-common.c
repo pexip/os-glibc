@@ -1,5 +1,5 @@
 /* Common definitions for preadv and pwritev.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,30 +16,77 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <array_length.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <errno.h>
+#include <string.h>
 #include <sys/uio.h>
+#include <sys/stat.h>
 
-static void do_prepare (void);
-#define PREPARE(argc, argv)     do_prepare ()
-static int do_test (void);
-#define TEST_FUNCTION           do_test ()
-#include "test-skeleton.c"
+#include <support/check.h>
+#include <support/temp_file.h>
+#include <support/xunistd.h>
 
 static char *temp_filename;
 static int temp_fd;
 
+static int do_test (void);
+
 static void
-do_prepare (void)
+do_prepare (int argc, char **argv)
 {
   temp_fd = create_temp_file ("tst-preadvwritev.", &temp_filename);
   if (temp_fd == -1)
-    {
-      printf ("cannot create temporary file: %m\n");
-      exit (1);
-    }
+    FAIL_EXIT1 ("cannot create temporary file");
 }
+#define PREPARE do_prepare
 
-#define FAIL(str) \
-  do { printf ("error: %s (line %d)\n", str, __LINE__); return 1; } while (0)
+#ifndef PREADV
+# define PREADV(__fd, __iov, __iovcnt, __offset) \
+  preadv (__fd, __iov, __iovcnt, __offset)
+#endif
+
+#ifndef PWRITEV
+# define PWRITEV(__fd, __iov, __iovcnt, __offset) \
+  pwritev (__fd, __iov, __iovcnt, __offset)
+#endif
+
+static __attribute__ ((unused)) void
+do_test_without_offset (void)
+{
+  xftruncate (temp_fd, 0);
+
+  xwrite (temp_fd, "123", 3);
+  xlseek (temp_fd, 2, SEEK_SET);
+  {
+    struct iovec iov[] =
+      {
+        { (void *) "abc", 3 },
+        { (void *) "xyzt", 4 },
+      };
+    TEST_COMPARE (PWRITEV (temp_fd, iov, array_length (iov), -1), 7);
+  }
+  TEST_COMPARE (xlseek (temp_fd, 0, SEEK_CUR), 9);
+
+  xlseek (temp_fd, 1, SEEK_SET);
+  char buf1[3];
+  char buf2[2];
+  {
+    struct iovec iov[] =
+      {
+        { buf1, sizeof (buf1) },
+        { buf2, sizeof (buf2) },
+      };
+    TEST_COMPARE (PREADV (temp_fd, iov, array_length (iov), -1),
+                  sizeof (buf1) + sizeof (buf2));
+    TEST_COMPARE (memcmp ("2ab", buf1, sizeof (buf1)), 0);
+    TEST_COMPARE (memcmp ("cx", buf2, sizeof (buf2)), 0);
+    TEST_COMPARE (xlseek (temp_fd, 0, SEEK_CUR), 6);
+  }
+
+  xftruncate (temp_fd, 0);
+}
 
 static int
 do_test_with_offset (off_t offset)
@@ -60,17 +107,17 @@ do_test_with_offset (off_t offset)
   iov[1].iov_base = buf2;
   iov[1].iov_len = sizeof buf2;
 
-  ret = pwritev (temp_fd, iov, 2, offset);
+  ret = PWRITEV (temp_fd, iov, 2, offset);
   if (ret == -1)
-    FAIL ("first pwritev returned -1");
+    FAIL_RET ("first pwritev returned -1");
   if (ret != (sizeof buf1 + sizeof buf2))
-    FAIL ("first pwritev returned an unexpected value");
+    FAIL_RET ("first pwritev returned an unexpected value");
 
-  ret = pwritev (temp_fd, iov, 2, sizeof buf1 + sizeof buf2 + offset);
+  ret = PWRITEV (temp_fd, iov, 2, sizeof buf1 + sizeof buf2 + offset);
   if (ret == -1)
-    FAIL ("second pwritev returned -1");
+    FAIL_RET ("second pwritev returned -1");
   if (ret != (sizeof buf1 + sizeof buf2))
-    FAIL ("second pwritev returned an unexpected value");
+    FAIL_RET ("second pwritev returned an unexpected value");
 
   char buf3[32];
   char buf4[64];
@@ -84,28 +131,30 @@ do_test_with_offset (off_t offset)
   iov[1].iov_len = sizeof buf4;
 
   /* Now read two buffer with 32 and 64 bytes respectively.  */
-  ret = preadv (temp_fd, iov, 2, offset);
+  ret = PREADV (temp_fd, iov, 2, offset);
   if (ret == -1)
-    FAIL ("first preadv returned -1");
+    FAIL_RET ("first preadv returned -1");
   if (ret != (sizeof buf3 + sizeof buf4))
-    FAIL ("first preadv returned an unexpected value");
+    FAIL_RET ("first preadv returned an unexpected value");
 
   if (memcmp (buf1, buf3, sizeof buf1) != 0)
-    FAIL ("first buffer from first preadv different than expected");
+    FAIL_RET ("first buffer from first preadv different than expected");
   if (memcmp (buf2, buf4, sizeof buf2) != 0)
-    FAIL ("second buffer from first preadv different than expected");
+    FAIL_RET ("second buffer from first preadv different than expected");
 
-  ret = preadv (temp_fd, iov, 2, sizeof buf3 + sizeof buf4 + offset);
+  ret = PREADV (temp_fd, iov, 2, sizeof buf3 + sizeof buf4 + offset);
   if (ret == -1)
-    FAIL ("second preadv returned -1");
+    FAIL_RET ("second preadv returned -1");
   if (ret != (sizeof buf3 + sizeof buf4))
-    FAIL ("second preadv returned an unexpected value");
+    FAIL_RET ("second preadv returned an unexpected value");
 
   /* And compare the buffers read and written to check if there are equal.  */
   if (memcmp (buf1, buf3, sizeof buf1) != 0)
-    FAIL ("first buffer from second preadv different than expected");
+    FAIL_RET ("first buffer from second preadv different than expected");
   if (memcmp (buf2, buf4, sizeof buf2) != 0)
-    FAIL ("second buffer from second preadv different than expected");
+    FAIL_RET ("second buffer from second preadv different than expected");
 
   return 0;
 }
+
+#include <support/test-driver.c>

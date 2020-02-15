@@ -1,5 +1,5 @@
 /* Quad-precision floating point e^x.
-   Copyright (C) 1999-2016 Free Software Foundation, Inc.
+   Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jj@ultra.linux.cz>
    Partly based on double-precision code
@@ -65,7 +65,9 @@
 #include <fenv.h>
 #include <inttypes.h>
 #include <math_private.h>
-#include <sysdeps/ieee754/ldbl-128/t_expl.h>
+
+
+#include "t_expl.h"
 
 static const long double C[] = {
 /* Smallest integer x for which e^x overflows.  */

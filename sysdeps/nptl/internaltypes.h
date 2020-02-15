@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -68,20 +68,13 @@ struct pthread_condattr
 {
   /* Combination of values:
 
-     Bit 0  : flag whether conditional variable will be sharable between
-	      processes.
-
-     Bit 1-7: clock ID.  */
+     Bit 0                : flag whether conditional variable will be
+                            sharable between processes.
+     Bit 1-COND_CLOCK_BITS: Clock ID.  COND_CLOCK_BITS is the number of bits
+                            needed to represent the ID of the clock.  */
   int value;
 };
-
-
-/* The __NWAITERS field is used as a counter and to house the number
-   of bits for other purposes.  COND_CLOCK_BITS is the number
-   of bits needed to represent the ID of the clock.  COND_NWAITERS_SHIFT
-   is the number of bits reserved for other purposes like the clock.  */
-#define COND_CLOCK_BITS		1
-#define COND_NWAITERS_SHIFT	1
+#define COND_CLOCK_BITS	1
 
 
 /* Read-write lock variable attribute data structure.  */
@@ -147,7 +140,7 @@ struct pthread_key_struct
 struct new_sem
 {
 #if __HAVE_64B_ATOMICS
-  /* The data field holds both value (in the least-significant 32 bytes) and
+  /* The data field holds both value (in the least-significant 32 bits) and
      nwaiters.  */
 # if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define SEM_VALUE_OFFSET 0

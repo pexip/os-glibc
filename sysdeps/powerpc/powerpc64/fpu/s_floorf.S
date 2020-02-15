@@ -1,5 +1,5 @@
 /* float Floor function.  PowerPC64 version.
-   Copyright (C) 2004-2016 Free Software Foundation, Inc.
+   Copyright (C) 2004-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <libm-alias-float.h>
 
 	.section	".toc","aw"
 	.p2align 3
@@ -25,7 +26,7 @@
 	.long 0x0
 	.section	".text"
 
-EALIGN (__floorf, 4, 0)
+ENTRY (__floorf, 4)
 	CALL_MCOUNT 0
 	lfs	fp13,.LC0@toc(2)
 	fabs	fp0,fp1
@@ -62,5 +63,5 @@ EALIGN (__floorf, 4, 0)
 	blr
 	END (__floorf)
 
-weak_alias (__floorf, floorf)
+libm_alias_float (__floor, floor)
 

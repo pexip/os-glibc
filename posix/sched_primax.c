@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@ __sched_get_priority_max (int algorithm)
   __set_errno (ENOSYS);
   return -1;
 }
+libc_hidden_def (__sched_get_priority_max)
 stub_warning (sched_get_priority_max)
 
 weak_alias (__sched_get_priority_max, sched_get_priority_max)

@@ -1,5 +1,5 @@
 /* Return the offset of one string within another.
-   Copyright (C) 1994-2016 Free Software Foundation, Inc.
+   Copyright (C) 1994-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,10 +25,6 @@
  *
  * Stephen R. van den Berg, berg@pool.informatik.rwth-aachen.de	*/
 
-#if HAVE_CONFIG_H
-# include <config.h>
-#endif
-
 /* Specification.  */
 #include <string.h>
 
@@ -41,8 +37,8 @@
 /* Two-Way algorithm.  */
 #define RETURN_TYPE char *
 #define AVAILABLE(h, h_l, j, n_l)			\
-  (!memchr ((h) + (h_l), '\0', (j) + (n_l) - (h_l))	\
-   && ((h_l) = (j) + (n_l)))
+  (((j) + (n_l) <= (h_l)) || ((h_l) += __strnlen ((void*)((h) + (h_l)), 512), \
+			      (j) + (n_l) <= (h_l)))
 #define CHECK_EOL (1)
 #define RET0_IF_0(a) if (!a) goto ret0
 #define CANON_ELEMENT(c) TOLOWER (c)

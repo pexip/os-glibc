@@ -1,5 +1,5 @@
 /* Convert string representing a number to float value, using given locale.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
@@ -17,9 +17,28 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <xlocale.h>
+#include <bits/floatn.h>
 
-extern double ____strtod_l_internal (const char *, char **, int, __locale_t);
+#ifdef FLOAT
+# define BUILD_DOUBLE 0
+#else
+# define BUILD_DOUBLE 1
+#endif
+
+#if BUILD_DOUBLE
+# if __HAVE_FLOAT64 && !__HAVE_DISTINCT_FLOAT64
+#  define strtof64_l __hide_strtof64_l
+#  define wcstof64_l __hide_wcstof64_l
+# endif
+# if __HAVE_FLOAT32X && !__HAVE_DISTINCT_FLOAT32X
+#  define strtof32x_l __hide_strtof32x_l
+#  define wcstof32x_l __hide_wcstof32x_l
+# endif
+#endif
+
+#include <locale.h>
+
+extern double ____strtod_l_internal (const char *, char **, int, locale_t);
 
 /* Configuration part.  These macros are defined by `strtold.c',
    `strtof.c', `wcstod.c', `wcstold.c', and `wcstof.c' to produce the
@@ -46,9 +65,9 @@ extern double ____strtod_l_internal (const char *, char **, int, __locale_t);
 #include <errno.h>
 #include <float.h>
 #include "../locale/localeinfo.h"
-#include <locale.h>
 #include <math.h>
-#include <math_private.h>
+#include <math-barriers.h>
+#include <math-narrow-eval.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -291,14 +310,17 @@ round_and_return (mp_limb_t *retval, intmax_t exponent, int negative,
 	}
     }
 
-  if (exponent > MAX_EXP)
+  if (exponent >= MAX_EXP)
     goto overflow;
 
+  bool half_bit = (round_limb & (((mp_limb_t) 1) << round_bit)) != 0;
+  bool more_bits_nonzero
+    = (more_bits
+       || (round_limb & ((((mp_limb_t) 1) << round_bit) - 1)) != 0);
   if (round_away (negative,
 		  (retval[0] & 1) != 0,
-		  (round_limb & (((mp_limb_t) 1) << round_bit)) != 0,
-		  (more_bits
-		   || (round_limb & ((((mp_limb_t) 1) << round_bit) - 1)) != 0),
+		  half_bit,
+		  more_bits_nonzero,
 		  mode))
     {
       mp_limb_t cy = __mpn_add_1 (retval, retval, RETURN_LIMB_SIZE, 1);
@@ -321,10 +343,15 @@ round_and_return (mp_limb_t *retval, intmax_t exponent, int negative,
 	exponent = MIN_EXP - 1;
     }
 
-  if (exponent > MAX_EXP)
+  if (exponent >= MAX_EXP)
   overflow:
     return overflow_value (negative);
 
+  if (half_bit || more_bits_nonzero)
+    {
+      FLOAT force_inexact = (FLOAT) 1 + MIN_VALUE;
+      math_force_eval (force_inexact);
+    }
   return MPN2FLOAT (retval, exponent, negative);
 }
 
@@ -477,7 +504,7 @@ str_to_mpn (const STRING_TYPE *str, int digcnt, mp_limb_t *n, mp_size_t *nsize,
    ERANGE and return HUGE_VAL with the appropriate sign.  */
 FLOAT
 ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
-		     __locale_t loc)
+		     locale_t loc)
 {
   int negative;			/* The sign of the number.  */
   MPN_VAR (num);		/* MP representation of the number.  */
@@ -651,7 +678,7 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	  if (endptr != NULL)
 	    *endptr = (STRING_TYPE *) cp;
 
-	  return retval;
+	  return negative ? -retval : retval;
 	}
 
       /* It is really a text we do not recognize.  */
@@ -1751,7 +1778,7 @@ FLOAT
 #ifdef weak_function
 weak_function
 #endif
-__STRTOF (const STRING_TYPE *nptr, STRING_TYPE **endptr, __locale_t loc)
+__STRTOF (const STRING_TYPE *nptr, STRING_TYPE **endptr, locale_t loc)
 {
   return ____STRTOF_INTERNAL (nptr, endptr, 0, loc);
 }
@@ -1774,6 +1801,27 @@ compat_symbol (libc, __strtod_l, __strtold_l, GLIBC_2_1);
 compat_symbol (libc, wcstod_l, wcstold_l, GLIBC_2_3);
 #  else
 compat_symbol (libc, strtod_l, strtold_l, GLIBC_2_3);
+#  endif
+# endif
+#endif
+
+#if BUILD_DOUBLE
+# if __HAVE_FLOAT64 && !__HAVE_DISTINCT_FLOAT64
+#  undef strtof64_l
+#  undef wcstof64_l
+#  ifdef USE_WIDE_CHAR
+weak_alias (wcstod_l, wcstof64_l)
+#  else
+weak_alias (strtod_l, strtof64_l)
+#  endif
+# endif
+# if __HAVE_FLOAT32X && !__HAVE_DISTINCT_FLOAT32X
+#  undef strtof32x_l
+#  undef wcstof32x_l
+#  ifdef USE_WIDE_CHAR
+weak_alias (wcstod_l, wcstof32x_l)
+#  else
+weak_alias (strtod_l, strtof32x_l)
 #  endif
 # endif
 #endif

@@ -1,5 +1,5 @@
 /* Multiple versions of mempcpy.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,15 @@
 
 
 #if defined SHARED && IS_IN (libc)
+# define mempcpy __redirect_mempcpy
+# define __mempcpy __redirect___mempcpy
+# define __NO_STRING_INLINES
+# define NO_MEMPCPY_STPCPY_REDIRECT
+# include <string.h>
+# undef mempcpy
+# undef __mempcpy
 # include <ifunc-resolve.h>
-s390_libc_ifunc (__mempcpy)
 
-__asm__ (".weak mempcpy\n\t"
-	 ".set mempcpy,__mempcpy\n\t");
+s390_libc_ifunc (__redirect___mempcpy, ____mempcpy, __mempcpy)
+weak_alias (__mempcpy, mempcpy);
 #endif

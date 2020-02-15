@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -36,7 +36,7 @@
 #include <lowlevellock.h>
 #include <futex-internal.h>
 #include <kernel-features.h>
-#include <libc-internal.h>
+#include <libc-pointer-arith.h>
 #include <pthread-pids.h>
 
 #ifndef TLS_MULTIPLE_THREADS_IN_TCB
@@ -70,10 +70,6 @@ int __have_futex_clock_realtime;
 static const char nptl_version[] __attribute_used__ = VERSION;
 
 
-#ifndef SHARED
-extern void __libc_setup_tls (size_t tcbsize, size_t tcbalign);
-#endif
-
 #ifdef SHARED
 static
 #else
@@ -82,9 +78,6 @@ extern
 void __nptl_set_robust (struct pthread *);
 
 #ifdef SHARED
-static void nptl_freeres (void);
-
-
 static const struct pthread_functions pthread_functions =
   {
     .ptr_pthread_attr_destroy = __pthread_attr_destroy,
@@ -126,7 +119,6 @@ static const struct pthread_functions pthread_functions =
     .ptr_pthread_mutex_init = __pthread_mutex_init,
     .ptr_pthread_mutex_lock = __pthread_mutex_lock,
     .ptr_pthread_mutex_unlock = __pthread_mutex_unlock,
-    .ptr_pthread_self = __pthread_self,
     .ptr___pthread_setcancelstate = __pthread_setcancelstate,
     .ptr_pthread_setcanceltype = __pthread_setcanceltype,
     .ptr___pthread_cleanup_upto = __pthread_cleanup_upto,
@@ -145,8 +137,6 @@ static const struct pthread_functions pthread_functions =
 # ifdef SIGSETXID
     .ptr__nptl_setxid = __nptl_setxid,
 # endif
-    /* For now only the stack cache needs to be freed.  */
-    .ptr_freeres = nptl_freeres,
     .ptr_set_robust = __nptl_set_robust
   };
 # define ptr_pthread_functions &pthread_functions
@@ -156,16 +146,6 @@ static const struct pthread_functions pthread_functions =
 
 
 #ifdef SHARED
-/* This function is called indirectly from the freeres code in libc.  */
-static void
-__libc_freeres_fn_section
-nptl_freeres (void)
-{
-  __unwind_freeres ();
-  __free_stacks (0);
-}
-
-
 static
 #endif
 void
@@ -184,18 +164,12 @@ __nptl_set_robust (struct pthread *self)
 static void
 sigcancel_handler (int sig, siginfo_t *si, void *ctx)
 {
-  /* Determine the process ID.  It might be negative if the thread is
-     in the middle of a fork() call.  */
-  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
-  if (__glibc_unlikely (pid < 0))
-    pid = -pid;
-
   /* Safety check.  It would be possible to call this function for
      other signals and send a signal from another process.  This is not
      correct and might even be a security problem.  Try to catch as
      many incorrect invocations as possible.  */
   if (sig != SIGCANCEL
-      || si->si_pid != pid
+      || si->si_pid != __getpid()
       || si->si_code != SI_TKILL)
     return;
 
@@ -243,19 +217,14 @@ struct xid_command *__xidcmd attribute_hidden;
 static void
 sighandler_setxid (int sig, siginfo_t *si, void *ctx)
 {
-  /* Determine the process ID.  It might be negative if the thread is
-     in the middle of a fork() call.  */
-  pid_t pid = THREAD_GETMEM (THREAD_SELF, pid);
   int result;
-  if (__glibc_unlikely (pid < 0))
-    pid = -pid;
 
   /* Safety check.  It would be possible to call this function for
      other signals and send a signal from another process.  This is not
      correct and might even be a security problem.  Try to catch as
      many incorrect invocations as possible.  */
   if (sig != SIGSETXID
-      || si->si_pid != pid
+      || si->si_pid != __getpid ()
       || si->si_code != SI_TKILL)
     return;
 
@@ -299,18 +268,6 @@ static bool __nptl_initial_report_events __attribute_used__;
 void
 __pthread_initialize_minimal_internal (void)
 {
-#ifndef SHARED
-  /* Unlike in the dynamically linked case the dynamic linker has not
-     taken care of initializing the TLS data structures.  */
-  __libc_setup_tls (TLS_TCB_SIZE, TLS_TCB_ALIGN);
-
-  /* We must prevent gcc from being clever and move any of the
-     following code ahead of the __libc_setup_tls call.  This function
-     will initialize the thread register which is subsequently
-     used.  */
-  __asm __volatile ("");
-#endif
-
   /* Minimal initialization of the thread descriptor.  */
   struct pthread *pd = THREAD_SELF;
   __pthread_initialize_pids (pd);
@@ -324,7 +281,7 @@ __pthread_initialize_minimal_internal (void)
 
   /* Initialize the robust mutex data.  */
   {
-#ifdef __PTHREAD_MUTEX_HAVE_PREV
+#if __PTHREAD_MUTEX_HAVE_PREV
     pd->robust_prev = &pd->robust_head;
 #endif
     pd->robust_head.list = &pd->robust_head;
@@ -341,24 +298,6 @@ __pthread_initialize_minimal_internal (void)
   }
 
 #ifdef __NR_futex
-# ifndef __ASSUME_PRIVATE_FUTEX
-  /* Private futexes are always used (at least internally) so that
-     doing the test once this early is beneficial.  */
-  {
-    int word = 0;
-    INTERNAL_SYSCALL_DECL (err);
-    word = INTERNAL_SYSCALL (futex, err, 3, &word,
-			    FUTEX_WAKE | FUTEX_PRIVATE_FLAG, 1);
-    if (!INTERNAL_SYSCALL_ERROR_P (word, err))
-      THREAD_SETMEM (pd, header.private_futex, FUTEX_PRIVATE_FLAG);
-  }
-
-  /* Private futexes have been introduced earlier than the
-     FUTEX_CLOCK_REALTIME flag.  We don't have to run the test if we
-     know the former are not supported.  This also means we know the
-     kernel will return ENOSYS for unknown operations.  */
-  if (THREAD_GETMEM (pd, header.private_futex) != 0)
-# endif
 # ifndef __ASSUME_FUTEX_CLOCK_REALTIME
     {
       int word = 0;
@@ -467,10 +406,6 @@ __pthread_initialize_minimal_internal (void)
   lll_unlock (__default_pthread_attr_lock, LLL_PRIVATE);
 
 #ifdef SHARED
-  /* Transfer the old value from the dynamic linker's internal location.  */
-  *__libc_dl_error_tsd () = *(*GL(dl_error_catch_tsd)) ();
-  GL(dl_error_catch_tsd) = &__libc_dl_error_tsd;
-
   /* Make __rtld_lock_{,un}lock_recursive use pthread_mutex_{,un}lock,
      keep the lock count from the ld.so implementation.  */
   GL(dl_rtld_lock_recursive) = (void *) __pthread_mutex_lock;
@@ -504,8 +439,5 @@ strong_alias (__pthread_initialize_minimal_internal,
 size_t
 __pthread_get_minstack (const pthread_attr_t *attr)
 {
-  struct pthread_attr *iattr = (struct pthread_attr *) attr;
-
-  return (GLRO(dl_pagesize) + __static_tls_size + PTHREAD_STACK_MIN
-	  + iattr->guardsize);
+  return GLRO(dl_pagesize) + __static_tls_size + PTHREAD_STACK_MIN;
 }

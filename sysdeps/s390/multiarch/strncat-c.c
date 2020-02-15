@@ -1,5 +1,5 @@
 /* Default strncat implementation for S/390.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,6 @@
 
 #if defined HAVE_S390_VX_ASM_SUPPORT && IS_IN (libc)
 # define STRNCAT  __strncat_c
-
+# define STRNCAT_PRIMARY
 # include <string/strncat.c>
 #endif

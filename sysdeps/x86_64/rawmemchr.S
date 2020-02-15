@@ -1,6 +1,6 @@
 /* fast SSE2 memchr with 64 byte loop and pmaxub instruction using
 
-   Copyright (C) 2011-2016 Free Software Foundation, Inc.
+   Copyright (C) 2011-2018 Free Software Foundation, Inc.
    Contributed by Intel Corporation.
    This file is part of the GNU C Library.
 
@@ -194,11 +194,6 @@ L(matches16):
 L(matches32):
 	bsf	%eax, %eax
 	lea	32(%rax, %rdi), %rax
-	ret
-
-	.p2align 4
-L(return_null):
-	xor	%rax, %rax
 	ret
 
 END (__rawmemchr)

@@ -1,4 +1,4 @@
-# Copyright (C) 1994-2016 Free Software Foundation, Inc.
+# Copyright (C) 1994-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,13 +22,14 @@ subdir	:= resolv
 
 include ../Makeconfig
 
-headers	:= resolv.h \
+headers	:= resolv.h bits/types/res_state.h \
 	   netdb.h bits/netdb.h \
 	   arpa/nameser.h arpa/nameser_compat.h \
 	   sys/bitypes.h
 
 routines := herror inet_addr inet_ntop inet_pton nsap_addr res_init \
-	    res_hconf res_libc res-state
+	    res_hconf res_libc res-state res_randomid res-close \
+	    resolv_context resolv_conf
 
 tests = tst-aton tst-leaks tst-inet_ntop
 xtests = tst-leaks2
@@ -39,14 +40,68 @@ extra-libs := libresolv libnss_dns
 ifeq ($(have-thread-library),yes)
 extra-libs += libanl
 routines += gai_sigqueue
-tests += tst-res_hconf_reorder
+
+tests += \
+  tst-bug18665 \
+  tst-bug18665-tcp \
+  tst-ns_name \
+  tst-ns_name_compress \
+  tst-ns_name_pton \
+  tst-res_hconf_reorder \
+  tst-res_hnok \
+  tst-res_use_inet6 \
+  tst-resolv-basic \
+  tst-resolv-binary \
+  tst-resolv-edns \
+  tst-resolv-network \
+  tst-resolv-res_init-multi \
+  tst-resolv-search \
+
+# These tests need libdl.
+ifeq (yes,$(build-shared))
+tests += \
+  tst-resolv-ai_idn \
+  tst-resolv-ai_idn-latin1 \
+  tst-resolv-ai_idn-nolibidn2 \
+  tst-resolv-canonname \
+
+# uses DEPRECATED_RES_USE_INET6 from <resolv-internal.h>.
+tests-internal += \
+  tst-resolv-res_init \
+  tst-resolv-res_init-thread \
+
+# Needs resolv_context.
+tests-internal += \
+  tst-resolv-res_ninit \
+  tst-resolv-threads \
+
+# Used by tst-resolv-ai_idn-nolibidn2 to disable libidn2 (by not
+# providing any functions in libidn2.so.0).
+modules-names += tst-no-libidn2
+extra-test-objs += tst-no-libidn2.os
+LDFLAGS-tst-no-libidn2.so = -Wl,-soname,libidn2.so.0
+
+endif # $(build-shared)
+
+# This test accesses __inet_ntop_length, an internal libc function.
+tests-internal += tst-inet_pton
+
+# This test accesses the __p_secstodate compat symbol.
+tests-internal += tst-p_secstodate
+
+# This test sends millions of packets and is rather slow.
+xtests += tst-resolv-qtypes
+
+# This test has dropped packet tests and runs for a long time.
+xtests += tst-resolv-rotate
 endif
 extra-libs-others = $(extra-libs)
-libresolv-routines := gethnamaddr res_comp res_debug	\
+libresolv-routines := res_comp res_debug \
 		      res_data res_mkquery res_query res_send		\
 		      inet_net_ntop inet_net_pton inet_neta base64	\
 		      ns_parse ns_name ns_netint ns_ttl ns_print	\
-		      ns_samedomain ns_date
+		      ns_samedomain ns_date \
+		      compat-hooks compat-gethnamaddr
 
 libanl-routines := gai_cancel gai_error gai_misc gai_notify gai_suspend \
 		   getaddrinfo_a
@@ -61,14 +116,11 @@ routines                += $(libnss_dns-routines) $(libresolv-routines)
 static-only-routines    += $(libnss_dns-routines) $(libresolv-routines)
 endif
 
-ifeq (yesyes,$(build-shared)$(have-thread-library))
-tests: $(objpfx)ga_test
-endif
-
 ifeq ($(run-built-tests),yes)
 ifneq (no,$(PERL))
 tests-special += $(objpfx)mtrace-tst-leaks.out
 xtests-special += $(objpfx)mtrace-tst-leaks2.out
+tests-special += $(objpfx)mtrace-tst-resolv-res_ninit.out
 endif
 endif
 
@@ -80,29 +132,21 @@ headers += rpc/netdb.h
 endif
 
 generated += mtrace-tst-leaks.out tst-leaks.mtrace \
-	     mtrace-tst-leaks2.out tst-leaks2.mtrace
+	     mtrace-tst-leaks2.out tst-leaks2.mtrace \
+	     mtrace-tst-resolv-res_ninit.out tst-resolv-res_ninit.mtrace \
 
 include ../Rules
 
-CPPFLAGS += -Dgethostbyname=res_gethostbyname \
-	    -Dgethostbyname2=res_gethostbyname2 \
-	    -Dgethostbyaddr=res_gethostbyaddr \
-	    -Dgetnetbyname=res_getnetbyname \
-	    -Dgetnetbyaddr=res_getnetbyaddr
+LOCALES := en_US.UTF-8 en_US.ISO-8859-1
+include ../gen-locales.mk
 
-CFLAGS-libresolv += $(stack-protector)
-CFLAGS-res_hconf.c = -fexceptions
-
-# The BIND code elicits some harmless warnings.
-+cflags += -Wno-write-strings
+CFLAGS-res_hconf.c += -fexceptions
 
 # The DNS NSS modules needs the resolver.
 $(objpfx)libnss_dns.so: $(objpfx)libresolv.so
 
 # The asynchronous name lookup code needs the thread library.
 $(objpfx)libanl.so: $(shared-thread-library)
-
-$(objpfx)ga_test: $(objpfx)libanl.so $(shared-thread-library)
 
 $(objpfx)tst-res_hconf_reorder: $(libdl) $(shared-thread-library)
 tst-res_hconf_reorder-ENV = RESOLV_REORDER=on
@@ -117,3 +161,50 @@ tst-leaks2-ENV = MALLOC_TRACE=$(objpfx)tst-leaks2.mtrace
 $(objpfx)mtrace-tst-leaks2.out: $(objpfx)tst-leaks2.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-leaks2.mtrace > $@; \
 	$(evaluate-test)
+
+tst-resolv-res_ninit-ENV = MALLOC_TRACE=$(objpfx)tst-resolv-res_ninit.mtrace
+$(objpfx)mtrace-tst-resolv-res_ninit.out: $(objpfx)tst-resolv-res_ninit.out
+	$(common-objpfx)malloc/mtrace \
+	  $(objpfx)tst-resolv-res_ninit.mtrace > $@; \
+	  $(evaluate-test)
+
+$(objpfx)tst-bug18665-tcp: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-bug18665: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-res_use_inet6: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-ai_idn: \
+  $(libdl) $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-ai_idn-latin1: \
+  $(libdl) $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-ai_idn-nolibidn2: \
+  $(libdl) $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-ai_idn.out: $(gen-locales)
+$(objpfx)tst-resolv-ai_idn-latin1.out: $(gen-locales)
+$(objpfx)tst-resolv-ai_idn-nolibidn2.out: \
+  $(gen-locales) $(objpfx)tst-no-libidn2.so
+$(objpfx)tst-resolv-basic: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-binary: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-edns: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-network: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-res_init: $(libdl) $(objpfx)libresolv.so
+$(objpfx)tst-resolv-res_init-multi: $(objpfx)libresolv.so \
+  $(shared-thread-library)
+$(objpfx)tst-resolv-res_init-thread: $(libdl) $(objpfx)libresolv.so \
+  $(shared-thread-library)
+$(objpfx)tst-resolv-qtypes: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-rotate: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-search: $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-threads: \
+  $(libdl) $(objpfx)libresolv.so $(shared-thread-library)
+$(objpfx)tst-resolv-canonname: \
+  $(libdl) $(objpfx)libresolv.so $(shared-thread-library)
+
+$(objpfx)tst-ns_name: $(objpfx)libresolv.so
+$(objpfx)tst-ns_name.out: tst-ns_name.data
+$(objpfx)tst-ns_name_compress: $(objpfx)libresolv.so
+$(objpfx)tst-ns_name_pton: $(objpfx)libresolv.so
+$(objpfx)tst-res_hnok: $(objpfx)libresolv.so
+$(objpfx)tst-p_secstodate: $(objpfx)libresolv.so
+
+
+# This test case uses the deprecated RES_USE_INET6 resolver option.
+CFLAGS-tst-res_use_inet6.c += -Wno-error

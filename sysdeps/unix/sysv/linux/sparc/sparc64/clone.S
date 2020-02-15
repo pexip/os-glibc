@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Richard Henderson (rth@tamu.edu).
 
@@ -23,8 +23,6 @@
 #include <asm/unistd.h>
 #include <tcb-offsets.h>
 #include <sysdep.h>
-
-#define CLONE_VM	0x00000100
 
 /* int clone(int (*fn)(void *arg), void *child_stack, int flags, void *arg,
 	     pid_t *ptid, void *tls, pid_t *ctid); */
@@ -51,7 +49,6 @@ ENTRY (__clone)
 	   expects.  Also, subtract STACK_BIAS.  */
 	sub	%i1, 192 + 0x7ff, %o1
 	mov	%i3, %g3
-	mov	%i2, %g4
 
 	mov	%i4,%o2			/* PTID */
 	mov	%i5,%o3			/* TLS */
@@ -76,17 +73,11 @@ END(__clone)
 
 	.type __thread_start,@function
 __thread_start:
-	andcc	%g4, CLONE_VM, %g0
-	bne,pt	%icc, 1f
-	set	__NR_getpid,%g1
-	ta	0x6d
-	st	%o0,[%g7 + PID]
-	st	%o0,[%g7 + TID]
-1:
 	mov	%g0, %fp	/* terminate backtrace */
 	call	%g2
 	 mov	%g3,%o0
-	call	HIDDEN_JUMPTARGET(_exit),0
+	set	__NR_exit, %g1
+	ta	0x6d
 	 nop
 
 	.size	__thread_start, .-__thread_start

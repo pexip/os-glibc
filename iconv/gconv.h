@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@
 #define _GCONV_H	1
 
 #include <features.h>
-#define __need_mbstate_t
-#define __need_wint_t
-#include <wchar.h>
+#include <bits/types/__mbstate_t.h>
+#include <bits/types/wint_t.h>
+
 #define __need_size_t
 #define __need_wchar_t
 #include <stddef.h>
@@ -139,7 +139,7 @@ typedef struct __gconv_info
 {
   size_t __nsteps;
   struct __gconv_step *__steps;
-  __extension__ struct __gconv_step_data __data __flexarr;
+  __extension__ struct __gconv_step_data __data[0];
 } *__gconv_t;
 
 /* Transliteration using the locale's data.  */

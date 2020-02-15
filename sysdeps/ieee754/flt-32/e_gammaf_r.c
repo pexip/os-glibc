@@ -1,5 +1,5 @@
 /* Implementation of gamma function according to ISO C.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
@@ -18,7 +18,9 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <math.h>
+#include <math-narrow-eval.h>
 #include <math_private.h>
+#include <math-underflow.h>
 #include <float.h>
 
 /* Coefficients B_2k / 2k(2k-1) of x^-(2k-1) inside exp in Stirling's
@@ -91,7 +93,7 @@ gammaf_positive (float x, int *exp2_adj)
       float ret = (__ieee754_powf (x_adj_mant, x_adj)
 		   * __ieee754_exp2f (x_adj_log2 * x_adj_frac)
 		   * __ieee754_expf (-x_adj)
-		   * __ieee754_sqrtf (2 * (float) M_PI / x_adj)
+		   * sqrtf (2 * (float) M_PI / x_adj)
 		   / prod);
       exp_adj += x_eps * __ieee754_logf (x_adj);
       float bsum = gamma_coeff[NCOEFF - 1];
@@ -118,7 +120,7 @@ __ieee754_gammaf_r (float x, int *signgamp)
       return 1.0 / x;
     }
   if (__builtin_expect (hx < 0, 0)
-      && (u_int32_t) hx < 0xff800000 && __rintf (x) == x)
+      && (uint32_t) hx < 0xff800000 && __rintf (x) == x)
     {
       /* Return value for integer x < 0 is NaN with invalid exception.  */
       *signgamp = 0;
