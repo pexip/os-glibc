@@ -16,6 +16,15 @@ test-xfail-tst-cancel24-static = yes
 test-xfail-tst-create-detached = yes
 
 ######################################################################
+# Pexip Build environment (unprivileged docker) causes these to fail
+######################################################################
+test-xfail-tst-copy_file_range = yes
+test-xfail-tst-personality = yes
+test-xfail-tst-pkey = yes
+test-xfail-tst-dir = yes
+test-xfail-tst-clock2 = yes
+
+######################################################################
 # alpha (including optimized flavours)
 ######################################################################
 ifneq (,$(filter $(config-machine)-$(config-os), alpha-linux-gnu alphaev67-linux-gnu))

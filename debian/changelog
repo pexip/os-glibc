@@ -1,3 +1,13 @@
+glibc (2.28-10pexip1) pexip; urgency=medium
+
+  * Migrate to Buster
+  * Add test failures to testsuite-xfail-debian.mk to allow for
+      unprivileged docker build environment.
+  * Remove patches applied upstream:
+      - any/CVE-2018-1000001.patch
+
+ -- Vincent Sanders <vince@pexip.com>  Fri, 28 Feb 2020 21:53:04 +0000
+
 glibc (2.28-10) unstable; urgency=medium
 
   [ Aurelien Jarno ]

@@ -163,4 +163,3 @@ any/git-libio-stdout-putc.diff
 
 # Pexip
 any/local-udp-syslog.diff
-any/CVE-2018-1000001.patch
