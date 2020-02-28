@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,6 +52,9 @@ typedef uintmax_t uatomic_max_t;
 /* If we have just non-atomic operations, we can as well make them wide.  */
 #define __HAVE_64B_ATOMICS 1
 #define USE_ATOMIC_COMPILER_BUILTINS 0
+
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
 
 /* The only basic operation needed is compare and exchange.  */
 #define atomic_compare_and_exchange_val_acq(mem, newval, oldval) \

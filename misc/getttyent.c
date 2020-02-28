@@ -57,8 +57,8 @@ __getttynam (const char *tty)
 }
 weak_alias (__getttynam, getttynam)
 
-static char *skip (char *) __THROW internal_function;
-static char *value (char *) __THROW internal_function;
+static char *skip (char *) __THROW;
+static char *value (char *) __THROW;
 
 struct ttyent *
 __getttyent (void)
@@ -78,8 +78,8 @@ __getttyent (void)
 			return (NULL);
 		}
 		/* skip lines that are too big */
-		if (!index(p, '\n')) {
-			while ((c = getc_unlocked(tf)) != '\n' && c != EOF)
+		if (!strchr (p, '\n')) {
+			while ((c = __getc_unlocked(tf)) != '\n' && c != EOF)
 				;
 			continue;
 		}
@@ -127,7 +127,7 @@ __getttyent (void)
 	tty.ty_comment = p;
 	if (*p == 0)
 		tty.ty_comment = 0;
-	if ((p = index(p, '\n')))
+	if ((p = strchr (p, '\n')))
 		*p = '\0';
 	return (&tty);
 }
@@ -141,7 +141,6 @@ weak_alias (__getttyent, getttyent)
  * the next field.
  */
 static char *
-internal_function
 skip (char *p)
 {
 	char *t;
@@ -175,11 +174,10 @@ skip (char *p)
 }
 
 static char *
-internal_function
 value (char *p)
 {
 
-	return ((p = index(p, '=')) ? ++p : NULL);
+	return ((p = strchr (p, '=')) ? ++p : NULL);
 }
 
 int

@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for IA64.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -129,6 +129,7 @@ gmon_initializer:
 
 	.section .init,"ax",@progbits
 	.global _init#
+	.hidden	_init#
 	.proc _init#
 _init:
 	.prologue
@@ -145,6 +146,7 @@ _init:
 
 	.section .fini,"ax",@progbits
 	.global _fini#
+	.hidden	_fini#
 	.proc _fini#
 _fini:
 	.prologue

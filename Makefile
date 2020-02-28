@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2016 Free Software Foundation, Inc.
+# Copyright (C) 1991-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -60,7 +60,8 @@ endif # $(AUTOCONF) = no
 		   $(addprefix install-, no-libc.a bin lib data headers others)
 
 headers := limits.h values.h features.h gnu-versions.h \
-	   bits/xopen_lim.h gnu/libc-version.h stdc-predef.h
+	   bits/xopen_lim.h gnu/libc-version.h stdc-predef.h \
+	   bits/libc-header-start.h
 
 echo-headers: subdir_echo-headers
 
@@ -127,17 +128,60 @@ ifeq (yes,$(build-shared))
 lib: $(common-objpfx)libc.so $(common-objpfx)linkobj/libc.so
 endif # $(build-shared)
 
+# Used to build testrun.sh.
+define testrun-script
+#!/bin/bash
+builddir=`dirname "$$0"`
+GCONV_PATH="$${builddir}/iconvdata"
+
+usage () {
+  echo "usage: $$0 [--tool=strace] PROGRAM [ARGUMENTS...]" 2>&1
+  echo "       $$0 --tool=valgrind PROGRAM [ARGUMENTS...]" 2>&1
+}
+
+toolname=default
+while test $$# -gt 0 ; do
+  case "$$1" in
+    --tool=*)
+      toolname="$${1:7}"
+      shift
+      ;;
+    --*)
+      usage
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if test $$# -eq 0 ; then
+  usage
+fi
+
+case "$$toolname" in
+  default)
+    exec $(subst $(common-objdir),"$${builddir}", $(test-program-prefix)) \
+      $${1+"$$@"}
+    ;;
+  strace)
+    exec strace $(patsubst %, -E%, $(run-program-env)) \
+      $(test-via-rtld-prefix) $${1+"$$@"}
+    ;;
+  valgrind)
+    exec env $(run-program-env) valgrind $(test-via-rtld-prefix) $${1+"$$@"}
+    ;;
+  *)
+    usage
+    ;;
+esac
+endef
 
 # This is a handy script for running any dynamically linked program against
 # the current libc build for testing.
 $(common-objpfx)testrun.sh: $(common-objpfx)config.make \
 			    $(..)Makeconfig $(..)Makefile
-	(echo '#!/bin/sh'; \
-	 echo 'builddir=`dirname "$$0"`'; \
-	 echo 'GCONV_PATH="$${builddir}/iconvdata" \'; \
-	 echo 'exec $(subst $(common-objdir),"$${builddir}",\
-			    $(test-program-prefix)) $${1+"$$@"}'; \
-	) > $@T
+	$(file >$@T, $(testrun-script))
 	chmod a+x $@T
 	mv -f $@T $@
 postclean-generated += testrun.sh
@@ -266,55 +310,27 @@ $(objpfx)check-local-headers.out: scripts/check-local-headers.sh
 	  "$(includedir)" "$(objpfx)" < /dev/null > $@; \
 	$(evaluate-test)
 
-ifneq ($(PERL),no)
-installed-headers = argp/argp.h assert/assert.h catgets/nl_types.h \
-		    crypt/crypt.h ctype/ctype.h debug/execinfo.h \
-		    dirent/dirent.h dlfcn/dlfcn.h elf/elf.h elf/link.h \
-		    gmon/sys/gmon.h gmon/sys/gmon_out.h gmon/sys/profil.h \
-		    grp/grp.h gshadow/gshadow.h iconv/iconv.h iconv/gconv.h \
-		    $(wildcard inet/netinet/*.h) \
-		    $(wildcard inet/arpa/*.h inet/protocols/*.h) \
-		    inet/aliases.h inet/ifaddrs.h inet/netinet/ip6.h \
-		    inet/netinet/icmp6.h intl/libintl.h io/sys/stat.h \
-		    io/sys/statfs.h io/sys/vfs.h io/sys/statvfs.h \
-		    io/fcntl.h io/sys/fcntl.h io/poll.h io/sys/poll.h \
-		    io/utime.h io/ftw.h io/fts.h io/sys/sendfile.h \
-		    libio/stdio.h libio/libio.h locale/locale.h \
-		    locale/langinfo.h locale/xlocale.h login/utmp.h \
-		    login/lastlog.h login/pty.h malloc/malloc.h \
-		    malloc/obstack.h malloc/mcheck.h math/math.h \
-		    math/complex.h math/fenv.h math/tgmath.h misc/sys/uio.h \
-		    $(wildcard nis/rpcsvc/*.h) nptl_db/thread_db.h \
-		    sysdeps/nptl/pthread.h sysdeps/pthread/semaphore.h \
-		    nss/nss.h posix/sys/utsname.h posix/sys/times.h \
-		    posix/sys/wait.h posix/sys/types.h posix/unistd.h \
-		    posix/glob.h posix/regex.h posix/wordexp.h posix/fnmatch.h\
-		    posix/getopt.h posix/tar.h posix/sys/unistd.h \
-		    posix/sched.h posix/re_comp.h posix/wait.h \
-		    posix/cpio.h posix/spawn.h pwd/pwd.h resolv/resolv.h \
-		    resolv/netdb.h $(wildcard resolv/arpa/*.h) \
-		    resource/sys/resource.h resource/sys/vlimit.h \
-		    resource/sys/vtimes.h resource/ulimit.h rt/aio.h \
-		    rt/mqueue.h setjmp/setjmp.h shadow/shadow.h \
-		    signal/signal.h signal/sys/signal.h socket/sys/socket.h \
-		    socket/sys/un.h stdio-common/printf.h \
-		    stdio-common/stdio_ext.h stdlib/stdlib.h stdlib/alloca.h \
-		    stdlib/monetary.h stdlib/fmtmsg.h stdlib/ucontext.h \
-		    sysdeps/generic/inttypes.h sysdeps/generic/stdint.h \
-		    stdlib/errno.h stdlib/sys/errno.h string/string.h \
-		    string/strings.h string/memory.h string/endian.h \
-		    string/argz.h string/envz.h string/byteswap.h \
-		    $(wildcard sunrpc/rpc/*.h sunrpc/rpcsvc/*.h) \
-		    sysvipc/sys/ipc.h sysvipc/sys/msg.h sysvipc/sys/sem.h \
-		    sysvipc/sys/shm.h termios/termios.h \
-		    termios/sys/termios.h termios/sys/ttychars.h time/time.h \
-		    time/sys/time.h time/sys/timeb.h wcsmbs/wchar.h \
-		    wctype/wctype.h
-
-tests-special += $(objpfx)begin-end-check.out
-$(objpfx)begin-end-check.out: scripts/begin-end-check.pl
-	$(PERL) scripts/begin-end-check.pl $(installed-headers) > $@; \
+ifneq "$(headers)" ""
+# Special test of all the installed headers in this directory.
+tests-special += $(objpfx)check-installed-headers-c.out
+libof-check-installed-headers-c := testsuite
+$(objpfx)check-installed-headers-c.out: \
+    scripts/check-installed-headers.sh $(headers)
+	$(SHELL) $(..)scripts/check-installed-headers.sh c \
+	  "$(CC) $(filter-out -std=%,$(CFLAGS)) -D_ISOMAC $(+includes)" \
+	  $(headers) > $@; \
 	$(evaluate-test)
+
+ifneq "$(CXX)" ""
+tests-special += $(objpfx)check-installed-headers-cxx.out
+libof-check-installed-headers-cxx := testsuite
+$(objpfx)check-installed-headers-cxx.out: \
+    scripts/check-installed-headers.sh $(headers)
+	$(SHELL) $(..)scripts/check-installed-headers.sh c++ \
+	  "$(CXX) $(filter-out -std=%,$(CXXFLAGS)) -D_ISOMAC $(+includes)" \
+	  $(headers) > $@; \
+	$(evaluate-test)
+endif
 endif
 
 define summarize-tests
@@ -378,8 +394,7 @@ files-for-dist := README INSTALL configure ChangeLog NEWS
 
 # Regenerate stuff, then error if these things are not committed yet.
 dist-prepare: $(files-for-dist)
-	conf=`find sysdeps $(addsuffix /sysdeps,$(sysdeps-add-ons)) \
-		   -name configure`; \
+	conf=`find sysdeps -name configure`; \
 	$(MAKE) $$conf && \
 	git diff --stat HEAD -- $^ $$conf \
 	| $(AWK) '{ print; rc=1 } END { exit rc }'

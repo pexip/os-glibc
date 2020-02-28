@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 Free Software Foundation, Inc.
+/* Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -101,14 +101,15 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <resolv.h>
+#include <resolv/resolv-internal.h>
+#include <resolv/resolv_context.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <kernel-features.h>
-#include <libc-internal.h>
+#include <libc-diag.h>
+#include <hp-timing.h>
 
 #if PACKETSZ > 65536
 #define MAXPACKET       PACKETSZ
@@ -180,15 +181,11 @@ evNowTime(struct timespec *res) {
 }
 
 
-/* Options.  Leave them on. */
-/* #undef DEBUG */
-#include "res_debug.h"
-
 #define EXT(res) ((res)->_u._ext)
 
 /* Forward. */
 
-static struct sockaddr *get_nsaddr (res_state, int);
+static struct sockaddr *get_nsaddr (res_state, unsigned int);
 static int		send_vc(res_state, const u_char *, int,
 				const u_char *, int,
 				u_char **, int *, int *, int, u_char **,
@@ -198,11 +195,6 @@ static int		send_dg(res_state, const u_char *, int,
 				u_char **, int *, int *, int,
 				int *, int *, u_char **,
 				u_char **, int *, int *, int *);
-#ifdef DEBUG
-static void		Aerror(const res_state, FILE *, const char *, int,
-			       const struct sockaddr *);
-static void		Perror(const res_state, FILE *, const char *, int);
-#endif
 static int		sock_eq(struct sockaddr_in6 *, struct sockaddr_in6 *);
 
 /* Public. */
@@ -252,6 +244,12 @@ res_ourserver_p(const res_state statp, const struct sockaddr_in6 *inp)
 	return (0);
 }
 
+int
+res_isourserver (const struct sockaddr_in *inp)
+{
+  return res_ourserver_p (&_res, (const struct sockaddr_in6 *) inp);
+}
+
 /* int
  * res_nameinquery(name, type, class, buf, eom)
  *	look for (name,type,class) in the query section of packet (buf,eom)
@@ -290,6 +288,62 @@ res_nameinquery(const char *name, int type, int class,
 	return (0);
 }
 libresolv_hidden_def (res_nameinquery)
+
+/* Returns a shift value for the name server index.  Used to implement
+   RES_ROTATE.  */
+static unsigned int
+nameserver_offset (struct __res_state *statp)
+{
+  /* If we only have one name server or rotation is disabled, return
+     offset 0 (no rotation).  */
+  unsigned int nscount = statp->nscount;
+  if (nscount <= 1 || !(statp->options & RES_ROTATE))
+    return 0;
+
+  /* Global offset.  The lowest bit indicates whether the offset has
+     been initialized with a random value.  Use relaxed MO to access
+     global_offset because all we need is a sequence of roughly
+     sequential value.  */
+  static unsigned int global_offset;
+  unsigned int offset = atomic_fetch_add_relaxed (&global_offset, 2);
+  if ((offset & 1) == 0)
+    {
+      /* Initialization is required.  */
+#if HP_TIMING_AVAIL
+      uint64_t ticks;
+      HP_TIMING_NOW (ticks);
+      offset = ticks;
+#else
+      struct timeval tv;
+      __gettimeofday (&tv, NULL);
+      offset = ((tv.tv_sec << 8) ^ tv.tv_usec);
+#endif
+      /* The lowest bit is the most random.  Preserve it.  */
+      offset <<= 1;
+
+      /* Store the new starting value.  atomic_fetch_add_relaxed
+	 returns the old value, so emulate that by storing the new
+	 (incremented) value.  Concurrent initialization with
+	 different random values is harmless.  */
+      atomic_store_relaxed (&global_offset, (offset | 1) + 2);
+    }
+
+  /* Remove the initialization bit.  */
+  offset >>= 1;
+
+  /* Avoid the division in the most common cases.  */
+  switch (nscount)
+    {
+    case 2:
+      return offset & 1;
+    case 3:
+      return offset % 3;
+    case 4:
+      return offset & 3;
+    default:
+      return offset % nscount;
+    }
+}
 
 /* int
  * res_queriesmatch(buf1, eom1, buf2, eom2)
@@ -347,12 +401,15 @@ res_queriesmatch(const u_char *buf1, const u_char *eom1,
 libresolv_hidden_def (res_queriesmatch)
 
 int
-__libc_res_nsend(res_state statp, const u_char *buf, int buflen,
-		 const u_char *buf2, int buflen2,
-		 u_char *ans, int anssiz, u_char **ansp, u_char **ansp2,
-		 int *nansp2, int *resplen2, int *ansp2_malloced)
+__res_context_send (struct resolv_context *ctx,
+		    const unsigned char *buf, int buflen,
+		    const unsigned char *buf2, int buflen2,
+		    unsigned char *ans, int anssiz,
+		    unsigned char **ansp, unsigned char **ansp2,
+		    int *nansp2, int *resplen2, int *ansp2_malloced)
 {
-  int gotsomewhere, terrno, try, v_circuit, resplen, ns, n;
+	struct __res_state *statp = ctx->resp;
+	int gotsomewhere, terrno, try, v_circuit, resplen, n;
 
 	if (statp->nscount == 0) {
 		__set_errno (ESRCH);
@@ -364,24 +421,6 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 		return (-1);
 	}
 
-#ifdef USE_HOOKS
-	if (__glibc_unlikely (statp->qhook || statp->rhook))       {
-		if (anssiz < MAXPACKET && ansp) {
-			/* Always allocate MAXPACKET, callers expect
-			   this specific size.  */
-			u_char *buf = malloc (MAXPACKET);
-			if (buf == NULL)
-				return (-1);
-			memcpy (buf, ans, HFIXEDSZ);
-			*ansp = buf;
-			ans = buf;
-			anssiz = MAXPACKET;
-		}
-	}
-#endif
-
-	DprintQ((statp->options & RES_DEBUG) || (statp->pfcode & RES_PRF_QUERY),
-		(stdout, ";; res_send()\n"), buf, buflen);
 	v_circuit = ((statp->options & RES_USEVC)
 		     || buflen > PACKETSZ
 		     || buflen2 > PACKETSZ);
@@ -398,7 +437,7 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 		if (EXT(statp).nscount != statp->nscount)
 			needclose++;
 		else
-			for (ns = 0; ns < statp->nscount; ns++) {
+			for (unsigned int ns = 0; ns < statp->nscount; ns++) {
 				if (statp->nsaddr_list[ns].sin_family != 0
 				    && !sock_eq((struct sockaddr_in6 *)
 						&statp->nsaddr_list[ns],
@@ -418,7 +457,7 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 	 * Maybe initialize our private copy of the ns_addr_list.
 	 */
 	if (EXT(statp).nscount == 0) {
-		for (ns = 0; ns < statp->nscount; ns++) {
+		for (unsigned int ns = 0; ns < statp->nscount; ns++) {
 			EXT(statp).nssocks[ns] = -1;
 			if (statp->nsaddr_list[ns].sin_family == 0)
 				continue;
@@ -432,91 +471,29 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 					'\0',
 					sizeof (struct sockaddr_in6)
 					- sizeof (struct sockaddr_in));
+			else
+				return -1;
 		}
 		EXT(statp).nscount = statp->nscount;
 	}
 
-	/*
-	 * Some resolvers want to even out the load on their nameservers.
-	 * Note that RES_BLAST overrides RES_ROTATE.
-	 */
-	if (__builtin_expect ((statp->options & RES_ROTATE) != 0, 0) &&
-	    (statp->options & RES_BLAST) == 0) {
-		struct sockaddr_in ina;
-		struct sockaddr_in6 *inp;
-		int lastns = statp->nscount - 1;
-		int fd;
-
-		inp = EXT(statp).nsaddrs[0];
-		ina = statp->nsaddr_list[0];
-		fd = EXT(statp).nssocks[0];
-		for (ns = 0; ns < lastns; ns++) {
-		    EXT(statp).nsaddrs[ns] = EXT(statp).nsaddrs[ns + 1];
-		    statp->nsaddr_list[ns] = statp->nsaddr_list[ns + 1];
-		    EXT(statp).nssocks[ns] = EXT(statp).nssocks[ns + 1];
-		}
-		EXT(statp).nsaddrs[lastns] = inp;
-		statp->nsaddr_list[lastns] = ina;
-		EXT(statp).nssocks[lastns] = fd;
-	}
+	/* Name server index offset.  Used to implement
+	   RES_ROTATE.  */
+	unsigned int ns_offset = nameserver_offset (statp);
 
 	/*
 	 * Send request, RETRY times, or until successful.
 	 */
 	for (try = 0; try < statp->retry; try++) {
-	    for (ns = 0; ns < statp->nscount; ns++)
+	    for (unsigned ns_shift = 0; ns_shift < statp->nscount; ns_shift++)
 	    {
-#ifdef DEBUG
-		char tmpbuf[40];
-#endif
-#if defined USE_HOOKS || defined DEBUG
-		struct sockaddr *nsap = get_nsaddr (statp, ns);
-#endif
+		/* The actual name server index.  This implements
+		   RES_ROTATE.  */
+		unsigned int ns = ns_shift + ns_offset;
+		if (ns >= statp->nscount)
+			ns -= statp->nscount;
 
 	    same_ns:
-#ifdef USE_HOOKS
-		if (__glibc_unlikely (statp->qhook != NULL))       {
-			int done = 0, loops = 0;
-
-			do {
-				res_sendhookact act;
-
-				struct sockaddr_in *nsap4;
-				nsap4 = (struct sockaddr_in *) nsap;
-				act = (*statp->qhook)(&nsap4, &buf, &buflen,
-						      ans, anssiz, &resplen);
-				nsap = (struct sockaddr_in6 *) nsap4;
-				switch (act) {
-				case res_goahead:
-					done = 1;
-					break;
-				case res_nextns:
-					__res_iclose(statp, false);
-					goto next_ns;
-				case res_done:
-					return (resplen);
-				case res_modified:
-					/* give the hook another try */
-					if (++loops < 42) /*doug adams*/
-						break;
-					/*FALLTHROUGH*/
-				case res_error:
-					/*FALLTHROUGH*/
-				default:
-					return (-1);
-				}
-			} while (!done);
-		}
-#endif
-
-		Dprint(statp->options & RES_DEBUG,
-		       (stdout, ";; Querying server (# %d) address = %s\n",
-			ns + 1, inet_ntop(nsap->sa_family,
-					  (nsap->sa_family == AF_INET6
-					   ? (void *) &((struct sockaddr_in6 *) nsap)->sin6_addr
-					   : (void *) &((struct sockaddr_in *) nsap)->sin_addr),
-					  tmpbuf, sizeof (tmpbuf))));
-
 		if (__glibc_unlikely (v_circuit))       {
 			/* Use VC; at most one attempt per server. */
 			try = statp->retry;
@@ -546,22 +523,6 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 
 		resplen = n;
 
-		Dprint((statp->options & RES_DEBUG) ||
-		       ((statp->pfcode & RES_PRF_REPLY) &&
-			(statp->pfcode & RES_PRF_HEAD1)),
-		       (stdout, ";; got answer:\n"));
-
-		DprintQ((statp->options & RES_DEBUG) ||
-			(statp->pfcode & RES_PRF_REPLY),
-			(stdout, "%s", ""),
-			ans, (resplen > anssiz) ? anssiz : resplen);
-		if (buf2 != NULL) {
-		  DprintQ((statp->options & RES_DEBUG) ||
-			  (statp->pfcode & RES_PRF_REPLY),
-			  (stdout, "%s", ""),
-			  *ansp2, (*resplen2 > *nansp2) ? *nansp2 : *resplen2);
-		}
-
 		/*
 		 * If we have temporarily opened a virtual circuit,
 		 * or if we haven't been asked to keep a socket open,
@@ -571,38 +532,6 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 		    (statp->options & RES_STAYOPEN) == 0) {
 			__res_iclose(statp, false);
 		}
-#ifdef USE_HOOKS
-		if (__glibc_unlikely (statp->rhook))       {
-			int done = 0, loops = 0;
-
-			do {
-				res_sendhookact act;
-
-				act = (*statp->rhook)((struct sockaddr_in *)
-						      nsap, buf, buflen,
-						      ans, anssiz, &resplen);
-				switch (act) {
-				case res_goahead:
-				case res_done:
-					done = 1;
-					break;
-				case res_nextns:
-					__res_iclose(statp, false);
-					goto next_ns;
-				case res_modified:
-					/* give the hook another try */
-					if (++loops < 42) /*doug adams*/
-						break;
-					/*FALLTHROUGH*/
-				case res_error:
-					/*FALLTHROUGH*/
-				default:
-					return (-1);
-				}
-			} while (!done);
-
-		}
-#endif
 		return (resplen);
  next_ns: ;
 	   } /*foreach ns*/
@@ -618,20 +547,44 @@ __libc_res_nsend(res_state statp, const u_char *buf, int buflen,
 	return (-1);
 }
 
-int
-res_nsend(res_state statp,
-	  const u_char *buf, int buflen, u_char *ans, int anssiz)
+/* Common part of res_nsend and res_send.  */
+static int
+context_send_common (struct resolv_context *ctx,
+		     const unsigned char *buf, int buflen,
+		     unsigned char *ans, int anssiz)
 {
-  return __libc_res_nsend(statp, buf, buflen, NULL, 0, ans, anssiz,
-			  NULL, NULL, NULL, NULL, NULL);
+  if (ctx == NULL)
+    {
+      RES_SET_H_ERRNO (&_res, NETDB_INTERNAL);
+      return -1;
+    }
+  int result = __res_context_send (ctx, buf, buflen, NULL, 0, ans, anssiz,
+				   NULL, NULL, NULL, NULL, NULL);
+  __resolv_context_put (ctx);
+  return result;
 }
-libresolv_hidden_def (res_nsend)
+
+int
+res_nsend (res_state statp, const unsigned char *buf, int buflen,
+	   unsigned char *ans, int anssiz)
+{
+  return context_send_common
+    (__resolv_context_get_override (statp), buf, buflen, ans, anssiz);
+}
+
+int
+res_send (const unsigned char *buf, int buflen, unsigned char *ans, int anssiz)
+{
+  return context_send_common
+    (__resolv_context_get (), buf, buflen, ans, anssiz);
+}
 
 /* Private */
 
 static struct sockaddr *
-get_nsaddr (res_state statp, int n)
+get_nsaddr (res_state statp, unsigned int n)
 {
+  assert (n < statp->nscount);
 
   if (statp->nsaddr_list[n].sin_family == 0 && EXT(statp).nsaddrs[n] != NULL)
     /* EXT(statp).nsaddrs[n] holds an address that is larger than
@@ -664,7 +617,7 @@ close_and_return_error (res_state statp, int *resplen2)
    Please note that for TCP there is no way to disable sending both
    queries, unlike UDP, which honours RES_SNGLKUP and RES_SNGLKUPREOP
    and sends the queries serially and waits for the result after each
-   sent query.  This implemetnation should be corrected to honour these
+   sent query.  This implementation should be corrected to honour these
    options.
 
    Please also note that for TCP we send both queries over the same
@@ -778,10 +731,10 @@ send_vc(res_state statp,
 		if (statp->_vcsock >= 0)
 		  __res_iclose(statp, false);
 
-		statp->_vcsock = socket(nsap->sa_family, SOCK_STREAM, 0);
+		statp->_vcsock = socket
+		  (nsap->sa_family, SOCK_STREAM | SOCK_CLOEXEC, 0);
 		if (statp->_vcsock < 0) {
 			*terrno = errno;
-			Perror(statp, stderr, "socket(vc)", errno);
 			if (resplen2 != NULL)
 			  *resplen2 = 0;
 			return (-1);
@@ -792,7 +745,6 @@ send_vc(res_state statp,
 			    ? sizeof (struct sockaddr_in)
 			    : sizeof (struct sockaddr_in6)) < 0) {
 			*terrno = errno;
-			Aerror(statp, stderr, "connect/vc", errno, nsap);
 			return close_and_return_error (statp, resplen2);
 		}
 		statp->_flags |= RES_F_VC;
@@ -815,7 +767,6 @@ send_vc(res_state statp,
 	}
 	if (TEMP_FAILURE_RETRY (writev(statp->_vcsock, iov, niov)) != explen) {
 		*terrno = errno;
-		Perror(statp, stderr, "write failed", errno);
 		return close_and_return_error (statp, resplen2);
 	}
 	/*
@@ -837,7 +788,6 @@ send_vc(res_state statp,
 	}
 	if (n <= 0) {
 		*terrno = errno;
-		Perror(statp, stderr, "read failed", errno);
 		/*
 		 * A long running process might get its TCP
 		 * connection reset if the remote server was
@@ -900,9 +850,6 @@ send_vc(res_state statp,
 			   read RLEN bytes instead.  */
 			len = rlen;
 		} else {
-			Dprint(statp->options & RES_DEBUG,
-				(stdout, ";; response truncated\n")
-			);
 			truncating = 1;
 			len = *thisanssizp;
 		}
@@ -913,8 +860,6 @@ send_vc(res_state statp,
 		/*
 		 * Undersized message.
 		 */
-		Dprint(statp->options & RES_DEBUG,
-		       (stdout, ";; undersized: %d\n", len));
 		*terrno = EMSGSIZE;
 		return close_and_return_error (statp, resplen2);
 	}
@@ -926,7 +871,6 @@ send_vc(res_state statp,
 	}
 	if (__glibc_unlikely (n <= 0))       {
 		*terrno = errno;
-		Perror(statp, stderr, "read(vc)", errno);
 		return close_and_return_error (statp, resplen2);
 	}
 	if (__glibc_unlikely (truncating))       {
@@ -954,14 +898,8 @@ send_vc(res_state statp,
 	 * wait for the correct one.
 	 */
 	if ((recvresp1 || hp->id != anhp->id)
-	    && (recvresp2 || hp2->id != anhp->id)) {
-		DprintQ((statp->options & RES_DEBUG) ||
-			(statp->pfcode & RES_PRF_REPLY),
-			(stdout, ";; old answer (unexpected):\n"),
-			*thisansp,
-			(rlen > *thisanssizp) ? *thisanssizp: rlen);
+	    && (recvresp2 || hp2->id != anhp->id))
 		goto read_len;
-	}
 
 	/* Mark which reply we received.  */
 	if (recvresp1 == 0 && hp->id == anhp->id)
@@ -988,19 +926,20 @@ reopen (res_state statp, int *terrno, int ns)
 
 		/* only try IPv6 if IPv6 NS and if not failed before */
 		if (nsap->sa_family == AF_INET6 && !statp->ipv6_unavail) {
-			EXT(statp).nssocks[ns]
-				= socket(PF_INET6, SOCK_DGRAM|SOCK_NONBLOCK, 0);
+			EXT(statp).nssocks[ns] = socket
+			  (PF_INET6,
+			   SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
 			if (EXT(statp).nssocks[ns] < 0)
 			    statp->ipv6_unavail = errno == EAFNOSUPPORT;
 			slen = sizeof (struct sockaddr_in6);
 		} else if (nsap->sa_family == AF_INET) {
-			EXT(statp).nssocks[ns]
-				= socket(PF_INET, SOCK_DGRAM|SOCK_NONBLOCK, 0);
+			EXT(statp).nssocks[ns] = socket
+			  (PF_INET,
+			   SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
 			slen = sizeof (struct sockaddr_in);
 		}
 		if (EXT(statp).nssocks[ns] < 0) {
 			*terrno = errno;
-			Perror(statp, stderr, "socket(dg)", errno);
 			return (-1);
 		}
 
@@ -1015,8 +954,16 @@ reopen (res_state statp, int *terrno, int ns)
 		 * error message is received.  We can thus detect
 		 * the absence of a nameserver without timing out.
 		 */
+		/* With GCC 5.3 when compiling with -Os the compiler
+		   emits a warning that slen may be used uninitialized,
+		   but that is never true.  Both slen and
+		   EXT(statp).nssocks[ns] are initialized together or
+		   the function return -1 before control flow reaches
+		   the call to connect with slen.  */
+		DIAG_PUSH_NEEDS_COMMENT;
+		DIAG_IGNORE_Os_NEEDS_COMMENT (5, "-Wmaybe-uninitialized");
 		if (connect(EXT(statp).nssocks[ns], nsap, slen) < 0) {
-			Aerror(statp, stderr, "connect(dg)", errno, nsap);
+		DIAG_POP_NEEDS_COMMENT;
 			__res_iclose(statp, false);
 			return (0);
 		}
@@ -1141,7 +1088,6 @@ send_dg(res_state statp,
 		evNowTime(&now);
 		if (evCmpTime(finish, now) <= 0) {
 		poll_err_out:
-			Perror(statp, stderr, "poll", errno);
 			return close_and_return_error (statp, resplen2);
 		}
 		evSubTime(&timeout, &finish, &now);
@@ -1158,7 +1104,6 @@ send_dg(res_state statp,
 		need_recompute = 1;
 	}
 	if (n == 0) {
-		Dprint(statp->options & RES_DEBUG, (stdout, ";; timeout\n"));
 		if (resplen > 1 && (recvresp1 || (buf2 != NULL && recvresp2)))
 		  {
 		    /* There are quite a few broken name servers out
@@ -1209,25 +1154,27 @@ send_dg(res_state statp,
 		if (have_sendmmsg >= 0 && nwritten == 0 && buf2 != NULL
 		    && !single_request)
 		  {
-		    struct iovec iov[2];
-		    struct mmsghdr reqs[2];
-		    reqs[0].msg_hdr.msg_name = NULL;
-		    reqs[0].msg_hdr.msg_namelen = 0;
-		    reqs[0].msg_hdr.msg_iov = &iov[0];
-		    reqs[0].msg_hdr.msg_iovlen = 1;
-		    iov[0].iov_base = (void *) buf;
-		    iov[0].iov_len = buflen;
-		    reqs[0].msg_hdr.msg_control = NULL;
-		    reqs[0].msg_hdr.msg_controllen = 0;
-
-		    reqs[1].msg_hdr.msg_name = NULL;
-		    reqs[1].msg_hdr.msg_namelen = 0;
-		    reqs[1].msg_hdr.msg_iov = &iov[1];
-		    reqs[1].msg_hdr.msg_iovlen = 1;
-		    iov[1].iov_base = (void *) buf2;
-		    iov[1].iov_len = buflen2;
-		    reqs[1].msg_hdr.msg_control = NULL;
-		    reqs[1].msg_hdr.msg_controllen = 0;
+		    struct iovec iov =
+		      { .iov_base = (void *) buf, .iov_len = buflen };
+		    struct iovec iov2 =
+		      { .iov_base = (void *) buf2, .iov_len = buflen2 };
+		    struct mmsghdr reqs[2] =
+		      {
+			{
+			  .msg_hdr =
+			    {
+			      .msg_iov = &iov,
+			      .msg_iovlen = 1,
+			    },
+			},
+			{
+			  .msg_hdr =
+			    {
+			      .msg_iov = &iov2,
+			      .msg_iovlen = 1,
+			    }
+			},
+		      };
 
 		    int ndg = __sendmmsg (pfd[0].fd, reqs, 2, MSG_NOSIGNAL);
 		    if (__glibc_likely (ndg == 2))
@@ -1258,7 +1205,6 @@ send_dg(res_state statp,
 #endif
 
 		      fail_sendmmsg:
-			Perror(statp, stderr, "sendmmsg", errno);
 			return close_and_return_error (statp, resplen2);
 		      }
 		  }
@@ -1276,7 +1222,6 @@ send_dg(res_state statp,
 		    if (sr != (nwritten != 0 ? buflen2 : buflen)) {
 		      if (errno == EINTR || errno == EAGAIN)
 			goto recompute_resend;
-		      Perror(statp, stderr, "send", errno);
 		      return close_and_return_error (statp, resplen2);
 		    }
 		  just_one:
@@ -1337,12 +1282,6 @@ send_dg(res_state statp,
 		   MSG_TRUNC which is only available on Linux.  We
 		   can abstract out the Linux-specific feature in the
 		   future to detect truncation.  */
-		if (__glibc_unlikely (*thisanssizp < *thisresplenp)) {
-			Dprint(statp->options & RES_DEBUG,
-			       (stdout, ";; response may be truncated (UDP)\n")
-			);
-		}
-
 		HEADER *anhp = (HEADER *) *thisansp;
 		socklen_t fromlen = sizeof(struct sockaddr_in6);
 		assert (sizeof(from) <= fromlen);
@@ -1354,7 +1293,6 @@ send_dg(res_state statp,
 				need_recompute = 1;
 				goto wait;
 			}
-			Perror(statp, stderr, "recvfrom", errno);
 			return close_and_return_error (statp, resplen2);
 		}
 		*gotsomewhere = 1;
@@ -1362,9 +1300,6 @@ send_dg(res_state statp,
 			/*
 			 * Undersized message.
 			 */
-			Dprint(statp->options & RES_DEBUG,
-			       (stdout, ";; undersized: %d\n",
-				*thisresplenp));
 			*terrno = EMSGSIZE;
 			return close_and_return_error (statp, resplen2);
 		}
@@ -1375,12 +1310,6 @@ send_dg(res_state statp,
 			 * XXX - potential security hazard could
 			 *	 be detected here.
 			 */
-			DprintQ((statp->options & RES_DEBUG) ||
-				(statp->pfcode & RES_PRF_REPLY),
-				(stdout, ";; old answer:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
 			goto wait;
 		}
 		if (!(statp->options & RES_INSECURE1) &&
@@ -1390,34 +1319,8 @@ send_dg(res_state statp,
 			 * XXX - potential security hazard could
 			 *	 be detected here.
 			 */
-			DprintQ((statp->options & RES_DEBUG) ||
-				(statp->pfcode & RES_PRF_REPLY),
-				(stdout, ";; not our server:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
 			goto wait;
 		}
-#ifdef RES_USE_EDNS0
-		if (anhp->rcode == FORMERR
-		    && (statp->options & RES_USE_EDNS0) != 0U) {
-			/*
-			 * Do not retry if the server does not understand
-			 * EDNS0.  The case has to be captured here, as
-			 * FORMERR packet do not carry query section, hence
-			 * res_queriesmatch() returns 0.
-			 */
-			DprintQ(statp->options & RES_DEBUG,
-				(stdout,
-				 "server rejected query with EDNS0:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
-			/* record the error */
-			statp->_flags |= RES_F_EDNS0ERR;
-			return close_and_return_error (statp, resplen2);
-	}
-#endif
 		if (!(statp->options & RES_INSECURE2)
 		    && (recvresp1 || !res_queriesmatch(buf, buf + buflen,
 						       *thisansp,
@@ -1432,23 +1335,11 @@ send_dg(res_state statp,
 			 * XXX - potential security hazard could
 			 *	 be detected here.
 			 */
-			DprintQ((statp->options & RES_DEBUG) ||
-				(statp->pfcode & RES_PRF_REPLY),
-				(stdout, ";; wrong query name:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
 			goto wait;
 		}
 		if (anhp->rcode == SERVFAIL ||
 		    anhp->rcode == NOTIMP ||
 		    anhp->rcode == REFUSED) {
-			DprintQ(statp->options & RES_DEBUG,
-				(stdout, "server rejected query:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
-
 		next_ns:
 			if (recvresp1 || (buf2 != NULL && recvresp2)) {
 			  *resplen2 = 0;
@@ -1474,11 +1365,6 @@ send_dg(res_state statp,
 		}
 		if (anhp->rcode == NOERROR && anhp->ancount == 0
 		    && anhp->aa == 0 && anhp->ra == 0 && anhp->arcount == 0) {
-			DprintQ(statp->options & RES_DEBUG,
-				(stdout, "referred query:\n"),
-				*thisansp,
-				(*thisresplenp > *thisanssizp)
-				? *thisanssizp : *thisresplenp);
 			goto next_ns;
 		}
 		if (!(statp->options & RES_IGNTC) && anhp->tc) {
@@ -1486,8 +1372,6 @@ send_dg(res_state statp,
 			 * To get the rest of answer,
 			 * use TCP with same server.
 			 */
-			Dprint(statp->options & RES_DEBUG,
-			       (stdout, ";; truncated answer\n"));
 			*v_circuit = 1;
 			__res_iclose(statp, false);
 			// XXX if we have received one reply we could
@@ -1530,46 +1414,6 @@ send_dg(res_state statp,
 		abort ();
 	}
 }
-
-#ifdef DEBUG
-static void
-Aerror(const res_state statp, FILE *file, const char *string, int error,
-       const struct sockaddr *address)
-{
-	int save = errno;
-
-	if ((statp->options & RES_DEBUG) != 0) {
-		char tmp[sizeof "xxxx.xxxx.xxxx.255.255.255.255"];
-
-		fprintf(file, "res_send: %s ([%s].%u): %s\n",
-			string,
-			(address->sa_family == AF_INET
-			 ? inet_ntop(address->sa_family,
-				     &((const struct sockaddr_in *) address)->sin_addr,
-				     tmp, sizeof tmp)
-			 : inet_ntop(address->sa_family,
-				     &((const struct sockaddr_in6 *) address)->sin6_addr,
-				     tmp, sizeof tmp)),
-			(address->sa_family == AF_INET
-			 ? ntohs(((struct sockaddr_in *) address)->sin_port)
-			 : address->sa_family == AF_INET6
-			 ? ntohs(((struct sockaddr_in6 *) address)->sin6_port)
-			 : 0),
-			strerror(error));
-	}
-	__set_errno (save);
-}
-
-static void
-Perror(const res_state statp, FILE *file, const char *string, int error) {
-	int save = errno;
-
-	if ((statp->options & RES_DEBUG) != 0)
-		fprintf(file, "res_send: %s: %s\n",
-			string, strerror(error));
-	__set_errno (save);
-}
-#endif
 
 static int
 sock_eq(struct sockaddr_in6 *a1, struct sockaddr_in6 *a2) {

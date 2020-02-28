@@ -1,5 +1,5 @@
 /* Return the least floating-point number greater than X.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,17 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <float.h>
 #include <math.h>
 #include <math_private.h>
+#include <libm-alias-ldouble.h>
 
 /* Return the least floating-point number greater than X.  */
-long double
-__nextupl (long double x)
+_Float128
+__nextupl (_Float128 x)
 {
   int64_t hx, ix;
-  u_int64_t lx;
+  uint64_t lx;
 
   GET_LDOUBLE_WORDS64 (hx, lx, x);
   ix = hx & 0x7fffffffffffffffLL;
@@ -53,4 +55,4 @@ __nextupl (long double x)
   return x;
 }
 
-weak_alias (__nextupl, nextupl)
+libm_alias_ldouble (__nextup, nextup)

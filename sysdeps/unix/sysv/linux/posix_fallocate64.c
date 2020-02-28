@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
 #include <sysdep.h>
 
 extern int __posix_fallocate64_l64 (int fd, __off64_t offset, __off64_t len);
+libc_hidden_proto (__posix_fallocate64_l64)
 #define __posix_fallocate64_l64 static internal_fallocate64
 #include <sysdeps/posix/posix_fallocate64.c>
 #undef __posix_fallocate64_l64
@@ -28,15 +29,18 @@ int
 __posix_fallocate64_l64 (int fd, __off64_t offset, __off64_t len)
 {
   INTERNAL_SYSCALL_DECL (err);
-  int res = INTERNAL_SYSCALL (fallocate, err, 6, fd, 0,
-			      __LONG_LONG_PAIR ((long int) (offset >> 32),
-						(long int) offset),
-			      __LONG_LONG_PAIR ((long int) (len >> 32),
-						(long int) len));
-
+#ifdef INTERNAL_SYSCALL_TYPES
+  int res = INTERNAL_SYSCALL_TYPES (fallocate, err, 4, int, fd,
+                                    int, 0, off_t, offset,
+                                    off_t, len);
+#else
+  int res = INTERNAL_SYSCALL_CALL (fallocate, err, fd, 0,
+				   SYSCALL_LL64 (offset), SYSCALL_LL64 (len));
+#endif
   if (! INTERNAL_SYSCALL_ERROR_P (res, err))
     return 0;
   if (INTERNAL_SYSCALL_ERRNO (res, err) != EOPNOTSUPP)
     return INTERNAL_SYSCALL_ERRNO (res, err);
   return internal_fallocate64 (fd, offset, len);
 }
+libc_hidden_def (__posix_fallocate64_l64)

@@ -60,6 +60,7 @@
 #include <float.h>
 #include <math.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const long double
   invsqrtpi = 5.64189583547756286948079e-1L, two = 2.0e0L, one = 1.0e0L;
@@ -69,7 +70,7 @@ static const long double zero = 0.0L;
 long double
 __ieee754_jnl (int n, long double x)
 {
-  u_int32_t se, i0, i1;
+  uint32_t se, i0, i1;
   int32_t i, ix, sgn;
   long double a, b, temp, di, ret;
   long double z, w;
@@ -142,7 +143,7 @@ __ieee754_jnl (int n, long double x)
 		temp = c - s;
 		break;
 	      }
-	    b = invsqrtpi * temp / __ieee754_sqrtl (x);
+	    b = invsqrtpi * temp / sqrtl (x);
 	  }
 	else
 	  {
@@ -302,7 +303,7 @@ strong_alias (__ieee754_jnl, __jnl_finite)
 long double
 __ieee754_ynl (int n, long double x)
 {
-  u_int32_t se, i0, i1;
+  uint32_t se, i0, i1;
   int32_t i, ix;
   int32_t sign;
   long double a, b, temp, ret;
@@ -371,7 +372,7 @@ __ieee754_ynl (int n, long double x)
 	    temp = s + c;
 	    break;
 	  }
-	b = invsqrtpi * temp / __ieee754_sqrtl (x);
+	b = invsqrtpi * temp / sqrtl (x);
       }
     else
       {

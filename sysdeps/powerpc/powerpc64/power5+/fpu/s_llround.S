@@ -1,5 +1,5 @@
 /* llround function.  POWER5+, PowerPC64 version.
-   Copyright (C) 2006-2016 Free Software Foundation, Inc.
+   Copyright (C) 2006-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,8 @@
 
 #include <sysdep.h>
 #include <math_ldbl_opt.h>
+#include <libm-alias-float.h>
+#include <libm-alias-double.h>
 
 /* long long [r3] llround (float x [fp1])
    IEEE 1003.1 llround function.  IEEE specifies "round to the nearest
@@ -30,7 +32,7 @@
    round to zero instruction.  */
 
 	.machine	"power5"
-EALIGN (__llround, 4, 0)
+ENTRY_TOCLESS (__llround, 4)
 	CALL_MCOUNT 0
 	frin	fp2, fp1	/* Round to nearest +-0.5.  */
 	fctidz	fp3, fp2	/* Convert To Integer DW round toward 0.  */
@@ -43,16 +45,12 @@ EALIGN (__llround, 4, 0)
 	END (__llround)
 
 strong_alias (__llround, __lround)
-weak_alias (__llround, llround)
-weak_alias (__lround, lround)
-
-#ifdef NO_LONG_DOUBLE
-weak_alias (__llround, llroundl)
-strong_alias (__llround, __llroundl)
-weak_alias (__lround, lroundl)
-strong_alias (__lround, __lroundl)
-#endif
-#if LONG_DOUBLE_COMPAT(libm, GLIBC_2_1)
-compat_symbol (libm, __llround, llroundl, GLIBC_2_1)
-compat_symbol (libm, __lround, lroundl, GLIBC_2_1)
-#endif
+libm_alias_double (__llround, llround)
+libm_alias_double (__lround, lround)
+/* The double version also works for single-precision as both float and
+   double parameters are passed in 64bit FPRs and both versions are expected
+   to return [long] long type.  */
+strong_alias (__llround, __llroundf)
+libm_alias_float (__llround, llround)
+strong_alias (__lround, __lroundf)
+libm_alias_float (__lround, lround)

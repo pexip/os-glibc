@@ -1,5 +1,5 @@
 /* Special .init and .fini section support for x86-64.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -58,8 +58,10 @@
 	.section .init,"ax",@progbits
 	.p2align 2
 	.globl _init
+	.hidden	_init
 	.type _init, @function
 _init:
+	_CET_ENDBR
 	/* Maintain 16-byte stack alignment for called functions.  */
 	subq $8, %rsp
 #if PREINIT_FUNCTION_WEAK
@@ -75,6 +77,8 @@ _init:
 	.section .fini,"ax",@progbits
 	.p2align 2
 	.globl _fini
+	.hidden	_fini
 	.type _fini, @function
 _fini:
+	_CET_ENDBR
 	subq $8, %rsp

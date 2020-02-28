@@ -1,5 +1,5 @@
 /* Optimized sincosf function.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,8 +17,8 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#define __need_Emath
-#include <bits/errno.h>
+#include <errno.h>
+#include <libm-alias-float.h>
 
 /* Short algorithm description:
  *
@@ -561,4 +561,6 @@ L(SP_ONE):
 	.type L(SP_ONE), @object
 	ASM_SIZE_DIRECTIVE(L(SP_ONE))
 
-weak_alias(__sincosf, sincosf)
+#ifndef __sincosf
+libm_alias_float (__sincos, sincos)
+#endif

@@ -7,7 +7,7 @@ constant F_SETFL
 constant F_GETLK
 constant F_SETLK
 constant F_SETLKW
-#if !defined POSIX && !defined XPG3 && !defined XPG4 && !defined UNIX98
+#if !defined POSIX && !defined XPG4 && !defined XPG42 && !defined UNIX98
 constant F_GETOWN
 constant F_SETOWN
 #endif
@@ -36,7 +36,7 @@ constant O_TRUNC
 constant O_APPEND
 constant O_NONBLOCK
 constant O_SYNC
-#if !defined XPG3 && !defined XPG4
+#if !defined XPG4 && !defined XPG42
 constant O_DSYNC
 constant O_RSYNC
 #endif
@@ -78,8 +78,9 @@ constant POSIX_FADV_NOREUSE
 
 type {struct flock}
 
-element {struct flock} short l_type
-element {struct flock} short l_whence
+// Bug 23081: l_type and l_whence members of flock structure have type int instead of short
+xfail[i386-gnu]-element {struct flock} short l_type
+xfail[i386-gnu]-element {struct flock} short l_whence
 element {struct flock} off_t l_start
 element {struct flock} off_t l_len
 element {struct flock} pid_t l_pid

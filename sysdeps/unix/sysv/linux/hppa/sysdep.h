@@ -1,5 +1,5 @@
 /* Assembler macros for PA-RISC.
-   Copyright (C) 1999-2016 Free Software Foundation, Inc.
+   Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper, <drepper@cygnus.com>, August 1999.
    Linux/PA-RISC changes by Philipp Rumpf, <prumpf@tux.org>, March 2000.
@@ -49,11 +49,9 @@
    to another function */
 #define TREG 4
 #define SAVE_PIC(SREG) \
-	copy %r19, SREG ASM_LINE_SEP	\
-	.cfi_register 19, SREG
+	copy %r19, SREG
 #define LOAD_PIC(LREG) \
-	copy LREG , %r19 ASM_LINE_SEP	\
-	.cfi_restore 19
+	copy LREG , %r19
 /* Inline assembly defines */
 #define TREG_ASM "%r4" /* Cant clobber r3, it holds framemarker */
 #define SAVE_ASM_PIC	"       copy %%r19, %" TREG_ASM "\n"
@@ -292,12 +290,11 @@
 #define DO_CALL(syscall_name, args)				\
 	/* Create a frame */			ASM_LINE_SEP	\
 	stwm TREG, 64(%sp)			ASM_LINE_SEP	\
+	.cfi_def_cfa_offset -64			ASM_LINE_SEP	\
 	.cfi_offset TREG, 0			ASM_LINE_SEP	\
-	.cfi_adjust_cfa_offset 64		ASM_LINE_SEP	\
 	stw %sp, -4(%sp)			ASM_LINE_SEP	\
-	.cfi_offset 30, -4			ASM_LINE_SEP	\
 	stw %r19, -32(%sp)			ASM_LINE_SEP	\
-	.cfi_offset 19, -32			ASM_LINE_SEP	\
+	.cfi_offset 19, 32			ASM_LINE_SEP	\
 	/* Save r19 */				ASM_LINE_SEP	\
 	SAVE_PIC(TREG)				ASM_LINE_SEP	\
 	/* Do syscall, delay loads # */		ASM_LINE_SEP	\
@@ -320,10 +317,8 @@
 L(pre_end):					ASM_LINE_SEP	\
 	/* Restore our frame, restoring TREG */	ASM_LINE_SEP	\
 	ldwm -64(%sp), TREG			ASM_LINE_SEP	\
-	.cfi_adjust_cfa_offset -64		ASM_LINE_SEP	\
 	/* Restore return pointer */		ASM_LINE_SEP	\
-	ldw -20(%sp),%rp			ASM_LINE_SEP	\
-	.cfi_restore 2				ASM_LINE_SEP
+	ldw -20(%sp),%rp			ASM_LINE_SEP
 
 /* We do nothing with the return, except hand it back to someone else */
 #undef  DO_CALL_NOERRNO
@@ -508,5 +503,7 @@ L(pre_end):					ASM_LINE_SEP	\
 /* Pointer mangling is not yet supported for HPPA.  */
 #define PTR_MANGLE(var) (void) (var)
 #define PTR_DEMANGLE(var) (void) (var)
+
+#define SINGLE_THREAD_BY_GLOBAL	1
 
 #endif /* _LINUX_HPPA_SYSDEP_H */

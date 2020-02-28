@@ -1,5 +1,5 @@
 /* isinf().  PowerPC64/POWER8 version.
-   Copyright (C) 2014-2016 Free Software Foundation, Inc.
+   Copyright (C) 2014-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 
 /* int [r3] __isinf([fp1] x)  */
 
-EALIGN (__isinf, 4, 0)
+ENTRY_TOCLESS (__isinf, 4)
 	CALL_MCOUNT 0
 	MFVSRD_R3_V1
 	lis     r9,0x7ff0     /* r9 = 0x7ff0  */

@@ -1,5 +1,5 @@
 /* Skeleton for benchmark programs.
-   Copyright (C) 2013-2016 Free Software Foundation, Inc.
+   Copyright (C) 2013-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -68,34 +68,61 @@ main (int argc, char **argv)
       clock_gettime (CLOCK_MONOTONIC_RAW, &runtime);
       runtime.tv_sec += DURATION;
 
+      bool is_bench = strncmp (VARIANT (v), "workload-", 9) == 0;
       double d_total_i = 0;
       timing_t total = 0, max = 0, min = 0x7fffffffffffffff;
+      timing_t throughput = 0, latency = 0;
       int64_t c = 0;
+      uint64_t cur;
+      BENCH_VARS;
       while (1)
 	{
-	  for (i = 0; i < NUM_SAMPLES (v); i++)
+	  if (is_bench)
 	    {
-	      uint64_t cur;
+	      /* Benchmark a real trace of calls - all samples are iterated
+		 over once before repeating.  This models actual use more
+		 accurately than repeating the same sample many times.  */
 	      TIMING_NOW (start);
 	      for (k = 0; k < iters; k++)
-		BENCH_FUNC (v, i);
+		for (i = 0; i < NUM_SAMPLES (v); i++)
+		  BENCH_FUNC (v, i);
 	      TIMING_NOW (end);
-
 	      TIMING_DIFF (cur, start, end);
+	      TIMING_ACCUM (throughput, cur);
 
-	      if (cur > max)
-		max = cur;
+	      TIMING_NOW (start);
+	      for (k = 0; k < iters; k++)
+		for (i = 0; i < NUM_SAMPLES (v); i++)
+		  BENCH_FUNC_LAT (v, i);
+	      TIMING_NOW (end);
+	      TIMING_DIFF (cur, start, end);
+	      TIMING_ACCUM (latency, cur);
 
-	      if (cur < min)
-		min = cur;
-
-	      TIMING_ACCUM (total, cur);
-	      /* Accumulate timings for the value.  In the end we will divide
-	         by the total iterations.  */
-	      RESULT_ACCUM (cur, v, i, c * iters, (c + 1) * iters);
-
-	      d_total_i += iters;
+	      d_total_i += iters * NUM_SAMPLES (v);
 	    }
+	  else
+	    for (i = 0; i < NUM_SAMPLES (v); i++)
+	      {
+		TIMING_NOW (start);
+		for (k = 0; k < iters; k++)
+		  BENCH_FUNC (v, i);
+		TIMING_NOW (end);
+
+		TIMING_DIFF (cur, start, end);
+
+		if (cur > max)
+		  max = cur;
+
+		if (cur < min)
+		  min = cur;
+
+		TIMING_ACCUM (total, cur);
+		/* Accumulate timings for the value.  In the end we will divide
+		   by the total iterations.  */
+		RESULT_ACCUM (cur, v, i, c * iters, (c + 1) * iters);
+
+		d_total_i += iters;
+	      }
 	  c++;
 	  struct timespec curtime;
 
@@ -115,13 +142,26 @@ main (int argc, char **argv)
       /* Begin variant.  */
       json_attr_object_begin (&json_ctx, VARIANT (v));
 
-      json_attr_double (&json_ctx, "duration", d_total_s);
-      json_attr_double (&json_ctx, "iterations", d_total_i);
-      json_attr_double (&json_ctx, "max", max / d_iters);
-      json_attr_double (&json_ctx, "min", min / d_iters);
-      json_attr_double (&json_ctx, "mean", d_total_s / d_total_i);
+      if (is_bench)
+	{
+	  json_attr_double (&json_ctx, "reciprocal-throughput",
+			    throughput / d_total_i);
+	  json_attr_double (&json_ctx, "latency", latency / d_total_i);
+	  json_attr_double (&json_ctx, "max-throughput",
+			    d_total_i / throughput * 1000000000.0);
+	  json_attr_double (&json_ctx, "min-throughput",
+			    d_total_i / latency * 1000000000.0);
+	}
+      else
+	{
+	  json_attr_double (&json_ctx, "duration", d_total_s);
+	  json_attr_double (&json_ctx, "iterations", d_total_i);
+	  json_attr_double (&json_ctx, "max", max / d_iters);
+	  json_attr_double (&json_ctx, "min", min / d_iters);
+	  json_attr_double (&json_ctx, "mean", d_total_s / d_total_i);
+	}
 
-      if (detailed)
+      if (detailed && !is_bench)
 	{
 	  json_array_begin (&json_ctx, "timings");
 

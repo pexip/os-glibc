@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,12 +37,12 @@ __vasprintf_chk (char **result_ptr, int flags, const char *format,
 {
   /* Initial size of the buffer to be used.  Will be doubled each time an
      overflow occurs.  */
-  const _IO_size_t init_string_size = 100;
+  const size_t init_string_size = 100;
   char *string;
   _IO_strfile sf;
   int ret;
-  _IO_size_t needed;
-  _IO_size_t allocated;
+  size_t needed;
+  size_t allocated;
   /* No need to clear the memory here (unlike for open_memstream) since
      we know we will never seek on the stream.  */
   string = (char *) malloc (init_string_size);
@@ -55,8 +55,8 @@ __vasprintf_chk (char **result_ptr, int flags, const char *format,
   _IO_JUMPS (&sf._sbf) = &_IO_str_jumps;
   _IO_str_init_static_internal (&sf, string, init_string_size, string);
   sf._sbf._f._flags &= ~_IO_USER_BUF;
-  sf._s._allocate_buffer = (_IO_alloc_type) malloc;
-  sf._s._free_buffer = (_IO_free_type) free;
+  sf._s._allocate_buffer_unused = (_IO_alloc_type) malloc;
+  sf._s._free_buffer_unused = (_IO_free_type) free;
 
   /* For flags > 0 (i.e. __USE_FORTIFY_LEVEL > 1) request that %n
      can only come from read-only format strings.  */

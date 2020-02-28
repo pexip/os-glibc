@@ -1,12 +1,15 @@
 # configuration options for all flavours
-extra_config_options = --enable-multi-arch
+extra_config_options = --enable-multi-arch --enable-static-pie
 
 # main library
 libc_mvec = yes
 libc_rtlddir = /libx32
 
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 # build 64-bit (amd64) alternative library
-GLIBC_MULTILIB_PASSES += amd64
+GLIBC_PASSES += amd64
 DEB_ARCH_MULTILIB_PACKAGES += libc6-amd64 libc6-dev-amd64
 libc6-amd64_shlib_dep = libc6-amd64 (>= $(shlib_dep_ver))
 amd64_configure_target = x86_64-linux-gnu
@@ -25,7 +28,8 @@ ln -s x86_64-linux-gnux32/gnu debian/libc6-dev-amd64/usr/include/
 ln -s x86_64-linux-gnux32/fpu_control.h debian/libc6-dev-amd64/usr/include/
 
 mkdir -p debian/libc6-dev-amd64/usr/include/x86_64-linux-gnux32/gnu
-cp -a debian/tmp-amd64/usr/include/gnu/stubs-64.h \
+cp -a debian/tmp-amd64/usr/include/gnu/lib-names-64.h \
+	debian/tmp-amd64/usr/include/gnu/stubs-64.h \
 	debian/libc6-dev-amd64/usr/include/x86_64-linux-gnux32/gnu
 
 mkdir -p debian/libc6-dev-amd64/usr/include/sys
@@ -36,7 +40,7 @@ done
 endef
 
 # build 32-bit (i386) alternative library
-GLIBC_MULTILIB_PASSES += i386
+GLIBC_PASSES += i386
 DEB_ARCH_MULTILIB_PACKAGES += libc6-i386 libc6-dev-i386
 libc6-i386_shlib_dep = libc6-i386 (>= $(shlib_dep_ver))
 i386_configure_target = i686-linux-gnu
@@ -49,7 +53,8 @@ i386_libdir = /usr/lib32
 define libc6-dev-i386_extra_pkg_install
 
 mkdir -p debian/libc6-dev-i386/usr/include/x86_64-linux-gnux32/gnu
-cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h \
+cp -a debian/tmp-i386/usr/include/gnu/lib-names-32.h \
+	debian/tmp-i386/usr/include/gnu/stubs-32.h \
 	debian/libc6-dev-i386/usr/include/x86_64-linux-gnux32/gnu
 
 endef
@@ -58,3 +63,5 @@ define libc6-i386_extra_pkg_install
 mkdir -p debian/libc6-i386/lib
 ln -sf /lib32/ld-linux.so.2 debian/libc6-i386/lib
 endef
+
+endif # multilib

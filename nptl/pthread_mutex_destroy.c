@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -36,5 +36,5 @@ __pthread_mutex_destroy (pthread_mutex_t *mutex)
 
   return 0;
 }
-strong_alias (__pthread_mutex_destroy, pthread_mutex_destroy)
+weak_alias (__pthread_mutex_destroy, pthread_mutex_destroy)
 hidden_def (__pthread_mutex_destroy)

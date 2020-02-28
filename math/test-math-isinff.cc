@@ -1,5 +1,5 @@
 /* Test for bug 19439.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Marek Polacek <polacek@redhat.com>, 2012.
 
@@ -30,16 +30,12 @@ do_test (void)
      header fix this test will not compile.  */
   if (isinff (1.0f)
       || !isinff (INFINITY)
-#ifndef NO_LONG_DOUBLE
       || isinfl (1.0L)
       || !isinfl (INFINITY)
-#endif
       || isnanf (2.0f)
       || !isnanf (NAN)
-#ifndef NO_LONG_DOUBLE
       || isnanl (2.0L)
       || !isnanl (NAN)
-#endif
       )
     {
       printf ("FAIL: Failed to call is* functions.\n");

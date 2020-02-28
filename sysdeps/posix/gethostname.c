@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ __gethostname (char *name, size_t len)
   struct utsname buf;
   size_t node_len;
 
-  if (uname (&buf))
+  if (__uname (&buf))
     return -1;
 
   node_len = strlen (buf.nodename) + 1;

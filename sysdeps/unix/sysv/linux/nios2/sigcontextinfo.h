@@ -1,5 +1,5 @@
 /* Nios II definitions for signal handling calling conventions.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
 #include <sys/ucontext.h>
 #include "kernel-features.h"
 
-#define SIGCONTEXT siginfo_t *_si, struct ucontext *
+#define SIGCONTEXT siginfo_t *_si, ucontext_t *
 #define GET_PC(ctx) ((void *) (ctx)->uc_mcontext.regs[27])
 
 /* There is no reliable way to get the sigcontext unless we use a

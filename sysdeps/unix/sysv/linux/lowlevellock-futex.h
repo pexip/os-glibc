@@ -1,5 +1,5 @@
 /* Low-level locking access to futex facilities.  Linux version.
-   Copyright (C) 2005-2016 Free Software Foundation, Inc.
+   Copyright (C) 2005-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -53,31 +53,16 @@
 
 #if IS_IN (libc) || IS_IN (rtld)
 /* In libc.so or ld.so all futexes are private.  */
-# ifdef __ASSUME_PRIVATE_FUTEX
-#  define __lll_private_flag(fl, private)			\
+# define __lll_private_flag(fl, private)			\
   ({								\
     /* Prevent warnings in callers of this macro.  */		\
     int __lll_private_flag_priv __attribute__ ((unused));	\
     __lll_private_flag_priv = (private);			\
     ((fl) | FUTEX_PRIVATE_FLAG);				\
   })
-# else
-#  define __lll_private_flag(fl, private) \
-  ((fl) | THREAD_GETMEM (THREAD_SELF, header.private_futex))
-# endif
 #else
-# ifdef __ASSUME_PRIVATE_FUTEX
-#  define __lll_private_flag(fl, private) \
+# define __lll_private_flag(fl, private) \
   (((fl) | FUTEX_PRIVATE_FLAG) ^ (private))
-# else
-#  define __lll_private_flag(fl, private) \
-  (__builtin_constant_p (private)					      \
-   ? ((private) == 0							      \
-      ? ((fl) | THREAD_GETMEM (THREAD_SELF, header.private_futex))	      \
-      : (fl))								      \
-   : ((fl) | (((private) ^ FUTEX_PRIVATE_FLAG)				      \
-	      & THREAD_GETMEM (THREAD_SELF, header.private_futex))))
-# endif
 #endif
 
 #define lll_futex_syscall(nargs, futexp, op, ...)                       \

@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,9 +31,9 @@
 #ifndef __OFF_T_MATCHES_OFF64_T
 
 int
-_IO_new_fgetpos64 (_IO_FILE *fp, _IO_fpos64_t *posp)
+_IO_new_fgetpos64 (FILE *fp, __fpos64_t *posp)
 {
-  _IO_off64_t pos;
+  off64_t pos;
   int result = 0;
   CHECK_FILE (fp, EOF);
   _IO_acquire_lock (fp);
@@ -47,10 +47,8 @@ _IO_new_fgetpos64 (_IO_FILE *fp, _IO_fpos64_t *posp)
     {
       /* ANSI explicitly requires setting errno to a positive value on
 	 failure.  */
-# ifdef EIO
       if (errno == 0)
 	__set_errno (EIO);
-# endif
       result = EOF;
     }
   else

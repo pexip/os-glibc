@@ -1,5 +1,5 @@
 /* POSIX.2 wordexp implementation.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Tim Waugh <tim@cyberelk.demon.co.uk>.
 
@@ -17,7 +17,6 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <alloca.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -41,6 +40,7 @@
 #include <wchar.h>
 #include <wordexp.h>
 #include <kernel-features.h>
+#include <scratch_buffer.h>
 
 #include <libc-lock.h>
 #include <_itoa.h>
@@ -64,19 +64,16 @@ extern char **__libc_argv attribute_hidden;
 static int parse_dollars (char **word, size_t *word_length, size_t *max_length,
 			  const char *words, size_t *offset, int flags,
 			  wordexp_t *pwordexp, const char *ifs,
-			  const char *ifs_white, int quoted)
-     internal_function;
+			  const char *ifs_white, int quoted);
 static int parse_backtick (char **word, size_t *word_length,
 			   size_t *max_length, const char *words,
 			   size_t *offset, int flags, wordexp_t *pwordexp,
-			   const char *ifs, const char *ifs_white)
-     internal_function;
+			   const char *ifs, const char *ifs_white);
 static int parse_dquote (char **word, size_t *word_length, size_t *max_length,
 			 const char *words, size_t *offset, int flags,
 			 wordexp_t *pwordexp, const char *ifs,
-			 const char *ifs_white)
-     internal_function;
-static int eval_expr (char *expr, long int *result) internal_function;
+			 const char *ifs_white);
+static int eval_expr (char *expr, long int *result);
 
 /* The w_*() functions manipulate word lists. */
 
@@ -117,7 +114,6 @@ w_addchar (char *buffer, size_t *actlen, size_t *maxlen, char ch)
 }
 
 static char *
-internal_function
 w_addmem (char *buffer, size_t *actlen, size_t *maxlen, const char *str,
 	  size_t len)
 {
@@ -144,7 +140,6 @@ w_addmem (char *buffer, size_t *actlen, size_t *maxlen, const char *str,
 }
 
 static char *
-internal_function
 w_addstr (char *buffer, size_t *actlen, size_t *maxlen, const char *str)
      /* (lengths exclude trailing zero) */
 {
@@ -159,7 +154,6 @@ w_addstr (char *buffer, size_t *actlen, size_t *maxlen, const char *str)
 }
 
 static int
-internal_function
 w_addword (wordexp_t *pwordexp, char *word)
 {
   /* Add a word to the wordlist */
@@ -200,7 +194,6 @@ no_space:
  */
 
 static int
-internal_function
 parse_backslash (char **word, size_t *word_length, size_t *max_length,
 		 const char *words, size_t *offset)
 {
@@ -229,7 +222,6 @@ parse_backslash (char **word, size_t *word_length, size_t *max_length,
 }
 
 static int
-internal_function
 parse_qtd_backslash (char **word, size_t *word_length, size_t *max_length,
 		     const char *words, size_t *offset)
 {
@@ -272,7 +264,6 @@ parse_qtd_backslash (char **word, size_t *word_length, size_t *max_length,
 }
 
 static int
-internal_function
 parse_tilde (char **word, size_t *word_length, size_t *max_length,
 	     const char *words, size_t *offset, size_t wordc)
 {
@@ -308,12 +299,7 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
   if (i == 1 + *offset)
     {
       /* Tilde appears on its own */
-      uid_t uid;
-      struct passwd pwd, *tpwd;
-      int buflen = 1000;
       char* home;
-      char* buffer;
-      int result;
 
       /* POSIX.2 says ~ expands to $HOME and if HOME is unset the
 	 results are unspecified.  We do a lookup on the uid if
@@ -328,25 +314,38 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 	}
       else
 	{
-	  uid = __getuid ();
-	  buffer = __alloca (buflen);
+	  struct passwd pwd, *tpwd;
+	  uid_t uid = __getuid ();
+	  int result;
+	  struct scratch_buffer tmpbuf;
+	  scratch_buffer_init (&tmpbuf);
 
-	  while ((result = __getpwuid_r (uid, &pwd, buffer, buflen, &tpwd)) != 0
+	  while ((result = __getpwuid_r (uid, &pwd,
+					 tmpbuf.data, tmpbuf.length,
+					 &tpwd)) != 0
 		 && errno == ERANGE)
-	    buffer = extend_alloca (buffer, buflen, buflen + 1000);
+	    if (!scratch_buffer_grow (&tmpbuf))
+	      return WRDE_NOSPACE;
 
 	  if (result == 0 && tpwd != NULL && pwd.pw_dir != NULL)
 	    {
 	      *word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
 	      if (*word == NULL)
-		return WRDE_NOSPACE;
+		{
+		  scratch_buffer_free (&tmpbuf);
+		  return WRDE_NOSPACE;
+		}
 	    }
 	  else
 	    {
 	      *word = w_addchar (*word, word_length, max_length, '~');
 	      if (*word == NULL)
-		return WRDE_NOSPACE;
+		{
+		  scratch_buffer_free (&tmpbuf);
+		  return WRDE_NOSPACE;
+		}
 	    }
+	  scratch_buffer_free (&tmpbuf);
 	}
     }
   else
@@ -354,13 +353,15 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
       /* Look up user name in database to get home directory */
       char *user = strndupa (&words[1 + *offset], i - (1 + *offset));
       struct passwd pwd, *tpwd;
-      int buflen = 1000;
-      char* buffer = __alloca (buflen);
       int result;
+      struct scratch_buffer tmpbuf;
+      scratch_buffer_init (&tmpbuf);
 
-      while ((result = __getpwnam_r (user, &pwd, buffer, buflen, &tpwd)) != 0
+      while ((result = __getpwnam_r (user, &pwd, tmpbuf.data, tmpbuf.length,
+				     &tpwd)) != 0
 	     && errno == ERANGE)
-	buffer = extend_alloca (buffer, buflen, buflen + 1000);
+	if (!scratch_buffer_grow (&tmpbuf))
+	  return WRDE_NOSPACE;
 
       if (result == 0 && tpwd != NULL && pwd.pw_dir)
 	*word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
@@ -372,6 +373,8 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 	    *word = w_addstr (*word, word_length, max_length, user);
 	}
 
+      scratch_buffer_free (&tmpbuf);
+
       *offset = i - 1;
     }
   return *word ? 0 : WRDE_NOSPACE;
@@ -379,7 +382,6 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 
 
 static int
-internal_function
 do_parse_glob (const char *glob_word, char **word, size_t *word_length,
 	       size_t *max_length, wordexp_t *pwordexp, const char *ifs,
 	       const char *ifs_white)
@@ -436,7 +438,6 @@ do_parse_glob (const char *glob_word, char **word, size_t *word_length,
 }
 
 static int
-internal_function
 parse_glob (char **word, size_t *word_length, size_t *max_length,
 	    const char *words, size_t *offset, int flags,
 	    wordexp_t *pwordexp, const char *ifs, const char *ifs_white)
@@ -532,7 +533,6 @@ tidy_up:
 }
 
 static int
-internal_function
 parse_squote (char **word, size_t *word_length, size_t *max_length,
 	      const char *words, size_t *offset)
 {
@@ -554,7 +554,6 @@ parse_squote (char **word, size_t *word_length, size_t *max_length,
 
 /* Functions to evaluate an arithmetic expression */
 static int
-internal_function
 eval_expr_val (char **expr, long int *result)
 {
   char *digit;
@@ -589,7 +588,6 @@ eval_expr_val (char **expr, long int *result)
 }
 
 static int
-internal_function
 eval_expr_multdiv (char **expr, long int *result)
 {
   long int arg;
@@ -630,7 +628,6 @@ eval_expr_multdiv (char **expr, long int *result)
 }
 
 static int
-internal_function
 eval_expr (char *expr, long int *result)
 {
   long int arg;
@@ -667,7 +664,6 @@ eval_expr (char *expr, long int *result)
 }
 
 static int
-internal_function
 parse_arith (char **word, size_t *word_length, size_t *max_length,
 	     const char *words, size_t *offset, int flags, int bracket)
 {
@@ -817,7 +813,7 @@ parse_arith (char **word, size_t *word_length, size_t *max_length,
 
 /* Function called by child process in exec_comm() */
 static inline void
-internal_function __attribute__ ((always_inline))
+__attribute__ ((always_inline))
 exec_comm_child (char *comm, int *fildes, int showerr, int noexec)
 {
   const char *args[4] = { _PATH_BSHELL, "-c", comm, NULL };
@@ -833,15 +829,8 @@ exec_comm_child (char *comm, int *fildes, int showerr, int noexec)
       __close (fildes[1]);
     }
   else
-    {
-#ifdef O_CLOEXEC
-      /* Reset the close-on-exec flag (if necessary).  */
-# ifndef __ASSUME_PIPE2
-      if (__have_pipe2 > 0)
-# endif
-	__fcntl (fildes[1], F_SETFD, 0);
-#endif
-    }
+    /* Reset the close-on-exec flag (if necessary).  */
+    __fcntl (fildes[1], F_SETFD, 0);
 
   /* Redirect stderr to /dev/null if we have to.  */
   if (showerr == 0)
@@ -860,7 +849,7 @@ exec_comm_child (char *comm, int *fildes, int showerr, int noexec)
       if (__builtin_expect (__fxstat64 (_STAT_VER, STDERR_FILENO, &st), 0) != 0
 	  || __builtin_expect (S_ISCHR (st.st_mode), 1) == 0
 #if defined DEV_NULL_MAJOR && defined DEV_NULL_MINOR
-	  || st.st_rdev != makedev (DEV_NULL_MAJOR, DEV_NULL_MINOR)
+	  || st.st_rdev != __gnu_dev_makedev (DEV_NULL_MAJOR, DEV_NULL_MINOR)
 #endif
 	  )
 	/* It's not the /dev/null device.  Stop right here.  The
@@ -882,7 +871,6 @@ exec_comm_child (char *comm, int *fildes, int showerr, int noexec)
 /* Function to execute a command and retrieve the results */
 /* pwordexp contains NULL if field-splitting is forbidden */
 static int
-internal_function
 exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
 	   int flags, wordexp_t *pwordexp, const char *ifs,
 	   const char *ifs_white)
@@ -905,31 +893,8 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
   if (!comm || !*comm)
     return 0;
 
-#ifdef O_CLOEXEC
-# ifndef __ASSUME_PIPE2
-  if (__have_pipe2 >= 0)
-# endif
-    {
-      int r = __pipe2 (fildes, O_CLOEXEC);
-# ifndef __ASSUME_PIPE2
-      if (__have_pipe2 == 0)
-	__have_pipe2 = r != -1 || errno != ENOSYS ? 1 : -1;
-
-      if (__have_pipe2 > 0)
-# endif
-	if (r < 0)
-	  /* Bad */
-	  return WRDE_NOSPACE;
-    }
-#endif
-#ifndef __ASSUME_PIPE2
-# ifdef O_CLOEXEC
-  if (__have_pipe2 < 0)
-# endif
-    if (__pipe (fildes) < 0)
-      /* Bad */
-      return WRDE_NOSPACE;
-#endif
+  if (__pipe2 (fildes, O_CLOEXEC) < 0)
+    return WRDE_NOSPACE;
 
  again:
   if ((pid = __fork ()) < 0)
@@ -1139,7 +1104,6 @@ no_space:
 }
 
 static int
-internal_function
 parse_comm (char **word, size_t *word_length, size_t *max_length,
 	    const char *words, size_t *offset, int flags, wordexp_t *pwordexp,
 	    const char *ifs, const char *ifs_white)
@@ -1227,7 +1191,6 @@ parse_comm (char **word, size_t *word_length, size_t *max_length,
   (memchr (char_set "", ch, sizeof (char_set) - 1) != NULL)
 
 static int
-internal_function
 parse_param (char **word, size_t *word_length, size_t *max_length,
 	     const char *words, size_t *offset, int flags, wordexp_t *pwordexp,
 	     const char *ifs, const char *ifs_white, int quoted)
@@ -2056,7 +2019,6 @@ do_error:
 #undef CHAR_IN_SET
 
 static int
-internal_function
 parse_dollars (char **word, size_t *word_length, size_t *max_length,
 	       const char *words, size_t *offset, int flags,
 	       wordexp_t *pwordexp, const char *ifs, const char *ifs_white,
@@ -2115,7 +2077,6 @@ parse_dollars (char **word, size_t *word_length, size_t *max_length,
 }
 
 static int
-internal_function
 parse_backtick (char **word, size_t *word_length, size_t *max_length,
 		const char *words, size_t *offset, int flags,
 		wordexp_t *pwordexp, const char *ifs, const char *ifs_white)
@@ -2179,7 +2140,6 @@ parse_backtick (char **word, size_t *word_length, size_t *max_length,
 }
 
 static int
-internal_function
 parse_dquote (char **word, size_t *word_length, size_t *max_length,
 	      const char *words, size_t *offset, int flags,
 	      wordexp_t *pwordexp, const char * ifs, const char * ifs_white)

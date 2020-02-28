@@ -39,7 +39,9 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
+#include <math-narrow-eval.h>
 #include <math_private.h>
+#include <math-underflow.h>
 
 static const double
   invsqrtpi = 5.64189583547756279280e-01, /* 0x3FE20DD7, 0x50429B6D */
@@ -61,7 +63,7 @@ __ieee754_jn (int n, double x)
   EXTRACT_WORDS (hx, lx, x);
   ix = 0x7fffffff & hx;
   /* if J(n,NaN) is NaN */
-  if (__glibc_unlikely ((ix | ((u_int32_t) (lx | -lx)) >> 31) > 0x7ff00000))
+  if (__glibc_unlikely ((ix | ((uint32_t) (lx | -lx)) >> 31) > 0x7ff00000))
     return x + x;
   if (n < 0)
     {
@@ -107,7 +109,7 @@ __ieee754_jn (int n, double x)
 	      case 2: temp = -c - s; break;
 	      case 3: temp = c - s; break;
 	      }
-	    b = invsqrtpi * temp / __ieee754_sqrt (x);
+	    b = invsqrtpi * temp / sqrt (x);
 	  }
 	else
 	  {
@@ -266,13 +268,8 @@ __ieee754_yn (int n, double x)
   EXTRACT_WORDS (hx, lx, x);
   ix = 0x7fffffff & hx;
   /* if Y(n,NaN) is NaN */
-  if (__glibc_unlikely ((ix | ((u_int32_t) (lx | -lx)) >> 31) > 0x7ff00000))
+  if (__glibc_unlikely ((ix | ((uint32_t) (lx | -lx)) >> 31) > 0x7ff00000))
     return x + x;
-  if (__glibc_unlikely ((ix | lx) == 0))
-    return -HUGE_VAL + x;
-  /* -inf and overflow exception.  */;
-  if (__glibc_unlikely (hx < 0))
-    return zero / (zero * x);
   sign = 1;
   if (n < 0)
     {
@@ -281,6 +278,11 @@ __ieee754_yn (int n, double x)
     }
   if (n == 0)
     return (__ieee754_y0 (x));
+  if (__glibc_unlikely ((ix | lx) == 0))
+    return -sign / zero;
+  /* -inf and overflow exception.  */;
+  if (__glibc_unlikely (hx < 0))
+    return zero / (zero * x);
   {
     SET_RESTORE_ROUND (FE_TONEAREST);
     if (n == 1)
@@ -314,11 +316,11 @@ __ieee754_yn (int n, double x)
 	  case 2: temp = -s + c; break;
 	  case 3: temp = s + c; break;
 	  }
-	b = invsqrtpi * temp / __ieee754_sqrt (x);
+	b = invsqrtpi * temp / sqrt (x);
       }
     else
       {
-	u_int32_t high;
+	uint32_t high;
 	a = __ieee754_y0 (x);
 	b = __ieee754_y1 (x);
 	/* quit if b is -inf */

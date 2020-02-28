@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,8 +22,6 @@
 #define _ERRNO_H	1
 #include <bits/errno.h>
 #include <asm-syntax.h>
-
-#define CLONE_VM	0x00000100
 
 /* The userland implementation is:
    int clone (int (*fn)(void *arg), void *child_stack, int flags, void *arg),
@@ -91,21 +89,14 @@ L(thread_start):
 	   the outermost frame obviously.  */
 	xorl	%ebp, %ebp
 
-	andq	$CLONE_VM, %rdi
-	jne	1f
-	movl	$SYS_ify(getpid), %eax
-	syscall
-	movl	%eax, %fs:PID
-	movl	%eax, %fs:TID
-1:
-
 	/* Set up arguments for the function call.  */
 	popq	%rax		/* Function to call.  */
 	popq	%rdi		/* Argument.  */
 	call	*%rax
 	/* Call exit with return value from function call. */
 	movq	%rax, %rdi
-	call	HIDDEN_JUMPTARGET (_exit)
+	movl	$SYS_ify(exit), %eax
+	syscall
 	cfi_endproc;
 
 	cfi_startproc;

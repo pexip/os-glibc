@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -21,18 +21,11 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <nptl-signals.h>
+#include <internal-signals.h>
 
 int
 raise (int sig)
 {
-  /* raise is an async-safe function so it could be called while the
-     fork/vfork function temporarily invalidated the PID field.  To avoid
-     relying on cached value we block all user-defined signal handler
-     (which might call fork/vfork) and issue the getpid and gettid
-     syscalls directly.  */
-
-
   /* rt_sigprocmask may fail if:
 
      1. sigsetsize != sizeof (sigset_t) (EINVAL)

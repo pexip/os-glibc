@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2016 Free Software Foundation, Inc.
+# Copyright (C) 1995-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@ include ../Makeconfig
 headers		:= bits/dlfcn.h dlfcn.h
 extra-libs	:= libdl
 libdl-routines	:= dlopen dlclose dlsym dlvsym dlerror dladdr dladdr1 dlinfo \
-		   dlmopen dlfcn
+		   dlmopen dlfcn dlfreeres
 routines	:= $(patsubst %,s%,$(filter-out dlfcn,$(libdl-routines)))
 elide-routines.os := $(routines)
 
@@ -139,6 +139,7 @@ $(objpfx)bug-atexit2.out: $(objpfx)bug-atexit2-lib.so
 
 ifneq (,$(CXX))
 LDLIBS-bug-atexit3-lib.so = -lstdc++ -lgcc_eh
+$(objpfx)bug-atexit3-lib.so: $(libsupport)
 $(objpfx)bug-atexit3: $(libdl)
 $(objpfx)bug-atexit3.out: $(objpfx)bug-atexit3-lib.so
 endif

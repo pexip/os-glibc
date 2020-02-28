@@ -328,7 +328,7 @@ LOC(4.9):
 
 
 
-	9:
+9:
 LOC(end_regular_divide):
 	subcc	%o4, 1, %o4
 	bge	LOC(divloop)
@@ -344,3 +344,4 @@ LOC(got_result):
 	mov %o2, %o0
 
 END(.udiv)
+strong_alias (.udiv, __wrap_.udiv)

@@ -43,7 +43,7 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	# table in libc6-dbg but basic thread debugging should
 	# work even without that package installed.
 	if test "$(NOSTRIP_$(curpass))" != 1; then					\
-	  if test "$(NODEBUG_$(curpass))" != 1; then					\
+	  if test "$(DEBUG_$(curpass))" = 1; then					\
 	    dh_strip -p$(curpass) -Xlibpthread $(DH_STRIP_DEBUG_PACKAGE);		\
 	    for f in $$(find debian/$(curpass) -name libpthread-\*.so) ; do		\
 	      dbgfile=$$(LC_ALL=C readelf -n $$f | sed -e '/Build ID:/!d'		\
@@ -55,13 +55,13 @@ ifeq ($(filter nostrip,$(DEB_BUILD_OPTIONS)),)
 	      $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment	\
 	                                 --remove-section=.note $$f ;			\
 	    done ;									\
-	    for f in $$(find debian/$(curpass) -name \*crt\*.o) ; do			\
-	      $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment	\
-	                                 --remove-section=.note $$f ;			\
-	    done ;									\
 	  else										\
 	    dh_strip -p$(curpass) -Xlibpthread;						\
-	  fi										\
+	  fi ;										\
+	  for f in $$(find debian/$(curpass) -name \*crt\*.o) ; do			\
+	    $(DEB_HOST_GNU_TYPE)-strip --strip-debug --remove-section=.comment		\
+	                               --remove-section=.note $$f ;			\
+	  done ;									\
 	fi
 endif
 
@@ -147,12 +147,6 @@ $(stamp)debhelper-common:
 	  esac; \
 	done
 
-	# We need the NOHWCAP code also for the transitional libc6-i686 package
-ifeq ($(DEB_HOST_ARCH),i386)
-	cp debian/libc-otherbuild.postinst debian/libc6-i686.postinst
-	cp debian/libc-otherbuild.postrm debian/libc6-i686.postrm
-endif
-
 	# Install nscd systemd files on linux
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 	cp nscd/nscd.service debian/nscd.service
@@ -164,17 +158,6 @@ endif
 ifeq ($(filter stage2,$(DEB_BUILD_PROFILES)),)
 	echo 'libgcc:Depends=libgcc1 [!hppa !m68k], libgcc2 [m68k], libgcc4 [hppa]' >> tmp.substvars
 endif
-ifeq ($(DEB_HOST_ARCH_OS),linux)
-	# cross-toolchain-base builds both linux-libc-dev and libc-dev package in one step,
-	# not using an installed linux-libc-dev package.  Injecting the dependency by the env.
-	if [ -n "$$CTB_LIBC_DEV_DEPENDS" ]; then \
-	  depends=$$CTB_LIBC_DEV_DEPENDS; \
-	else \
-	  depends=$$(dpkg-query -f '$${binary:Package} (>= $${Version}) ' -W linux-libc-dev:$(DEB_HOST_ARCH) | sed -e 's/:\S\+//'); \
-	fi; \
-	echo "libc-dev:Depends=$$depends" >> tmp.substvars
-endif
-
 	for pkg in $(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGULAR_PACKAGES) $(DEB_UDEB_PACKAGES); do \
 	  cp tmp.substvars debian/$$pkg.substvars; \
 	done
@@ -216,6 +199,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 		-e "s#RTLDDIR#$$rtlddir#g" \
 		-e "s#SLIBDIR#$$slibdir#g" \
 		-e "s#LIBDIR#$$libdir#g" \
+		-e "/gdb/d" \
 	      $$t; \
 	  done ; \
 	done
@@ -257,7 +241,8 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#FLAVOR#$$curpass#g" -i $$t; \
 	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
 	    sed -e "s#MULTIARCHDIR#$$DEB_HOST_MULTIARCH#g" -i $$t ; \
-	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -i $$t ;) \
+	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -e "/libm-\*\.a/d" -i $$t ;) \
+	    $(if $(filter-out $(DEB_HOST_ARCH_OS),linux),sed -e "/gdb/d" -i $$t ;) \
 	  done ; \
 	done
 endif

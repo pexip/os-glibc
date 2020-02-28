@@ -1,5 +1,5 @@
 /* Fix for conversion of floating point to integer overflow.  Generic version.
-   Copyright (C) 2015-2016 Free Software Foundation, Inc.
+   Copyright (C) 2015-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,5 +29,7 @@
 #define FIX_DBL_LLONG_CONVERT_OVERFLOW 0
 #define FIX_LDBL_LONG_CONVERT_OVERFLOW 0
 #define FIX_LDBL_LLONG_CONVERT_OVERFLOW 0
+#define FIX_FLT128_LONG_CONVERT_OVERFLOW 0
+#define FIX_FLT128_LLONG_CONVERT_OVERFLOW 0
 
 #endif /* fix-fp-int-convert-overflow.h */

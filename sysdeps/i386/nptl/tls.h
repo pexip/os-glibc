@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  nptl/i386 version.
-   Copyright (C) 2002-2016 Free Software Foundation, Inc.
+   Copyright (C) 2002-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 # include <stdint.h>
 # include <stdlib.h>
 # include <sysdep.h>
-# include <libc-internal.h>
+# include <libc-pointer-arith.h> /* For cast_to_integer. */
 # include <kernel-features.h>
 # include <dl-dtv.h>
 
@@ -41,16 +41,21 @@ typedef struct
   uintptr_t stack_guard;
   uintptr_t pointer_guard;
   int gscope_flag;
-#ifndef __ASSUME_PRIVATE_FUTEX
-  int private_futex;
-#else
-  int __glibc_reserved1;
-#endif
+  /* Bit 0: X86_FEATURE_1_IBT.
+     Bit 1: X86_FEATURE_1_SHSTK.
+   */
+  unsigned int feature_1;
   /* Reservation of some values for the TM ABI.  */
-  void *__private_tm[4];
+  void *__private_tm[3];
   /* GCC split stack support.  */
   void *__private_ss;
+  /* The lowest address of shadow stack,  */
+  unsigned long ssp_base;
 } tcbhead_t;
+
+/* morestack.S in libgcc uses offset 0x30 to access __private_ss,   */
+_Static_assert (offsetof (tcbhead_t, __private_ss) == 0x30,
+		"offset of __private_ss != 0x30");
 
 # define TLS_MULTIPLE_THREADS_IN_TCB 1
 
@@ -394,22 +399,6 @@ tls_fill_user_desc (union user_desc_init *desc,
 	      abort (); })
 
 
-/* Call the user-provided thread function.  */
-#define CALL_THREAD_FCT(descr) \
-  ({ void *__res;							      \
-     int __ignore1, __ignore2;						      \
-     asm volatile ("pushl %%eax\n\t"					      \
-		   "pushl %%eax\n\t"					      \
-		   "pushl %%eax\n\t"					      \
-		   "pushl %%gs:%P4\n\t"					      \
-		   "call *%%gs:%P3\n\t"					      \
-		   "addl $16, %%esp"					      \
-		   : "=a" (__res), "=c" (__ignore1), "=d" (__ignore2)	      \
-		   : "i" (offsetof (struct pthread, start_routine)),	      \
-		     "i" (offsetof (struct pthread, arg)));		      \
-     __res; })
-
-
 /* Set the stack guard field in TCB head.  */
 #define THREAD_SET_STACK_GUARD(value) \
   THREAD_SETMEM (THREAD_SELF, header.stack_guard, value)
@@ -427,6 +416,7 @@ tls_fill_user_desc (union user_desc_init *desc,
 
 
 /* Get and set the global scope generation counter in the TCB head.  */
+#define THREAD_GSCOPE_IN_TCB      1
 #define THREAD_GSCOPE_FLAG_UNUSED 0
 #define THREAD_GSCOPE_FLAG_USED   1
 #define THREAD_GSCOPE_FLAG_WAIT   2

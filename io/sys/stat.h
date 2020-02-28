@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,19 +26,16 @@
 
 #include <bits/types.h>		/* For __mode_t and __dev_t.  */
 
-#if defined __USE_XOPEN || defined __USE_XOPEN2K || defined __USE_ATFILE
-# if defined __USE_XOPEN || defined __USE_XOPEN2K
-#  define __need_time_t
-# endif
-# ifdef __USE_ATFILE
-#  define __need_timespec
-# endif
-# include <time.h>		/* For time_t resp. timespec.  */
+#ifdef __USE_XOPEN2K8
+# include <bits/types/struct_timespec.h>
 #endif
 
 #if defined __USE_XOPEN || defined __USE_XOPEN2K
 /* The Single Unix specification says that some more types are
    available here.  */
+
+# include <bits/types/time_t.h>
+
 # ifndef __dev_t_defined
 typedef __dev_t dev_t;
 #  define __dev_t_defined
@@ -444,6 +441,10 @@ extern int __xmknod (int __ver, const char *__path, __mode_t __mode,
 extern int __xmknodat (int __ver, int __fd, const char *__path,
 		       __mode_t __mode, __dev_t *__dev)
      __THROW __nonnull ((3, 5));
+
+#ifdef __USE_GNU
+# include <bits/statx.h>
+#endif
 
 #ifdef __USE_EXTERN_INLINES
 /* Inlined versions of the real stat and mknod functions.  */

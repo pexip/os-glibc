@@ -1,5 +1,5 @@
 /* Get a host configuration item kept as the whole contents of a file.
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@ _hurd_get_host_config (const char *item, char *buf, size_t buflen)
     }
 
   /* If the file is empty, give an empty value.  */
-  if (nread == 0)
+  if (nread == 0 && more == 0)
     {
       if (buflen != 0)
 	*buf = '\0';
@@ -80,7 +80,7 @@ _hurd_get_host_config (const char *item, char *buf, size_t buflen)
   if (nread < buflen)
     buf[nread] = '\0';
   else
-    if (buf[nread - 1] != '\0')
+    if (nread != 0 && buf[nread - 1] != '\0')
       more = 1;
 
   if (more)

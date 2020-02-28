@@ -1,5 +1,5 @@
 /* On-demand PLT fixup for shared objects.
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -71,6 +71,7 @@ _dl_fixup (
   const PLTREL *const reloc
     = (const void *) (D_PTR (l, l_info[DT_JMPREL]) + reloc_offset);
   const ElfW(Sym) *sym = &symtab[ELFW(R_SYM) (reloc->r_info)];
+  const ElfW(Sym) *refsym = sym;
   void *const rel_addr = (void *)(l->l_addr + reloc->r_offset);
   lookup_t result;
   DL_FIXUP_VALUE_TYPE value;
@@ -123,14 +124,13 @@ _dl_fixup (
 	 of the object that defines sym.  Now add in the symbol
 	 offset.  */
       value = DL_FIXUP_MAKE_VALUE (result,
-				   sym ? (LOOKUP_VALUE_ADDRESS (result)
-					  + sym->st_value) : 0);
+				   SYMBOL_ADDRESS (result, sym, false));
     }
   else
     {
       /* We already found the symbol.  The module (and therefore its load
 	 address) is also known.  */
-      value = DL_FIXUP_MAKE_VALUE (l, l->l_addr + sym->st_value);
+      value = DL_FIXUP_MAKE_VALUE (l, SYMBOL_ADDRESS (l, sym, true));
       result = l;
     }
 
@@ -145,7 +145,7 @@ _dl_fixup (
   if (__glibc_unlikely (GLRO(dl_bind_not)))
     return value;
 
-  return elf_machine_fixup_plt (l, result, reloc, rel_addr, value);
+  return elf_machine_fixup_plt (l, result, refsym, sym, reloc, rel_addr, value);
 }
 
 #ifndef PROF
@@ -240,9 +240,7 @@ _dl_profile_fixup (
 	     of the object that defines sym.  Now add in the symbol
 	     offset.  */
 	  value = DL_FIXUP_MAKE_VALUE (result,
-				       defsym != NULL
-				       ? LOOKUP_VALUE_ADDRESS (result)
-					 + defsym->st_value : 0);
+				       SYMBOL_ADDRESS (result, defsym, false));
 
 	  if (defsym != NULL
 	      && __builtin_expect (ELFW(ST_TYPE) (defsym->st_info)
@@ -253,7 +251,7 @@ _dl_profile_fixup (
 	{
 	  /* We already found the symbol.  The module (and therefore its load
 	     address) is also known.  */
-	  value = DL_FIXUP_MAKE_VALUE (l, l->l_addr + refsym->st_value);
+	  value = DL_FIXUP_MAKE_VALUE (l, SYMBOL_ADDRESS (l, refsym, true));
 
 	  if (__builtin_expect (ELFW(ST_TYPE) (refsym->st_info)
 				== STT_GNU_IFUNC, 0))

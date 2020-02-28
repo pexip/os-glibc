@@ -1,5 +1,5 @@
 /* Formatting a monetary value according to the given locale.
-   Copyright (C) 1996-2016 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
@@ -68,11 +68,6 @@
 #define _NL_CURRENT(category, item) \
   (current->values[_NL_ITEM_INDEX (item)].string)
 
-/* This function determines the number of digit groups in the output.
-   The definition is in printf_fp.c.  */
-extern unsigned int __guess_grouping (unsigned int intdig_max,
-				      const char *grouping, wchar_t sepchar);
-
 
 /* We have to overcome some problems with this implementation.  On the
    one hand the strfmon() function is specified in XPG4 and of course
@@ -81,7 +76,7 @@ extern unsigned int __guess_grouping (unsigned int intdig_max,
    too.  Some of the information contradicts the information which can
    be specified in format string.  */
 ssize_t
-__vstrfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format,
+__vstrfmon_l (char *s, size_t maxsize, locale_t loc, const char *format,
 	      va_list ap)
 {
   struct __locale_data *current = loc->__locales[LC_MONETARY];
@@ -100,7 +95,7 @@ __vstrfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format,
       union
       {
 	double dbl;
-	__long_double_t ldbl;
+	long double ldbl;
       }
       fpnum;
       int int_format;
@@ -324,9 +319,7 @@ __vstrfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format,
 	 extra characters this means.  */
       if (group && left_prec != -1)
 	left_prec += __guess_grouping (left_prec,
-				       _NL_CURRENT (LC_MONETARY, MON_GROUPING),
-				       *_NL_CURRENT (LC_MONETARY,
-						     MON_THOUSANDS_SEP));
+				       _NL_CURRENT (LC_MONETARY, MON_GROUPING));
 
       /* Now it's time to get the value.  */
       if (is_long_double == 1)
@@ -609,7 +602,7 @@ __vstrfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format,
 }
 
 ssize_t
-___strfmon_l (char *s, size_t maxsize, __locale_t loc, const char *format, ...)
+___strfmon_l (char *s, size_t maxsize, locale_t loc, const char *format, ...)
 {
   va_list ap;
 

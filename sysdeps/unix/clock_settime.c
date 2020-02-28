@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,6 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-#include <libc-internal.h>
 #include <ldsodefs.h>
 
 
@@ -90,7 +89,7 @@ __clock_settime (clockid_t clock_id, const struct timespec *tp)
 	struct timeval tv;						      \
 	TIMESPEC_TO_TIMEVAL (&tv, tp);					      \
 									      \
-	retval = settimeofday (&tv, NULL);				      \
+	retval = __settimeofday (&tv, NULL);				      \
       } while (0)
 
 #ifdef SYSDEP_SETTIME

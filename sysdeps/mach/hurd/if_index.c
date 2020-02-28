@@ -1,5 +1,5 @@
 /* Find network interface names and index numbers.  Hurd version.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -36,6 +36,12 @@ __if_nametoindex (const char *ifname)
 
   if (fd < 0)
     return 0;
+
+  if (strlen (ifname) >= IFNAMSIZ)
+    {
+      __set_errno (ENODEV);
+      return 0;
+    }
 
   strncpy (ifr.ifr_name, ifname, IFNAMSIZ);
   if (__ioctl (fd, SIOCGIFINDEX, &ifr) < 0)
@@ -187,7 +193,6 @@ libc_hidden_weak (if_indextoname)
 
 #if 0
 void
-internal_function
 __protocol_available (int *have_inet, int *have_inet6)
 {
   *have_inet = _hurd_socket_server (PF_INET, 0) != MACH_PORT_NULL;

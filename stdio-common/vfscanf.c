@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
-#include <libc-internal.h>
+#include <libc-diag.h>
 #include <libc-lock.h>
 #include <locale/localeinfo.h>
 #include <scratch_buffer.h>
@@ -72,10 +72,6 @@
 
 #include <locale/localeinfo.h>
 #include <libioP.h>
-#include <libio.h>
-
-#undef va_list
-#define va_list	_IO_va_list
 
 #ifdef COMPILE_WSCANF
 # define ungetc(c, s)	((void) (c == WEOF				      \
@@ -133,6 +129,8 @@
 # define WINT_T		int
 #endif
 
+#include "printf-parse.h" /* Use read_int.  */
+
 #define encode_error() do {						      \
 			  errval = 4;					      \
 			  __set_errno (EILSEQ);				      \
@@ -174,7 +172,7 @@
 	}								      \
       else if (format == NULL)						      \
 	{								      \
-	  MAYBE_SET_EINVAL;						      \
+	  __set_errno (EINVAL);						      \
 	  return EOF;							      \
 	}								      \
     } while (0)
@@ -269,11 +267,11 @@ char_buffer_add (struct char_buffer *buffer, CHAR_T ch)
    Return the number of assignments made, or -1 for an input error.  */
 #ifdef COMPILE_WSCANF
 int
-_IO_vfwscanf (_IO_FILE *s, const wchar_t *format, _IO_va_list argptr,
+_IO_vfwscanf (FILE *s, const wchar_t *format, va_list argptr,
 	      int *errp)
 #else
 int
-_IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
+_IO_vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		      int *errp)
 #endif
 {
@@ -287,14 +285,14 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
   int flags;		/* Modifiers for current format element.  */
   int errval = 0;
 #ifndef COMPILE_WSCANF
-  __locale_t loc = _NL_CURRENT_LOCALE;
+  locale_t loc = _NL_CURRENT_LOCALE;
   struct __locale_data *const curctype = loc->__locales[LC_CTYPE];
 #endif
 
   /* Errno of last failed inchar call.  */
   int inchar_errno = 0;
   /* Status for reading F-P nums.  */
-  char got_digit, got_dot, got_e, negative;
+  char got_digit, got_dot, got_e, got_sign;
   /* If a [...] is a [^...].  */
   CHAR_T not_in;
 #define exp_char not_in
@@ -488,9 +486,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
       /* Check for a positional parameter specification.  */
       if (ISDIGIT ((UCHAR_T) *f))
 	{
-	  argpos = (UCHAR_T) *f++ - L_('0');
-	  while (ISDIGIT ((UCHAR_T) *f))
-	    argpos = argpos * 10 + ((UCHAR_T) *f++ - L_('0'));
+	  argpos = read_int ((const UCHAR_T **) &f);
 	  if (*f == L_('$'))
 	    ++f;
 	  else
@@ -525,11 +521,8 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 
       /* Find the maximum field width.  */
       width = 0;
-      while (ISDIGIT ((UCHAR_T) *f))
-	{
-	  width *= 10;
-	  width += (UCHAR_T) *f++ - L_('0');
-	}
+      if (ISDIGIT ((UCHAR_T) *f))
+	width = read_int ((const UCHAR_T **) &f);
     got_width:
       if (width == 0)
 	width = -1;
@@ -757,7 +750,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		  size_t n;
 
 		  if (!(flags & SUPPRESS) && (flags & POSIX_MALLOC)
-		      && str + MB_CUR_MAX >= *strptr + strsize)
+		      && *strptr + strsize - str <= MB_LEN_MAX)
 		    {
 		      /* We have to enlarge the buffer if the `m' flag
 			 was given.  */
@@ -769,7 +762,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			{
 			  /* Can't allocate that much.  Last-ditch effort.  */
 			  newstr = (char *) realloc (*strptr,
-						     strleng + MB_CUR_MAX);
+						     strleng + MB_LEN_MAX);
 			  if (newstr == NULL)
 			    {
 			      /* c can't have `a' flag, only `m'.  */
@@ -780,7 +773,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			    {
 			      *strptr = newstr;
 			      str = newstr + strleng;
-			      strsize = strleng + MB_CUR_MAX;
+			      strsize = strleng + MB_LEN_MAX;
 			    }
 			}
 		      else
@@ -1048,7 +1041,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		    size_t n;
 
 		    if (!(flags & SUPPRESS) && (flags & MALLOC)
-			&& str + MB_CUR_MAX >= *strptr + strsize)
+			&& *strptr + strsize - str <= MB_LEN_MAX)
 		      {
 			/* We have to enlarge the buffer if the `a' or `m'
 			   flag was given.  */
@@ -1061,7 +1054,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			    /* Can't allocate that much.  Last-ditch
 			       effort.  */
 			    newstr = (char *) realloc (*strptr,
-						       strleng + MB_CUR_MAX);
+						       strleng + MB_LEN_MAX);
 			    if (newstr == NULL)
 			      {
 				if (flags & POSIX_MALLOC)
@@ -1081,7 +1074,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			      {
 				*strptr = newstr;
 				str = newstr + strleng;
-				strsize = strleng + MB_CUR_MAX;
+				strsize = strleng + MB_LEN_MAX;
 			      }
 			  }
 			else
@@ -1097,7 +1090,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		    if (__glibc_unlikely (n == (size_t) -1))
 		      encode_error ();
 
-		    assert (n <= MB_CUR_MAX);
+		    assert (n <= MB_LEN_MAX);
 		    str += n;
 		  }
 #else
@@ -1921,20 +1914,19 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 	  if (__glibc_unlikely (c == EOF))
 	    input_error ();
 
-	  got_digit = got_dot = got_e = 0;
+	  got_digit = got_dot = got_e = got_sign = 0;
 
 	  /* Check for a sign.  */
 	  if (c == L_('-') || c == L_('+'))
 	    {
-	      negative = c == L_('-');
+	      got_sign = 1;
+	      char_buffer_add (&charbuf, c);
 	      if (__glibc_unlikely (width == 0 || inchar () == EOF))
 		/* EOF is only an input error before we read any chars.  */
 		conv_error ();
 	      if (width > 0)
 		--width;
 	    }
-	  else
-	    negative = 0;
 
 	  /* Take care for the special arguments "nan" and "inf".  */
 	  if (TOLOWER (c) == L_('n'))
@@ -2183,7 +2175,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		 digits with ASCII letters.  */
 	      && !(flags & HEXA_FLOAT)
 	      /* Minimum requirement.  */
-	      && (char_buffer_size (&charbuf) == 0 || got_dot)
+	      && (char_buffer_size (&charbuf) == got_sign || got_dot)
 	      && (map = __wctrans ("to_inpunct")) != NULL)
 	    {
 	      /* Reget the first character.  */
@@ -2202,8 +2194,8 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		 for localized FP numbers, then we may have localized
 		 digits.  Note, we test GOT_DOT above.  */
 #ifdef COMPILE_WSCANF
-	      if (char_buffer_size (&charbuf) == 0
-		  || (char_buffer_size (&charbuf) == 1
+	      if (char_buffer_size (&charbuf) == got_sign
+		  || (char_buffer_size (&charbuf) == got_sign + 1
 		      && wcdigits[11] == decimal))
 #else
 	      char mbdigits[12][MB_LEN_MAX + 1];
@@ -2211,13 +2203,13 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 	      mbstate_t state;
 	      memset (&state, '\0', sizeof (state));
 
-	      bool match_so_far = char_buffer_size (&charbuf) == 0;
+	      bool match_so_far = char_buffer_size (&charbuf) == got_sign;
 	      size_t mblen = __wcrtomb (mbdigits[11], wcdigits[11], &state);
 	      if (mblen != (size_t) -1)
 		{
 		  mbdigits[11][mblen] = '\0';
 		  match_so_far |=
-		    (char_buffer_size (&charbuf) == strlen (decimal)
+		    (char_buffer_size (&charbuf) == strlen (decimal) + got_sign
 		     && strcmp (decimal, mbdigits[11]) == 0);
 		}
 	      else
@@ -2227,7 +2219,8 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		     from a file.  */
 		  if (decimal_len <= MB_LEN_MAX)
 		    {
-		      match_so_far |= char_buffer_size (&charbuf) == decimal_len;
+		      match_so_far |= (char_buffer_size (&charbuf)
+				       == decimal_len + got_sign);
 		      memcpy (mbdigits[11], decimal, decimal_len + 1);
 		    }
 		  else
@@ -2291,7 +2284,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		      if (got_e && charbuf.current[-1] == exp_char
 			  && (c == L_('-') || c == L_('+')))
 			char_buffer_add (&charbuf, c);
-		      else if (char_buffer_size (&charbuf) > 0 && !got_e
+		      else if (char_buffer_size (&charbuf) > got_sign && !got_e
 			       && (CHAR_T) TOLOWER (c) == exp_char)
 			{
 			  char_buffer_add (&charbuf, exp_char);
@@ -2415,9 +2408,10 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 	  /* Have we read any character?  If we try to read a number
 	     in hexadecimal notation and we have read only the `0x'
 	     prefix this is an error.  */
-	  if (__glibc_unlikely (char_buffer_size (&charbuf) == 0
+	  if (__glibc_unlikely (char_buffer_size (&charbuf) == got_sign
 				|| ((flags & HEXA_FLOAT)
-				    && char_buffer_size (&charbuf) == 2)))
+				    && (char_buffer_size (&charbuf)
+					== 2 + got_sign))))
 	    conv_error ();
 
 	scan_float:
@@ -2434,21 +2428,21 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 	      long double d = __strtold_internal
 		(char_buffer_start (&charbuf), &tw, flags & GROUP);
 	      if (!(flags & SUPPRESS) && tw != char_buffer_start (&charbuf))
-		*ARG (long double *) = negative ? -d : d;
+		*ARG (long double *) = d;
 	    }
 	  else if (flags & (LONG | LONGDBL))
 	    {
 	      double d = __strtod_internal
 		(char_buffer_start (&charbuf), &tw, flags & GROUP);
 	      if (!(flags & SUPPRESS) && tw != char_buffer_start (&charbuf))
-		*ARG (double *) = negative ? -d : d;
+		*ARG (double *) = d;
 	    }
 	  else
 	    {
 	      float d = __strtof_internal
 		(char_buffer_start (&charbuf), &tw, flags & GROUP);
 	      if (!(flags & SUPPRESS) && tw != char_buffer_start (&charbuf))
-		*ARG (float *) = negative ? -d : d;
+		*ARG (float *) = d;
 	    }
 
 	  if (__glibc_unlikely (tw == char_buffer_start (&charbuf)))
@@ -2675,7 +2669,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			  /* Possibly correct character, just not enough
 			     input.  */
 			  ++cnt;
-			  assert (cnt < MB_CUR_MAX);
+			  assert (cnt < MB_LEN_MAX);
 			  continue;
 			}
 		      cnt = 0;
@@ -2827,7 +2821,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		  if (!(flags & SUPPRESS))
 		    {
 		      if ((flags & MALLOC)
-			  && str + MB_CUR_MAX >= *strptr + strsize)
+			  && *strptr + strsize - str <= MB_LEN_MAX)
 			{
 			  /* Enlarge the buffer.  */
 			  size_t strleng = str - *strptr;
@@ -2839,7 +2833,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 			      /* Can't allocate that much.  Last-ditch
 				 effort.  */
 			      newstr = (char *) realloc (*strptr,
-							 strleng + MB_CUR_MAX);
+							 strleng + MB_LEN_MAX);
 			      if (newstr == NULL)
 				{
 				  if (flags & POSIX_MALLOC)
@@ -2859,7 +2853,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 				{
 				  *strptr = newstr;
 				  str = newstr + strleng;
-				  strsize = strleng + MB_CUR_MAX;
+				  strsize = strleng + MB_LEN_MAX;
 				}
 			    }
 			  else
@@ -2875,7 +2869,7 @@ _IO_vfscanf_internal (_IO_FILE *s, const char *format, _IO_va_list argptr,
 		  if (__glibc_unlikely (n == (size_t) -1))
 		    encode_error ();
 
-		  assert (n <= MB_CUR_MAX);
+		  assert (n <= MB_LEN_MAX);
 		  str += n;
 		}
 	      while (--width > 0 && inchar () != WEOF);

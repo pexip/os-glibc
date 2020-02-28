@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>.
 
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <ucontext.h>
 
-extern void __start_context (struct ucontext *ucp);
+extern void __start_context (ucontext_t *ucp);
 
 void
 __makecontext (ucontext_t *ucp, void (*func) (void), int argc, ...)

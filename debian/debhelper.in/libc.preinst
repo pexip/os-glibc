@@ -144,12 +144,6 @@ then
         # sanity checking for the appropriate kernel on each architecture.
         kernel_ver=`uname -r`
         case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
-            amd64|i386)
-                # The GNU libc requires a >= 2.6.32 kernel, found in squeeze or RHEL6
-                kernel_ver_min=2.6.32
-                # But we don't officially support kernels before 3.2
-                kernel_ver_rec=3.2
-                ;;
             *)
                 # The GNU libc requires a >= 3.2 kernel, found in wheezy
                 kernel_ver_min=3.2
@@ -273,26 +267,6 @@ then
         fi
     fi
 
-    # ldconfig might have broken the ld.so symlink in case a biarch package
-    # of the same architecture than the native one has been installed (e.g.:
-    # libc6-amd64:i386 on amd64). Try to detect this by checking that the 
-    # ld.so symlink correctly points to ld-*.so in the slib directory, and 
-    # disabling ldconfig if it is not the case and the new version hasn't
-    # been unpacked yet. The symlink will be fixed when unpacking the new 
-    # libc version and ldconfig will be re-enabled when a new fixed version
-    # is unpacked.
-    if ! readlink -m RTLD_SO | grep -qE 'SLIBDIR/ld-[0-9.]+\.so' ; then
-        # The unpack order is not guaranteed, only disable ldconfig if 
-        # a "broken" version is installed.
-        libc_bin_version=$(dpkg-query -W -f='${Version}' libc-bin)
-        if dpkg --compare-versions "$libc_bin_version" lt "2.18-2"; then
-            echo "Warning: found a potentially broken dynamic loader symlink,"
-            echo "disabling ldconfig to avoid a possible system breakage. It"
-            echo "will be reenabled when a new version of libc-bin is unpacked." 
-            ln -sf /bin/true /sbin/ldconfig
-        fi
-    fi
-
     if [ -n "$preversion" ] && [ -x "$(which ischroot)" ] && ! ischroot; then
 	# NSS authentication trouble guard
 	if dpkg --compare-versions "$preversion" lt GLIBC_VERSION; then
@@ -381,21 +355,6 @@ then
     # upgrade.
     touch /etc/ld.so.nohwcap
 fi
-
-# We now use the multiarch triplet instead of the GNU triplet for the ld.so
-# configuration file, in order to keep a stable path. Remove the old file.
-case ${DPKG_MAINTSCRIPT_ARCH:-$(dpkg --print-architecture)} in
-    hurd-i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu.conf 2.19-11~ libc0.3:hurd-i386 -- "$@"
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-gnu-gnu.conf 2.19-11~ libc0.3:hurd-i386 -- "$@"
-        ;;
-    i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-linux-gnu.conf 2.19-4~ libc6:i386 -- "$@"
-        ;;
-    kfreebsd-i386)
-        dpkg-maintscript-helper rm_conffile /etc/ld.so.conf.d/i486-kfreebsd-gnu.conf 2.19-11~ libc0.1:kfreebsd-i386 -- "$@"
-        ;;
-esac
 
 #DEBHELPER#
 

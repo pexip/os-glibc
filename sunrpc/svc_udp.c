@@ -3,7 +3,7 @@
  * Server side for UDP/IP based RPC.  (Does some caching in the hopes of
  * achieving execute-at-most-once semantics.)
  *
- * Copyright (C) 2012-2016 Free Software Foundation, Inc.
+ * Copyright (C) 2012-2018 Free Software Foundation, Inc.
  * This file is part of the GNU C Library.
  *
  * The GNU C Library is free software; you can redistribute it and/or
@@ -64,6 +64,7 @@
 
 #include <wchar.h>
 #include <libio/iolibio.h>
+#include <shlib-compat.h>
 
 #define rpc_buffer(xprt) ((xprt)->xp_p1)
 #ifndef MAX
@@ -137,7 +138,7 @@ svcudp_bufcreate (int sock, u_int sendsz, u_int recvsz)
 	}
       madesock = TRUE;
     }
-  __bzero ((char *) &addr, sizeof (addr));
+  memset ((char *) &addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
   if (bindresvport (sock, &addr))
     {

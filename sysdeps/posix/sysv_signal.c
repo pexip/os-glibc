@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <string.h>	/* For the real memset prototype.  */
-
+#include <sigsetops.h>
 
 /* Tolerate non-threads versions of Posix */
 #ifndef SA_ONESHOT
@@ -46,8 +46,7 @@ __sysv_signal (int sig, __sighandler_t handler)
     }
 
   act.sa_handler = handler;
-  if (__sigemptyset (&act.sa_mask) < 0)
-    return SIG_ERR;
+  __sigemptyset (&act.sa_mask);
   act.sa_flags = SA_ONESHOT | SA_NOMASK | SA_INTERRUPT;
   act.sa_flags &= ~SA_RESTART;
   if (__sigaction (sig, &act, &oact) < 0)

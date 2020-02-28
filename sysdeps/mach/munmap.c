@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
    bytes.  Returns 0 if successful, -1 for errors (and sets errno).  */
 
 int
-__munmap (__ptr_t addr, size_t len)
+__munmap (void *addr, size_t len)
 {
   kern_return_t err;
 
@@ -43,4 +43,5 @@ __munmap (__ptr_t addr, size_t len)
   return 0;
 }
 
+libc_hidden_def (__munmap)
 weak_alias (__munmap, munmap)

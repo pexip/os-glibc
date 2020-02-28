@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2016 Free Software Foundation, Inc.
+# Copyright (C) 1996-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,8 @@ headers			:= nss.h
 # This is the trivial part which goes into libc itself.
 routines		= nsswitch getnssent getnssent_r digits_dots \
 			  valid_field valid_list_field rewrite_field \
-			  $(addsuffix -lookup,$(databases))
+			  $(addsuffix -lookup,$(databases)) \
+			  compat-lookup nss_hash
 
 # These are the databases that go through nss dispatch.
 # Caution: if you add a database here, you must add its real name
@@ -46,16 +47,34 @@ CPPFLAGS-getent.c	= -DHAVE_SUNRPC=$(have-sunrpc)
 others                  := getent makedb
 install-bin             := getent makedb
 makedb-modules = xmalloc hash-string
+others-extras		= $(makedb-modules)
 extra-objs		+= $(makedb-modules:=.o)
 
 tests-static            = tst-field
-tests			= test-netdb tst-nss-test1 test-digits-dots \
-			  tst-nss-getpwent bug17079 \
-			  $(tests-static)
+tests-internal		= tst-field
+tests			= test-netdb test-digits-dots tst-nss-getpwent bug17079 \
+			  tst-nss-test1 \
+			  tst-nss-test2 \
+			  tst-nss-test3 \
+			  tst-nss-test4 \
+			  tst-nss-test5
 xtests			= bug-erange
 
+# Tests which need libdl
+ifeq (yes,$(build-shared))
+tests += tst-nss-files-hosts-erange
+tests += tst-nss-files-hosts-multi
+tests += tst-nss-files-hosts-getent
+endif
+
+# If we have a thread library then we can test cancellation against
+# some routines like getpwuid_r.
+ifeq (yes,$(have-thread-library))
+tests += tst-cancel-getpwuid_r
+endif
+
 # Specify rules for the nss_* modules.  We have some services.
-services		:= files db
+services		:= files db compat
 
 extra-libs		= $(services:%=libnss_%)
 # These libraries will be built in the `others' pass rather than
@@ -68,7 +87,7 @@ vpath %.c $(subdir-dirs) ../locale/programs ../intl
 
 
 libnss_files-routines	:= $(addprefix files-,$(databases)) \
-			   files-initgroups files-have_o_cloexec files-init
+			   files-initgroups files-init
 
 libnss_db-dbs		:= $(addprefix db-,\
 				       $(filter-out hosts network key alias,\
@@ -78,17 +97,21 @@ libnss_db-routines	:= $(libnss_db-dbs) db-open db-init hash-string
 generated		+= $(filter-out db-alias.c db-netgrp.c, \
 					$(addsuffix .c,$(libnss_db-dbs)))
 
+libnss_compat-routines	:= $(addprefix compat-,grp pwd spwd initgroups) \
+			   nisdomain
+
 install-others		+= $(inst_vardbdir)/Makefile
 
 # Build static module into libc if requested
 libnss_files-inhibit-o	= $(filter-out .os,$(object-suffixes))
 libnss_db-inhibit-o	= $(filter-out .os,$(object-suffixes))
+libnss_compat-inhibit-o	= $(filter-out .os,$(object-suffixes))
 ifeq ($(build-static-nss),yes)
 routines                += $(libnss_files-routines)
 static-only-routines    += $(libnss_files-routines)
 tests-static		+= tst-nss-static
 endif
-extra-test-objs		+= nss_test1.os
+extra-test-objs		+= nss_test1.os nss_test2.os
 
 include ../Rules
 
@@ -117,11 +140,34 @@ $(objpfx)makedb: $(makedb-modules:%=$(objpfx)%.o)
 $(inst_vardbdir)/Makefile: db-Makefile $(+force)
 	$(do-install)
 
+libnss_test1.so-no-z-defs = 1
+libnss_test2.so-no-z-defs = 1
+
+rtld-tests-LDFLAGS += -Wl,--dynamic-list=nss_test.ver
+
 libof-nss_test1 = extramodules
+libof-nss_test2 = extramodules
 $(objpfx)/libnss_test1.so: $(objpfx)nss_test1.os $(link-libc-deps)
 	$(build-module)
+$(objpfx)/libnss_test2.so: $(objpfx)nss_test2.os $(link-libc-deps)
+	$(build-module)
+$(objpfx)nss_test2.os : nss_test1.c
 ifdef libnss_test1.so-version
 $(objpfx)/libnss_test1.so$(libnss_test1.so-version): $(objpfx)/libnss_test1.so
 	$(make-link)
 endif
-$(objpfx)tst-nss-test1.out: $(objpfx)/libnss_test1.so$(libnss_test1.so-version)
+ifdef libnss_test2.so-version
+$(objpfx)/libnss_test2.so$(libnss_test2.so-version): $(objpfx)/libnss_test2.so
+	$(make-link)
+endif
+$(patsubst %,$(objpfx)%.out,$(tests)) : \
+	$(objpfx)/libnss_test1.so$(libnss_test1.so-version) \
+	$(objpfx)/libnss_test2.so$(libnss_test2.so-version)
+
+ifeq (yes,$(have-thread-library))
+$(objpfx)tst-cancel-getpwuid_r: $(shared-thread-library)
+endif
+
+$(objpfx)tst-nss-files-hosts-erange: $(libdl)
+$(objpfx)tst-nss-files-hosts-multi: $(libdl)
+$(objpfx)tst-nss-files-hosts-getent: $(libdl)

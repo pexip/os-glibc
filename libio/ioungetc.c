@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,18 +27,18 @@
 #include "libioP.h"
 
 int
-_IO_ungetc (int c, _IO_FILE *fp)
+_IO_ungetc (int c, FILE *fp)
 {
   int result;
   CHECK_FILE (fp, EOF);
   if (c == EOF)
     return EOF;
+  if (!_IO_need_lock (fp))
+    return _IO_sputbackc (fp, (unsigned char) c);
   _IO_acquire_lock (fp);
   result = _IO_sputbackc (fp, (unsigned char) c);
   _IO_release_lock (fp);
   return result;
 }
 
-#ifdef weak_alias
 weak_alias (_IO_ungetc, ungetc)
-#endif

@@ -1,5 +1,5 @@
 /* Low-level functions for atomic operations. Nios II version.
-   Copyright (C) 2012-2016 Free Software Foundation, Inc.
+   Copyright (C) 2012-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,9 @@ typedef uintmax_t uatomic_max_t;
 
 #define __HAVE_64B_ATOMICS 0
 #define USE_ATOMIC_COMPILER_BUILTINS 0
+
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
 
 #define __arch_compare_and_exchange_val_8_acq(mem, newval, oldval)	\
   (abort (), (__typeof (*mem)) 0)

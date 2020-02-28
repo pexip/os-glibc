@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2016 Free Software Foundation, Inc.
+# Copyright (C) 1998-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -59,13 +59,14 @@ tz-cflags = -DTZDIR='"$(zonedir)"' \
 	    -DTZDEFAULT='"$(localtime-file)"' \
 	    -DTZDEFRULES='"$(posixrules-file)"' \
 	    -DTM_GMTOFF=tm_gmtoff -DTM_ZONE=tm_zone \
-	    -DHAVE_GETTEXT -DUSE_LTZ=0 -Wno-maybe-uninitialized
+	    -DHAVE_GETTEXT -DUSE_LTZ=0 -D_ISOMAC -DTZ_DOMAIN='"libc"' \
+	    -include $(common-objpfx)config.h -Wno-maybe-uninitialized
 
 # The -Wno-unused-variable flag is used to prevent GCC 6
 # from warning about time_t_min and time_t_max which are
 # defined in private.h but not used.
-CFLAGS-zdump.c = $(tz-cflags)
-CFLAGS-zic.c = $(tz-cflags) -Wno-unused-variable
+CFLAGS-zdump.c += $(tz-cflags)
+CFLAGS-zic.c += $(tz-cflags) -Wno-unused-variable
 
 # We have to make sure the data for testing the tz functions is available.
 # Don't add leapseconds here since test-tz made checks that work only without
@@ -79,6 +80,7 @@ $(objpfx)test-tz.out: $(addprefix $(testdata)/, America/New_York Etc/UTC UTC)
 $(objpfx)tst-timezone.out: $(addprefix $(testdata)/, \
 				       Europe/Berlin Universal \
 				       Australia/Melbourne \
+				       America/New_York \
 				       America/Sao_Paulo Asia/Tokyo \
 				       Europe/London)
 $(objpfx)tst-tzset.out: $(addprefix $(testdata)/XT, 1 2 3 4)

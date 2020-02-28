@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,19 +30,17 @@
 #undef stdin
 #undef stdout
 #undef stderr
-_IO_FILE *stdin = (FILE *) &_IO_2_1_stdin_;
-_IO_FILE *stdout = (FILE *) &_IO_2_1_stdout_;
-_IO_FILE *stderr = (FILE *) &_IO_2_1_stderr_;
+FILE *stdin = (FILE *) &_IO_2_1_stdin_;
+FILE *stdout = (FILE *) &_IO_2_1_stdout_;
+FILE *stderr = (FILE *) &_IO_2_1_stderr_;
 
 #undef _IO_stdin
 #undef _IO_stdout
 #undef _IO_stderr
-#ifdef _LIBC
-# define AL(name) AL2 (name, _IO_##name)
-# define AL2(name, al) \
+#define AL(name) AL2 (name, _IO_##name)
+#define AL2(name, al) \
   extern __typeof (name) al __attribute__ ((alias (#name),                    \
                                             visibility ("hidden")))
 AL(stdin);
 AL(stdout);
 AL(stderr);
-#endif

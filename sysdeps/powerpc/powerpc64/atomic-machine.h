@@ -1,5 +1,5 @@
 /* Atomic operations.  PowerPC64 version.
-   Copyright (C) 2003-2016 Free Software Foundation, Inc.
+   Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
@@ -35,6 +35,7 @@
 
 #define __HAVE_64B_ATOMICS 1
 #define USE_ATOMIC_COMPILER_BUILTINS 0
+#define ATOMIC_EXCHANGE_USES_CAS 1
 
 /* The 32-bit exchange_bool is different on powerpc64 because the subf
    does signed 64-bit arithmetic while the lwarx is 32-bit unsigned

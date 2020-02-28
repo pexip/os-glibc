@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Andreas Schwab <schwab@suse.de>, 2003.
 
@@ -47,6 +47,9 @@ typedef uintmax_t uatomic_max_t;
 #define __HAVE_64B_ATOMICS 1
 #define USE_ATOMIC_COMPILER_BUILTINS 0
 
+/* XXX Is this actually correct?  */
+#define ATOMIC_EXCHANGE_USES_CAS 1
+
 #define __arch_compare_and_exchange_val_8_acq(mem, newval, oldval) \
   ({ __typeof (*(mem)) __ret;						      \
      __asm __volatile ("cas%.b %0,%2,%1"				      \
@@ -73,7 +76,7 @@ typedef uintmax_t uatomic_max_t;
      __typeof (mem) __memp = (mem);					      \
      __asm __volatile ("cas2%.l %0:%R0,%1:%R1,(%2):(%3)"		      \
 		       : "=d" (__ret)					      \
-		       : "d" (newval), "r" (__memp),			      \
+		       : "d" ((__typeof (*(mem))) (newval)), "r" (__memp),    \
 			 "r" ((char *) __memp + 4), "0" (oldval)	      \
 		       : "memory");					      \
      __ret; })
@@ -101,8 +104,9 @@ typedef uintmax_t uatomic_max_t;
 	 __asm __volatile ("1: cas2%.l %0:%R0,%1:%R1,(%2):(%3);"	      \
 			   "   jbne 1b"					      \
 			   : "=d" (__result)				      \
-			   : "d" (newvalue), "r" (__memp),		      \
-			     "r" ((char *) __memp + 4), "0" (__result)	      \
+			   : "d" ((__typeof (*(mem))) (newvalue)),	      \
+			     "r" (__memp), "r" ((char *) __memp + 4),	      \
+			     "0" (__result)				      \
 			   : "memory");					      \
        }								      \
      __result; })
@@ -144,7 +148,7 @@ typedef uintmax_t uatomic_max_t;
 			   "   cas2%.l %0:%R0,%1:%R1,(%3):(%4);"	      \
 			   "   jbne 1b"					      \
 			   : "=d" (__result), "=&d" (__temp)		      \
-			   : "d" (value), "r" (__memp),			      \
+			   : "d" ((__typeof (*(mem))) (value)), "r" (__memp), \
 			     "r" ((char *) __memp + 4), "0" (__result)	      \
 			   : "memory");					      \
        }								      \
@@ -175,8 +179,9 @@ typedef uintmax_t uatomic_max_t;
 				  "   cas2%.l %0:%R0,%1:%R1,(%3):(%4);"	      \
 				  "   jbne 1b"				      \
 				  : "=d" (__oldval), "=&d" (__temp)	      \
-				  : "d" (value), "r" (__memp),		      \
-				    "r" ((char *) __memp + 4), "0" (__oldval) \
+				  : "d" ((__typeof (*(mem))) (value)),	      \
+				    "r" (__memp), "r" ((char *) __memp + 4),  \
+				    "0" (__oldval)			      \
 				  : "memory");				      \
 	      }								      \
 	    })

@@ -1,5 +1,5 @@
 /* Machine-dependent signal context structure for GNU Hurd.  i386 version.
-   Copyright (C) 1991-2016 Free Software Foundation, Inc.
+   Copyright (C) 1991-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,17 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+#ifndef _BITS_SIGCONTEXT_H
+#define _BITS_SIGCONTEXT_H 1
+
 #if !defined _SIGNAL_H && !defined _SYS_UCONTEXT_H
 # error "Never use <bits/sigcontext.h> directly; include <signal.h> instead."
 #endif
 
-#ifndef sc_pc
-
 /* Signal handlers are actually called:
    void handler (int sig, int code, struct sigcontext *scp);  */
 
+#include <bits/types/__sigset_t.h>
 #include <mach/machine/fp_reg.h>
 
 /* State of this thread when the signal was taken.  */
@@ -116,4 +118,4 @@ struct sigcontext
 #define DBG_SINGLE_TRAP		0x1 /* single step */
 #define DBG_BRKPNT_FAULT	0x2 /* breakpoint instruction */
 
-#endif /* sc_pc */
+#endif /* bits/sigcontext.h */

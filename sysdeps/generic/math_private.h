@@ -20,8 +20,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <fenv.h>
-#include <float.h>
 #include <get-rounding-mode.h>
+
+/* Gather machine dependent _Floatn support.  */
+#include <bits/floatn.h>
 
 /* The original fdlibm code used statements like:
 	n0 = ((*(int*)&one)>>29)^1;		* index of high word *
@@ -37,30 +39,30 @@
 /* A union which permits us to convert between a double and two 32 bit
    ints.  */
 
-#if __FLOAT_WORD_ORDER == BIG_ENDIAN
+#if __FLOAT_WORD_ORDER == __BIG_ENDIAN
 
 typedef union
 {
   double value;
   struct
   {
-    u_int32_t msw;
-    u_int32_t lsw;
+    uint32_t msw;
+    uint32_t lsw;
   } parts;
   uint64_t word;
 } ieee_double_shape_type;
 
 #endif
 
-#if __FLOAT_WORD_ORDER == LITTLE_ENDIAN
+#if __FLOAT_WORD_ORDER == __LITTLE_ENDIAN
 
 typedef union
 {
   double value;
   struct
   {
-    u_int32_t lsw;
-    u_int32_t msw;
+    uint32_t lsw;
+    uint32_t msw;
   } parts;
   uint64_t word;
 } ieee_double_shape_type;
@@ -158,7 +160,7 @@ do {								\
 typedef union
 {
   float value;
-  u_int32_t word;
+  uint32_t word;
 } ieee_float_shape_type;
 
 /* Get a 32 bit int from a float.  */
@@ -181,306 +183,84 @@ do {								\
 } while (0)
 #endif
 
+/* We need to guarantee an expansion of name when building
+   ldbl-128 files as another type (e.g _Float128).  */
+#define mathx_hidden_def(name) hidden_def(name)
+
 /* Get long double macros from a separate header.  */
 #include <math_ldbl.h>
 
-/* ieee style elementary functions */
-extern double __ieee754_sqrt (double);
-extern double __ieee754_acos (double);
-extern double __ieee754_acosh (double);
-extern double __ieee754_log (double);
-extern double __ieee754_atanh (double);
-extern double __ieee754_asin (double);
-extern double __ieee754_atan2 (double,double);
-extern double __ieee754_exp (double);
-extern double __ieee754_exp2 (double);
-extern double __ieee754_exp10 (double);
-extern double __ieee754_cosh (double);
-extern double __ieee754_fmod (double,double);
-extern double __ieee754_pow (double,double);
-extern double __ieee754_lgamma_r (double,int *);
-extern double __ieee754_gamma_r (double,int *);
-extern double __ieee754_lgamma (double);
-extern double __ieee754_gamma (double);
-extern double __ieee754_log10 (double);
-extern double __ieee754_log2 (double);
-extern double __ieee754_sinh (double);
-extern double __ieee754_hypot (double,double);
-extern double __ieee754_j0 (double);
-extern double __ieee754_j1 (double);
-extern double __ieee754_y0 (double);
-extern double __ieee754_y1 (double);
-extern double __ieee754_jn (int,double);
-extern double __ieee754_yn (int,double);
-extern double __ieee754_remainder (double,double);
-extern int32_t __ieee754_rem_pio2 (double,double*);
-extern double __ieee754_scalb (double,double);
-extern int __ieee754_ilogb (double);
+/* Include function declarations for each floating-point.  */
+#define _Mdouble_ double
+#define _MSUF_
+#include <math_private_calls.h>
+#undef _MSUF_
+#undef _Mdouble_
 
-/* fdlibm kernel function */
-extern double __kernel_standard (double,double,int);
-extern float __kernel_standard_f (float,float,int);
-extern long double __kernel_standard_l (long double,long double,int);
-extern double __kernel_sin (double,double,int);
-extern double __kernel_cos (double,double);
-extern double __kernel_tan (double,double,int);
-extern int    __kernel_rem_pio2 (double*,double*,int,int,int, const int32_t*);
+#define _Mdouble_ float
+#define _MSUF_ f
+#define __MATH_DECLARING_FLOAT
+#include <math_private_calls.h>
+#undef __MATH_DECLARING_FLOAT
+#undef _MSUF_
+#undef _Mdouble_
 
-/* internal functions.  */
-extern double __copysign (double x, double __y);
+#define _Mdouble_ long double
+#define _MSUF_ l
+#define __MATH_DECLARING_LONG_DOUBLE
+#include <math_private_calls.h>
+#undef __MATH_DECLARING_LONG_DOUBLE
+#undef _MSUF_
+#undef _Mdouble_
 
-extern inline double __copysign (double x, double y)
-{ return __builtin_copysign (x, y); }
-
-/* ieee style elementary float functions */
-extern float __ieee754_sqrtf (float);
-extern float __ieee754_acosf (float);
-extern float __ieee754_acoshf (float);
-extern float __ieee754_logf (float);
-extern float __ieee754_atanhf (float);
-extern float __ieee754_asinf (float);
-extern float __ieee754_atan2f (float,float);
-extern float __ieee754_expf (float);
-extern float __ieee754_exp2f (float);
-extern float __ieee754_exp10f (float);
-extern float __ieee754_coshf (float);
-extern float __ieee754_fmodf (float,float);
-extern float __ieee754_powf (float,float);
-extern float __ieee754_lgammaf_r (float,int *);
-extern float __ieee754_gammaf_r (float,int *);
-extern float __ieee754_lgammaf (float);
-extern float __ieee754_gammaf (float);
-extern float __ieee754_log10f (float);
-extern float __ieee754_log2f (float);
-extern float __ieee754_sinhf (float);
-extern float __ieee754_hypotf (float,float);
-extern float __ieee754_j0f (float);
-extern float __ieee754_j1f (float);
-extern float __ieee754_y0f (float);
-extern float __ieee754_y1f (float);
-extern float __ieee754_jnf (int,float);
-extern float __ieee754_ynf (int,float);
-extern float __ieee754_remainderf (float,float);
-extern int32_t __ieee754_rem_pio2f (float,float*);
-extern float __ieee754_scalbf (float,float);
-extern int __ieee754_ilogbf (float);
-
-
-/* float versions of fdlibm kernel functions */
-extern float __kernel_sinf (float,float,int);
-extern float __kernel_cosf (float,float);
-extern float __kernel_tanf (float,float,int);
-extern int   __kernel_rem_pio2f (float*,float*,int,int,int, const int32_t*);
-
-/* internal functions.  */
-extern float __copysignf (float x, float __y);
-
-extern inline float __copysignf (float x, float y)
-{ return __builtin_copysignf (x, y); }
-
-/* ieee style elementary long double functions */
-extern long double __ieee754_sqrtl (long double);
-extern long double __ieee754_acosl (long double);
-extern long double __ieee754_acoshl (long double);
-extern long double __ieee754_logl (long double);
-extern long double __ieee754_atanhl (long double);
-extern long double __ieee754_asinl (long double);
-extern long double __ieee754_atan2l (long double,long double);
-extern long double __ieee754_expl (long double);
-extern long double __ieee754_exp2l (long double);
-extern long double __ieee754_exp10l (long double);
-extern long double __ieee754_coshl (long double);
-extern long double __ieee754_fmodl (long double,long double);
-extern long double __ieee754_powl (long double,long double);
-extern long double __ieee754_lgammal_r (long double,int *);
-extern long double __ieee754_gammal_r (long double,int *);
-extern long double __ieee754_lgammal (long double);
-extern long double __ieee754_gammal (long double);
-extern long double __ieee754_log10l (long double);
-extern long double __ieee754_log2l (long double);
-extern long double __ieee754_sinhl (long double);
-extern long double __ieee754_hypotl (long double,long double);
-extern long double __ieee754_j0l (long double);
-extern long double __ieee754_j1l (long double);
-extern long double __ieee754_y0l (long double);
-extern long double __ieee754_y1l (long double);
-extern long double __ieee754_jnl (int,long double);
-extern long double __ieee754_ynl (int,long double);
-extern long double __ieee754_remainderl (long double,long double);
-extern int   __ieee754_rem_pio2l (long double,long double*);
-extern long double __ieee754_scalbl (long double,long double);
-extern int   __ieee754_ilogbl (long double);
-
-/* long double versions of fdlibm kernel functions */
-extern long double __kernel_sinl (long double,long double,int);
-extern long double __kernel_cosl (long double,long double);
-extern long double __kernel_tanl (long double,long double,int);
-extern void __kernel_sincosl (long double,long double,
-			      long double *,long double *, int);
-extern int   __kernel_rem_pio2l (long double*,long double*,int,int,
-				 int,const int*);
-
-#ifndef NO_LONG_DOUBLE
-/* prototypes required to compile the ldbl-96 support without warnings */
-extern int __finitel (long double);
-extern int __ilogbl (long double);
-extern int __isinfl (long double);
-extern int __isnanl (long double);
-extern long double __atanl (long double);
-extern long double __copysignl (long double, long double);
-extern long double __expm1l (long double);
-extern long double __floorl (long double);
-extern long double __frexpl (long double, int *);
-extern long double __ldexpl (long double, int);
-extern long double __log1pl (long double);
-extern long double __nanl (const char *);
-extern long double __rintl (long double);
-extern long double __scalbnl (long double, int);
-extern long double __sqrtl (long double x);
-extern long double fabsl (long double x);
-extern void __sincosl (long double, long double *, long double *);
-extern long double __logbl (long double x);
-extern long double __significandl (long double x);
-
-extern inline long double __copysignl (long double x, long double y)
-{ return __builtin_copysignl (x, y); }
-
+#if __HAVE_DISTINCT_FLOAT128
+# define _Mdouble_ _Float128
+# define _MSUF_ f128
+# define __MATH_DECLARING_FLOATN
+# include <math_private_calls.h>
+# undef __MATH_DECLARING_FLOATN
+# undef _MSUF_
+# undef _Mdouble_
 #endif
 
+#if __HAVE_DISTINCT_FLOAT128
+
+/* __builtin_isinf_sign is broken in GCC < 7 for float128.  */
+# if ! __GNUC_PREREQ (7, 0)
+#  include <ieee754_float128.h>
+extern inline int
+__isinff128 (_Float128 x)
+{
+  int64_t hx, lx;
+  GET_FLOAT128_WORDS64 (hx, lx, x);
+  lx |= (hx & 0x7fffffffffffffffLL) ^ 0x7fff000000000000LL;
+  lx |= -lx;
+  return ~(lx >> 63) & (hx >> 62);
+}
+# endif
+
+extern inline _Float128
+fabsf128 (_Float128 x)
+{
+  return __builtin_fabsf128 (x);
+}
+#endif
+
+
+
 /* Prototypes for functions of the IBM Accurate Mathematical Library.  */
-extern double __exp1 (double __x, double __xx, double __error);
+extern double __exp1 (double __x, double __xx);
 extern double __sin (double __x);
 extern double __cos (double __x);
 extern int __branred (double __x, double *__a, double *__aa);
 extern void __doasin (double __x, double __dx, double __v[]);
 extern void __dubsin (double __x, double __dx, double __v[]);
 extern void __dubcos (double __x, double __dx, double __v[]);
-extern double __halfulp (double __x, double __y);
 extern double __sin32 (double __x, double __res, double __res1);
 extern double __cos32 (double __x, double __res, double __res1);
 extern double __mpsin (double __x, double __dx, bool __range_reduce);
 extern double __mpcos (double __x, double __dx, bool __range_reduce);
-extern double __slowexp (double __x);
-extern double __slowpow (double __x, double __y, double __z);
 extern void __docos (double __x, double __dx, double __v[]);
-
-/* Return X^2 + Y^2 - 1, computed without large cancellation error.
-   It is given that 1 > X >= Y >= epsilon / 2, and that X^2 + Y^2 >=
-   0.5.  */
-extern float __x2y2m1f (float x, float y);
-extern double __x2y2m1 (double x, double y);
-extern long double __x2y2m1l (long double x, long double y);
-
-/* Compute the product of X + X_EPS, X + X_EPS + 1, ..., X + X_EPS + N
-   - 1, in the form R * (1 + *EPS) where the return value R is an
-   approximation to the product and *EPS is set to indicate the
-   approximate error in the return value.  X is such that all the
-   values X + 1, ..., X + N - 1 are exactly representable, and X_EPS /
-   X is small enough that factors quadratic in it can be
-   neglected.  */
-extern float __gamma_productf (float x, float x_eps, int n, float *eps);
-extern double __gamma_product (double x, double x_eps, int n, double *eps);
-extern long double __gamma_productl (long double x, long double x_eps,
-				     int n, long double *eps);
-
-/* Compute lgamma of a negative argument X, if it is in a range
-   (depending on the floating-point format) for which expansion around
-   zeros is used, setting *SIGNGAMP accordingly.  */
-extern float __lgamma_negf (float x, int *signgamp);
-extern double __lgamma_neg (double x, int *signgamp);
-extern long double __lgamma_negl (long double x, int *signgamp);
-
-/* Compute the product of 1 + (T / (X + X_EPS)), 1 + (T / (X + X_EPS +
-   1)), ..., 1 + (T / (X + X_EPS + N - 1)), minus 1.  X is such that
-   all the values X + 1, ..., X + N - 1 are exactly representable, and
-   X_EPS / X is small enough that factors quadratic in it can be
-   neglected.  */
-extern double __lgamma_product (double t, double x, double x_eps, int n);
-extern long double __lgamma_productl (long double t, long double x,
-				      long double x_eps, int n);
-
-#ifndef math_opt_barrier
-# define math_opt_barrier(x) \
-({ __typeof (x) __x = (x); __asm ("" : "+m" (__x)); __x; })
-# define math_force_eval(x) \
-({ __typeof (x) __x = (x); __asm __volatile__ ("" : : "m" (__x)); })
-#endif
-
-/* math_narrow_eval reduces its floating-point argument to the range
-   and precision of its semantic type.  (The original evaluation may
-   still occur with excess range and precision, so the result may be
-   affected by double rounding.)  */
-#if FLT_EVAL_METHOD == 0
-# define math_narrow_eval(x) (x)
-#else
-# if FLT_EVAL_METHOD == 1
-#  define excess_precision(type) __builtin_types_compatible_p (type, float)
-# else
-#  define excess_precision(type) (__builtin_types_compatible_p (type, float) \
-				  || __builtin_types_compatible_p (type, \
-								   double))
-# endif
-# define math_narrow_eval(x)					\
-  ({								\
-    __typeof (x) math_narrow_eval_tmp = (x);			\
-    if (excess_precision (__typeof (math_narrow_eval_tmp)))	\
-      __asm__ ("" : "+m" (math_narrow_eval_tmp));		\
-    math_narrow_eval_tmp;					\
-   })
-#endif
-
-#define fabs_tg(x) __builtin_choose_expr			\
-  (__builtin_types_compatible_p (__typeof (x), float),		\
-   __builtin_fabsf (x),						\
-   __builtin_choose_expr					\
-   (__builtin_types_compatible_p (__typeof (x), double),	\
-    __builtin_fabs (x), __builtin_fabsl (x)))
-#define min_of_type(type) __builtin_choose_expr		\
-  (__builtin_types_compatible_p (type, float),		\
-   FLT_MIN,						\
-   __builtin_choose_expr				\
-   (__builtin_types_compatible_p (type, double),	\
-    DBL_MIN, LDBL_MIN))
-
-/* If X (which is not a NaN) is subnormal, force an underflow
-   exception.  */
-#define math_check_force_underflow(x)				\
-  do								\
-    {								\
-      __typeof (x) force_underflow_tmp = (x);			\
-      if (fabs_tg (force_underflow_tmp)				\
-	  < min_of_type (__typeof (force_underflow_tmp)))	\
-	{							\
-	  __typeof (force_underflow_tmp) force_underflow_tmp2	\
-	    = force_underflow_tmp * force_underflow_tmp;	\
-	  math_force_eval (force_underflow_tmp2);		\
-	}							\
-    }								\
-  while (0)
-/* Likewise, but X is also known to be nonnegative.  */
-#define math_check_force_underflow_nonneg(x)			\
-  do								\
-    {								\
-      __typeof (x) force_underflow_tmp = (x);			\
-      if (force_underflow_tmp					\
-	  < min_of_type (__typeof (force_underflow_tmp)))	\
-	{							\
-	  __typeof (force_underflow_tmp) force_underflow_tmp2	\
-	    = force_underflow_tmp * force_underflow_tmp;	\
-	  math_force_eval (force_underflow_tmp2);		\
-	}							\
-    }								\
-  while (0)
-/* Likewise, for both real and imaginary parts of a complex
-   result.  */
-#define math_check_force_underflow_complex(x)				\
-  do									\
-    {									\
-      __typeof (x) force_underflow_complex_tmp = (x);			\
-      math_check_force_underflow (__real__ force_underflow_complex_tmp); \
-      math_check_force_underflow (__imag__ force_underflow_complex_tmp); \
-    }									\
-  while (0)
 
 /* The standards only specify one variant of the fenv.h interfaces.
    But at least for some architectures we can be more efficient if we
@@ -632,7 +412,7 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feresetroundl libc_feupdateenvl
 #endif
 
-/* ... and a version that may also discard exceptions.  */
+/* ... and a version that also discards exceptions.  */
 
 #ifndef libc_feresetround_noex
 # define libc_feresetround_noex  libc_fesetenv
@@ -647,6 +427,53 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 #ifndef HAVE_RM_CTX
 # define HAVE_RM_CTX 0
 #endif
+
+
+/* Default implementation using standard fenv functions.
+   Avoid unnecessary rounding mode changes by first checking the
+   current rounding mode.  Note the use of __glibc_unlikely is
+   important for performance.  */
+
+static __always_inline void
+default_libc_feholdsetround_ctx (struct rm_ctx *ctx, int round)
+{
+  ctx->updated_status = false;
+
+  /* Update rounding mode only if different.  */
+  if (__glibc_unlikely (round != get_rounding_mode ()))
+    {
+      ctx->updated_status = true;
+      __fegetenv (&ctx->env);
+      __fesetround (round);
+    }
+}
+
+static __always_inline void
+default_libc_feresetround_ctx (struct rm_ctx *ctx)
+{
+  /* Restore the rounding mode if updated.  */
+  if (__glibc_unlikely (ctx->updated_status))
+    __feupdateenv (&ctx->env);
+}
+
+static __always_inline void
+default_libc_feholdsetround_noex_ctx (struct rm_ctx *ctx, int round)
+{
+  /* Save exception flags and rounding mode, and disable exception
+     traps.  */
+  __feholdexcept (&ctx->env);
+
+  /* Update rounding mode only if different.  */
+  if (__glibc_unlikely (round != get_rounding_mode ()))
+    __fesetround (round);
+}
+
+static __always_inline void
+default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
+{
+  /* Restore exception flags and rounding mode.  */
+  __fesetenv (&ctx->env);
+}
 
 #if HAVE_RM_CTX
 /* Set/Restore Rounding Modes only when necessary.  If defined, these functions
@@ -676,50 +503,10 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 
 #else
 
-/* Default implementation using standard fenv functions.
-   Avoid unnecessary rounding mode changes by first checking the
-   current rounding mode.  Note the use of __glibc_unlikely is
-   important for performance.  */
-
-static __always_inline void
-libc_feholdsetround_ctx (struct rm_ctx *ctx, int round)
-{
-  ctx->updated_status = false;
-
-  /* Update rounding mode only if different.  */
-  if (__glibc_unlikely (round != get_rounding_mode ()))
-    {
-      ctx->updated_status = true;
-      __fegetenv (&ctx->env);
-      __fesetround (round);
-    }
-}
-
-static __always_inline void
-libc_feresetround_ctx (struct rm_ctx *ctx)
-{
-  /* Restore the rounding mode if updated.  */
-  if (__glibc_unlikely (ctx->updated_status))
-    __feupdateenv (&ctx->env);
-}
-
-static __always_inline void
-libc_feholdsetround_noex_ctx (struct rm_ctx *ctx, int round)
-{
-  /* Save exception flags and rounding mode.  */
-  __fegetenv (&ctx->env);
-
-  /* Update rounding mode only if different.  */
-  if (__glibc_unlikely (round != get_rounding_mode ()))
-    __fesetround (round);
-}
-
-static __always_inline void
-libc_feresetround_noex_ctx (struct rm_ctx *ctx)
-{
-  /* Restore exception flags and rounding mode.  */
-  __fesetenv (&ctx->env);
-}
+# define libc_feholdsetround_ctx      default_libc_feholdsetround_ctx
+# define libc_feresetround_ctx        default_libc_feresetround_ctx
+# define libc_feholdsetround_noex_ctx default_libc_feholdsetround_noex_ctx
+# define libc_feresetround_noex_ctx   default_libc_feresetround_noex_ctx
 
 # define libc_feholdsetroundf_ctx libc_feholdsetround_ctx
 # define libc_feholdsetroundl_ctx libc_feholdsetround_ctx
@@ -760,7 +547,7 @@ libc_feresetround_noex_ctx (struct rm_ctx *ctx)
    the value at the start of the block.  The exception mode must be preserved.
    Exceptions raised within the block must be discarded, and exception flags
    are restored to the value at the start of the block.
-   Non-stop mode may be enabled inside the block.  */
+   Non-stop mode must be enabled inside the block.  */
 
 #define SET_RESTORE_ROUND_NOEX(RM) \
   SET_RESTORE_ROUND_GENERIC (RM, libc_feholdsetround_noex, \
@@ -777,11 +564,94 @@ libc_feresetround_noex_ctx (struct rm_ctx *ctx)
   SET_RESTORE_ROUND_GENERIC (RM, libc_feholdsetround_53bit,	      \
 			     libc_feresetround_53bit)
 
-#define __nan(str) \
-  (__builtin_constant_p (str) && str[0] == '\0' ? NAN : __nan (str))
-#define __nanf(str) \
-  (__builtin_constant_p (str) && str[0] == '\0' ? NAN : __nan (str))
-#define __nanl(str) \
-  (__builtin_constant_p (str) && str[0] == '\0' ? NAN : __nan (str))
+/* When no floating-point exceptions are defined in <fenv.h>, make
+   feraiseexcept ignore its argument so that unconditional
+   feraiseexcept calls do not cause errors for undefined exceptions.
+   Define it to expand to a void expression so that any calls testing
+   the result of feraiseexcept do produce errors.  */
+#if FE_ALL_EXCEPT == 0
+# define feraiseexcept(excepts) ((void) 0)
+# define __feraiseexcept(excepts) ((void) 0)
+#endif
+
+/* Similarly, most <fenv.h> functions have trivial implementations in
+   the absence of support for floating-point exceptions and rounding
+   modes.  */
+
+#if !FE_HAVE_ROUNDING_MODES
+# if FE_ALL_EXCEPT == 0
+extern inline int
+fegetenv (fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+__fegetenv (fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+feholdexcept (fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+__feholdexcept (fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+fesetenv (const fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+__fesetenv (const fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+feupdateenv (const fenv_t *__e)
+{
+  return 0;
+}
+
+extern inline int
+__feupdateenv (const fenv_t *__e)
+{
+  return 0;
+}
+# endif
+
+extern inline int
+fegetround (void)
+{
+  return FE_TONEAREST;
+}
+
+extern inline int
+__fegetround (void)
+{
+  return FE_TONEAREST;
+}
+
+extern inline int
+fesetround (int __d)
+{
+  return 0;
+}
+
+extern inline int
+__fesetround (int __d)
+{
+  return 0;
+}
+#endif
 
 #endif /* _MATH_PRIVATE_H_ */

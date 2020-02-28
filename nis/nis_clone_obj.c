@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2016 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Thorsten Kukuk <kukuk@vt.uni-paderborn.de>, 1997.
 
@@ -19,6 +19,7 @@
 #include <string.h>
 #include <rpc/rpc.h>
 #include <rpcsvc/nis.h>
+#include <shlib-compat.h>
 
 #include "nis_xdr.h"
 
@@ -64,4 +65,4 @@ nis_clone_object (const nis_object *src, nis_object *dest)
 
   return res;
 }
-libnsl_hidden_def (nis_clone_object)
+libnsl_hidden_nolink_def (nis_clone_object, GLIBC_2_1)

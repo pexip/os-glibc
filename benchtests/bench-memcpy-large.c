@@ -1,5 +1,5 @@
 /* Measure memcpy functions with large data sizes.
-   Copyright (C) 2016 Free Software Foundation, Inc.
+   Copyright (C) 2016-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,34 +28,16 @@
 IMPL (memcpy, 1)
 #endif
 
+#include "json-lib.h"
+
 typedef char *(*proto_t) (char *, const char *, size_t);
 
 static void
-do_one_test (impl_t *impl, char *dst, const char *src,
+do_one_test (json_ctx_t *json_ctx, impl_t *impl, char *dst, const char *src,
 	     size_t len)
 {
   size_t i, iters = 16;
   timing_t start, stop, cur;
-
-  /* Must clear the destination buffer updated by the previous run.  */
-  for (i = 0; i < len; i++)
-    dst[i] = 0;
-
-  if (CALL (impl, dst, src, len) != MEMCPY_RESULT (dst, len))
-    {
-      error (0, 0, "Wrong result in function %s %p %p", impl->name,
-	     CALL (impl, dst, src, len), MEMCPY_RESULT (dst, len));
-      ret = 1;
-      return;
-    }
-
-  if (memcmp (dst, src, len) != 0)
-    {
-      error (0, 0, "Wrong result in function %s dst \"%s\" src \"%s\"",
-	     impl->name, dst, src);
-      ret = 1;
-      return;
-    }
 
   TIMING_NOW (start);
   for (i = 0; i < iters; ++i)
@@ -66,11 +48,11 @@ do_one_test (impl_t *impl, char *dst, const char *src,
 
   TIMING_DIFF (cur, start, stop);
 
-  TIMING_PRINT_MEAN ((double) cur, (double) iters);
+  json_element_double (json_ctx, (double) cur / (double) iters);
 }
 
 static void
-do_test (size_t align1, size_t align2, size_t len)
+do_test (json_ctx_t *json_ctx, size_t align1, size_t align2, size_t len)
 {
   size_t i, j;
   char *s1, *s2;
@@ -89,35 +71,56 @@ do_test (size_t align1, size_t align2, size_t len)
   for (i = 0, j = 1; i < len; i++, j += 23)
     s1[i] = j;
 
-  printf ("Length %4zd, alignment %2zd/%2zd:", len, align1, align2);
+  json_element_object_begin (json_ctx);
+  json_attr_uint (json_ctx, "length", (double) len);
+  json_attr_uint (json_ctx, "align1", (double) align1);
+  json_attr_uint (json_ctx, "align2", (double) align2);
+  json_array_begin (json_ctx, "timings");
 
   FOR_EACH_IMPL (impl, 0)
-    do_one_test (impl, s2, s1, len);
+    do_one_test (json_ctx, impl, s2, s1, len);
 
-  putchar ('\n');
+  json_array_end (json_ctx);
+  json_element_object_end (json_ctx);
 }
 
 int
 test_main (void)
 {
+  json_ctx_t json_ctx;
   size_t i;
 
   test_init ();
 
-  printf ("%23s", "");
-  FOR_EACH_IMPL (impl, 0)
-    printf ("\t%s", impl->name);
-  putchar ('\n');
+  json_init (&json_ctx, 0, stdout);
 
+  json_document_begin (&json_ctx);
+  json_attr_string (&json_ctx, "timing_type", TIMING_TYPE);
+
+  json_attr_object_begin (&json_ctx, "functions");
+  json_attr_object_begin (&json_ctx, TEST_NAME);
+  json_attr_string (&json_ctx, "bench-variant", "large");
+
+  json_array_begin (&json_ctx, "ifuncs");
+  FOR_EACH_IMPL (impl, 0)
+    json_element_string (&json_ctx, impl->name);
+  json_array_end (&json_ctx);
+
+  json_array_begin (&json_ctx, "results");
   for (i = START_SIZE; i <= MIN_PAGE_SIZE; i <<= 1)
     {
-      do_test (0, 0, i + 7);
-      do_test (0, 3, i + 15);
-      do_test (3, 0, i + 31);
-      do_test (3, 5, i + 63);
+      do_test (&json_ctx, 0, 0, i + 7);
+      do_test (&json_ctx, 0, 3, i + 15);
+      do_test (&json_ctx, 3, 0, i + 31);
+      do_test (&json_ctx, 3, 5, i + 63);
     }
+
+  json_array_end (&json_ctx);
+  json_attr_object_end (&json_ctx);
+  json_attr_object_end (&json_ctx);
+  json_document_end (&json_ctx);
 
   return ret;
 }
 
-#include "../test-skeleton.c"
+#include <support/test-driver.c>

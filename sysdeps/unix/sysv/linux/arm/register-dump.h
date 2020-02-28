@@ -1,5 +1,5 @@
 /* Dump registers.
-   Copyright (C) 1998-2016 Free Software Foundation, Inc.
+   Copyright (C) 1998-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Philip Blundell <pb@nexus.co.uk>, 1998.
 
@@ -44,7 +44,7 @@ hexvalue (unsigned long int value, char *buf, size_t len)
 }
 
 static void
-register_dump (int fd, const struct ucontext *ctx)
+register_dump (int fd, const ucontext_t *ctx)
 {
   char regs[21][8];
   struct iovec iov[97];

@@ -1,5 +1,9 @@
 # build 32-bit (i386) alternative library
-GLIBC_MULTILIB_PASSES += i386
+GLIBC_PASSES += i386
+
+# multilib flavours
+ifeq (,$(filter nobiarch, $(DEB_BUILD_PROFILES)))
+
 DEB_ARCH_MULTILIB_PACKAGES += libc0.1-i386 libc0.1-dev-i386
 libc0.1-i386_shlib_dep = libc0.1-i386 (>= $(shlib_dep_ver))
 
@@ -18,12 +22,13 @@ ln -s x86_64-kfreebsd-gnu/gnu debian/libc0.1-dev-i386/usr/include/
 ln -s x86_64-kfreebsd-gnu/fpu_control.h debian/libc0.1-dev-i386/usr/include/
 
 mkdir -p debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
-cp -a debian/tmp-i386/usr/include/gnu/stubs-32.h \
-        debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
+cp -a debian/tmp-i386/usr/include/gnu/lib-names-32.h \
+	debian/tmp-i386/usr/include/gnu/stubs-32.h \
+	debian/libc0.1-dev-i386/usr/include/x86_64-kfreebsd-gnu/gnu
 
 mkdir -p debian/libc0.1-dev-i386/usr/include/sys
 for i in `ls debian/tmp-libc/usr/include/x86_64-kfreebsd-gnu/sys` ; do \
-        ln -s ../x86_64-kfreebsd-gnu/sys/$$i debian/libc0.1-dev-i386/usr/include/sys/$$i ; \
+	ln -s ../x86_64-kfreebsd-gnu/sys/$$i debian/libc0.1-dev-i386/usr/include/sys/$$i ; \
 done
 
 cp -a debian/tmp-i386/usr/include/sys/vm86.h \
@@ -36,3 +41,4 @@ mkdir -p debian/libc0.1-i386/lib
 ln -sf /lib32/ld.so.1 debian/libc0.1-i386/lib
 endef
 
+endif # multilib

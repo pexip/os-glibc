@@ -1,5 +1,5 @@
 /* Wrapper around clone system call.
-   Copyright (C) 1997-2016 Free Software Foundation, Inc.
+   Copyright (C) 1997-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,10 +19,6 @@
 #include <sysdep.h>
 #define _ERRNO_H	1
 #include <bits/errno.h>
-
-#define CLONE_VM	0x00000100
-#define CLONE_THREAD	0x00010000
-
 
 /* This is the only really unusual system call in PPC linux, but not
    because of any weirdness in the system call itself; because of
@@ -76,21 +72,11 @@ ENTRY (__clone)
 	crandc	cr1*4+eq,cr1*4+eq,cr0*4+so
 	bne-	cr1,L(parent)		/* The '-' is to minimise the race.  */
 
-	/* If CLONE_VM is set do not update the pid/tid field.  */
-	andi.	r0,r28,CLONE_VM
-	bne+	cr0,L(oldpid)
-
-	DO_CALL(SYS_ify(getpid))
-	stw	r3,TID(r2)
-	stw	r3,PID(r2)
-L(oldpid):
-
 	/* Call procedure.  */
 	mtctr	r30
 	mr	r3,r31
 	bctrl
-	/* Call _exit with result from procedure.  */
-	b	HIDDEN_JUMPTARGET(_exit)
+	DO_CALL(SYS_ify(exit))
 
 L(parent):
 	/* Parent.  Restore registers & return.  */

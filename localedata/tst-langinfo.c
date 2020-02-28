@@ -1,5 +1,5 @@
-/* Test program for nl_langinfo() function.
-   Copyright (C) 2000-2016 Free Software Foundation, Inc.
+/* Test driver for nl_langinfo[_l] functions.
+   Copyright (C) 2000-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>.
 
@@ -50,6 +50,18 @@ struct map
   VAL (ABMON_8),
   VAL (ABMON_9),
   VAL (ALT_DIGITS),
+  VAL (ALTMON_1),
+  VAL (ALTMON_10),
+  VAL (ALTMON_11),
+  VAL (ALTMON_12),
+  VAL (ALTMON_2),
+  VAL (ALTMON_3),
+  VAL (ALTMON_4),
+  VAL (ALTMON_5),
+  VAL (ALTMON_6),
+  VAL (ALTMON_7),
+  VAL (ALTMON_8),
+  VAL (ALTMON_9),
   VAL (AM_STR),
   VAL (CRNCYSTR),
   VAL (CURRENCY_SYMBOL),
@@ -150,7 +162,6 @@ do_test (void)
       char *locale;
       char *paramstr;
       char *expected;
-      char *actual;
       int param;
 
       if (fgets (buf, sizeof (buf), stdin) == NULL)
@@ -257,26 +268,7 @@ do_test (void)
 	  continue;
 	}
 
-      /* Set the locale and check whether it worked.  */
-      printf ("LC_ALL=%s nl_langinfo(%s)", locale, paramstr);
-      setlocale (LC_ALL, locale);
-      if (strcmp (locale, setlocale (LC_ALL, NULL)) != 0)
-	{
-	  puts (": failed to set locale");
-	  result = 1;
-	  continue;
-	}
-
-      actual = nl_langinfo (param);
-      printf (" = \"%s\", ", actual);
-
-      if (strcmp (actual, expected) == 0)
-	puts ("OK");
-      else
-	{
-	  printf ("FAILED (expected: %s)\n", expected);
-	  result = 1;
-	}
+      result = test_locale (locale, paramstr, param, expected);
     }
 
   return result;

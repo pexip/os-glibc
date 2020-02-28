@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2016 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,30 +15,110 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-/*  <bits/string.h> and <bits/string2.h> declare some extern inline
-    functions.  These functions are declared additionally here if
-    inlining is not possible.  */
+/* This file contains compatibility definitions of functions that were
+   formerly defined as "extern inline" in string.h; it's conceivable
+   that old binaries contain references to them.  */
 
-#undef __USE_STRING_INLINES
-#define __USE_STRING_INLINES
-#define _FORCE_INLINES
-#define __STRING_INLINE /* empty */
-#define __NO_INLINE__
-
+#define __NO_STRING_INLINES
 #include <string.h>
-#undef index
-#undef rindex
-
-#undef __NO_INLINE__
-#include <bits/string.h>
-#include <bits/string2.h>
 
 #include "shlib-compat.h"
 
+#if SHLIB_COMPAT (libc, GLIBC_2_1_1, GLIBC_2_25)
+/* These functions were removed from string.h in glibc 2.25.  */
+
+char *
+__old_strtok_r_1c (char *__s, char __sep, char **__nextp)
+{
+  char *__result;
+  if (__s == NULL)
+    __s = *__nextp;
+  while (*__s == __sep)
+    ++__s;
+  __result = NULL;
+  if (*__s != '\0')
+    {
+      __result = __s++;
+      while (*__s != '\0')
+	if (*__s++ == __sep)
+	  {
+	    __s[-1] = '\0';
+	    break;
+	  }
+    }
+  *__nextp = __s;
+  return __result;
+}
+compat_symbol (libc, __old_strtok_r_1c, __strtok_r_1c, GLIBC_2_1_1);
+
+char *
+__old_strsep_1c (char **__s, char __reject)
+{
+  char *__retval = *__s;
+  if (__retval != NULL && (*__s = strchr (__retval, __reject)) != NULL)
+    *(*__s)++ = '\0';
+  return __retval;
+}
+compat_symbol (libc, __old_strsep_1c, __strsep_1c, GLIBC_2_1_1);
+
+char *
+__old_strsep_2c (char **__s, char __reject1, char __reject2)
+{
+  char *__retval = *__s;
+  if (__retval != NULL)
+    {
+      char *__cp = __retval;
+      while (1)
+	{
+	  if (*__cp == '\0')
+	    {
+	      __cp = NULL;
+	      break;
+	    }
+	  if (*__cp == __reject1 || *__cp == __reject2)
+	    {
+	      *__cp++ = '\0';
+	      break;
+	    }
+	  ++__cp;
+	}
+      *__s = __cp;
+    }
+  return __retval;
+}
+compat_symbol (libc, __old_strsep_2c, __strsep_2c, GLIBC_2_1_1);
+
+char *
+__old_strsep_3c (char **__s, char __reject1, char __reject2, char __reject3)
+{
+  char *__retval = *__s;
+  if (__retval != NULL)
+    {
+      char *__cp = __retval;
+      while (1)
+	{
+	  if (*__cp == '\0')
+	    {
+	      __cp = NULL;
+	      break;
+	    }
+	  if (*__cp == __reject1 || *__cp == __reject2 || *__cp == __reject3)
+	    {
+	      *__cp++ = '\0';
+	      break;
+	    }
+	  ++__cp;
+	}
+      *__s = __cp;
+    }
+  return __retval;
+}
+compat_symbol (libc, __old_strsep_3c, __strsep_3c, GLIBC_2_1_1);
+#endif
+
 #if SHLIB_COMPAT (libc, GLIBC_2_1_1, GLIBC_2_24)
-/* The inline functions are not used from GLIBC 2.24 and forward, however
-   they are required to provide the symbols through string-inlines.c
-   (if inlining is not possible for compatibility reasons).  */
+/* These functions were removed from string.h in glibc 2.24.  */
+
 size_t
 __old_strcspn_c1 (const char *__s, int __reject)
 {
@@ -128,9 +208,13 @@ __old_strpbrk_c3 (const char *__s, int __accept1, int __accept2, int __accept3)
 }
 compat_symbol (libc, __old_strpbrk_c3, __strpbrk_c3, GLIBC_2_1_1);
 
+# if defined __mc68020__ || defined __s390__ || defined __i386__
+#  define _STRING_INLINE_unaligned 1
+# else
+#  define _STRING_INLINE_unaligned 0
 /* These are a few types we need for the optimizations if we cannot
    use unaligned memory accesses.  */
-# define __STRING2_COPY_TYPE(N) \
+#  define __STRING2_COPY_TYPE(N) \
   typedef struct { unsigned char __arr[N]; }				      \
     __attribute__ ((__packed__)) __STRING2_COPY_ARR##N
 __STRING2_COPY_TYPE (2);
@@ -140,8 +224,8 @@ __STRING2_COPY_TYPE (5);
 __STRING2_COPY_TYPE (6);
 __STRING2_COPY_TYPE (7);
 __STRING2_COPY_TYPE (8);
-# undef __STRING2_COPY_TYPE
-
+#  undef __STRING2_COPY_TYPE
+# endif
 
 # if _STRING_INLINE_unaligned
 void *

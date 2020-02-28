@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2016 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2018 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Jakub Jelinek <jakub@redhat.com>, 2006.
 
@@ -22,6 +22,7 @@
 #include <rpc/rpc.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <stdint.h>
 
 static int
 do_test (void)

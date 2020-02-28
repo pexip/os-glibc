@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2016 Free Software Foundation, Inc.
+# Copyright (C) 2002-2018 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -17,10 +17,4 @@
 
 ifeq ($(subdir),csu)
 gen-as-const-headers += tcb-offsets.sym
-endif
-
-ifeq ($(subdir),nptl)
-CFLAGS-pthread_create.c += -mpreferred-stack-boundary=4
-CFLAGS-tst-align.c += -mpreferred-stack-boundary=4
-CFLAGS-tst-align2.c += -mpreferred-stack-boundary=4
 endif
