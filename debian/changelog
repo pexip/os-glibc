@@ -1,3 +1,9 @@
+glibc (2.28-10pexip3) pexip; urgency=medium
+
+  * debian/patches/any/local-fips.diff: Add _fips_config_check()
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 05 Oct 2020 19:25:01 +0100
+
 glibc (2.28-10pexip2) pexip; urgency=medium
 
   * Rebuild in buster environment
