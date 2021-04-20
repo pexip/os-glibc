@@ -48,6 +48,7 @@ test-xfail-XPG42/arpa/inet.h/conform = yes
 test-xfail-XPG42/netdb.h/conform = yes
 test-xfail-XPG42/netinet/in.h/conform = yes
 test-xfail-XPG42/sys/socket.h/conform = yes
+test-xfail-check-installed-headers-c = yes
 
 ######################################################################
 # alpha (including optimized flavours)
