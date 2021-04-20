@@ -1,0 +1,18 @@
+Backport 1f7525d924b608a3e43b10fcfb3d46b8a6e9e4f9
+
+Prevents failing tests with kernel headers >= 5.4 as quotactl can
+now also return EINVAL
+--- a/sysdeps/unix/sysv/linux/test-errno-linux.c
++++ b/sysdeps/unix/sysv/linux/test-errno-linux.c
+@@ -160,8 +160,9 @@
+   fails |= test_wrp (EINVAL, poll, &pollfd, -1, 0);
+   /* quotactl returns ENOSYS for kernels not configured with
+      CONFIG_QUOTA, and may return EPERM if called within certain types
+-     of containers.  */
+-  fails |= test_wrp2 (LIST (ENODEV, ENOSYS, EPERM),
++     of containers.  Linux 5.4 added additional argument validation
++     and can return EINVAL.  */
++  fails |= test_wrp2 (LIST (ENODEV, ENOSYS, EPERM, EINVAL),
+ 		      quotactl, Q_GETINFO, NULL, -1, (caddr_t) &dqblk);
+   fails |= test_wrp (EINVAL, sched_getparam, -1, &sch_param);
+   fails |= test_wrp (EINVAL, sched_getscheduler, -1);

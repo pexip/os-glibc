@@ -164,3 +164,4 @@ any/git-libio-stdout-putc.diff
 # Pexip
 any/local-udp-syslog.diff
 any/local-fips.diff
+any/update-linux-errno-test.diff
