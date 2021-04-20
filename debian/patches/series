@@ -165,3 +165,4 @@ any/git-libio-stdout-putc.diff
 any/local-udp-syslog.diff
 any/local-fips.diff
 any/update-linux-errno-test.diff
+any/update-tty-test.diff
