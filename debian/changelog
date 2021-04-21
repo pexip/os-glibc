@@ -1,4 +1,4 @@
-glibc (2.28-10pexip4) UNRELEASED; urgency=medium
+glibc (2.28-10pexip4) pexip; urgency=medium
 
   * Backport 1f7525d924b608a3e43b10fcfb3d46b8a6e9e4f9 to fix
     test-errno-linux failure with newer kernel headers.
