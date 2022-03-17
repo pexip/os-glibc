@@ -33,8 +33,6 @@ stamp := $(CURDIR)/stamp-dir/
 DUMMY := $(shell mkdir -p $(stamp))
 
 # Beyond here you shouldn't need to customise anything:
-export SHELL          = /bin/bash -e
-
 DEB_HOST_ARCH         ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_ARCH_ENDIAN  ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_ENDIAN)
 DEB_HOST_ARCH_OS      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
@@ -91,25 +89,26 @@ rtlddir=/lib
 slibdir=/lib/$(DEB_HOST_MULTIARCH)
 libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 mvec = no
+crypt = no
 
 
 BASE_CC = gcc
 BASE_CXX = g++
 BASE_MIG = mig
-DEB_GCC_VERSION ?= -8
+DEB_GCC_VERSION ?= -10
 
 RUN_TESTSUITE = yes
 TIMEOUTFACTOR = 25
 
 # Set cross and native compiler names, including version.
-CC     = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -no-pie -fno-PIE
-CXX    = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION) -no-pie -fno-PIE
+CC     = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION)
+CXX    = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION)
 MIG    = $(DEB_HOST_GNU_TYPE)-$(BASE_MIG)
 BUILD_CC = $(DEB_BUILD_GNU_TYPE)-$(BASE_CC)
 BUILD_CXX = $(DEB_BUILD_GNU_TYPE)-$(BASE_CXX)
 
-BUILD_CFLAGS = -O2 -g
-HOST_CFLAGS = -pipe -O2 -g $(call xx,extra_cflags)
+BUILD_CFLAGS = -O2 -g -fdebug-prefix-map=$(CURDIR)=.
+HOST_CFLAGS = -pipe -O2 -g -fdebug-prefix-map=$(CURDIR)=. $(call xx,extra_cflags)
 
 # 32-bit MIPS builders have a 2GB memory space. This is not enough to
 # build test-tgmath3.o with GCC, unless tweaking the garbage collector.
@@ -136,9 +135,16 @@ ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     DEB_BUILD_OPTIONS+=nocheck
   endif
 else
-  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg $(libc)-pic libc-bin libc-dev-bin multiarch-support
+  DEB_ARCH_REGULAR_PACKAGES = $(libc) $(libc)-dev $(libc)-dbg libc-bin libc-dev-bin
+  ifeq ($(filter stage2,$(DEB_BUILD_PROFILES)),)
+    DEB_ARCH_REGULAR_PACKAGES += libc-devtools
+  endif
   DEB_INDEP_REGULAR_PACKAGES = glibc-doc glibc-source libc-l10n locales
-  DEB_UDEB_PACKAGES = $(libc)-udeb
+  ifneq ($(filter noudeb,$(DEB_BUILD_PROFILES)),)
+    DEB_UDEB_PACKAGES =
+  else
+    DEB_UDEB_PACKAGES = $(libc)-udeb
+  endif
   ## Locales can only be pre-generated during native compiles
   ifeq ($(DEB_HOST_ARCH),$(DEB_BUILD_ARCH))
     DEB_ARCH_REGULAR_PACKAGES += locales-all
@@ -190,7 +196,7 @@ clean:: unpatch
 	rm -rf debian/include
 	rm -f debian/control.in/libc0.1 debian/control.in/libc0.3 \
 		debian/control.in/libc6 debian/control.in/libc6.1 \
-		debian/*.preinst.*
+		debian/*.preinst.* debian/*.links.*
 
 # Required Debian targets
 build-arch: $(stamp)info \
@@ -201,7 +207,7 @@ build-arch: $(stamp)build_C.UTF-8 \
 	$(stamp)build_locales-all
 endif
 
-build-indep: $(stamp)source
+build-indep: $(stamp)source $(stamp)build_libc
 
 build: build-arch build-indep
 

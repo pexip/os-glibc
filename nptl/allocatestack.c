@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
 #include <errno.h>
@@ -379,8 +379,7 @@ setup_stack_prot (char *mem, size_t size, char *guard, size_t guardsize,
 
 /* Mark the memory of the stack as usable to the kernel.  It frees everything
    except for the space used for the TCB itself.  */
-static inline void
-__always_inline
+static __always_inline void
 advise_stack_range (void *mem, size_t size, uintptr_t pd, size_t guardsize)
 {
   uintptr_t sp = (uintptr_t) CURRENT_STACK_FRAME;
@@ -572,7 +571,9 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	  /* Place the thread descriptor at the end of the stack.  */
 #if TLS_TCB_AT_TP
-	  pd = (struct pthread *) ((char *) mem + size) - 1;
+	  pd = (struct pthread *) ((((uintptr_t) mem + size)
+				    - TLS_TCB_SIZE)
+				   & ~__static_tls_align_m1);
 #elif TLS_DTV_AT_TP
 	  pd = (struct pthread *) ((((uintptr_t) mem + size
 				    - __static_tls_size)
@@ -962,55 +963,6 @@ __reclaim_stacks (void)
 }
 
 
-#if HP_TIMING_AVAIL
-# undef __find_thread_by_id
-/* Find a thread given the thread ID.  */
-attribute_hidden
-struct pthread *
-__find_thread_by_id (pid_t tid)
-{
-  struct pthread *result = NULL;
-
-  lll_lock (stack_cache_lock, LLL_PRIVATE);
-
-  /* Iterate over the list with system-allocated threads first.  */
-  list_t *runp;
-  list_for_each (runp, &stack_used)
-    {
-      struct pthread *curp;
-
-      curp = list_entry (runp, struct pthread, list);
-
-      if (curp->tid == tid)
-	{
-	  result = curp;
-	  goto out;
-	}
-    }
-
-  /* Now the list with threads using user-allocated stacks.  */
-  list_for_each (runp, &__stack_user)
-    {
-      struct pthread *curp;
-
-      curp = list_entry (runp, struct pthread, list);
-
-      if (curp->tid == tid)
-	{
-	  result = curp;
-	  goto out;
-	}
-    }
-
- out:
-  lll_unlock (stack_cache_lock, LLL_PRIVATE);
-
-  return result;
-}
-#endif
-
-
-#ifdef SIGSETXID
 static void
 setxid_mark_thread (struct xid_command *cmdp, struct pthread *t)
 {
@@ -1221,8 +1173,6 @@ __nptl_setxid (struct xid_command *cmdp)
   lll_unlock (stack_cache_lock, LLL_PRIVATE);
   return result;
 }
-#endif  /* SIGSETXID.  */
-
 
 static inline void __attribute__((always_inline))
 init_one_static_tls (struct pthread *curp, struct link_map *map)

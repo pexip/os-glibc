@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -379,13 +379,6 @@ START_THREAD_DEFN
 {
   struct pthread *pd = START_THREAD_SELF;
 
-#if HP_TIMING_AVAIL
-  /* Remember the time when the thread was started.  */
-  hp_timing_t now;
-  HP_TIMING_NOW (now);
-  THREAD_SETMEM (pd, cpuclock_offset, now);
-#endif
-
   /* Initialize resolver state pointer.  */
   __resp = &pd->res;
 
@@ -409,7 +402,6 @@ START_THREAD_DEFN
     }
 #endif
 
-#ifdef SIGCANCEL
   /* If the parent was running cancellation handlers while creating
      the thread the new thread inherited the signal mask.  Reset the
      cancellation signal mask.  */
@@ -422,7 +414,6 @@ START_THREAD_DEFN
       (void) INTERNAL_SYSCALL (rt_sigprocmask, err, 4, SIG_UNBLOCK, &mask,
 			       NULL, _NSIG / 8);
     }
-#endif
 
   /* This is where the try/finally block should be created.  For
      compilers without that support we do use setjmp.  */

@@ -1,5 +1,5 @@
 /* Generic implementation of the renameat function.
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,13 +14,13 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <stdio.h>
 
 int
-renameat2 (int oldfd, const char *old, int newfd, const char *new,
+__renameat2 (int oldfd, const char *old, int newfd, const char *new,
            unsigned int flags)
 {
   if (flags == 0)
@@ -28,3 +28,5 @@ renameat2 (int oldfd, const char *old, int newfd, const char *new,
   __set_errno (EINVAL);
   return -1;
 }
+libc_hidden_def (__renameat2)
+weak_alias (__renameat2, renameat2)

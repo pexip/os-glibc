@@ -1,5 +1,5 @@
 /* Additional fields in struct link_map.  Linux/x86 version.
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,13 +14,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 /* If this object is enabled with CET.  */
 enum
   {
-    lc_none = 0,			 /* Not enabled with CET.  */
-    lc_ibt = 1 << 0,			 /* Enabled with IBT.  */
-    lc_shstk = 1 << 1,			 /* Enabled with STSHK.  */
+    lc_unknown = 0,			 /* Unknown CET status.  */
+    lc_none = 1 << 0,			 /* Not enabled with CET.  */
+    lc_ibt = 1 << 1,			 /* Enabled with IBT.  */
+    lc_shstk = 1 << 2,			 /* Enabled with STSHK.  */
     lc_ibt_and_shstk = lc_ibt | lc_shstk /* Enabled with both.  */
-  } l_cet:2;
+  } l_cet:3;

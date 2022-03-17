@@ -1,5 +1,5 @@
 /* Check two binary blobs for equality.
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,9 @@ static void
 report_blob (const char *what, const unsigned char *blob,
              unsigned long int length, const char *expr)
 {
-  if (length > 0)
+  if (blob == NULL && length > 0)
+    printf ("  %s (evaluated from %s): NULL\n", what, expr);
+  else if (length > 0)
     {
       printf ("  %s (evaluated from %s):\n", what, expr);
       char *quoted = support_quote_blob (blob, length);

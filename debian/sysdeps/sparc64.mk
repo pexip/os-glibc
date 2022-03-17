@@ -1,4 +1,6 @@
 # configuration options for all flavours
+CC = $(DEB_HOST_GNU_TYPE)-$(BASE_CC)$(DEB_GCC_VERSION) -no-pie -fno-PIE
+CXX = $(DEB_HOST_GNU_TYPE)-$(BASE_CXX)$(DEB_GCC_VERSION) -no-pie -fno-PIE
 extra_config_options = --disable-multi-arch
 
 # main library
@@ -20,26 +22,13 @@ sparc_libdir = /usr/lib32
 
 define libc6-dev-sparc_extra_pkg_install
 
-mkdir -p debian/libc6-dev-sparc/usr/include
-ln -s sparc64-linux-gnu/bits debian/libc6-dev-sparc/usr/include/
-ln -s sparc64-linux-gnu/gnu debian/libc6-dev-sparc/usr/include/
-ln -s sparc64-linux-gnu/fpu_control.h debian/libc6-dev-sparc/usr/include/
+$(call generic_multilib_extra_pkg_install,libc6-dev-sparc)
 
 mkdir -p debian/libc6-dev-sparc/usr/include/sparc64-linux-gnu/gnu
 cp -a debian/tmp-sparc/usr/include/gnu/lib-names-32.h \
 	debian/tmp-sparc/usr/include/gnu/stubs-32.h \
 	debian/libc6-dev-sparc/usr/include/sparc64-linux-gnu/gnu
 
-mkdir -p debian/libc6-dev-sparc/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/sparc64-linux-gnu/sys` ; do \
-	ln -s ../sparc64-linux-gnu/sys/$$i debian/libc6-dev-sparc/usr/include/sys/$$i ; \
-done
-
-endef
-
-define libc6-sparc_extra_pkg_install
-mkdir -p debian/$(curpass)/lib
-ln -s /lib32/ld-linux.so.2 debian/$(curpass)/lib
 endef
 
 endif # multilib

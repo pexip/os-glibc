@@ -1,6 +1,3 @@
-# configuration options for all flavours
-extra_cflags = -mno-plt
-
 # main library
 libc_rtlddir = /lib32
 
@@ -31,20 +28,12 @@ mips32_libdir = /usr/libo32
 
 define libc6-dev-mips64_extra_pkg_install
 
-mkdir -p debian/libc6-dev-mips64/usr/include
-ln -sf mips64el-linux-gnuabin32/bits debian/libc6-dev-mips64/usr/include/
-ln -sf mips64el-linux-gnuabin32/gnu debian/libc6-dev-mips64/usr/include/
-ln -sf mips64el-linux-gnuabin32/fpu_control.h debian/libc6-dev-mips64/usr/include/
+$(call generic_multilib_extra_pkg_install,libc6-dev-mips64)
 
 mkdir -p debian/libc6-dev-mips64/usr/include/mips64el-linux-gnuabin32/gnu
 cp -a debian/tmp-mips64/usr/include/gnu/lib-names-n64_hard.h \
 	debian/tmp-mips64/usr/include/gnu/stubs-n64_hard.h \
 	debian/libc6-dev-mips64/usr/include/mips64el-linux-gnuabin32/gnu
-
-mkdir -p debian/libc6-dev-mips64/usr/include/sys
-for i in `ls debian/tmp-libc/usr/include/mips64el-linux-gnuabin32/sys` ; do \
-	ln -sf ../mips64el-linux-gnuabin32/sys/$$i debian/libc6-dev-mips64/usr/include/sys/$$i ; \
-done
 
 endef
 
@@ -55,12 +44,6 @@ cp -a debian/tmp-mips32/usr/include/gnu/lib-names-o32_hard.h \
 	debian/tmp-mips32/usr/include/gnu/stubs-o32_hard.h \
 	debian/libc6-dev-mips32/usr/include/mips64el-linux-gnuabin32/gnu
 
-endef
-
-# create a symlink for the 32 bit dynamic linker in /lib
-define libc6-mips32_extra_pkg_install
-mkdir -p debian/libc6-mips32/lib
-ln -sf /libo32/ld.so.1 debian/libc6-mips32/lib
 endef
 
 endif # multilib

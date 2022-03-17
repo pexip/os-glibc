@@ -1,5 +1,5 @@
 /* Inner loops of cache daemon.
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #include <alloca.h>
 #include <assert.h>
@@ -227,7 +227,6 @@ static struct
   [GETHOSTBYADDRv6] = { true, &dbs[hstdb] },
   [SHUTDOWN] = { false, NULL },
   [GETSTAT] = { false, NULL },
-  [SHUTDOWN] = { false, NULL },
   [GETFDPW] = { false, &dbs[pwddb] },
   [GETFDGR] = { false, &dbs[grpdb] },
   [GETFDHST] = { false, &dbs[hstdb] },
@@ -304,7 +303,8 @@ static int
 check_use (const char *data, nscd_ssize_t first_free, uint8_t *usemap,
 	   enum usekey use, ref_t start, size_t len)
 {
-  assert (len >= 2);
+  if (len < 2)
+    return 0;
 
   if (start > first_free || start + len > first_free
       || (start & BLOCK_ALIGN_M1))

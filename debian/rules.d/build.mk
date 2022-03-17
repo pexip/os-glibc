@@ -2,6 +2,20 @@
 # PASS_VAR, we need to call all variables as $(call xx,VAR)
 # This little bit of magic makes it possible:
 xx=$(if $($(curpass)_$(1)),$($(curpass)_$(1)),$($(1)))
+define generic_multilib_extra_pkg_install
+set -e; \
+mkdir -p debian/$(1)/usr/include/sys; \
+ln -sf $(DEB_HOST_MULTIARCH)/bits debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/gnu debian/$(1)/usr/include/; \
+ln -sf $(DEB_HOST_MULTIARCH)/fpu_control.h debian/$(1)/usr/include/; \
+for i in `ls debian/tmp-libc/usr/include/$(DEB_HOST_MULTIARCH)/sys`; do \
+	ln -sf ../$(DEB_HOST_MULTIARCH)/sys/$$i debian/$(1)/usr/include/sys/$$i; \
+done
+mkdir -p debian/$(1)/usr/include/finclude; \
+for i in `ls debian/tmp-libc/usr/include/finclude/$(DEB_HOST_MULTIARCH)`; do \
+	ln -sf $(DEB_HOST_MULTIARCH)/$$i debian/$(1)/usr/include/finclude/$$i; \
+done
+endef
 
 ifneq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
     libc_extra_config_options = $(extra_config_options) --disable-sanity-checks \
@@ -37,7 +51,15 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 	echo "BASH := /bin/bash"                  >> $(DEB_BUILDDIR)/configparms
 	echo "KSH := /bin/bash"                   >> $(DEB_BUILDDIR)/configparms
 	echo "SHELL := /bin/bash"                 >> $(DEB_BUILDDIR)/configparms
+ifeq (,$(filter stage1 stage2,$(DEB_BUILD_PROFILES)))
+	if [ "$(curpass)" = "libc" ]; then \
+	  echo "LIBGD = yes"                      >> $(DEB_BUILDDIR)/configparms; \
+	else \
+	  echo "LIBGD = no"                       >> $(DEB_BUILDDIR)/configparms; \
+	fi
+else
 	echo "LIBGD = no"                         >> $(DEB_BUILDDIR)/configparms
+endif
 	echo "bindir = $(bindir)"                 >> $(DEB_BUILDDIR)/configparms
 	echo "datadir = $(datadir)"               >> $(DEB_BUILDDIR)/configparms
 	echo "complocaledir = $(complocaledir)"   >> $(DEB_BUILDDIR)/configparms
@@ -72,8 +94,8 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 	    echo "No.  Forcing cross-compile by setting build to $$configure_build."; \
 	  fi; \
 	fi; \
-	echo -n "Build started: " ; date --rfc-2822
-	echo "---------------"
+	echo -n "Build started: " ; date --rfc-2822; \
+	echo "---------------"; \
 	cd $(DEB_BUILDDIR) && \
 		CC="$(call xx,CC)" \
 		CXX=$(if $(filter nocheck,$(DEB_BUILD_OPTIONS)),:,"$(call xx,CXX)") \
@@ -88,12 +110,12 @@ $(stamp)configure_%: $(stamp)config_sub_guess $(stamp)patch $(KERNEL_HEADER_DIR)
 		--enable-stackguard-randomization \
 		--enable-stack-protector=strong \
 		--enable-obsolete-rpc \
-		--enable-obsolete-nsl \
 		--with-pkgversion="Debian GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.debian.org/Bugs/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
 		$(if $(filter $(threads),no),--disable-nscd) \
 		$(if $(filter $(call xx,mvec),no),--disable-mathvec) \
+		$(if $(filter $(call xx,crypt),no),--disable-crypt) \
 		$(call xx,with_headers) $(call xx,extra_config_options)
 	touch $@
 
@@ -124,7 +146,7 @@ $(stamp)check_%: $(stamp)build_%
 	  echo "Testsuite disabled for $(curpass), skipping tests."; \
 	else \
 	  find $(DEB_BUILDDIR) -name '*.out' -delete ; \
-	  LD_PRELOAD="" LANG="" TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
+	  LD_PRELOAD="" LANG="" LANGUAGE="" TIMEOUTFACTOR="$(TIMEOUTFACTOR)" $(MAKE) -C $(DEB_BUILDDIR) $(NJOBS) check || true ; \
 	  if ! test -f $(DEB_BUILDDIR)/tests.sum ; then \
 	    echo "+---------------------------------------------------------------------+" ; \
 	    echo "|                     Testsuite failed to build.                      |" ; \
@@ -224,6 +246,11 @@ else
 	    OUT=debian/tmp-$(curpass)/usr/share/i18n/SUPPORTED; \
 	fi
 
+	# Remove yppasswd.h and yppasswd.x as they are shipped by libnsl-dev
+	# This could probably be removed once we stop using --enable-obsolete-rpc.
+	rm $(CURDIR)/debian/tmp-$(curpass)/usr/include/rpcsvc/yppasswd.h
+	rm $(CURDIR)/debian/tmp-$(curpass)/usr/include/rpcsvc/yppasswd.x
+
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 	# Install the Python pretty printers
 	mkdir -p $(CURDIR)/debian/tmp-$(curpass)/usr/share/gdb/auto-load/$(call xx,slibdir)
@@ -252,6 +279,8 @@ endif
 	  mv debian/tmp-$(curpass)/usr/include/fpu_control.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/a.out.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
 	  mv debian/tmp-$(curpass)/usr/include/ieee754.h debian/tmp-$(curpass)/usr/include/$(DEB_HOST_MULTIARCH); \
+	  mkdir -p debian/tmp-$(curpass)/usr/include/finclude/$(DEB_HOST_MULTIARCH); \
+	  mv debian/tmp-$(curpass)/usr/include/finclude/math-vector-fortran.h debian/tmp-$(curpass)/usr/include/finclude/$(DEB_HOST_MULTIARCH); \
 	fi
 
 ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
@@ -288,14 +317,14 @@ ifeq ($(filter stage1,$(DEB_BUILD_PROFILES)),)
 	  esac; \
 	fi
 
-	# Create the ld.so symlink to the multiarch directory
-	if [ $(curpass) = libc ]; then \
-	  rtld_so="$$(LANG=C LC_ALL=C readelf -l debian/tmp-$(curpass)/usr/bin/iconv | grep 'interpreter' | sed -e 's/.*interpreter: \(.*\)]/\1/g')" ; \
-	  rtld_so="$$(basename $$rtld_so)" ; \
-	  link_name="debian/tmp-$(curpass)/lib/$$rtld_so" ; \
-	  target="$(call xx,slibdir)/$$(readlink debian/tmp-$(curpass)/$(call xx,slibdir)/$$rtld_so)" ; \
-	  ln -s $$target $$link_name ;  \
-	fi
+	# Create the ld.so symlink in the slibdir directory, otherwise it will get
+	# created later by ldconfig, leading to a dangling symlink when the package
+	# is removed
+	ld_so="$$(ls debian/tmp-$(curpass)/$(call xx,slibdir)/ld-*.so)" ; \
+	soname="$$(LANG=C LC_ALL=C readelf -d $$ld_so | grep 'Library soname:' | sed -e 's/.*Library soname: \[\(.*\)\]/\1/g')" ; \
+	target="$$(basename $$ld_so)" ; \
+	link_name="debian/tmp-$(curpass)/$(call xx,slibdir)/$$soname" ; \
+	ln -sf $$target $$link_name
 	
 	$(call xx,extra_install)
 endif
@@ -329,7 +358,7 @@ $(stamp)build_locales-all: $(stamp)/build_libc
 	$(MAKE) -C $(DEB_BUILDDIRLIBC) $(NJOBS) \
 		objdir=$(DEB_BUILDDIRLIBC) \
 		install_root=$(CURDIR)/build-tree/locales-all \
-		localedata/install-locales LOCALEDEF="$(LOCALEDEF)"
+		localedata/install-locale-files LOCALEDEF="$(LOCALEDEF)"
 	rdfind -outputname /dev/null -makesymlinks true -removeidentinode false \
 		$(CURDIR)/build-tree/locales-all/usr/lib/locale
 	symlinks -r -s -c $(CURDIR)/build-tree/locales-all/usr/lib/locale
