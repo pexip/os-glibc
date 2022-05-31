@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2018 Free Software Foundation, Inc.
+# Copyright (C) 1996-2020 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
 
 # You should have received a copy of the GNU Lesser General Public
 # License along with the GNU C Library; if not, see
-# <http://www.gnu.org/licenses/>.
+# <https://www.gnu.org/licenses/>.
 
 # Makefile for installing locale data source files.
 
@@ -156,7 +156,7 @@ tests = $(locale_test_suite) tst-digits tst-setlocale bug-iconv-trans \
 	tst-leaks tst-mbswcs1 tst-mbswcs2 tst-mbswcs3 tst-mbswcs4 tst-mbswcs5 \
 	tst-mbswcs6 tst-xlocale1 tst-xlocale2 bug-usesetlocale \
 	tst-strfmon1 tst-sscanf bug-setlocale1 tst-setlocale2 tst-setlocale3 \
-	tst-wctype
+	tst-wctype tst-iconv-math-trans
 tests-static = bug-setlocale1-static
 tests += $(tests-static)
 ifeq (yes,$(build-shared))
@@ -167,9 +167,17 @@ endif
 endif
 
 # Files to install.
+ifeq ($(INSTALL_UNCOMPRESSED),yes)
+# This option is for testing inside the testroot container, as the
+# container does not include a working gunzip program.
+install-others := $(addprefix $(inst_i18ndir)/, \
+			      $(charmaps) \
+			      $(locales))
+else
 install-others := $(addprefix $(inst_i18ndir)/, \
 			      $(addsuffix .gz, $(charmaps)) \
 			      $(locales))
+endif
 
 tests: $(objdir)/iconvdata/gconv-modules
 
@@ -245,6 +253,7 @@ LOCALES := \
 	nan_TW.UTF-8@latin \
 	nb_NO.ISO-8859-1 \
 	nb_NO.UTF-8 \
+	nl_NL.UTF-8 \
 	nn_NO.ISO-8859-1 \
 	om_KE.UTF-8 \
 	os_RU.UTF-8 \
@@ -278,16 +287,28 @@ LOCALES := \
 	$(NULL)
 
 include ../gen-locales.mk
+
+$(objpfx)tst-iconv-math-trans.out: $(gen-locales)
 endif
 
 include ../Rules
 
+ifeq ($(INSTALL_UNCOMPRESSED),yes)
+# Install the charmap files as-is.  This option is for testing inside
+# the testroot container, as the container does not include a working
+# gunzip program.
+$(inst_i18ndir)/charmaps/%: charmaps/% $(+force)
+	$(make-target-directory)
+	rm -f $@
+	$(INSTALL_DATA) $< $@
+else
 # Install the charmap files in gzipped format.
 $(inst_i18ndir)/charmaps/%.gz: charmaps/% $(+force)
 	$(make-target-directory)
 	rm -f $(@:.gz=) $@
 	$(INSTALL_DATA) $< $(@:.gz=)
 	gzip -9n $(@:.gz=)
+endif
 
 # Install the locale source files in the appropriate directory.
 $(inst_i18ndir)/locales/%: locales/% $(+force); $(do-install)
@@ -380,12 +401,18 @@ endif
 
 include SUPPORTED
 
-INSTALL-SUPPORTED-LOCALES=$(addprefix install-, $(SUPPORTED-LOCALES))
+INSTALL-SUPPORTED-LOCALE-ARCHIVE=$(addprefix install-archive-, $(SUPPORTED-LOCALES))
+INSTALL-SUPPORTED-LOCALE-FILES=$(addprefix install-files-, $(SUPPORTED-LOCALES))
 
 # Sometimes the whole collection of locale files should be installed.
 LOCALEDEF=I18NPATH=. GCONV_PATH=$(common-objpfx)iconvdata LC_ALL=C \
 $(rtld-prefix) $(common-objpfx)locale/localedef
-install-locales: $(INSTALL-SUPPORTED-LOCALES)
+install-locales: install-locale-archive
+
+# Create and install the locale-archive file.
+install-locale-archive: $(INSTALL-SUPPORTED-LOCALE-ARCHIVE)
+# Create and install the locales individually (no archive).
+install-locale-files: $(INSTALL-SUPPORTED-LOCALE-FILES)
 
 install-locales-dir:
 	$(..)./scripts/mkinstalldirs $(inst_complocaledir)
@@ -393,11 +420,10 @@ install-locales-dir:
 # The SHIFT_JIS and SHIFT_JISX0213 character maps are not ASCII compatible,
 # therefore we have to use --no-warnings=ascii to disable the ASCII check.
 # See localedata/gen-locale.sh for the same logic.
-$(INSTALL-SUPPORTED-LOCALES): install-locales-dir
-	@locale=`echo $@ | sed -e 's/^install-//'`; \
+define build-one-locale
+	locale=`echo $@ | sed -e 's/^install-[a-z]*-//'`; \
 	charset=`echo $$locale | sed -e 's,.*/,,'`; \
 	locale=`echo $$locale | sed -e 's,/[^/]*,,'`; \
-	flags="-c"; \
 	if [ "$$charset" = 'SHIFT_JIS' ] \
 	   || [ "$$charset" = 'SHIFT_JISX0213' ]; then \
 	   flags="$$flags --no-warnings=ascii"; \
@@ -410,7 +436,16 @@ $(INSTALL-SUPPORTED-LOCALES): install-locales-dir
 	$(LOCALEDEF) $$flags --alias-file=../intl/locale.alias \
 		     -i locales/$$input -f charmaps/$$charset \
 		     $(addprefix --prefix=,$(install_root)) $$locale \
-	&& echo ' done'; \
+	&& echo ' done';
+endef
+
+$(INSTALL-SUPPORTED-LOCALE-ARCHIVE): install-locales-dir
+	@flags="-c"; \
+	$(build-one-locale)
+
+$(INSTALL-SUPPORTED-LOCALE-FILES): install-locales-dir
+	@flags="-c --no-archive --no-hard-links"; \
+	$(build-one-locale)
 
 tst-setlocale-ENV = LC_ALL=ja_JP.EUC-JP
 tst-wctype-ENV = LC_ALL=ja_JP.EUC-JP

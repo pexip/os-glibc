@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,11 +13,12 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _LINUX_POWERPC_SYSDEP_H
 #define _LINUX_POWERPC_SYSDEP_H 1
 
+#include <sysdeps/unix/sysv/linux/powerpc/sysdep.h>
 #include <sysdeps/unix/sysv/linux/sysdep.h>
 #include <sysdeps/unix/powerpc/sysdep.h>
 #include <tls.h>
@@ -40,7 +41,7 @@
    function call, with the exception of LR (which is needed for the
    "sc; bnslr+" sequence) and CR (where only CR0.SO is clobbered to signal
    an error return status).  */
-# define INTERNAL_VSYSCALL_CALL_TYPE(funcptr, err, nr, type, args...)	      \
+# define INTERNAL_VSYSCALL_CALL_TYPE(funcptr, err, type, nr, args...)	      \
   ({									      \
     register void *r0  __asm__ ("r0");					      \
     register long int r3  __asm__ ("r3");				      \
@@ -68,7 +69,7 @@
   })
 
 #define INTERNAL_VSYSCALL_CALL(funcptr, err, nr, args...) \
-  INTERNAL_VSYSCALL_CALL_TYPE(funcptr, err, nr, long int, args)
+  INTERNAL_VSYSCALL_CALL_TYPE(funcptr, err, long int, nr, args)
 
 # undef INLINE_SYSCALL
 # define INLINE_SYSCALL(name, nr, args...)				\
@@ -109,7 +110,6 @@
     register long int r11 __asm__ ("r11");				\
     register long int r12 __asm__ ("r12");				\
     LOADARGS_##nr(name, args);						\
-    ABORT_TRANSACTION;							\
     __asm__ __volatile__						\
       ("sc   \n\t"							\
        "mfcr %0"							\
@@ -130,26 +130,6 @@
 
 # undef INTERNAL_SYSCALL_ERRNO
 # define INTERNAL_SYSCALL_ERRNO(val, err)     (val)
-
-# define INTERNAL_VSYSCALL_NO_SYSCALL_FALLBACK(name, err, type, nr, args...)  \
-  ({									      \
-    type sc_ret = ENOSYS;						      \
-									      \
-    __typeof (__vdso_##name) vdsop = __vdso_##name;			      \
-    PTR_DEMANGLE (vdsop);						      \
-    if (vdsop != NULL)							      \
-      sc_ret = 								      \
-        INTERNAL_VSYSCALL_CALL_TYPE (vdsop, err, nr, type, ##args);	      \
-    else								      \
-      err = 1 << 28;							      \
-    sc_ret;								      \
-  })
-
-/* List of system calls which are supported as vsyscalls.  */
-# define HAVE_CLOCK_GETRES_VSYSCALL	1
-# define HAVE_CLOCK_GETTIME_VSYSCALL	1
-# define HAVE_GETCPU_VSYSCALL		1
-
 
 # define LOADARGS_0(name, dummy)					      \
 	r0 = name

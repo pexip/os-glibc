@@ -1,5 +1,5 @@
 /* Host and service name lookups using Name Service Switch modules.
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 /* The Inner Net License, Version 2.00
 
@@ -61,7 +61,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <nss.h>
 #include <resolv/resolv-internal.h>
 #include <resolv/resolv_context.h>
-#include <resolv/res_use_inet6.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdio_ext.h>
@@ -255,7 +254,6 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
 	break;								      \
       if (!scratch_buffer_grow (tmpbuf))				      \
 	{								      \
-	  __resolv_context_enable_inet6 (res_ctx, res_enable_inet6);	      \
 	  __resolv_context_put (res_ctx);				      \
 	  result = -EAI_MEMORY;						      \
 	  goto free_and_return;						      \
@@ -266,7 +264,6 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
     {									      \
       if (h_errno == NETDB_INTERNAL)					      \
 	{								      \
-	  __resolv_context_enable_inet6 (res_ctx, res_enable_inet6);	      \
 	  __resolv_context_put (res_ctx);				      \
 	  result = -EAI_SYSTEM;						      \
 	  goto free_and_return;						      \
@@ -280,7 +277,6 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
     {									      \
       if (!convert_hostent_to_gaih_addrtuple (req, _family, &th, &addrmem))   \
 	{								      \
-	  __resolv_context_enable_inet6 (res_ctx, res_enable_inet6);	      \
 	  __resolv_context_put (res_ctx);				      \
 	  result = -EAI_SYSTEM;						      \
 	  goto free_and_return;						      \
@@ -292,6 +288,7 @@ convert_hostent_to_gaih_addrtuple (const struct addrinfo *req,
 	  canonbuf = __strdup (localcanon);				      \
 	  if (canonbuf == NULL)						      \
 	    {								      \
+	      __resolv_context_put (res_ctx);				      \
 	      result = -EAI_SYSTEM;					      \
 	      goto free_and_return;					      \
 	    }								      \
@@ -488,7 +485,7 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  malloc_name = true;
 	}
 
-      if (__inet_aton (name, (struct in_addr *) at->addr) != 0)
+      if (__inet_aton_exact (name, (struct in_addr *) at->addr) != 0)
 	{
 	  if (req->ai_family == AF_UNSPEC || req->ai_family == AF_INET)
 	    at->family = AF_INET;
@@ -558,7 +555,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	  enum nss_status status = NSS_STATUS_UNAVAIL;
 	  int no_more;
 	  struct resolv_context *res_ctx = NULL;
-	  bool res_enable_inet6 = false;
 
 	  /* If we do not have to look for IPv6 addresses or the canonical
 	     name, use the simple, old functions, which do not support
@@ -737,9 +733,9 @@ gaih_inet (const char *name, const struct gaih_service *service,
 #endif
 
 	  if (__nss_hosts_database == NULL)
-	    no_more = __nss_database_lookup ("hosts", NULL,
-					     "dns [!UNAVAIL=return] files",
-					     &__nss_hosts_database);
+	    no_more = __nss_database_lookup2 ("hosts", NULL,
+					      "dns [!UNAVAIL=return] files",
+					      &__nss_hosts_database);
 	  else
 	    no_more = 0;
 	  nip = __nss_hosts_database;
@@ -749,7 +745,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 	     addresses to IPv6 addresses, so we use the no_inet6
 	     function variant.  */
 	  res_ctx = __resolv_context_get ();
-	  res_enable_inet6 = __resolv_context_disable_inet6 (res_ctx);
 	  if (res_ctx == NULL)
 	    no_more = 1;
 
@@ -785,8 +780,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 
 		      if (!scratch_buffer_grow (tmpbuf))
 			{
-			  __resolv_context_enable_inet6
-			    (res_ctx, res_enable_inet6);
 			  __resolv_context_put (res_ctx);
 			  result = -EAI_MEMORY;
 			  goto free_and_return;
@@ -886,8 +879,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 			      canonbuf = getcanonname (nip, at, name);
 			      if (canonbuf == NULL)
 				{
-				  __resolv_context_enable_inet6
-				    (res_ctx, res_enable_inet6);
 				  __resolv_context_put (res_ctx);
 				  result = -EAI_MEMORY;
 				  goto free_and_return;
@@ -932,7 +923,6 @@ gaih_inet (const char *name, const struct gaih_service *service,
 		nip = nip->next;
 	    }
 
-	  __resolv_context_enable_inet6 (res_ctx, res_enable_inet6);
 	  __resolv_context_put (res_ctx);
 
 	  /* If we have a failure which sets errno, report it using
@@ -2197,6 +2187,10 @@ getaddrinfo (const char *name, const char *service,
   if ((hints->ai_flags & AI_CANONNAME) && name == NULL)
     return EAI_BADFLAGS;
 
+  if (hints->ai_family != AF_UNSPEC && hints->ai_family != AF_INET
+      && hints->ai_family != AF_INET6)
+    return EAI_FAMILY;
+
   struct in6addrinfo *in6ai = NULL;
   size_t in6ailen = 0;
   bool seen_ipv4 = false;
@@ -2217,7 +2211,7 @@ getaddrinfo (const char *name, const char *service,
 	{
 	  /* If we haven't seen both IPv4 and IPv6 interfaces we can
 	     narrow down the search.  */
-	  if ((! seen_ipv4 || ! seen_ipv6) && (seen_ipv4 || seen_ipv6))
+	  if (seen_ipv4 != seen_ipv6)
 	    {
 	      local_hints = *hints;
 	      local_hints.ai_family = seen_ipv4 ? PF_INET : PF_INET6;
@@ -2255,33 +2249,25 @@ getaddrinfo (const char *name, const char *service,
     pservice = NULL;
 
   struct addrinfo **end = &p;
-
   unsigned int naddrs = 0;
-  if (hints->ai_family == AF_UNSPEC || hints->ai_family == AF_INET
-      || hints->ai_family == AF_INET6)
-    {
-      struct scratch_buffer tmpbuf;
-      scratch_buffer_init (&tmpbuf);
-      last_i = gaih_inet (name, pservice, hints, end, &naddrs, &tmpbuf);
-      scratch_buffer_free (&tmpbuf);
+  struct scratch_buffer tmpbuf;
 
-      if (last_i != 0)
-	{
-	  freeaddrinfo (p);
-	  __free_in6ai (in6ai);
+  scratch_buffer_init (&tmpbuf);
+  last_i = gaih_inet (name, pservice, hints, end, &naddrs, &tmpbuf);
+  scratch_buffer_free (&tmpbuf);
 
-	  return -last_i;
-	}
-      while (*end)
-	{
-	  end = &((*end)->ai_next);
-	  ++nresults;
-	}
-    }
-  else
+  if (last_i != 0)
     {
+      freeaddrinfo (p);
       __free_in6ai (in6ai);
-      return EAI_FAMILY;
+
+      return -last_i;
+    }
+
+  while (*end)
+    {
+      end = &((*end)->ai_next);
+      ++nresults;
     }
 
   if (naddrs > 1)

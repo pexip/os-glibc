@@ -1,5 +1,5 @@
 /* Software floating-point emulation: floating point truncation.
-   Copyright (C) 1997-2018 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Richard Henderson (rth@cygnus.com) and
 		  Jakub Jelinek (jj@ultra.linux.cz).
@@ -16,7 +16,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library.  If not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include "local-soft-fp.h"
 #include "double.h"
@@ -31,7 +31,7 @@ _OtsConvertFloatXT (long al, long ah, long _round)
 
   FP_INIT_ROUNDMODE;
   AXP_UNPACK_SEMIRAW_Q(A, a);
-#if (2 * _FP_W_TYPE_SIZE) < _FP_FRACBITS_Q
+#if _FP_W_TYPE_SIZE < 64
   FP_TRUNC(D,Q,2,4,R,A);
 #else
   FP_TRUNC(D,Q,1,2,R,A);

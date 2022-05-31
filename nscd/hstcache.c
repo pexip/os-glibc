@@ -1,5 +1,5 @@
 /* Cache handling for host lookup.
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
@@ -14,7 +14,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #include <alloca.h>
 #include <assert.h>
@@ -134,9 +134,9 @@ cache_addhst (struct database_dyn *db, int fd, request_header *req,
 	  const hst_response_header *resp = (errval == EAGAIN
 					     ? &tryagain : &notfound);
 
-	  if (fd != -1 &&
-	      TEMP_FAILURE_RETRY (send (fd, resp, total,
-					MSG_NOSIGNAL)) != total)
+	  if (fd != -1
+	      && TEMP_FAILURE_RETRY (send (fd, resp, total,
+					   MSG_NOSIGNAL)) != total)
 	    all_written = false;
 
 	  /* If we have a transient error or cannot permanently store

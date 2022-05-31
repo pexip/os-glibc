@@ -575,4 +575,19 @@ libm {
     f32xsubf64x; f32xsubf128; f64subf64x; f64subf128;
     f64xsubf128;
   }
+  GLIBC_2.29 {
+    # No SVID compatible error handling.
+    exp; exp2; log; log2; pow;
+  }
+  GLIBC_2.31 {
+    # totalorder changed to take pointer arguments.
+    totalorder; totalorderf; totalorderl;
+    totalordermag; totalordermagf; totalordermagl;
+    totalorderf32; totalorderf64; totalorderf32x;
+    totalordermagf32; totalordermagf64; totalordermagf32x;
+    totalorderf64x;
+    totalordermagf64x;
+    totalorderf128;
+    totalordermagf128;
+  }
 }

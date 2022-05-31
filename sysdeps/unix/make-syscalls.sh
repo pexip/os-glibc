@@ -7,7 +7,7 @@
 #
 # This script is used to process the syscall data encoded in the various
 # syscalls.list files to produce thin assembly syscall wrappers around the
-# appropriate OS syscall. See syscall-template.s for more details on the
+# appropriate OS syscall. See syscall-template.S for more details on the
 # actual wrapper.
 #
 # Syscall Signature Prefixes:
@@ -27,7 +27,7 @@
 # n: scalar buffer length (e.g., 3rd arg to read)
 # N: pointer to value/return scalar buffer length (e.g., 6th arg to recvfrom)
 # p: non-NULL pointer to typed object (e.g., any non-void* arg)
-# P: optionally-NULL pointer to typed object (e.g., 2nd argument to gettimeofday)
+# P: optionally-NULL pointer to typed object (e.g., 3rd argument to sigaction)
 # s: non-NULL string (e.g., 1st arg to open)
 # S: optionally-NULL string (e.g., 1st arg to acct)
 # v: vararg scalar (e.g., optional 3rd arg to open)
@@ -149,14 +149,6 @@ emit_weak_aliases()
 echo "$calls" |
 while read file srcfile caller syscall args strong weak; do
 
-  vdso_syscall=
-  case x"$syscall" in
-  *:*@*)
-    vdso_syscall="${syscall#*:}"
-    syscall="${syscall%:*}"
-    ;;
-  esac
-
   case x"$syscall" in
   x-) callnum=_ ;;
   *)
@@ -233,10 +225,9 @@ while read file srcfile caller syscall args strong weak; do
   if test $shared_only = t; then
     # The versioned symbols are only in the shared library.
     echo "shared-only-routines += $file"
-    test -n "$vdso_syscall" || echo "\$(objpfx)${file}.os: \\"
+    echo "\$(objpfx)${file}.os: \\"
   else
     object_suffixes='$(object-suffixes)'
-    test -z "$vdso_syscall" || object_suffixes='$(object-suffixes-noshared)'
     echo "\
 \$(foreach p,\$(sysd-rules-targets),\
 \$(foreach o,${object_suffixes},\$(objpfx)\$(patsubst %,\$p,$file)\$o)): \\"
@@ -267,41 +258,6 @@ while read file srcfile caller syscall args strong weak; do
   # And finally, pipe this all into the compiler.
   echo '	) | $(compile-syscall) '"\
 \$(foreach p,\$(patsubst %$file,%,\$(basename \$(@F))),\$(\$(p)CPPFLAGS))"
-
-  if test -n "$vdso_syscall"; then
-    # In the shared library, we're going to emit an IFUNC using a vDSO function.
-    # $vdso_syscall looks like "name@KERNEL_X.Y" where "name" is the symbol
-    # name in the vDSO and KERNEL_X.Y is its symbol version.
-    vdso_symbol="${vdso_syscall%@*}"
-    vdso_symver="${vdso_syscall#*@}"
-    vdso_symver=`echo "$vdso_symver" | sed 's/\./_/g'`
-    cat <<EOF
-
-\$(foreach p,\$(sysd-rules-targets),\$(objpfx)\$(patsubst %,\$p,$file).os): \\
-		\$(..)sysdeps/unix/make-syscalls.sh
-	\$(make-target-directory)
-	(echo '#define ${strong} __redirect_${strong}'; \\
-	 echo '#include <dl-vdso.h>'; \\
-	 echo '#undef ${strong}'; \\
-	 echo '#define vdso_ifunc_init() \\'; \\
-	 echo '  PREPARE_VERSION_KNOWN (symver, ${vdso_symver})'; \\
-	 echo '__ifunc (__redirect_${strong}, ${strong},'; \\
-	 echo '         _dl_vdso_vsym ("${vdso_symbol}", &symver), void,'; \\
-	 echo '         vdso_ifunc_init)'; \\
-EOF
-    # This is doing "hidden_def (${strong})", but the compiler
-    # doesn't know that we've defined ${strong} in the same file, so
-    # we can't do it the normal way.
-    cat <<EOF
-	 echo 'asm (".globl __GI_${strong}");'; \\
-	 echo 'asm ("__GI_${strong} = ${strong}");'; \\
-EOF
-    emit_weak_aliases
-    cat <<EOF
-	) | \$(compile-stdin.c) \
-\$(foreach p,\$(patsubst %$file,%,\$(basename \$(@F))),\$(\$(p)CPPFLAGS))
-EOF
-  fi
 
   if test $shared_only = t; then
     # The versioned symbols are only in the shared library.

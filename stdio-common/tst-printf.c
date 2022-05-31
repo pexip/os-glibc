@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifdef	BSD
 #include </usr/include/stdio.h>
@@ -110,7 +110,14 @@ I am ready for my first lesson today.";
   printf("left-adjusted Z string:\t\"%-010s\"\n", shortstr);
   printf("space-padded string:\t\"%10s\"\n", shortstr);
   printf("left-adjusted S string:\t\"%-10s\"\n", shortstr);
+  /* GCC 9 warns about the NULL format argument; this is deliberately
+     tested here.  */
+  DIAG_PUSH_NEEDS_COMMENT;
+#if __GNUC_PREREQ (7, 0)
+  DIAG_IGNORE_NEEDS_COMMENT (9, "-Wformat-overflow=");
+#endif
   printf("null string:\t\"%s\"\n", (char *)NULL);
+  DIAG_POP_NEEDS_COMMENT;
   printf("limited string:\t\"%.22s\"\n", longstr);
 
   printf("a-style max:\t\"%a\"\n", DBL_MAX);
@@ -166,7 +173,7 @@ I am ready for my first lesson today.";
 	    snprintf (buf, sizeof (buf), "%30s", "foo"), (int) sizeof (buf),
 	    buf);
     printf ("snprintf (\"%%.999999u\", 10) == %d\n",
-	    snprintf(buf2, sizeof(buf2), "%.999999u", 10));
+	    snprintf (buf2, sizeof (buf2), "%.999999u", 10));
   }
 
   printf("%.8f\n", DBL_MAX);

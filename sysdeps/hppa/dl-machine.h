@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  PA-RISC version.
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2020 Free Software Foundation, Inc.
    Contributed by David Huggins-Daines <dhd@debian.org>
    This file is part of the GNU C Library.
 
@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library.  If not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef dl_machine_h
 #define dl_machine_h 1
@@ -166,7 +166,7 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
       /* FIXME: Search for the got, but backwards through the relocs, technically we should
 	 find it on the first try. However, assuming the relocs got out of order the
 	 routine is made a bit more robust by searching them all in case of failure. */
-      for (iplt = (end_jmprel - sizeof(Elf32_Rela)); iplt >= jmprel; iplt -= sizeof (Elf32_Rela))
+      for (iplt = (end_jmprel - sizeof (Elf32_Rela)); iplt >= jmprel; iplt -= sizeof (Elf32_Rela))
 	{
 
 	  reloc = (const Elf32_Rela *) iplt;

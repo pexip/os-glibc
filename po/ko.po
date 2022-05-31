@@ -1,14 +1,14 @@
 # GNU libc의 한국어 메시지
 # This file is distributed under the same license as the glibc package.
-# Copyright (C) 1996, 1998, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2011, 2013, 2014, 2015 Free Software Foundation, Inc.
+# Copyright (C) 1996, 1998, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2011, 2013, 2014, 2015, 2017, 2018, 2019 Free Software Foundation, Inc.
 # Bang Jun-Young <bangjy@nownuri.net>, 1996-97.
-# Changwoo Ryu <cwryu@debian.org>, 2000-2004, 2007-2009, 2011, 2013-2015, 2017-2018.
+# Changwoo Ryu <cwryu@debian.org>, 2000-2004, 2007-2009, 2011, 2013-2015, 2017-2019.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: GNU libc 2.26.9000\n"
-"POT-Creation-Date: 2018-07-26 22:19-0400\n"
-"PO-Revision-Date: 2018-01-11 14:24+0900\n"
+"Project-Id-Version: GNU libc 2.29.9000\n"
+"POT-Creation-Date: 2020-01-02 20:08+0530\n"
+"PO-Revision-Date: 2019-08-06 11:29+0900\n"
 "Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
 "Language-Team: Korean <translation-team-ko@googlegroups.com>\n"
 "Language: ko\n"
@@ -67,8 +67,7 @@ msgid "Give a short usage message"
 msgstr "간략한 사용법 메시지를 표시함"
 
 #: argp/argp-parse.c:103 catgets/gencat.c:109 catgets/gencat.c:113
-#: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:105
-#: nss/makedb.c:120
+#: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:105 nss/makedb.c:120
 msgid "NAME"
 msgstr "<이름>"
 
@@ -102,12 +101,13 @@ msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(프로그램 오류) 옵션을 알 수 있어야 합니다!?"
 
 #: assert/assert-perr.c:35
-#, fuzzy, c-format
-#| msgid "%s%s%s:%u: %s%sUnexpected error: %s.\n"
+#, c-format
 msgid ""
 "%s%s%s:%u: %s%sUnexpected error: %s.\n"
 "%n"
-msgstr "%s%s%s:%u: %s%s예기치 못한 오류: %s.\n"
+msgstr ""
+"%s%s%s:%u: %s%s예기치 못한 오류: %s.\n"
+"%n"
 
 #: assert/assert.c:101
 #, c-format
@@ -147,10 +147,10 @@ msgstr ""
 "[<출력-파일> [<입력-파일>]...]"
 
 #: catgets/gencat.c:229 debug/pcprofiledump.c:209 elf/ldconfig.c:308
-#: elf/pldd.c:252 elf/sln.c:77 elf/sprof.c:372 iconv/iconv_prog.c:405
-#: iconv/iconvconfig.c:379 locale/programs/locale.c:275
-#: locale/programs/localedef.c:427 login/programs/pt_chown.c:89
-#: malloc/memusagestat.c:563 nss/getent.c:933 nss/makedb.c:369
+#: elf/pldd.c:247 elf/sln.c:77 elf/sprof.c:372 iconv/iconv_prog.c:405
+#: iconv/iconvconfig.c:379 locale/programs/locale.c:276
+#: locale/programs/localedef.c:437 login/programs/pt_chown.c:89
+#: malloc/memusagestat.c:563 nss/getent.c:953 nss/makedb.c:369
 #: posix/getconf.c:503 sysdeps/unix/sysv/linux/lddlibc4.c:61
 #, c-format
 msgid ""
@@ -161,12 +161,12 @@ msgstr ""
 "%s.\n"
 
 #: catgets/gencat.c:245 debug/pcprofiledump.c:225 debug/xtrace.sh:64
-#: elf/ldconfig.c:324 elf/ldd.bash.in:38 elf/pldd.c:268 elf/sotruss.sh:75
+#: elf/ldconfig.c:324 elf/ldd.bash.in:38 elf/pldd.c:263 elf/sotruss.sh:75
 #: elf/sprof.c:389 iconv/iconv_prog.c:422 iconv/iconvconfig.c:396
-#: locale/programs/locale.c:292 locale/programs/localedef.c:453
-#: login/programs/pt_chown.c:63 malloc/memusage.sh:71
-#: malloc/memusagestat.c:581 nscd/nscd.c:509 nss/getent.c:87 nss/makedb.c:385
-#: posix/getconf.c:485 sysdeps/unix/sysv/linux/lddlibc4.c:68
+#: locale/programs/locale.c:293 locale/programs/localedef.c:463
+#: login/programs/pt_chown.c:63 malloc/memusage.sh:71 malloc/memusagestat.c:581
+#: nscd/nscd.c:509 nss/getent.c:88 nss/makedb.c:385 posix/getconf.c:485
+#: sysdeps/unix/sysv/linux/lddlibc4.c:68
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -174,14 +174,14 @@ msgid ""
 "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 msgstr ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
-"이 프로그램은 공개 소프트웨어입니다; 복사조건은 소스를 참조하십시오.  상품성\n"
+"이 프로그램은 자유 소프트웨어입니다. 복사조건은 소스를 참조하십시오.  상품성\n"
 "이나 특정 목적에 대한 적합성을 비롯하여 어떠한 보증도 하지 않습니다.\n"
 
 #: catgets/gencat.c:250 debug/pcprofiledump.c:230 debug/xtrace.sh:68
-#: elf/ldconfig.c:329 elf/pldd.c:273 elf/sprof.c:395 iconv/iconv_prog.c:427
-#: iconv/iconvconfig.c:401 locale/programs/locale.c:297
-#: locale/programs/localedef.c:458 malloc/memusage.sh:75
-#: malloc/memusagestat.c:586 nscd/nscd.c:514 nss/getent.c:92 nss/makedb.c:390
+#: elf/ldconfig.c:329 elf/pldd.c:268 elf/sprof.c:395 iconv/iconv_prog.c:427
+#: iconv/iconvconfig.c:401 locale/programs/locale.c:298
+#: locale/programs/localedef.c:468 malloc/memusage.sh:75
+#: malloc/memusagestat.c:586 nscd/nscd.c:514 nss/getent.c:93 nss/makedb.c:390
 #: posix/getconf.c:490
 #, c-format
 msgid "Written by %s.\n"
@@ -252,21 +252,21 @@ msgstr "출력 파일 `%s' 파일을 열 수 없습니다"
 msgid "invalid escape sequence"
 msgstr "이스케이프 순서열이 잘못됨"
 
-#: catgets/gencat.c:1209
+#: catgets/gencat.c:1211
 msgid "unterminated message"
 msgstr "종료하지 않은 메시지"
 
-#: catgets/gencat.c:1233
+#: catgets/gencat.c:1235
 #, c-format
 msgid "while opening old catalog file"
 msgstr "오래된 목록 파일을 여는 동안"
 
-#: catgets/gencat.c:1324
+#: catgets/gencat.c:1326
 #, c-format
 msgid "conversion modules not available"
 msgstr "변환 모듈이 사용 불가능합니다"
 
-#: catgets/gencat.c:1350
+#: catgets/gencat.c:1352
 #, c-format
 msgid "cannot determine escape character"
 msgstr "이스케이프 문자를 결정할 수가 없습니다"
@@ -359,11 +359,7 @@ msgstr "\\`$program' 실행 파일이 없습니다\\n"
 msgid "\\`$program' is no executable\\n"
 msgstr "\\`$program' 파일이 실행 파일이 아닙니다\\n"
 
-#: dlfcn/dlinfo.c:63
-msgid "RTLD_SELF used in code not dynamically loaded"
-msgstr "동적으로 적재하지 않은 코드에 RTLD_SELF를 사용함"
-
-#: dlfcn/dlinfo.c:72
+#: dlfcn/dlinfo.c:53
 msgid "unsupported dlinfo request"
 msgstr "지원하지 않는 dlinfo 요청"
 
@@ -392,7 +388,7 @@ msgstr "알 수 없는 운영체제"
 msgid ", OS ABI: %s %d.%d.%d"
 msgstr ", OS ABI: %s %d.%d.%d"
 
-#: elf/cache.c:163 elf/ldconfig.c:1332
+#: elf/cache.c:163 elf/ldconfig.c:1334
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "캐시 파일 `%s'을(를) 열 수 없습니다\n"
@@ -402,42 +398,42 @@ msgstr "캐시 파일 `%s'을(를) 열 수 없습니다\n"
 msgid "mmap of cache file failed.\n"
 msgstr "캐시 파일을 mmap하는 데 실패했습니다.\n"
 
-#: elf/cache.c:181 elf/cache.c:195
+#: elf/cache.c:181 elf/cache.c:195 elf/cache.c:205
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "파일이 캐시 파일이 아닙니다.\n"
 
-#: elf/cache.c:228 elf/cache.c:238
+#: elf/cache.c:233 elf/cache.c:243
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "%2$s 캐시에 라이브러리가 %1$d개 있습니다\n"
 
-#: elf/cache.c:432
+#: elf/cache.c:437
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "임시 캐시 파일 %s을(를) 열 수 없습니다"
 
-#: elf/cache.c:440 elf/cache.c:450 elf/cache.c:454 elf/cache.c:458
-#: elf/cache.c:468
+#: elf/cache.c:445 elf/cache.c:455 elf/cache.c:459 elf/cache.c:463
+#: elf/cache.c:473
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "캐시 데이터 쓰기가 실패"
 
-#: elf/cache.c:463
+#: elf/cache.c:468
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "%s의 접근권한을 to %#o로(으로) 바꾸는 데 실패했습니다"
 
-#: elf/cache.c:472
+#: elf/cache.c:477
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "%s에서 %s으로(로) 이름을 바꾸는 데 실패했습니다"
 
-#: elf/dl-close.c:399 elf/dl-open.c:420
+#: elf/dl-close.c:406 elf/dl-open.c:285
 msgid "cannot create scope list"
 msgstr "스코프 목록을 만들 수 없습니다"
 
-#: elf/dl-close.c:839
+#: elf/dl-close.c:852
 msgid "shared object not open"
 msgstr "공유 오브젝트가 열리지 않았습니다"
 
@@ -457,10 +453,8 @@ msgid "cannot load auxiliary `%s' because of empty dynamic string token substitu
 msgstr "동적 문자열 토큰 치환이 비어 있기 때문에 `%s' 부가 데이터를 읽어들일 수 없습니다\n"
 
 #: elf/dl-deps.c:220
-#, fuzzy
-#| msgid "cannot allocate dependency list"
 msgid "cannot allocate dependency buffer"
-msgstr "의존성 리스트를 할당할 수 없습니다"
+msgstr "의존성 버퍼를 할당할 수 없습니다"
 
 #: elf/dl-deps.c:443
 msgid "cannot allocate dependency list"
@@ -516,47 +510,45 @@ msgstr "RUNPATH/RPATH 카피를 만들 수 없습니다"
 msgid "cannot create search path array"
 msgstr "검색 경로 배열을 만들 수 없습니다"
 
-#: elf/dl-load.c:883
+#: elf/dl-load.c:892
 msgid "cannot stat shared object"
 msgstr "동적 오브젝트에 대해 stat()이 실패했습니다"
 
-#: elf/dl-load.c:960
-msgid "cannot open zero fill device"
-msgstr "0으로 채운 장치를 열 수 없습니다"
-
-#: elf/dl-load.c:1007 elf/dl-load.c:2203
+#: elf/dl-load.c:1003 elf/dl-load.c:2191
 msgid "cannot create shared object descriptor"
 msgstr "공유 오브젝트 디스크립터를 만들 수 없습니다"
 
-#: elf/dl-load.c:1026 elf/dl-load.c:1560 elf/dl-load.c:1673
+#: elf/dl-load.c:1022 elf/dl-load.c:1571 elf/dl-load.c:1672
 msgid "cannot read file data"
 msgstr "파일 데이터를 읽을 수 없습니다"
 
-#: elf/dl-load.c:1072
+#: elf/dl-load.c:1068
 msgid "ELF load command alignment not page-aligned"
 msgstr "ELF 로드 명령의의 align이 페이지에 align되어 있지 않습니다"
 
-#: elf/dl-load.c:1079
+#: elf/dl-load.c:1075
 msgid "ELF load command address/offset not properly aligned"
 msgstr "ELF 로드 명령의 주소/오프셋이 올바르게 align되어 있지 않습니다"
 
-#: elf/dl-load.c:1161
-#, fuzzy
-#| msgid "cannot restore segment prot after reloc"
+#: elf/dl-load.c:1151
 msgid "cannot process note segment"
-msgstr "리로케이션 뒤에 prot 세그먼트를 복구할 수 없습니다"
+msgstr "note 세그먼트를 처리할 수 없습니다"
 
-#: elf/dl-load.c:1172
+#: elf/dl-load.c:1162
 msgid "object file has no loadable segments"
 msgstr "오브젝트 파일에 읽어들일 수 있는 섹션이 없습니다"
 
-#: elf/dl-load.c:1181 elf/dl-load.c:1652
+#: elf/dl-load.c:1175
 msgid "cannot dynamically load executable"
-msgstr "동적으로 실행파일을 로드할 수 없습니다"
+msgstr "동적으로 실행파일을 읽어들일 수 없습니다"
 
-#: elf/dl-load.c:1202
+#: elf/dl-load.c:1196
 msgid "object file has no dynamic section"
 msgstr "오브젝트 파일에 동적 섹션이 없습니다"
+
+#: elf/dl-load.c:1223
+msgid "cannot dynamically load position-independent executable"
+msgstr "위치 독립 실행 파일을 동적으로 읽어들일 수 없습니다"
 
 #: elf/dl-load.c:1225
 msgid "shared object cannot be dlopen()ed"
@@ -578,47 +570,47 @@ msgstr "실행할 수 있는 스택을 공유 오브젝트 필수요소로 만�
 msgid "cannot close file descriptor"
 msgstr "파일 디스크립터를 닫을 수 없습니다"
 
-#: elf/dl-load.c:1560
+#: elf/dl-load.c:1571
 msgid "file too short"
 msgstr "파일이 너무 짧습니다"
 
-#: elf/dl-load.c:1595
+#: elf/dl-load.c:1606
 msgid "invalid ELF header"
 msgstr "ELF 헤더가 잘못됨"
 
-#: elf/dl-load.c:1607
+#: elf/dl-load.c:1618
 msgid "ELF file data encoding not big-endian"
 msgstr "ELF 파일 데이터 인코딩이 빅인디안이 아닙니다"
 
-#: elf/dl-load.c:1609
+#: elf/dl-load.c:1620
 msgid "ELF file data encoding not little-endian"
 msgstr "ELF 파일 데이터 인코딩이 리틀인디안이 아닙니다"
 
-#: elf/dl-load.c:1613
+#: elf/dl-load.c:1624
 msgid "ELF file version ident does not match current one"
 msgstr "ELF 파일 버전 ident가 현재 ident와 맞지 않습니다"
 
-#: elf/dl-load.c:1617
+#: elf/dl-load.c:1628
 msgid "ELF file OS ABI invalid"
 msgstr "ELF 파일 OS ABI가 잘못되었습니다"
 
-#: elf/dl-load.c:1620
+#: elf/dl-load.c:1631
 msgid "ELF file ABI version invalid"
 msgstr "ELF 파일 ABI 버전이 잘못되었습니다"
 
-#: elf/dl-load.c:1623
+#: elf/dl-load.c:1634
 msgid "nonzero padding in e_ident"
 msgstr "e_ident 안에 0이 아닌 채움"
 
-#: elf/dl-load.c:1626
+#: elf/dl-load.c:1637
 msgid "internal error"
 msgstr "내부 오류"
 
-#: elf/dl-load.c:1633
+#: elf/dl-load.c:1644
 msgid "ELF file version does not match current one"
 msgstr "ELF 파일 버전이 현재 버전과 맞지 않습니다"
 
-#: elf/dl-load.c:1641
+#: elf/dl-load.c:1652
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "ET_DYN과 ET_EXEC만을 읽어들일 수 있습니다"
 
@@ -626,15 +618,15 @@ msgstr "ET_DYN과 ET_EXEC만을 읽어들일 수 있습니다"
 msgid "ELF file's phentsize not the expected size"
 msgstr "ELF 파일의 phentsize가 예상과 맞지 않습니다"
 
-#: elf/dl-load.c:2222
+#: elf/dl-load.c:2210
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "ELF 클래스가 틀렸습니다: ELFCLASS64"
 
-#: elf/dl-load.c:2223
+#: elf/dl-load.c:2211
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "ELF 클래스가 틀렸습니다: ELFCLASS32"
 
-#: elf/dl-load.c:2226
+#: elf/dl-load.c:2214
 msgid "cannot open shared object file"
 msgstr "동적 오브젝트 파일을 열 수 없습니다"
 
@@ -646,31 +638,27 @@ msgstr "동적 오브젝트의 세그먼트를 매핑하는 실패"
 msgid "cannot map zero-fill pages"
 msgstr "0으로 채운 페이지를 매핑할 수 없습니다"
 
-#: elf/dl-lookup.c:835
-msgid "relocation error"
-msgstr "리로케이션 오류"
-
-#: elf/dl-lookup.c:858
+#: elf/dl-lookup.c:882
 msgid "symbol lookup error"
 msgstr "심볼 찾기 오류"
 
-#: elf/dl-open.c:99
+#: elf/dl-open.c:71
 msgid "cannot extend global scope"
 msgstr "전역 스코프를 확장할 수 없습니다"
 
-#: elf/dl-open.c:470
+#: elf/dl-open.c:391
 msgid "TLS generation counter wrapped!  Please report this."
 msgstr "TLS 만들기 카운터가 겹쳤습니다!  이 문제를 알려 주십시오."
 
-#: elf/dl-open.c:534
+#: elf/dl-open.c:783
 msgid "invalid mode for dlopen()"
 msgstr "dlopen()에 모드가 잘못됨"
 
-#: elf/dl-open.c:551
+#: elf/dl-open.c:800
 msgid "no more namespaces available for dlmopen()"
 msgstr "dlmopen()에 사용할 수 있는 네임스페이스가 더 이상 없습니다"
 
-#: elf/dl-open.c:575
+#: elf/dl-open.c:824
 msgid "invalid target namespace in dlmopen()"
 msgstr "dlmopen()에 대상 네임스페이스가 잘못되었습니다"
 
@@ -678,24 +666,24 @@ msgstr "dlmopen()에 대상 네임스페이스가 잘못되었습니다"
 msgid "cannot allocate memory in static TLS block"
 msgstr "정적 TLS 블럭에는 메모리를 할당할 수 없습니다"
 
-#: elf/dl-reloc.c:205
+#: elf/dl-reloc.c:213
 msgid "cannot make segment writable for relocation"
 msgstr "리로케이션을 위해 세그먼트를 쓰기 가능하도록 만들 수 없습니다"
 
-#: elf/dl-reloc.c:276
+#: elf/dl-reloc.c:273
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s: %s에 대한 리로케이션 결과를 저장할 메모리가 부족합니다\n"
 
-#: elf/dl-reloc.c:292
+#: elf/dl-reloc.c:289
 msgid "cannot restore segment prot after reloc"
 msgstr "리로케이션 뒤에 prot 세그먼트를 복구할 수 없습니다"
 
-#: elf/dl-reloc.c:323
+#: elf/dl-reloc.c:320
 msgid "cannot apply additional memory protection after relocation"
 msgstr "리로케이션 뒤에 추가로 메모리 보호를 적용할 수 없습니다"
 
-#: elf/dl-sym.c:136
+#: elf/dl-sym.c:150
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "동적으로 적재하지 않은 코드에 RTLD_NEXT를 사용함"
 
@@ -873,58 +861,58 @@ msgstr "libc4 library %s이(가) 잘못된 디렉터리에 있습니다"
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "디렉터리 %s의 라이브러리 %s과(와) %s이(가) 같은 soname을 가지고 있지만 타입이 다릅니다."
 
-#: elf/ldconfig.c:1082
+#: elf/ldconfig.c:1083
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "경고: 열 수 없는 설정 파일을 무시합니다: %s"
 
-#: elf/ldconfig.c:1148
+#: elf/ldconfig.c:1149
 #, c-format
 msgid "%s:%u: bad syntax in hwcap line"
 msgstr "%s:%u: hwcap 줄의 문법이 잘못되었습니다"
 
-#: elf/ldconfig.c:1154
+#: elf/ldconfig.c:1155
 #, c-format
 msgid "%s:%u: hwcap index %lu above maximum %u"
 msgstr "%s:%u: hwcap 인덱스 %lu은(는) 최대값 %u을(를) 넘어갔습니다"
 
-#: elf/ldconfig.c:1161 elf/ldconfig.c:1169
+#: elf/ldconfig.c:1162 elf/ldconfig.c:1170
 #, c-format
 msgid "%s:%u: hwcap index %lu already defined as %s"
 msgstr "%s:%u: hwcap 인덱스 %lu은(는) 이미 %s(으)로 정의되어 있습니다"
 
-#: elf/ldconfig.c:1172
+#: elf/ldconfig.c:1173
 #, c-format
 msgid "%s:%u: duplicate hwcap %lu %s"
 msgstr "%s:%u: 중복된 hwcap %lu %s"
 
-#: elf/ldconfig.c:1194
+#: elf/ldconfig.c:1195
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "-r 옵션을 사용할 경우 설정 파일의 절대 파일 이름이 필요합니다"
 
-#: elf/ldconfig.c:1201 locale/programs/xmalloc.c:63 malloc/obstack.c:416
+#: elf/ldconfig.c:1202 locale/programs/xmalloc.c:63 malloc/obstack.c:416
 #: malloc/obstack.c:418 posix/getconf.c:458 posix/getconf.c:697
 #, c-format
 msgid "memory exhausted"
 msgstr "메모리가 바닥남"
 
-#: elf/ldconfig.c:1233
+#: elf/ldconfig.c:1235
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s:%u: %s 디렉터리를 읽을 수 없습니다"
 
-#: elf/ldconfig.c:1281
+#: elf/ldconfig.c:1283
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "캐시를 만드는데 상대 경로인 `%s' 경로를 사용했습니다"
 
-#: elf/ldconfig.c:1311
+#: elf/ldconfig.c:1313
 #, c-format
 msgid "Can't chdir to /"
 msgstr "/로 디렉터리를 이동할 수 없습니다"
 
-#: elf/ldconfig.c:1352
+#: elf/ldconfig.c:1354
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "캐시 파일 디렉터리 `%s'을(를) 열 수 없습니다\n"
@@ -994,95 +982,100 @@ msgstr "알 수 없는 오류 코드로 끝났습니다"
 msgid "error: you do not have read permission for"
 msgstr "오류: 다음에 대해 읽기 권한이 없습니다"
 
-#: elf/pldd-xx.c:105
+#: elf/pldd-xx.c:102
 #, c-format
 msgid "cannot find program header of process"
 msgstr "프로세스의 프로그램 헤더를 찾을 수 없습니다"
 
-#: elf/pldd-xx.c:110
+#: elf/pldd-xx.c:106
 #, c-format
 msgid "cannot read program header"
 msgstr "프로그램 헤더를 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:135
+#: elf/pldd-xx.c:128
 #, c-format
 msgid "cannot read dynamic section"
 msgstr "동적 섹션을 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:147
+#: elf/pldd-xx.c:137
 #, c-format
 msgid "cannot read r_debug"
 msgstr "r_debug를 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:167
+#: elf/pldd-xx.c:154
 #, c-format
 msgid "cannot read program interpreter"
 msgstr "프로그램 인터프리터를 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:197
+#: elf/pldd-xx.c:183
 #, c-format
 msgid "cannot read link map"
 msgstr "링크 맵을 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:209
+#: elf/pldd-xx.c:190
 #, c-format
 msgid "cannot read object name"
 msgstr "오브젝트 이름을 읽을 수 없습니다"
 
-#: elf/pldd-xx.c:219
+#: elf/pldd-xx.c:197
 #, c-format
 msgid "cannot allocate buffer for object name"
 msgstr "오브젝트 이름에 대한 버퍼를 할당할 수 없습니다"
 
-#: elf/pldd.c:64
+#: elf/pldd.c:58
 msgid "List dynamic shared objects loaded into process."
 msgstr "프로세스가 읽어들인 동적 공유 오브젝트의 목록을 표시합니다."
 
-#: elf/pldd.c:68
+#: elf/pldd.c:62
 msgid "PID"
 msgstr "<PID>"
 
-#: elf/pldd.c:100
+#: elf/pldd.c:89
 #, c-format
 msgid "Exactly one parameter with process ID required.\n"
 msgstr "정확히 1개의 프로세스 ID 파라미터가 필요합니다.\n"
 
-#: elf/pldd.c:112
+#: elf/pldd.c:103
 #, c-format
 msgid "invalid process ID '%s'"
 msgstr "프로세스 ID가 잘못됨, '%s'"
 
-#: elf/pldd.c:120
+#: elf/pldd.c:111
 #, c-format
 msgid "cannot open %s"
 msgstr "%s을(를) 열 수 없습니다"
 
-#: elf/pldd.c:152
+#: elf/pldd.c:142
 #, c-format
 msgid "cannot open %s/task"
 msgstr "%s/task를 열 수 없습니다"
 
-#: elf/pldd.c:155
+#: elf/pldd.c:145
 #, c-format
 msgid "cannot prepare reading %s/task"
 msgstr "%s/task 읽기를 준비할 수 없습니다"
 
-#: elf/pldd.c:168
+#: elf/pldd.c:158
 #, c-format
 msgid "invalid thread ID '%s'"
 msgstr "스레드 ID가 잘못됨, '%s'"
 
-#: elf/pldd.c:179
+#: elf/pldd.c:169
 #, c-format
 msgid "cannot attach to process %lu"
 msgstr "프로세스 %lu번에 붙일 수 없습니다"
 
-#: elf/pldd.c:294
+#: elf/pldd.c:184
+#, c-format
+msgid "no valid %s/task entries"
+msgstr "올바른 %s/작업 항목이 없습니다"
+
+#: elf/pldd.c:290
 #, c-format
 msgid "cannot get information about process %lu"
 msgstr "프로세스 %lu번의 정보를 얻을 수 없습니다"
 
-#: elf/pldd.c:307
+#: elf/pldd.c:303
 #, c-format
 msgid "process %lu is no ELF program"
 msgstr "프로세스 %lu번은 ELF 프로그램이 아닙니다"
@@ -1092,27 +1085,27 @@ msgstr "프로세스 %lu번은 ELF 프로그램이 아닙니다"
 msgid "file %s is truncated\n"
 msgstr "%s 파일이 잘라졌습니다\n"
 
-#: elf/readelflib.c:66
+#: elf/readelflib.c:65
 #, c-format
 msgid "%s is a 32 bit ELF file.\n"
 msgstr "%s은(는) 32비트 ELF 파일입니다.\n"
 
-#: elf/readelflib.c:68
+#: elf/readelflib.c:67
 #, c-format
 msgid "%s is a 64 bit ELF file.\n"
 msgstr "%s은(는) 64비트 ELF 파일입니다.\n"
 
-#: elf/readelflib.c:70
+#: elf/readelflib.c:69
 #, c-format
 msgid "Unknown ELFCLASS in file %s.\n"
 msgstr "%s 파일이 알려지지 않은 ELFCLASS.\n"
 
-#: elf/readelflib.c:77
+#: elf/readelflib.c:76
 #, c-format
 msgid "%s is not a shared object file (Type: %d).\n"
 msgstr "%s은(는) 동적 오브젝트 파일이 아닙니다(타입: %d).\n"
 
-#: elf/readelflib.c:108
+#: elf/readelflib.c:101
 #, c-format
 msgid "more than one dynamic segment\n"
 msgstr "여러 개의 동적 세그먼트\n"
@@ -1402,7 +1395,7 @@ msgstr "정보:"
 msgid "list all known coded character sets"
 msgstr "알려진 모든 문자셋 코드를 열거함"
 
-#: iconv/iconv_prog.c:64 locale/programs/localedef.c:120
+#: iconv/iconv_prog.c:64 locale/programs/localedef.c:124
 msgid "Output control:"
 msgstr "출력 조정:"
 
@@ -1411,8 +1404,8 @@ msgid "omit invalid characters from output"
 msgstr "출력에서 잘못된 문자를 제외합니다"
 
 #: iconv/iconv_prog.c:66 iconv/iconvconfig.c:128
-#: locale/programs/localedef.c:113 locale/programs/localedef.c:115
-#: locale/programs/localedef.c:117 locale/programs/localedef.c:144
+#: locale/programs/localedef.c:117 locale/programs/localedef.c:119
+#: locale/programs/localedef.c:121 locale/programs/localedef.c:150
 #: malloc/memusagestat.c:56
 msgid "FILE"
 msgstr "<파일>"
@@ -1511,7 +1504,7 @@ msgstr "고속로딩 iconv 모듈 설정 파일을 만들 수 없습니다."
 msgid "[DIR...]"
 msgstr "[디렉터리...]"
 
-#: iconv/iconvconfig.c:126 locale/programs/localedef.c:123
+#: iconv/iconvconfig.c:126 locale/programs/localedef.c:129
 msgid "PATH"
 msgstr "<경로>"
 
@@ -1621,10 +1614,8 @@ msgid "Error: .netrc file is readable by others."
 msgstr "오류: .netrc 파일을 다른 사람이 읽을 수 있습니다."
 
 #: inet/ruserpass.c:180
-#, fuzzy
-#| msgid "Remove password or make file unreadable by others."
 msgid "Remove 'password' line or make file unreadable by others."
-msgstr "암호를 지우거나 파일을 다른 사람이 읽을 수 없게 만듭니다."
+msgstr "'password' 줄을 제거하거나 다른 사람이 읽을 수 없게 만드십시오."
 
 #: inet/ruserpass.c:199
 #, c-format
@@ -1697,14 +1688,14 @@ msgstr "잠금상태의 문자셋은 지원하지 않습니다"
 
 #: locale/programs/charmap.c:503 locale/programs/charmap.c:557
 #: locale/programs/charmap.c:589 locale/programs/charmap.c:683
-#: locale/programs/charmap.c:738 locale/programs/charmap.c:779
-#: locale/programs/charmap.c:820
+#: locale/programs/charmap.c:739 locale/programs/charmap.c:780
+#: locale/programs/charmap.c:821
 #, c-format
 msgid "syntax error in %s definition: %s"
 msgstr "%s 정의 부분에 문법 오류: %s"
 
 #: locale/programs/charmap.c:504 locale/programs/charmap.c:684
-#: locale/programs/charmap.c:780 locale/programs/repertoire.c:229
+#: locale/programs/charmap.c:781 locale/programs/repertoire.c:229
 msgid "no symbolic name given"
 msgstr "기호명이 주어지지 않음"
 
@@ -1720,20 +1711,19 @@ msgstr "문자 인코딩에 바이트가 너무 적습니다"
 msgid "too many bytes in character encoding"
 msgstr "문자 인코딩에 바이트가 너무 많습니다"
 
-#: locale/programs/charmap.c:591 locale/programs/charmap.c:739
-#: locale/programs/charmap.c:822 locale/programs/repertoire.c:295
+#: locale/programs/charmap.c:591 locale/programs/charmap.c:740
+#: locale/programs/charmap.c:823 locale/programs/repertoire.c:295
 msgid "no symbolic name given for end of range"
 msgstr "범위의 끝까지 기호 이름이 없습니다"
 
 #: locale/programs/charmap.c:615 locale/programs/ld-address.c:524
 #: locale/programs/ld-collate.c:2616 locale/programs/ld-collate.c:3774
-#: locale/programs/ld-ctype.c:2117 locale/programs/ld-ctype.c:2829
-#: locale/programs/ld-identification.c:397
-#: locale/programs/ld-measurement.c:213 locale/programs/ld-messages.c:295
-#: locale/programs/ld-monetary.c:748 locale/programs/ld-name.c:262
-#: locale/programs/ld-numeric.c:325 locale/programs/ld-paper.c:212
-#: locale/programs/ld-telephone.c:276 locale/programs/ld-time.c:959
-#: locale/programs/repertoire.c:312
+#: locale/programs/ld-ctype.c:2118 locale/programs/ld-ctype.c:2830
+#: locale/programs/ld-identification.c:397 locale/programs/ld-measurement.c:213
+#: locale/programs/ld-messages.c:295 locale/programs/ld-monetary.c:748
+#: locale/programs/ld-name.c:262 locale/programs/ld-numeric.c:325
+#: locale/programs/ld-paper.c:212 locale/programs/ld-telephone.c:276
+#: locale/programs/ld-time.c:959 locale/programs/repertoire.c:312
 #, c-format
 msgid "%1$s: definition does not end with `END %1$s'"
 msgstr "%1$s: 정의가 `END %1$s'(으)로 끝나지 않습니다"
@@ -1742,59 +1732,59 @@ msgstr "%1$s: 정의가 `END %1$s'(으)로 끝나지 않습니다"
 msgid "only WIDTH definitions are allowed to follow the CHARMAP definition"
 msgstr "CHARMAP 정의 바로 다음에는 WIDTH 정의만이 가능합니다"
 
-#: locale/programs/charmap.c:656 locale/programs/charmap.c:719
+#: locale/programs/charmap.c:656 locale/programs/charmap.c:720
 #, c-format
 msgid "value for %s must be an integer"
 msgstr "%s에 대한 값은 정수여야 합니다"
 
-#: locale/programs/charmap.c:847
+#: locale/programs/charmap.c:848
 #, c-format
 msgid "%s: error in state machine"
 msgstr "%s: 상태 기계에 오류 발생"
 
-#: locale/programs/charmap.c:855 locale/programs/ld-address.c:540
+#: locale/programs/charmap.c:856 locale/programs/ld-address.c:540
 #: locale/programs/ld-collate.c:2613 locale/programs/ld-collate.c:3967
-#: locale/programs/ld-ctype.c:2114 locale/programs/ld-ctype.c:2846
-#: locale/programs/ld-identification.c:413
-#: locale/programs/ld-measurement.c:229 locale/programs/ld-messages.c:311
-#: locale/programs/ld-monetary.c:764 locale/programs/ld-name.c:278
-#: locale/programs/ld-numeric.c:341 locale/programs/ld-paper.c:228
-#: locale/programs/ld-telephone.c:292 locale/programs/ld-time.c:990
-#: locale/programs/locfile.c:997 locale/programs/repertoire.c:323
+#: locale/programs/ld-ctype.c:2115 locale/programs/ld-ctype.c:2847
+#: locale/programs/ld-identification.c:413 locale/programs/ld-measurement.c:229
+#: locale/programs/ld-messages.c:311 locale/programs/ld-monetary.c:764
+#: locale/programs/ld-name.c:278 locale/programs/ld-numeric.c:341
+#: locale/programs/ld-paper.c:228 locale/programs/ld-telephone.c:292
+#: locale/programs/ld-time.c:990 locale/programs/locfile.c:1010
+#: locale/programs/repertoire.c:323
 #, c-format
 msgid "%s: premature end of file"
 msgstr "%s: 파일이 완결하지 않은 채 끝남"
 
-#: locale/programs/charmap.c:874 locale/programs/charmap.c:885
+#: locale/programs/charmap.c:875 locale/programs/charmap.c:886
 #, c-format
 msgid "unknown character `%s'"
 msgstr "알 수 없는 문자 `%s'"
 
 # 뭔 소리여?
-#: locale/programs/charmap.c:893
+#: locale/programs/charmap.c:894
 #, c-format
 msgid "number of bytes for byte sequence of beginning and end of range not the same: %d vs %d"
 msgstr "범위의 시작과 끝의 바이트 시퀀스 바이트 수가 다릅니다: %d 및 %d"
 
-#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2893
+#: locale/programs/charmap.c:999 locale/programs/ld-collate.c:2893
 #: locale/programs/repertoire.c:418
 msgid "invalid names for character range"
 msgstr "문자의 범위로 잘못된 이름"
 
-#: locale/programs/charmap.c:1010 locale/programs/repertoire.c:430
+#: locale/programs/charmap.c:1011 locale/programs/repertoire.c:430
 msgid "hexadecimal range format should use only capital characters"
 msgstr "16진수 범위 포맷은 대문자만을 사용해야 합니다"
 
-#: locale/programs/charmap.c:1028 locale/programs/repertoire.c:448
+#: locale/programs/charmap.c:1029 locale/programs/repertoire.c:448
 #, c-format
 msgid "<%s> and <%s> are invalid names for range"
 msgstr "<%s>과(와) <%s>은(는) 문자의 범위로 잘못된 이름입니다"
 
-#: locale/programs/charmap.c:1034 locale/programs/repertoire.c:455
+#: locale/programs/charmap.c:1035 locale/programs/repertoire.c:455
 msgid "upper limit in range is smaller than lower limit"
 msgstr "범위의 상한값이 하한값보다 작습니다"
 
-#: locale/programs/charmap.c:1092
+#: locale/programs/charmap.c:1093
 msgid "resulting bytes for range not representable."
 msgstr "범위의 최종 바이트수를 표시할 수 없습니다."
 
@@ -1864,14 +1854,13 @@ msgid "%s: numeric country code `%d' not valid"
 msgstr "%s: 국가 코드 숫자 `%d'번은 올바르지 않습니다"
 
 #: locale/programs/ld-address.c:432 locale/programs/ld-address.c:469
-#: locale/programs/ld-address.c:507 locale/programs/ld-ctype.c:2478
-#: locale/programs/ld-identification.c:309
-#: locale/programs/ld-measurement.c:196 locale/programs/ld-messages.c:264
-#: locale/programs/ld-monetary.c:503 locale/programs/ld-monetary.c:538
-#: locale/programs/ld-monetary.c:579 locale/programs/ld-name.c:235
-#: locale/programs/ld-numeric.c:217 locale/programs/ld-paper.c:195
-#: locale/programs/ld-telephone.c:251 locale/programs/ld-time.c:864
-#: locale/programs/ld-time.c:906
+#: locale/programs/ld-address.c:507 locale/programs/ld-ctype.c:2479
+#: locale/programs/ld-identification.c:309 locale/programs/ld-measurement.c:196
+#: locale/programs/ld-messages.c:264 locale/programs/ld-monetary.c:503
+#: locale/programs/ld-monetary.c:538 locale/programs/ld-monetary.c:579
+#: locale/programs/ld-name.c:235 locale/programs/ld-numeric.c:217
+#: locale/programs/ld-paper.c:195 locale/programs/ld-telephone.c:251
+#: locale/programs/ld-time.c:864 locale/programs/ld-time.c:906
 #, c-format
 msgid "%s: field `%s' declared more than once"
 msgstr "%s: `%s' 필드를 여러 번 선언했습니다"
@@ -1887,7 +1876,7 @@ msgid "%s: unknown character in field `%s'"
 msgstr "%s: `%s' 필드에 알려지지 않은 문자가 있습니다"
 
 #: locale/programs/ld-address.c:521 locale/programs/ld-collate.c:3772
-#: locale/programs/ld-ctype.c:2826 locale/programs/ld-identification.c:394
+#: locale/programs/ld-ctype.c:2827 locale/programs/ld-identification.c:394
 #: locale/programs/ld-measurement.c:210 locale/programs/ld-messages.c:293
 #: locale/programs/ld-monetary.c:746 locale/programs/ld-name.c:260
 #: locale/programs/ld-numeric.c:323 locale/programs/ld-paper.c:210
@@ -1900,13 +1889,13 @@ msgstr "%s: 불완전한 `END' 줄"
 #: locale/programs/ld-collate.c:602 locale/programs/ld-collate.c:898
 #: locale/programs/ld-collate.c:911 locale/programs/ld-collate.c:2582
 #: locale/programs/ld-collate.c:2603 locale/programs/ld-collate.c:3957
-#: locale/programs/ld-ctype.c:1846 locale/programs/ld-ctype.c:2104
-#: locale/programs/ld-ctype.c:2676 locale/programs/ld-ctype.c:2837
-#: locale/programs/ld-identification.c:404
-#: locale/programs/ld-measurement.c:220 locale/programs/ld-messages.c:302
-#: locale/programs/ld-monetary.c:755 locale/programs/ld-name.c:269
-#: locale/programs/ld-numeric.c:332 locale/programs/ld-paper.c:219
-#: locale/programs/ld-telephone.c:283 locale/programs/ld-time.c:981
+#: locale/programs/ld-ctype.c:1847 locale/programs/ld-ctype.c:2105
+#: locale/programs/ld-ctype.c:2677 locale/programs/ld-ctype.c:2838
+#: locale/programs/ld-identification.c:404 locale/programs/ld-measurement.c:220
+#: locale/programs/ld-messages.c:302 locale/programs/ld-monetary.c:755
+#: locale/programs/ld-name.c:269 locale/programs/ld-numeric.c:332
+#: locale/programs/ld-paper.c:219 locale/programs/ld-telephone.c:283
+#: locale/programs/ld-time.c:981
 #, c-format
 msgid "%s: syntax error"
 msgstr "%s: 문법 오류"
@@ -1946,7 +1935,7 @@ msgstr "%1$s: 무게 %3$d의 정의에서 `%2$s'이(가) 여러 번 나타났습
 #: locale/programs/ld-collate.c:587
 #, c-format
 msgid "%s: too many rules; first entry only had %d"
-msgstr "%s: 규칙이 너무 많음; 첫 번째 항목만이 %d개를 가집니다"
+msgstr "%s: 규칙이 너무 많음. 첫 번째 항목만이 %d개를 가집니다"
 
 #: locale/programs/ld-collate.c:623
 #, c-format
@@ -2035,7 +2024,7 @@ msgstr "기호 `%s'"
 
 #: locale/programs/ld-collate.c:1852
 msgid "too many errors; giving up"
-msgstr "오류가 너무 많습니다; 포기합니다"
+msgstr "오류가 너무 많습니다. 포기합니다"
 
 #: locale/programs/ld-collate.c:2508 locale/programs/ld-collate.c:3896
 #, c-format
@@ -2223,7 +2212,7 @@ msgstr "`digit' 범주가 10의 배수의 항목을 가지지 않았습니다"
 msgid "no input digits defined and none of the standard names in the charmap"
 msgstr "입력 숫자가 정의하지 않았고 문자맵에 표준 이름이 없습니다"
 
-#: locale/programs/ld-ctype.c:849
+#: locale/programs/ld-ctype.c:847
 msgid "not all characters used in `outdigit' are available in the charmap"
 msgstr "문자맵의 `outdigit'에 사용한 문자의 전부가 사용 가능하지 않습니다"
 
@@ -2251,133 +2240,133 @@ msgstr "`%s' 문자 지도는 이미 정의했습니다"
 msgid "implementation limit: no more than %d character maps allowed"
 msgstr "구현상의 제한: %d 개 이상의 문자 지도는 허용하지 않습니다"
 
-#: locale/programs/ld-ctype.c:1434 locale/programs/ld-ctype.c:1559
-#: locale/programs/ld-ctype.c:1665 locale/programs/ld-ctype.c:2341
-#: locale/programs/ld-ctype.c:3299
+#: locale/programs/ld-ctype.c:1435 locale/programs/ld-ctype.c:1560
+#: locale/programs/ld-ctype.c:1666 locale/programs/ld-ctype.c:2342
+#: locale/programs/ld-ctype.c:3302
 #, c-format
 msgid "%s: field `%s' does not contain exactly ten entries"
 msgstr "%s: `%s' 필드에 들어 있는 항목이 10개가 아닙니다"
 
-#: locale/programs/ld-ctype.c:1462 locale/programs/ld-ctype.c:2036
+#: locale/programs/ld-ctype.c:1463 locale/programs/ld-ctype.c:2037
 #, c-format
 msgid "to-value <U%0*X> of range is smaller than from-value <U%0*X>"
 msgstr "범위의 to-value <U%0*X>이(가) from-value <U%0*X>보다 작습니다"
 
-#: locale/programs/ld-ctype.c:1589
+#: locale/programs/ld-ctype.c:1590
 msgid "start and end character sequence of range must have the same length"
 msgstr "범위의 시작 문자 순서열과 끝 문자 순서열은 길이가 같아야 합니다"
 
-#: locale/programs/ld-ctype.c:1596
+#: locale/programs/ld-ctype.c:1597
 msgid "to-value character sequence is smaller than from-value sequence"
 msgstr "to-value 문자 순서열이 from-value 순서열보다 작습니다"
 
-#: locale/programs/ld-ctype.c:1956 locale/programs/ld-ctype.c:2007
+#: locale/programs/ld-ctype.c:1957 locale/programs/ld-ctype.c:2008
 msgid "premature end of `translit_ignore' definition"
 msgstr "`translit_ignore' 정의가 완결하지 않은 채 끝났습니다"
 
-#: locale/programs/ld-ctype.c:1962 locale/programs/ld-ctype.c:2013
-#: locale/programs/ld-ctype.c:2055
+#: locale/programs/ld-ctype.c:1963 locale/programs/ld-ctype.c:2014
+#: locale/programs/ld-ctype.c:2056
 msgid "syntax error"
 msgstr "문법 오류"
 
-#: locale/programs/ld-ctype.c:2188
+#: locale/programs/ld-ctype.c:2189
 #, c-format
 msgid "%s: syntax error in definition of new character class"
 msgstr "%s: 새로운 문자 클래스 정의에 문법 오류가 있습니다"
 
-#: locale/programs/ld-ctype.c:2203
+#: locale/programs/ld-ctype.c:2204
 #, c-format
 msgid "%s: syntax error in definition of new character map"
 msgstr "%s: 새로운 문자 맵 정의에 문법 오류가 있습니다"
 
-#: locale/programs/ld-ctype.c:2363
+#: locale/programs/ld-ctype.c:2364
 msgid "ellipsis range must be marked by two operands of same type"
 msgstr "말줄임표 범위는 같은 타입의 두 개의 피연산자로 표시해야 합니다"
 
-#: locale/programs/ld-ctype.c:2372
+#: locale/programs/ld-ctype.c:2373
 msgid "with symbolic name range values the absolute ellipsis `...' must not be used"
 msgstr "기호이름 범위 값에서는 절대 말줄임표 `..'을 쓰지 말아야 합니다"
 
 # 번역: 뭔소리야?
-#: locale/programs/ld-ctype.c:2387
+#: locale/programs/ld-ctype.c:2388
 msgid "with UCS range values one must use the hexadecimal symbolic ellipsis `..'"
 msgstr "UCS 범위 값에서는 16진수 기호 말줄임표 `..'을 써야 합니다"
 
 # 번역: 뭔 소리야?
-#: locale/programs/ld-ctype.c:2401
+#: locale/programs/ld-ctype.c:2402
 msgid "with character code range values one must use the absolute ellipsis `...'"
 msgstr "문자코드 범위 값에서는 절대 말줄임표 `..'을 써야 합니다"
 
-#: locale/programs/ld-ctype.c:2552
+#: locale/programs/ld-ctype.c:2553
 #, c-format
 msgid "duplicated definition for mapping `%s'"
 msgstr "매핑 `%s'이(가) 중복 정의되어 있습니다"
 
-#: locale/programs/ld-ctype.c:2638 locale/programs/ld-ctype.c:2782
+#: locale/programs/ld-ctype.c:2639 locale/programs/ld-ctype.c:2783
 #, c-format
 msgid "%s: `translit_start' section does not end with `translit_end'"
 msgstr "%s: `translit_start' 섹션이 `translit_end'로 끝나지 않습니다."
 
-#: locale/programs/ld-ctype.c:2733
+#: locale/programs/ld-ctype.c:2734
 #, c-format
 msgid "%s: duplicate `default_missing' definition"
 msgstr "%s: `default_missing' 정의가 중복되었습니다"
 
-#: locale/programs/ld-ctype.c:2738
+#: locale/programs/ld-ctype.c:2739
 msgid "previous definition was here"
 msgstr "이전 정의가 여기 있습니다"
 
 # 번역: representable이 여기서??
-#: locale/programs/ld-ctype.c:2760
+#: locale/programs/ld-ctype.c:2761
 #, c-format
 msgid "%s: no representable `default_missing' definition found"
 msgstr "%s: 표시할 수 있는 `default_missing' 정의가 없습니다"
 
-#: locale/programs/ld-ctype.c:2877 locale/programs/ld-ctype.c:2973
-#: locale/programs/ld-ctype.c:2992 locale/programs/ld-ctype.c:3012
-#: locale/programs/ld-ctype.c:3032 locale/programs/ld-ctype.c:3052
-#: locale/programs/ld-ctype.c:3072 locale/programs/ld-ctype.c:3111
-#: locale/programs/ld-ctype.c:3131 locale/programs/ld-ctype.c:3195
-#: locale/programs/ld-ctype.c:3236 locale/programs/ld-ctype.c:3259
+#: locale/programs/ld-ctype.c:2878 locale/programs/ld-ctype.c:2974
+#: locale/programs/ld-ctype.c:2993 locale/programs/ld-ctype.c:3013
+#: locale/programs/ld-ctype.c:3033 locale/programs/ld-ctype.c:3053
+#: locale/programs/ld-ctype.c:3073 locale/programs/ld-ctype.c:3112
+#: locale/programs/ld-ctype.c:3132 locale/programs/ld-ctype.c:3198
+#: locale/programs/ld-ctype.c:3239 locale/programs/ld-ctype.c:3262
 #, c-format
 msgid "%s: character `%s' not defined while needed as default value"
 msgstr "%s: `%s' 문자는 기본값으로 필요하지만 정의하지 않았습니다"
 
-#: locale/programs/ld-ctype.c:2882 locale/programs/ld-ctype.c:2978
-#: locale/programs/ld-ctype.c:2997 locale/programs/ld-ctype.c:3017
-#: locale/programs/ld-ctype.c:3037 locale/programs/ld-ctype.c:3057
-#: locale/programs/ld-ctype.c:3077 locale/programs/ld-ctype.c:3116
-#: locale/programs/ld-ctype.c:3136 locale/programs/ld-ctype.c:3200
+#: locale/programs/ld-ctype.c:2883 locale/programs/ld-ctype.c:2979
+#: locale/programs/ld-ctype.c:2998 locale/programs/ld-ctype.c:3018
+#: locale/programs/ld-ctype.c:3038 locale/programs/ld-ctype.c:3058
+#: locale/programs/ld-ctype.c:3078 locale/programs/ld-ctype.c:3117
+#: locale/programs/ld-ctype.c:3137 locale/programs/ld-ctype.c:3203
 #, c-format
 msgid "%s: character `%s' in charmap not representable with one byte"
 msgstr "%s: 문자맵의 `%s' 문자는 한 바이트로 표현할 수 없습니다"
 
-#: locale/programs/ld-ctype.c:3242 locale/programs/ld-ctype.c:3265
+#: locale/programs/ld-ctype.c:3245 locale/programs/ld-ctype.c:3268
 #, c-format
 msgid "%s: character `%s' needed as default value not representable with one byte"
 msgstr "%s: 기본값 `%s' 문자는 한 바이트로 표현할 수 없습니다"
 
-#: locale/programs/ld-ctype.c:3321
+#: locale/programs/ld-ctype.c:3324
 msgid "no output digits defined and none of the standard names in the charmap"
 msgstr "출력 숫자가 정의하지 않았고 문자맵에 표준 이름이 없습니다"
 
 # transliteration: 고쳐씀, 음역
-#: locale/programs/ld-ctype.c:3570
+#: locale/programs/ld-ctype.c:3573
 #, c-format
 msgid "%s: transliteration data from locale `%s' not available"
 msgstr "%s: 로캘 `%s'의 고쳐씀 데이터가 없습니다"
 
-#: locale/programs/ld-ctype.c:3669
+#: locale/programs/ld-ctype.c:3672
 #, c-format
 msgid "%s: table for class \"%s\": %lu bytes"
 msgstr "%s: \"%s\" 클래스에 대한 테이블: %lu 바이트"
 
-#: locale/programs/ld-ctype.c:3733
+#: locale/programs/ld-ctype.c:3736
 #, c-format
 msgid "%s: table for map \"%s\": %lu bytes"
 msgstr "%s: \"%s\" 맵에 대한 테이블: %lu 바이트"
 
-#: locale/programs/ld-ctype.c:3857
+#: locale/programs/ld-ctype.c:3860
 #, c-format
 msgid "%s: table for width: %lu bytes"
 msgstr "%s: 폭에 대한 테이블: %lu bytes"
@@ -2618,120 +2607,114 @@ msgstr ""
 "<이름>\n"
 "[-a|-m]"
 
-#: locale/programs/locale.c:190
-#, c-format
-msgid "Cannot set LC_CTYPE to default locale"
-msgstr "LC_CTYPE을 기본 로캘로 설정할 수 없습니다"
-
-#: locale/programs/locale.c:192
-#, c-format
-msgid "Cannot set LC_MESSAGES to default locale"
-msgstr "LC_MESSAGES을 기본 로캘로 설정할 수 없습니다"
-
-#: locale/programs/locale.c:205
-#, c-format
-msgid "Cannot set LC_COLLATE to default locale"
-msgstr "LC_COLLATE을 기본 로캘로 설정할 수 없습니다"
-
-#: locale/programs/locale.c:221
-#, c-format
-msgid "Cannot set LC_ALL to default locale"
-msgstr "LC_ALL을 기본 로캘로 설정할 수 없습니다"
-
-#: locale/programs/locale.c:521
+#: locale/programs/locale.c:522
 #, c-format
 msgid "while preparing output"
 msgstr "출력을 준비하는 동안"
 
-#: locale/programs/localedef.c:112
+#: locale/programs/locale.c:998
+#, c-format
+msgid "Cannot set %s to default locale"
+msgstr "%s을(를) 기본 로캘로 설정할 수 없습니다"
+
+#: locale/programs/locale.c:1096
+#, c-format
+msgid "warning: The LOCPATH variable is set to \"%s\"\n"
+msgstr "경고: LOCPATH 변수가 \"%s\"(으)로 설정되었습니다\n"
+
+#: locale/programs/localedef.c:116
 msgid "Input Files:"
 msgstr "입력 파일:"
 
-#: locale/programs/localedef.c:114
+#: locale/programs/localedef.c:118
 msgid "Symbolic character names defined in FILE"
 msgstr "<파일>에 기호로 표시한 문자 이름을 정의함"
 
-#: locale/programs/localedef.c:116
+#: locale/programs/localedef.c:120
 msgid "Source definitions are found in FILE"
 msgstr "<파일>에 소스 정의가 있습니다"
 
-#: locale/programs/localedef.c:118
+#: locale/programs/localedef.c:122
 msgid "FILE contains mapping from symbolic names to UCS4 values"
 msgstr "<파일>은 기호로 표시한 이름에서 UCS4 값으로의 매핑을 갖고 있습니다"
 
-#: locale/programs/localedef.c:122
+#: locale/programs/localedef.c:126
 msgid "Create output even if warning messages were issued"
 msgstr "경고 메시지가 나올 경우에도 출력함"
 
-#: locale/programs/localedef.c:123
+#: locale/programs/localedef.c:128
+msgid "Do not create hard links between installed locales"
+msgstr "설치한 로캘 사이에 하드 링크를 만들지 마십시오"
+
+#: locale/programs/localedef.c:129
 msgid "Optional output file prefix"
 msgstr "출력 파일 접두어(옵션)"
 
-#: locale/programs/localedef.c:124
+#: locale/programs/localedef.c:130
 msgid "Strictly conform to POSIX"
 msgstr "엄격하게 POSIX를 따름"
 
-#: locale/programs/localedef.c:126
+#: locale/programs/localedef.c:132
 msgid "Suppress warnings and information messages"
 msgstr "경고 메시지와 관련 정보 메시지를 표시하지 않음"
 
-#: locale/programs/localedef.c:127
+#: locale/programs/localedef.c:133
 msgid "Print more messages"
 msgstr "더 많은 메시지 표시"
 
-#: locale/programs/localedef.c:128 locale/programs/localedef.c:131
+#: locale/programs/localedef.c:134 locale/programs/localedef.c:137
 msgid "<warnings>"
 msgstr "<경고>"
 
-#: locale/programs/localedef.c:129
+#: locale/programs/localedef.c:135
 msgid "Comma-separated list of warnings to disable; supported warnings are: ascii, intcurrsym"
 msgstr "사용하지 않을 경고의 목록 (쉼표로 구분). 지원하는 경고는: ascii, intcurrsym"
 
-#: locale/programs/localedef.c:132
+#: locale/programs/localedef.c:138
 msgid "Comma-separated list of warnings to enable; supported warnings are: ascii, intcurrsym"
 msgstr "사용할 경고의 목록 (쉼표로 구분). 지원하는 경고는: ascii, intcurrsym"
 
-#: locale/programs/localedef.c:135
+#: locale/programs/localedef.c:141
 msgid "Archive control:"
 msgstr "아카이브 컨트롤:"
 
-#: locale/programs/localedef.c:137
+#: locale/programs/localedef.c:143
 msgid "Don't add new data to archive"
 msgstr "아카이브에 새 데이터를 더하지 않습니다"
 
-#: locale/programs/localedef.c:139
+#: locale/programs/localedef.c:145
 msgid "Add locales named by parameters to archive"
 msgstr "아카이브에 인수로 지정한 이름의 로캘을 더합니다"
 
-#: locale/programs/localedef.c:140
+#: locale/programs/localedef.c:146
 msgid "Replace existing archive content"
 msgstr "현재 아카이브 내용을 바꿉니다"
 
-#: locale/programs/localedef.c:142
+#: locale/programs/localedef.c:148
 msgid "Remove locales named by parameters from archive"
 msgstr "아카이브에서 인수로 지정한 이름의 로캘을 지웁니다"
 
-#: locale/programs/localedef.c:143
+#: locale/programs/localedef.c:149
 msgid "List content of archive"
 msgstr "아카이브의 내용을 봅니다"
 
-#: locale/programs/localedef.c:145
+#: locale/programs/localedef.c:151
 msgid "locale.alias file to consult when making archive"
 msgstr "아카이브를 만들 때 들여다 볼 locale.alias 파일"
 
-#: locale/programs/localedef.c:147
+#: locale/programs/localedef.c:153
 msgid "Generate little-endian output"
 msgstr "리틀 엔디안으로 출력합니다"
 
-#: locale/programs/localedef.c:149
+#: locale/programs/localedef.c:155
 msgid "Generate big-endian output"
 msgstr "빅 엔디안으로 출력합니다"
 
-#: locale/programs/localedef.c:154
+#: locale/programs/localedef.c:160
 msgid "Compile locale specification"
 msgstr "로캘 명세를 컴파일"
 
-#: locale/programs/localedef.c:157
+#: locale/programs/localedef.c:163
 msgid ""
 "NAME\n"
 "[--add-to-archive|--delete-from-archive] FILE...\n"
@@ -2741,31 +2724,31 @@ msgstr ""
 "[--add-to-archive|--delete-from-archive] <파일>...\n"
 "--list-archive [파일]"
 
-#: locale/programs/localedef.c:232
+#: locale/programs/localedef.c:238
 #, c-format
 msgid "cannot create directory for output files"
 msgstr "출력 파일의 디렉터리를 만들 수 없습니다"
 
-#: locale/programs/localedef.c:243
+#: locale/programs/localedef.c:249
 msgid "FATAL: system does not define `_POSIX2_LOCALEDEF'"
 msgstr "중요: 시스템에 `_POSIX2_LOCALEDEF'를 정의하지 않았습니다"
 
-#: locale/programs/localedef.c:257 locale/programs/localedef.c:273
-#: locale/programs/localedef.c:663 locale/programs/localedef.c:683
+#: locale/programs/localedef.c:263 locale/programs/localedef.c:279
+#: locale/programs/localedef.c:673 locale/programs/localedef.c:693
 #, c-format
 msgid "cannot open locale definition file `%s'"
 msgstr "로캘 정의 파일 `%s' 파일을 열 수 없습니다"
 
-#: locale/programs/localedef.c:297
+#: locale/programs/localedef.c:303
 #, c-format
 msgid "cannot write output files to `%s'"
 msgstr "출력 파일을 `%s'에 기록할 수 없습니다"
 
-#: locale/programs/localedef.c:303
+#: locale/programs/localedef.c:309
 msgid "no output file produced because errors were issued"
 msgstr "오류가 나왔으므로 출력 파일을 만들지 않았습니다"
 
-#: locale/programs/localedef.c:431
+#: locale/programs/localedef.c:441
 #, c-format
 msgid ""
 "System's directory for character maps : %s\n"
@@ -2778,11 +2761,11 @@ msgstr ""
 "\t\t       로캘 경로     : %s\n"
 "%s"
 
-#: locale/programs/localedef.c:631
+#: locale/programs/localedef.c:641
 msgid "circular dependencies between locale definitions"
 msgstr "로캘 정의들 사이에 상호 의존성"
 
-#: locale/programs/localedef.c:637
+#: locale/programs/localedef.c:647
 #, c-format
 msgid "cannot add already read locale `%s' a second time"
 msgstr "이미 읽어들인 `%s' 로캘을 두 번 더할 수 없습니다"
@@ -2938,24 +2921,24 @@ msgstr "출력 파일 `%s' 파일을 범주 `%s'에 대해 열 수 없습니다"
 msgid "failure while writing data for category `%s'"
 msgstr "범주 `%s'의 자료를 쓰는 데 실패했습니다"
 
-#: locale/programs/locfile.c:917
+#: locale/programs/locfile.c:930
 #, c-format
 msgid "cannot create output file `%s' for category `%s'"
 msgstr "출력 파일 `%s' 파일을 범주 `%s'에 대해 만들 수 없습니다"
 
-#: locale/programs/locfile.c:953
+#: locale/programs/locfile.c:966
 msgid "expecting string argument for `copy'"
 msgstr "`copy'에 대한 문자열 인수가 필요합니다"
 
-#: locale/programs/locfile.c:957
+#: locale/programs/locfile.c:970
 msgid "locale name should consist only of portable characters"
 msgstr "로캘 이름은 포터블한 문자로 구성해야 합니다"
 
-#: locale/programs/locfile.c:976
+#: locale/programs/locfile.c:989
 msgid "no other keyword shall be specified when `copy' is used"
 msgstr "`copy'가 사용될 땐 다른 키워드를 지정하면 안 됩니다"
 
-#: locale/programs/locfile.c:990
+#: locale/programs/locfile.c:1003
 #, c-format
 msgid "`%1$s' definition does not end with `END %1$s'"
 msgstr "`%1$s' 정의가 `END %1$s'(으)로 끝나지 않습니다"
@@ -3271,7 +3254,7 @@ msgstr "속성이 너무 많음"
 
 #: nis/nis_error.h:29
 msgid "Error in RPC subsystem"
-msgstr "RPC 서브 시스템에 오류: "
+msgstr "RPC 서브 시스템에 오류"
 
 #: nis/nis_error.h:30
 msgid "Missing or malformed attribute"
@@ -3788,12 +3771,12 @@ msgstr "yp_update: 호스트를 네트이름으로 바꿀 수 없습니다\n"
 msgid "yp_update: cannot get server address\n"
 msgstr "yp_update: 서버 주소를 얻을 수 없습니다\n"
 
-#: nscd/aicache.c:83 nscd/hstcache.c:452
+#: nscd/aicache.c:82 nscd/hstcache.c:452
 #, c-format
 msgid "Haven't found \"%s\" in hosts cache!"
 msgstr "호스트 캐시에서 \"%s\"을(를) 찾을 수 없었습니다!"
 
-#: nscd/aicache.c:85 nscd/hstcache.c:454
+#: nscd/aicache.c:84 nscd/hstcache.c:454
 #, c-format
 msgid "Reloading \"%s\" in hosts cache!"
 msgstr "호스트 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
@@ -3820,7 +3803,7 @@ msgstr "감시하는 `%s` 파일이 바뀌었습니다 (mtime)"
 #: nscd/cache.c:341
 #, c-format
 msgid "pruning %s cache; time %ld"
-msgstr "잘라내기: %s 캐시; 시간 %ld"
+msgstr "잘라내기: %s 캐시, 시간 %ld"
 
 #: nscd/cache.c:370
 #, c-format
@@ -3931,7 +3914,7 @@ msgstr "FD %d번에 접근, 용도 %s"
 #: nscd/connections.c:1051
 #, c-format
 msgid "cannot handle old request version %d; current version is %d"
-msgstr "과거의 요청 버전 %d 버전을 처리할 수 없습니다; 현재 버전은 %d입니다"
+msgstr "과거의 요청 버전 %d 버전을 처리할 수 없습니다. 현재 버전은 %d입니다"
 
 #: nscd/connections.c:1074
 #, c-format
@@ -3958,10 +3941,9 @@ msgid "error getting caller's id: %s"
 msgstr "호출한 측 ID를 얻는데 오류: %s"
 
 #: nscd/connections.c:1349
-#, fuzzy, c-format
-#| msgid "cannot open /proc/self/cmdline: %s; disabling paranoia mode"
+#, c-format
 msgid "cannot open /proc/self/cmdline: %m; disabling paranoia mode"
-msgstr "/proc/self/cmdline을 열 수 없습니다: %s: 파라노이아 모드를 사용하지 않습니다"
+msgstr "/proc/self/cmdline을 열 수 없습니다: %m: 파라노이아 모드를 사용하지 않습니다"
 
 #: nscd/connections.c:1372
 #, c-format
@@ -4111,29 +4093,29 @@ msgstr "gid 번호 \"%s\"번이 잘못되었습니다!"
 #: nscd/mem.c:425
 #, c-format
 msgid "freed %zu bytes in %s cache"
-msgstr "%zu 바이트 메모리 해제(%s 캐시) "
+msgstr "%zu 바이트 메모리 해제 (%s 캐시)"
 
 #: nscd/mem.c:568
 #, c-format
 msgid "no more memory for database '%s'"
 msgstr "'%s' 데이터베이스에 메모리가 더 이상 없습니다"
 
-#: nscd/netgroupcache.c:121
+#: nscd/netgroupcache.c:122
 #, c-format
 msgid "Haven't found \"%s\" in netgroup cache!"
 msgstr "네트그룹 캐시에서 \"%s\"을(를) 찾을 수 없습니다!"
 
-#: nscd/netgroupcache.c:123
+#: nscd/netgroupcache.c:124
 #, c-format
 msgid "Reloading \"%s\" in netgroup cache!"
 msgstr "네트그룹 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
 
-#: nscd/netgroupcache.c:469
+#: nscd/netgroupcache.c:470
 #, c-format
 msgid "Haven't found \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "네트그룹 캐시에서 \"%s (%s,%s,%s)\"을(를) 찾을 수 없습니다!"
 
-#: nscd/netgroupcache.c:472
+#: nscd/netgroupcache.c:473
 #, c-format
 msgid "Reloading \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "네트그룹 캐시에서 \"%s (%s,%s,%s)\"을(를) 다시 읽어들입니다!"
@@ -4186,7 +4168,7 @@ msgstr "사용자별로 별도의 캐시 사용"
 msgid "Name Service Cache Daemon."
 msgstr "네임 서비스 캐시 데몬."
 
-#: nscd/nscd.c:155 nss/getent.c:967 nss/makedb.c:206
+#: nscd/nscd.c:155 nss/getent.c:987 nss/makedb.c:206
 #, c-format
 msgid "wrong number of arguments"
 msgstr "인수의 개수가 잘못되었음"
@@ -4294,27 +4276,27 @@ msgstr "파싱 오류: %s"
 msgid "Must specify user name for server-user option"
 msgstr "server-user 옵션에서 사용자이름을 지정해야 합니다"
 
-#: nscd/nscd_conf.c:198
+#: nscd/nscd_conf.c:201
 #, c-format
 msgid "Must specify user name for stat-user option"
 msgstr "stat-user 옵션에서 사용자이름을 지정해야 합니다"
 
-#: nscd/nscd_conf.c:255
+#: nscd/nscd_conf.c:259
 #, c-format
 msgid "Must specify value for restart-interval option"
 msgstr "restart-interval 옵션의 값을 지정해야 합니다"
 
-#: nscd/nscd_conf.c:269
+#: nscd/nscd_conf.c:273
 #, c-format
 msgid "Unknown option: %s %s %s"
 msgstr "알 수 없는 옵션: %s %s %s"
 
-#: nscd/nscd_conf.c:282
+#: nscd/nscd_conf.c:286
 #, c-format
 msgid "cannot get current working directory: %s; disabling paranoia mode"
 msgstr "현재 작업 디렉터리를 얻을 수 없습니다: %s: 파라노이아 모드를 사용하지 않습니다"
 
-#: nscd/nscd_conf.c:302
+#: nscd/nscd_conf.c:306
 #, c-format
 msgid "maximum file size for %s database too small"
 msgstr "%s 데이터베이스의 최대 파일 크기가 너무 작습니다"
@@ -4447,16 +4429,14 @@ msgstr ""
 "%15s  바뀐 사항에 대해 /etc/%s 검사\n"
 
 #: nscd/pwdcache.c:407
-#, fuzzy, c-format
-#| msgid "Haven't found \"%s\" in hosts cache!"
+#, c-format
 msgid "Haven't found \"%s\" in user database cache!"
-msgstr "호스트 캐시에서 \"%s\"을(를) 찾을 수 없었습니다!"
+msgstr "사용자 데이터베이스 캐시에서 \"%s\"을(를) 찾을 수 없었습니다!"
 
 #: nscd/pwdcache.c:409
-#, fuzzy, c-format
-#| msgid "Reloading \"%s\" in hosts cache!"
+#, c-format
 msgid "Reloading \"%s\" in user database cache!"
-msgstr "호스트 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
+msgstr "사용자 데이터베이스 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
 
 #: nscd/pwdcache.c:471
 #, c-format
@@ -4578,47 +4558,46 @@ msgstr "서비스 캐시에서 \"%s\"을(를) 찾을 수 없습니다!"
 msgid "Reloading \"%s\" in services cache!"
 msgstr "서비스 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
 
-#: nss/getent.c:54
+#: nss/getent.c:55
 msgid "database [key ...]"
 msgstr "데이터베이스 [키 ...]"
 
-#: nss/getent.c:59
+#: nss/getent.c:60
 msgid "CONFIG"
 msgstr "<설정>"
 
-#: nss/getent.c:59
+#: nss/getent.c:60
 msgid "Service configuration to be used"
 msgstr "사용할 서비스 설정"
 
-#: nss/getent.c:60
+#: nss/getent.c:61
 msgid "disable IDN encoding"
 msgstr "IDN 인코딩 사용하지 않기"
 
-#: nss/getent.c:65
+#: nss/getent.c:66
 msgid "Get entries from administrative database."
 msgstr "관리자 데이터베이스에서 항목을 읽습니다."
 
-#: nss/getent.c:149 nss/getent.c:442 nss/getent.c:489
+#: nss/getent.c:150 nss/getent.c:462 nss/getent.c:509
 #, c-format
 msgid "Enumeration not supported on %s\n"
 msgstr "%s에 이뉴머레이션을 지원하지 않습니다\n"
 
-#: nss/getent.c:497 nss/getent.c:510
-#, fuzzy, c-format
-#| msgid "Could not create log file"
+#: nss/getent.c:517 nss/getent.c:530
+#, c-format
 msgid "Could not allocate group list: %m\n"
-msgstr "기록 파일을 만들 수 없습니다"
+msgstr "그룹 목록을 만들 수 없습니다: %m\n"
 
-#: nss/getent.c:881
+#: nss/getent.c:901
 #, c-format
 msgid "Unknown database name"
 msgstr "알 수 없는 데이터베이스 이름"
 
-#: nss/getent.c:911
+#: nss/getent.c:931
 msgid "Supported databases:\n"
 msgstr "지원하는 데이터베이스:\n"
 
-#: nss/getent.c:977
+#: nss/getent.c:997
 #, c-format
 msgid "Unknown database: %s\n"
 msgstr "알 수 없는 데이터베이스: `%s'\n"
@@ -4834,10 +4813,8 @@ msgid "Invalid back reference"
 msgstr "부적절한 후방 참조"
 
 #: posix/regcomp.c:156
-#, fuzzy
-#| msgid "Unmatched [ or [^"
 msgid "Unmatched [, [^, [:, [., or [="
-msgstr "짝이 맞지 않는 [ 또는 [^"
+msgstr "짝이 맞지 않는 [, [^, [:, [. 또는 [="
 
 #: posix/regcomp.c:159
 msgid "Unmatched ( or \\("
@@ -4875,11 +4852,11 @@ msgstr "정규식이 너무 큽니다"
 msgid "Unmatched ) or \\)"
 msgstr "짝이 맞지 않는 ) 또는 \\)"
 
-#: posix/regcomp.c:689
+#: posix/regcomp.c:676
 msgid "No previous regular expression"
 msgstr "이전의 정규식이 없음"
 
-#: posix/wordexp.c:1815
+#: posix/wordexp.c:1795
 msgid "parameter null or not set"
 msgstr "인자가 NULL이거나 인자를 지정하지 않았습니다"
 
@@ -5064,7 +5041,7 @@ msgstr "출력 버퍼가 있음"
 msgid "Input message available"
 msgstr "입력 메시지가 있음"
 
-#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:381 timezone/zic.c:520
+#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:375 timezone/zic.c:561
 msgid "I/O error"
 msgstr "입출력 오류"
 
@@ -5144,15 +5121,15 @@ msgstr "실제 시각 시그널 %d번"
 msgid "Unknown signal %d"
 msgstr "알 수 없는 시그널 %d번"
 
-#: sunrpc/auth_unix.c:112 sunrpc/clnt_tcp.c:124 sunrpc/clnt_udp.c:139
+#: sunrpc/auth_unix.c:113 sunrpc/clnt_tcp.c:124 sunrpc/clnt_udp.c:140
 #: sunrpc/clnt_unix.c:125 sunrpc/svc_tcp.c:189 sunrpc/svc_tcp.c:233
 #: sunrpc/svc_udp.c:161 sunrpc/svc_unix.c:189 sunrpc/svc_unix.c:229
-#: sunrpc/xdr.c:628 sunrpc/xdr.c:788 sunrpc/xdr_array.c:102
+#: sunrpc/xdr.c:631 sunrpc/xdr.c:791 sunrpc/xdr_array.c:102
 #: sunrpc/xdr_rec.c:153 sunrpc/xdr_ref.c:79
 msgid "out of memory\n"
 msgstr "메모리 부족\n"
 
-#: sunrpc/auth_unix.c:349
+#: sunrpc/auth_unix.c:350
 msgid "auth_unix.c: Fatal marshalling problem"
 msgstr "auth_unix.c: 치명적인 마샬링 문제"
 
@@ -6398,56 +6375,69 @@ msgid "You really blew it this time"
 msgstr "이번엔 정말로 날려버렸습니다"
 
 #. TRANS Go home and have a glass of warm, dairy-fresh milk.
-#: sysdeps/gnu/errlist.c:978
+#. TRANS @c Okay.  Since you are dying to know, I'll tell you.
+#. TRANS @c This is a joke, obviously.  There is a children's song which begins,
+#. TRANS @c "Old McDonald had a farm, e-i-e-i-o."  Every time I see the (real)
+#. TRANS @c errno macro EIO, I think about that song.  Probably most of my
+#. TRANS @c compatriots who program on Unix do, too.  One of them must have stayed
+#. TRANS @c up a little too late one night and decided to add it to Hurd or Glibc.
+#. TRANS @c Whoever did it should be castigated, but it made me laugh.
+#. TRANS @c  --jtobey@channel1.com
+#. TRANS @c
+#. TRANS @c "bought the farm" means "died".  -jtobey
+#. TRANS @c
+#. TRANS @c Translators, please do not translate this litteraly, translate it into
+#. TRANS @c an idiomatic funny way of saying that the computer died.
+#: sysdeps/gnu/errlist.c:991
 msgid "Computer bought the farm"
 msgstr "컴퓨터가 농장을 샀습니다"
 
 #. TRANS This error code has no purpose.
-#: sysdeps/gnu/errlist.c:987
+#: sysdeps/gnu/errlist.c:1000
 msgid "Gratuitous error"
 msgstr "이유없는 오류"
 
-#: sysdeps/gnu/errlist.c:995
+#: sysdeps/gnu/errlist.c:1008
 msgid "Bad message"
 msgstr "메시지가 잘못됨"
 
-#: sysdeps/gnu/errlist.c:1003
+#: sysdeps/gnu/errlist.c:1016
 msgid "Identifier removed"
 msgstr "식별자 제거"
 
-#: sysdeps/gnu/errlist.c:1011
+#: sysdeps/gnu/errlist.c:1024
 msgid "Multihop attempted"
 msgstr "여러개의 hop이 시도됨"
 
-#: sysdeps/gnu/errlist.c:1019
+#: sysdeps/gnu/errlist.c:1032
 msgid "No data available"
 msgstr "사용 가능한 자료가 없음"
 
-#: sysdeps/gnu/errlist.c:1027
+#: sysdeps/gnu/errlist.c:1040
 msgid "Link has been severed"
 msgstr "링크가 손상되었습니다"
 
-#: sysdeps/gnu/errlist.c:1035
+#: sysdeps/gnu/errlist.c:1048
 msgid "No message of desired type"
 msgstr "적당한 형을 가진 메시지가 없음"
 
-#: sysdeps/gnu/errlist.c:1043
+#: sysdeps/gnu/errlist.c:1056
 msgid "Out of streams resources"
 msgstr "스트림 자원 부족"
 
-#: sysdeps/gnu/errlist.c:1051
+#: sysdeps/gnu/errlist.c:1064
 msgid "Device not a stream"
 msgstr "장치가 스트림이 아님"
 
-#: sysdeps/gnu/errlist.c:1059
+#: sysdeps/gnu/errlist.c:1072
 msgid "Value too large for defined data type"
 msgstr "정의한 자료형으로 쓰기엔 너무 큰 값"
 
-#: sysdeps/gnu/errlist.c:1067
+#: sysdeps/gnu/errlist.c:1080
 msgid "Protocol error"
 msgstr "규약 오류"
 
-#: sysdeps/gnu/errlist.c:1075
+#: sysdeps/gnu/errlist.c:1088
 msgid "Timer expired"
 msgstr "타이머 만료"
 
@@ -6455,195 +6445,195 @@ msgstr "타이머 만료"
 #. TRANS completed.  @xref{Asynchronous I/O}.  When you call @code{aio_cancel},
 #. TRANS the normal result is for the operations affected to complete with this
 #. TRANS error; @pxref{Cancel AIO Operations}.
-#: sysdeps/gnu/errlist.c:1087
+#: sysdeps/gnu/errlist.c:1100
 msgid "Operation canceled"
 msgstr "명령을 취소하였습니다"
 
-#: sysdeps/gnu/errlist.c:1095
+#: sysdeps/gnu/errlist.c:1108
 msgid "Owner died"
 msgstr "소유자가 죽었습니다"
 
-#: sysdeps/gnu/errlist.c:1103
+#: sysdeps/gnu/errlist.c:1116
 msgid "State not recoverable"
 msgstr "상태를 복구할 수 없습니다"
 
-#: sysdeps/gnu/errlist.c:1111
+#: sysdeps/gnu/errlist.c:1124
 msgid "Interrupted system call should be restarted"
 msgstr "중단된 시스템 콜을 다시 시작해야 합니다"
 
-#: sysdeps/gnu/errlist.c:1119
+#: sysdeps/gnu/errlist.c:1132
 msgid "Channel number out of range"
 msgstr "범위를 벗어난 채널 번호"
 
-#: sysdeps/gnu/errlist.c:1127
+#: sysdeps/gnu/errlist.c:1140
 msgid "Level 2 not synchronized"
 msgstr "등급 2가 동기화되지 않음"
 
-#: sysdeps/gnu/errlist.c:1135
+#: sysdeps/gnu/errlist.c:1148
 msgid "Level 3 halted"
 msgstr "등급 3 멎었음"
 
-#: sysdeps/gnu/errlist.c:1143
+#: sysdeps/gnu/errlist.c:1156
 msgid "Level 3 reset"
 msgstr "등급 3 리셋"
 
-#: sysdeps/gnu/errlist.c:1151
+#: sysdeps/gnu/errlist.c:1164
 msgid "Link number out of range"
 msgstr "범위를 벗어난 링크 번호"
 
-#: sysdeps/gnu/errlist.c:1159
+#: sysdeps/gnu/errlist.c:1172
 msgid "Protocol driver not attached"
 msgstr "규약 구동기에 연결되지 않음"
 
-#: sysdeps/gnu/errlist.c:1167
+#: sysdeps/gnu/errlist.c:1180
 msgid "No CSI structure available"
 msgstr "사용 가능한 CSI 구조가 없음"
 
-#: sysdeps/gnu/errlist.c:1175
+#: sysdeps/gnu/errlist.c:1188
 msgid "Level 2 halted"
 msgstr "등급 2 멎었음"
 
-#: sysdeps/gnu/errlist.c:1183
+#: sysdeps/gnu/errlist.c:1196
 msgid "Invalid exchange"
 msgstr "부적절한 교환"
 
-#: sysdeps/gnu/errlist.c:1191
+#: sysdeps/gnu/errlist.c:1204
 msgid "Invalid request descriptor"
 msgstr "요청 디스크립터가 잘못됨"
 
-#: sysdeps/gnu/errlist.c:1199
+#: sysdeps/gnu/errlist.c:1212
 msgid "Exchange full"
 msgstr "교환이 가득 참"
 
-#: sysdeps/gnu/errlist.c:1207
+#: sysdeps/gnu/errlist.c:1220
 msgid "No anode"
 msgstr "anode가 없습니다"
 
-#: sysdeps/gnu/errlist.c:1215
+#: sysdeps/gnu/errlist.c:1228
 msgid "Invalid request code"
 msgstr "부적절한 요청 코드"
 
-#: sysdeps/gnu/errlist.c:1223
+#: sysdeps/gnu/errlist.c:1236
 msgid "Invalid slot"
 msgstr "부적절한 슬롯"
 
-#: sysdeps/gnu/errlist.c:1231
+#: sysdeps/gnu/errlist.c:1244
 msgid "File locking deadlock error"
 msgstr "파일 잠금 교착상태 오류"
 
-#: sysdeps/gnu/errlist.c:1239
+#: sysdeps/gnu/errlist.c:1252
 msgid "Bad font file format"
 msgstr "글꼴 파일 형식이 틀렸습니다"
 
-#: sysdeps/gnu/errlist.c:1247
+#: sysdeps/gnu/errlist.c:1260
 msgid "Machine is not on the network"
 msgstr "컴퓨터가 네트워크에 붙어 있지 않습니다"
 
-#: sysdeps/gnu/errlist.c:1255
+#: sysdeps/gnu/errlist.c:1268
 msgid "Package not installed"
 msgstr "패키지를 설치하지 않았습니다"
 
-#: sysdeps/gnu/errlist.c:1263
+#: sysdeps/gnu/errlist.c:1276
 msgid "Advertise error"
 msgstr "선전 오류"
 
-#: sysdeps/gnu/errlist.c:1271
+#: sysdeps/gnu/errlist.c:1284
 msgid "Srmount error"
 msgstr "srmount 오류"
 
-#: sysdeps/gnu/errlist.c:1279
+#: sysdeps/gnu/errlist.c:1292
 msgid "Communication error on send"
 msgstr "전송 중 통신 오류"
 
-#: sysdeps/gnu/errlist.c:1287
+#: sysdeps/gnu/errlist.c:1300
 msgid "RFS specific error"
 msgstr "RFS 관련 오류"
 
-#: sysdeps/gnu/errlist.c:1295
+#: sysdeps/gnu/errlist.c:1308
 msgid "Name not unique on network"
 msgstr "이름이 네트워크 상에서 단일하지 않습니다"
 
-#: sysdeps/gnu/errlist.c:1303
+#: sysdeps/gnu/errlist.c:1316
 msgid "File descriptor in bad state"
 msgstr "파일 디스크립터가 잘못된 상태에 있습니다"
 
-#: sysdeps/gnu/errlist.c:1311
+#: sysdeps/gnu/errlist.c:1324
 msgid "Remote address changed"
 msgstr "원격 주소가 바뀌었습니다"
 
-#: sysdeps/gnu/errlist.c:1319
+#: sysdeps/gnu/errlist.c:1332
 msgid "Can not access a needed shared library"
 msgstr "필요한 공유 라이브러리에 접근할 수 없습니다"
 
-#: sysdeps/gnu/errlist.c:1327
+#: sysdeps/gnu/errlist.c:1340
 msgid "Accessing a corrupted shared library"
 msgstr "손상된 공유 라이브러리에 접근합니다"
 
-#: sysdeps/gnu/errlist.c:1335
+#: sysdeps/gnu/errlist.c:1348
 msgid ".lib section in a.out corrupted"
 msgstr "a.out의 .lib 섹션이 손상되었습니다"
 
-#: sysdeps/gnu/errlist.c:1343
+#: sysdeps/gnu/errlist.c:1356
 msgid "Attempting to link in too many shared libraries"
 msgstr "너무 많은 동적 라이브러리와 링크하려고 시도합니다"
 
-#: sysdeps/gnu/errlist.c:1351
+#: sysdeps/gnu/errlist.c:1364
 msgid "Cannot exec a shared library directly"
 msgstr "공유 라이브러리를 직접 실행할 수 없습니다"
 
-#: sysdeps/gnu/errlist.c:1359
+#: sysdeps/gnu/errlist.c:1372
 msgid "Streams pipe error"
 msgstr "스트림 파이프 오류"
 
-#: sysdeps/gnu/errlist.c:1367
+#: sysdeps/gnu/errlist.c:1380
 msgid "Structure needs cleaning"
 msgstr "구조에 청소가 필요합니다"
 
-#: sysdeps/gnu/errlist.c:1375
+#: sysdeps/gnu/errlist.c:1388
 msgid "Not a XENIX named type file"
 msgstr "XENIX named 타입 파일이 아닙니다"
 
-#: sysdeps/gnu/errlist.c:1383
+#: sysdeps/gnu/errlist.c:1396
 msgid "No XENIX semaphores available"
 msgstr "사용 가능한 XENIX 세마포어가 없습니다"
 
-#: sysdeps/gnu/errlist.c:1391
+#: sysdeps/gnu/errlist.c:1404
 msgid "Is a named type file"
 msgstr "named 타입 파일입니다"
 
-#: sysdeps/gnu/errlist.c:1399
+#: sysdeps/gnu/errlist.c:1412
 msgid "Remote I/O error"
 msgstr "원격 입출력 오류"
 
-#: sysdeps/gnu/errlist.c:1407
+#: sysdeps/gnu/errlist.c:1420
 msgid "No medium found"
 msgstr "미디어가 없음"
 
-#: sysdeps/gnu/errlist.c:1415
+#: sysdeps/gnu/errlist.c:1428
 msgid "Wrong medium type"
 msgstr "미디어 종류가 잘못됨"
 
-#: sysdeps/gnu/errlist.c:1423
+#: sysdeps/gnu/errlist.c:1436
 msgid "Required key not available"
 msgstr "필요한 키가 없습니다"
 
-#: sysdeps/gnu/errlist.c:1431
+#: sysdeps/gnu/errlist.c:1444
 msgid "Key has expired"
 msgstr "키가 만료되었습니다"
 
-#: sysdeps/gnu/errlist.c:1439
+#: sysdeps/gnu/errlist.c:1452
 msgid "Key has been revoked"
 msgstr "키가 종료되었습니다"
 
-#: sysdeps/gnu/errlist.c:1447
+#: sysdeps/gnu/errlist.c:1460
 msgid "Key was rejected by service"
 msgstr "서비스가 키를 거부했습니다"
 
-#: sysdeps/gnu/errlist.c:1455
+#: sysdeps/gnu/errlist.c:1468
 msgid "Operation not possible due to RF-kill"
 msgstr "작업이 불가능, RF-kill 때문"
 
-#: sysdeps/gnu/errlist.c:1463
+#: sysdeps/gnu/errlist.c:1476
 msgid "Memory page has hardware error"
 msgstr "메모리 페이지에 하드웨어 오류"
 
@@ -6750,49 +6740,46 @@ msgstr "`%s'에서 헤더를 읽을 수 없습니다"
 
 #: sysdeps/x86/dl-cet.c:202
 msgid "mprotect legacy bitmap failed"
-msgstr ""
+msgstr "mprotect 구식 비트맵 실패"
 
 #: sysdeps/x86/dl-cet.c:217
-#, fuzzy
-#| msgid "Data input available"
 msgid "legacy bitmap isn't available"
-msgstr "데이터 입력이 있음"
+msgstr "구식 비트맵이 없음"
 
 #: sysdeps/x86/dl-cet.c:247
-#, fuzzy
-#| msgid "failed to start conversion processing"
 msgid "failed to mark legacy code region"
-msgstr "변환작업을 시작하는데 실패"
+msgstr "구식 코드 구역 표시하는데 실패"
 
+# 참고: https://en.wikipedia.org/wiki/Shadow_stack
 #: sysdeps/x86/dl-cet.c:269
 msgid "shadow stack isn't enabled"
-msgstr ""
+msgstr "셰도우 스택을 켜지 않았습니다"
 
 #: sysdeps/x86/dl-cet.c:290
 msgid "can't disable CET"
-msgstr ""
+msgstr "CET 사용을 끌 수 없습니다"
 
-#: timezone/zdump.c:338
+#: timezone/zdump.c:332
 msgid "has fewer than 3 characters"
 msgstr "3자보다 적습니다"
 
-#: timezone/zdump.c:340
+#: timezone/zdump.c:334
 msgid "has more than 6 characters"
 msgstr "6자보다 많습니다"
 
-#: timezone/zdump.c:342
+#: timezone/zdump.c:336
 msgid "has characters other than ASCII alphanumerics, '-' or '+'"
 msgstr "ASCII 알파벳 및 숫자, '-', '+'가 아닌 문자가 있습니다"
 
-#: timezone/zdump.c:347
+#: timezone/zdump.c:341
 #, c-format
 msgid "%s: warning: zone \"%s\" abbreviation \"%s\" %s\n"
 msgstr "%s: 경고: 지역 \"%s\" 약어 \"%s\" %s\n"
 
-#: timezone/zdump.c:393
+#: timezone/zdump.c:387
 #, c-format
 msgid ""
-"%s: usage: %s OPTIONS ZONENAME ...\n"
+"%s: usage: %s OPTIONS TIMEZONE ...\n"
 "Options include:\n"
 "  -c [L,]U   Start at year L (default -500), end before year U (default 2500)\n"
 "  -t [L,]U   Start at time L, end before time U (in seconds since 1970)\n"
@@ -6804,7 +6791,7 @@ msgid ""
 "\n"
 "Report bugs to %s.\n"
 msgstr ""
-"%s: 사용법: %s <옵션> <시간대이름> ...\n"
+"%s: 사용법: %s <옵션> <시간대> ...\n"
 "옵션:\n"
 "  -c [L,]U   연도 L에서 시작 (기본값 -500), U 전에 끝 (기본값 2500)\n"
 "  -t [L,]U   시각 L에서 시작, U 전에 끝 (1970년 이후 지난 초 단위)\n"
@@ -6816,453 +6803,459 @@ msgstr ""
 "\n"
 "Report bugs to %s.\n"
 
-#: timezone/zdump.c:479
+#: timezone/zdump.c:473
 #, c-format
 msgid "%s: wild -c argument %s\n"
 msgstr "%s: 제멋대로인 -c 인수 %s\n"
 
-#: timezone/zdump.c:512
+#: timezone/zdump.c:506
 #, c-format
 msgid "%s: wild -t argument %s\n"
 msgstr "%s: 제멋대로인 -t 인수 %s\n"
 
-#: timezone/zic.c:398
+#: timezone/zic.c:429
 #, c-format
 msgid "%s: Memory exhausted: %s\n"
 msgstr "%s: 메모리가 바닥남: %s\n"
 
-#: timezone/zic.c:406
+#: timezone/zic.c:437
 msgid "size overflow"
 msgstr "크기 오버플로"
 
-#: timezone/zic.c:454
+#: timezone/zic.c:447
+msgid "alignment overflow"
+msgstr "정렬 값 오버플로"
+
+#: timezone/zic.c:495
 msgid "integer overflow"
 msgstr "정수 값 오버플로"
 
-#: timezone/zic.c:488
+#: timezone/zic.c:529
 #, c-format
 msgid "\"%s\", line %<PRIdMAX>: "
 msgstr "\"%s\", 행 %<PRIdMAX>: "
 
-#: timezone/zic.c:491
+#: timezone/zic.c:532
 #, c-format
 msgid " (rule from \"%s\", line %<PRIdMAX>)"
 msgstr " (\"%s\"에 있는 규칙, 행 %<PRIdMAX>)"
 
-#: timezone/zic.c:510
+#: timezone/zic.c:551
 #, c-format
 msgid "warning: "
 msgstr "경고: "
 
-#: timezone/zic.c:535
+#: timezone/zic.c:576
 #, c-format
 msgid ""
 "%s: usage is %s [ --version ] [ --help ] [ -v ] \\\n"
 "\t[ -l localtime ] [ -p posixrules ] [ -d directory ] \\\n"
-"\t[ -L leapseconds ] [ filename ... ]\n"
+"\t[ -t localtime-link ] [ -L leapseconds ] [ filename ... ]\n"
 "\n"
 "Report bugs to %s.\n"
 msgstr ""
 "%s: 사용법은 %s [ --version ] [ --help ] [ -v ] \\\n"
 "\t[ -l <지역시각> ] [ -p <POSIX규칙> ] [ -d <디렉터리> ] \\\n"
-"\t[ -L <윤초> ] [ <파일이름> ... ]\n"
+"\t[ -t <지역시각-링크> ][ -L <윤초> ] [ <파일이름> ... ]\n"
 "\n"
 "문제점은 %s 주소로 알려 주십시오.\n"
 
-#: timezone/zic.c:558
+#: timezone/zic.c:599
 #, c-format
 msgid "%s: Can't chdir to %s: %s\n"
 msgstr "%s: %s 디렉터리로 이동할 수 없습니다: %s\n"
 
-#: timezone/zic.c:590
+#: timezone/zic.c:632
 msgid "wild compilation-time specification of zic_t"
 msgstr "제멋대로인 zic_t의 컴파일 타임 명세"
 
-#: timezone/zic.c:610
+#: timezone/zic.c:652
 #, c-format
 msgid "%s: More than one -d option specified\n"
 msgstr "%s: 하나 이상의 -d 옵션을 지정했습니다\n"
 
-#: timezone/zic.c:620
+#: timezone/zic.c:662
 #, c-format
 msgid "%s: More than one -l option specified\n"
 msgstr "%s: 하나 이상의 -l 옵션을 지정했습니다\n"
 
-#: timezone/zic.c:630
+#: timezone/zic.c:672
 #, c-format
 msgid "%s: More than one -p option specified\n"
 msgstr "%s: 하나 이상의 -p 옵션을 지정했습니다\n"
 
-#: timezone/zic.c:640
+#: timezone/zic.c:680
+#, c-format
+msgid "%s: More than one -t option specified\n"
+msgstr "%s: 여러 개의 -t 옵션을 지정했습니다\n"
+
+#: timezone/zic.c:689
+msgid "-y is obsolescent"
+msgstr "-y 옵션은 이제 사용하지 않습니다"
+
+#: timezone/zic.c:693
 #, c-format
 msgid "%s: More than one -y option specified\n"
-msgstr "%s: 하나 이상의 -y 옵션을 지정했습니다\n"
+msgstr "%s: 여러 개의 -y 옵션을 지정했습니다\n"
 
-#: timezone/zic.c:650
+#: timezone/zic.c:703
 #, c-format
 msgid "%s: More than one -L option specified\n"
-msgstr "%s: 하나 이상의 -L 옵션을 지정했습니다\n"
+msgstr "%s: 여러 개의 -L 옵션을 지정했습니다\n"
 
-#: timezone/zic.c:659
+#: timezone/zic.c:712
 msgid "-s ignored"
 msgstr "-s 무시됨"
 
-#: timezone/zic.c:698
+#: timezone/zic.c:753
 msgid "link to link"
 msgstr "링크로 링크"
 
-#: timezone/zic.c:701 timezone/zic.c:705
+#: timezone/zic.c:756 timezone/zic.c:760
 msgid "command line"
 msgstr "명령행"
 
-#: timezone/zic.c:721
+#: timezone/zic.c:776
 msgid "empty file name"
 msgstr "빈 파일 이름"
 
-#: timezone/zic.c:724
+#: timezone/zic.c:779
 #, c-format
 msgid "file name '%s' begins with '/'"
 msgstr "'%s' 파일 이름이 '/'로 시작합니다"
 
-#: timezone/zic.c:734
+#: timezone/zic.c:789
 #, c-format
 msgid "file name '%s' contains '%.*s' component"
 msgstr "'%s' 파일 이름에 '%.*s' 내용이 들어 있습니다"
 
-#: timezone/zic.c:740
+#: timezone/zic.c:795
 #, c-format
 msgid "file name '%s' component contains leading '-'"
 msgstr "'%s' 파일 이름에 앞에 '-'가 들어 있습니다"
 
-#: timezone/zic.c:743
+#: timezone/zic.c:798
 #, c-format
 msgid "file name '%s' contains overlength component '%.*s...'"
 msgstr "'%s' 파일 이름에 길이가 제한보다 긴 '%.*s...' 내용이 들어 있습니다"
 
-#: timezone/zic.c:771
+#: timezone/zic.c:826
 #, c-format
 msgid "file name '%s' contains byte '%c'"
 msgstr "'%s' 파일 이름에 '%c' 바이트가 들어 있습니다"
 
-#: timezone/zic.c:772
+#: timezone/zic.c:827
 #, c-format
 msgid "file name '%s' contains byte '\\%o'"
 msgstr "'%s' 파일 이름에 '\\%o' 바이트가 들어 있습니다"
 
-#: timezone/zic.c:842
+#: timezone/zic.c:897
 #, c-format
 msgid "%s: link from %s/%s failed: %s\n"
 msgstr "%s: %s/%s에서 연결 실패: %s\n"
 
-#: timezone/zic.c:852 timezone/zic.c:1815
+#: timezone/zic.c:907 timezone/zic.c:1876
 #, c-format
 msgid "%s: Can't remove %s/%s: %s\n"
 msgstr "%s: %s/%s을(를) 제거할 수 없습니다: %s\n"
 
-#: timezone/zic.c:874
+#: timezone/zic.c:931
 #, c-format
 msgid "symbolic link used because hard link failed: %s"
 msgstr "하드 링크가 실패해서 심볼릭 링크를 사용합니다: %s"
 
-#: timezone/zic.c:882
+#: timezone/zic.c:939
 #, c-format
 msgid "%s: Can't read %s/%s: %s\n"
 msgstr "%s: %s/%s을(를) 읽을 수 없습니다: %s\n"
 
-#: timezone/zic.c:889 timezone/zic.c:1828
+#: timezone/zic.c:946 timezone/zic.c:1889
 #, c-format
 msgid "%s: Can't create %s/%s: %s\n"
 msgstr "%s: %s/%s을(를) 만들 수 없습니다: %s\n"
 
-#: timezone/zic.c:898
+#: timezone/zic.c:955
 #, c-format
 msgid "copy used because hard link failed: %s"
 msgstr "하드 링크가 실패해서 복사를 사용합니다: %s"
 
-#: timezone/zic.c:901
+#: timezone/zic.c:958
 #, c-format
 msgid "copy used because symbolic link failed: %s"
 msgstr "심볼릭 링크가 실패해서 복사를 사용합니다: %s"
 
-#: timezone/zic.c:1013 timezone/zic.c:1015
+#: timezone/zic.c:1032 timezone/zic.c:1034
 msgid "same rule name in multiple files"
 msgstr "여러 파일에 같은 이름의 규칙이 있음"
 
-#: timezone/zic.c:1056
-msgid "unruly zone"
-msgstr "규칙없는 지역"
-
-#: timezone/zic.c:1063
+#: timezone/zic.c:1081
 #, c-format
 msgid "%s in ruleless zone"
 msgstr "규칙없는 지역에 %s 있음"
 
-#: timezone/zic.c:1083
+#: timezone/zic.c:1101
 msgid "standard input"
 msgstr "표준 입력"
 
-#: timezone/zic.c:1088
+#: timezone/zic.c:1106
 #, c-format
 msgid "%s: Can't open %s: %s\n"
 msgstr "%s: %s을(를) 열 수 없습니다: %s\n"
 
-#: timezone/zic.c:1099
+#: timezone/zic.c:1117
 msgid "line too long"
 msgstr "행이 너무 깁니다"
 
-#: timezone/zic.c:1119
+#: timezone/zic.c:1139
 msgid "input line of unknown type"
 msgstr "알 수 없는 형태의 입력행"
 
-#: timezone/zic.c:1134
-#, c-format
-msgid "%s: Leap line in non leap seconds file %s"
-msgstr "%s: 윤초 파일이 아닌 %s 파일에 Leap 줄이 있음"
-
-#: timezone/zic.c:1142 timezone/zic.c:1547 timezone/zic.c:1569
+#: timezone/zic.c:1158 timezone/zic.c:1593 timezone/zic.c:1615
 #, c-format
 msgid "%s: panic: Invalid l_value %d\n"
 msgstr "%s: 문제상태: 잘못된 좌변값 %d\n"
 
-#: timezone/zic.c:1151
+#: timezone/zic.c:1167
 msgid "expected continuation line not found"
 msgstr "예상했던 연속 행을 찾지 못했음"
 
-#: timezone/zic.c:1193 timezone/zic.c:2976
+#: timezone/zic.c:1203
+msgid "fractional seconds rejected by pre-2018 versions of zic"
+msgstr "2018보다 전 버전의 zic는 초보다 작은 단위를 거부합니다"
+
+#: timezone/zic.c:1221 timezone/zic.c:3078
 msgid "time overflow"
 msgstr "시간 값 오버플로"
 
-#: timezone/zic.c:1198
+#: timezone/zic.c:1227
 msgid "values over 24 hours not handled by pre-2007 versions of zic"
-msgstr "24보다 큰 값은 2007년 전 버전의 zic는 처리하지 못합니다"
+msgstr "2007보다 전 버전의 zic는 24보다 큰 값을 처리하지 못합니다"
 
-#: timezone/zic.c:1209
-msgid "wrong number of fields on Rule line"
-msgstr "Rule 줄에 필드의 개수가 잘못되었음"
-
-#: timezone/zic.c:1213
-msgid "nameless rule"
-msgstr "이름없는 규칙"
-
-#: timezone/zic.c:1218
+#: timezone/zic.c:1245
 msgid "invalid saved time"
 msgstr "절약 시간이 부적절함"
 
-#: timezone/zic.c:1235
+#: timezone/zic.c:1256
+msgid "wrong number of fields on Rule line"
+msgstr "Rule 줄에 필드의 개수가 잘못되었음"
+
+#: timezone/zic.c:1265
+#, c-format
+msgid "Invalid rule name \"%s\""
+msgstr "\"%s\" 규칙 이름이 잘못되었습니다"
+
+#: timezone/zic.c:1287
 msgid "wrong number of fields on Zone line"
 msgstr "Zone 줄에 필드의 갯수가 잘못되었음"
 
-#: timezone/zic.c:1240
+#: timezone/zic.c:1292
 #, c-format
 msgid "\"Zone %s\" line and -l option are mutually exclusive"
 msgstr "\"지역 %s\" 행과 -l 옵션은 상호 배타적입니다"
 
-#: timezone/zic.c:1246
+#: timezone/zic.c:1298
 #, c-format
 msgid "\"Zone %s\" line and -p option are mutually exclusive"
 msgstr "\"지역 %s\" 행과 -p 옵션은 상호 배타적입니다"
 
-#: timezone/zic.c:1253
+#: timezone/zic.c:1305
 #, c-format
 msgid "duplicate zone name %s (file \"%s\", line %<PRIdMAX>)"
 msgstr "지역명 %s (파일 \"%s\", 행 %<PRIdMAX>) 중복되어 있습니다"
 
-#: timezone/zic.c:1267
+#: timezone/zic.c:1319
 msgid "wrong number of fields on Zone continuation line"
 msgstr "Zone continuation 줄에 필드의 개수가 잘못되었음"
 
-#: timezone/zic.c:1307
+#: timezone/zic.c:1359
 msgid "invalid UT offset"
 msgstr "UT 옵셋이 잘못됨"
 
-#: timezone/zic.c:1311
+#: timezone/zic.c:1363
 msgid "invalid abbreviation format"
 msgstr "약어 형식이 잘못됨"
 
-#: timezone/zic.c:1320
+#: timezone/zic.c:1372
 #, c-format
 msgid "format '%s' not handled by pre-2015 versions of zic"
-msgstr "'%s' 포맷은 2015년 전 버전의 zic는 처리하지 못합니다"
+msgstr "2015보다 전 버전이 zic는 '%s' 포맷을 처리하지 못합니다"
 
-#: timezone/zic.c:1347
+#: timezone/zic.c:1399
 msgid "Zone continuation line end time is not after end time of previous line"
 msgstr "계속되는 Zone 줄에 있는 끝 시각이 윗 줄에 있는 끝시각보다 늦은 시각이 아닙니다"
 
-#: timezone/zic.c:1374
+#: timezone/zic.c:1426
 msgid "wrong number of fields on Leap line"
 msgstr "Leap 줄에 필드의 개수가 잘못되었음"
 
-#: timezone/zic.c:1383
+#: timezone/zic.c:1435
 msgid "invalid leaping year"
 msgstr "윤년이 잘못됨"
 
-#: timezone/zic.c:1403 timezone/zic.c:1501
+#: timezone/zic.c:1455 timezone/zic.c:1547
 msgid "invalid month name"
 msgstr "달 이름이 잘못됨"
 
-#: timezone/zic.c:1416 timezone/zic.c:1614 timezone/zic.c:1628
+#: timezone/zic.c:1468 timezone/zic.c:1663 timezone/zic.c:1677
 msgid "invalid day of month"
 msgstr "달의 날짜 수가 잘못됨"
 
-#: timezone/zic.c:1421
+#: timezone/zic.c:1473
 msgid "time too small"
 msgstr "시간 값이 너무 작습니다"
 
-#: timezone/zic.c:1425
+#: timezone/zic.c:1477
 msgid "time too large"
 msgstr "시간 값이 너무 큽니다"
 
-#: timezone/zic.c:1429 timezone/zic.c:1530
+#: timezone/zic.c:1481 timezone/zic.c:1576
 msgid "invalid time of day"
 msgstr "하루 중 시각이 잘못됨"
 
-#: timezone/zic.c:1448
+#: timezone/zic.c:1494
 msgid "illegal CORRECTION field on Leap line"
 msgstr "Leap 줄에 CORRECTION 필드가 잘못됨"
 
-#: timezone/zic.c:1453
+#: timezone/zic.c:1499
 msgid "illegal Rolling/Stationary field on Leap line"
 msgstr "Leap 줄에 Rolling/Stationary 필드가 잘못됨"
 
-#: timezone/zic.c:1459
-msgid "leap second precedes Big Bang"
-msgstr "윤초가 원점보다 앞섬"
+#: timezone/zic.c:1505
+msgid "leap second precedes Epoch"
+msgstr "윤초가 시간 원점보다 앞섬"
 
-#: timezone/zic.c:1472
+#: timezone/zic.c:1518
 msgid "wrong number of fields on Link line"
 msgstr "Link 줄에 필드의 수가 틀렸음"
 
-#: timezone/zic.c:1476
+#: timezone/zic.c:1522
 msgid "blank FROM field on Link line"
 msgstr "Link 줄에 FROM 필드가 없음"
 
-#: timezone/zic.c:1551
+#: timezone/zic.c:1597
 msgid "invalid starting year"
 msgstr "시작하는 해가 잘못됨"
 
-#: timezone/zic.c:1573
+#: timezone/zic.c:1619
 msgid "invalid ending year"
 msgstr "끝나는 해가 잘못됨"
 
-#: timezone/zic.c:1577
+#: timezone/zic.c:1623
 msgid "starting year greater than ending year"
 msgstr "시작하는 해가 끝나는 해보다 큽니다"
 
-#: timezone/zic.c:1584
+#: timezone/zic.c:1630
 msgid "typed single year"
 msgstr "연도를 한개 입력했습니다"
 
-#: timezone/zic.c:1619
+#: timezone/zic.c:1633
+#, c-format
+msgid "year type \"%s\" is obsolete; use \"-\" instead"
+msgstr "연도 종류 \"%s\"은(는) 이제 사용되지 않습니다. 대신 \"-\"를 사용하십시오"
+
+#: timezone/zic.c:1668
 msgid "invalid weekday name"
 msgstr "요일 이름이 잘못됨"
 
-#: timezone/zic.c:1743
+#: timezone/zic.c:1800
 #, c-format
 msgid "reference clients mishandle more than %d transition times"
 msgstr "레퍼런스 클라이언트는 이행 과정을 %d번 넘게 잘못 처리합니다"
 
-#: timezone/zic.c:1747
+#: timezone/zic.c:1804
 msgid "pre-2014 clients may mishandle more than 1200 transition times"
 msgstr "2014년보다 전의 클라이언트는 이행 과정을 1200번 이상 잘못 처리할 수도 있습니다"
 
-#: timezone/zic.c:1858
+#: timezone/zic.c:1920
 msgid "too many transition times"
 msgstr "시각 이행이 너무 많습니다"
 
-#: timezone/zic.c:2047
+#: timezone/zic.c:2107
 #, c-format
-msgid "%%z UTC offset magnitude exceeds 99:59:59"
-msgstr "%%z UTC 오프셋 크기가 99:59:59를 넘어갑니다"
+msgid "%%z UT offset magnitude exceeds 99:59:59"
+msgstr "%%z UT 오프셋 크기가 99:59:59를 넘어갑니다"
 
-#: timezone/zic.c:2424
+#: timezone/zic.c:2488
 msgid "no POSIX environment variable for zone"
 msgstr "지역에 대해 POSIX 환경 변수가 없습니다"
 
-#: timezone/zic.c:2430
+#: timezone/zic.c:2494
 #, c-format
 msgid "%s: pre-%d clients may mishandle distant timestamps"
 msgstr "%s: %d년보다 전의 클라이언트는 타임스탬프를 잘못 처리할 수도 있습니다."
 
-#: timezone/zic.c:2566
+#: timezone/zic.c:2631
 msgid "two rules for same instant"
 msgstr "같은 순간에 대해 규칙 2개"
 
-#: timezone/zic.c:2627
+#: timezone/zic.c:2696
 msgid "can't determine time zone abbreviation to use just after until time"
 msgstr "단지 종료시각 이후에 사용하기 위한 시간대 약어를 결정할 수 없습니다"
 
-#: timezone/zic.c:2725
+#: timezone/zic.c:2785
 msgid "too many local time types"
 msgstr "지역 시각의 종류가 너무 많습니다"
 
-#: timezone/zic.c:2729
+#: timezone/zic.c:2789
 msgid "UT offset out of range"
 msgstr "UT 오프셋이 범위를 벗어났습니다"
 
-#: timezone/zic.c:2753
+#: timezone/zic.c:2813
 msgid "too many leap seconds"
 msgstr "윤초가 너무 많습니다"
 
-#: timezone/zic.c:2759
-msgid "repeated leap second moment"
-msgstr "윤초의 크기가 중복되었습니다"
+#: timezone/zic.c:2844
+msgid "Leap seconds too close together"
+msgstr "윤초가 너무 가깝습니다"
 
-#: timezone/zic.c:2830
+#: timezone/zic.c:2891
 msgid "Wild result from command execution"
 msgstr "명령 실행에서 제 멋대로의 결과가 나왔습니다"
 
-#: timezone/zic.c:2831
+#: timezone/zic.c:2892
 #, c-format
 msgid "%s: command was '%s', result was %d\n"
 msgstr "%s: 명령은 '%s'였고, 결과는 %d였습니다\n"
 
-#: timezone/zic.c:2961
+#: timezone/zic.c:2998
+#, c-format
+msgid "\"%s\" is undocumented; use \"last%s\" instead"
+msgstr "\"%s\"은(는) 문서화되지 않았습니다. 대신 \"last%s\"를(를) 사용하십시오"
+
+#: timezone/zic.c:3029
+#, c-format
+msgid "\"%s\" is ambiguous in pre-2017c zic"
+msgstr "\"%s\"은(는) 2017c 보다 전 버전의 zic에서 애매한 표현입니다"
+
+#: timezone/zic.c:3063
 msgid "Odd number of quotation marks"
 msgstr "따옴표 수가 홀수입니다"
 
-#: timezone/zic.c:3046
+#: timezone/zic.c:3157
 msgid "use of 2/29 in non leap-year"
 msgstr "평년에 2월 29일을 사용"
 
-#: timezone/zic.c:3081
+#: timezone/zic.c:3192
 msgid "rule goes past start/end of month; will not work with pre-2004 versions of zic"
-msgstr "달의 시작/끝을 넘어가는 규칙은 2004년 전 버전의 zic에서는 동작하지 않습니다"
+msgstr "2004보다 전 버전의 zic에서는 달의 시작/끝을 넘어가는 규칙이 동작하지 않습니다"
 
-#: timezone/zic.c:3108
+#: timezone/zic.c:3219
 msgid "time zone abbreviation has fewer than 3 characters"
 msgstr "시간대 약어가 3자보다 짧습니다"
 
-#: timezone/zic.c:3110
+#: timezone/zic.c:3221
 msgid "time zone abbreviation has too many characters"
 msgstr "시간대 약어에 글자가 너무 많습니다"
 
-#: timezone/zic.c:3112
+#: timezone/zic.c:3223
 msgid "time zone abbreviation differs from POSIX standard"
 msgstr "시간대 약어가 POSIX 표준과 다릅니다"
 
-#: timezone/zic.c:3118
+#: timezone/zic.c:3229
 msgid "too many, or too long, time zone abbreviations"
 msgstr "너무 많거나 너무 긴 시간대 약어"
 
-#: timezone/zic.c:3161
+#: timezone/zic.c:3275
 #, c-format
 msgid "%s: Can't create directory %s: %s"
 msgstr "%s: %s 디렉터리를 만들 수 없습니다: %s"
-
-#~ msgid "invalid caller"
-#~ msgstr "호출한 측이 올바르지 않습니다"
-
-#~ msgid "Character out of range for UTF-8"
-#~ msgstr "UTF-8 범위를 벗어난 문자"
-
-#~ msgid "cannot read /proc/self/cmdline: %s; disabling paranoia mode"
-#~ msgstr "/proc/self/cmdline을 읽을 수 없습니다: %s: 파라노이아 모드를 사용하지 않습니다"
-
-#~ msgid "Haven't found \"%s\" in password cache!"
-#~ msgstr "암호 캐시에서 \"%s\"을(를) 찾을 수 없었습니다!"
-
-#~ msgid "Reloading \"%s\" in password cache!"
-#~ msgstr "암호 캐시에서 \"%s\"을(를) 다시 읽어들입니다!"
-
-#~ msgid "This implementation doesn't support newstyle or MT-safe code!\n"
-#~ msgstr "이 구현물은 newstyle이나 MT-safe 코드를 지원하지 않습니다!\n"
