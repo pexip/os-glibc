@@ -1,6 +1,6 @@
 /* Multiply long double (ldbl-128) values, narrowing the result to
    float, using soft-fp.
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #define f32mulf64x __hide_f32mulf64x
 #define f32mulf128 __hide_f32mulf128
@@ -42,7 +42,7 @@ __fmull (_Float128 x, _Float128 y)
   FP_UNPACK_Q (X, x);
   FP_UNPACK_Q (Y, y);
   FP_MUL_Q (R, X, Y);
-#if (2 * _FP_W_TYPE_SIZE) < _FP_FRACBITS_Q
+#if _FP_W_TYPE_SIZE < 64
   FP_TRUNC_COOKED (S, Q, 1, 4, RN, R);
 #else
   FP_TRUNC_COOKED (S, Q, 1, 2, RN, R);

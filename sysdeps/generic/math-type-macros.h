@@ -1,5 +1,5 @@
 /* Helper macros for type generic function implementations within libm.
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #ifndef _MATH_TYPE_MACROS
 #define _MATH_TYPE_MACROS
@@ -75,8 +75,8 @@
 #endif
 
 #ifndef declare_mgen_finite_alias_x
-#define declare_mgen_finite_alias_x(from, to)	\
-  strong_alias (from, to ## _finite)
+#define declare_mgen_finite_alias_x(from, to)   \
+  libm_alias_finite (from, to)
 #endif
 
 #ifndef declare_mgen_finite_alias_s
@@ -101,7 +101,7 @@
 #define M_HUGE_VAL (M_SUF (__builtin_huge_val) ())
 
 /* Helper macros for commonly used functions.  */
-#define M_COPYSIGN M_SUF (__copysign)
+#define M_COPYSIGN M_SUF (copysign)
 #define M_FABS M_SUF (fabs)
 #define M_SINCOS M_SUF (__sincos)
 #define M_SCALBN M_SUF (__scalbn)
@@ -117,6 +117,7 @@
 
 /* Needed to evaluate M_MANT_DIG below.  */
 #include <float.h>
+#include <libm-alias-finite.h>
 
 /* Use a special epsilon value for IBM long double
    to avoid spurious overflows/underflows.  */

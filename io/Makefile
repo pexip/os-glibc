@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-2020 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
 
 # You should have received a copy of the GNU Lesser General Public
 # License along with the GNU C Library; if not, see
-# <http://www.gnu.org/licenses/>.
+# <https://www.gnu.org/licenses/>.
 
 #
 #	Sub-makefile for I/O portion of the library.
@@ -25,7 +25,9 @@ include ../Makeconfig
 headers := sys/stat.h bits/stat.h sys/statfs.h bits/statfs.h sys/vfs.h \
 	   sys/statvfs.h bits/statvfs.h fcntl.h sys/fcntl.h bits/fcntl.h \
 	   poll.h sys/poll.h bits/poll.h bits/fcntl2.h bits/poll2.h \
-	   bits/statx.h utime.h ftw.h fts.h sys/sendfile.h
+	   bits/statx.h bits/statx-generic.h bits/types/struct_statx.h \
+	   bits/types/struct_statx_timestamp.h \
+	   utime.h ftw.h fts.h sys/sendfile.h
 
 routines :=								\
 	utime								\
@@ -71,12 +73,8 @@ tests		:= test-utime test-stat test-stat2 test-lfs tst-getcwd \
 		   tst-mknodat tst-mkfifoat tst-ttyname_r bug-ftw5 \
 		   tst-posix_fallocate tst-posix_fallocate64 \
 		   tst-fts tst-fts-lfs tst-open-tmpfile \
-		   tst-copy_file_range tst-getcwd-abspath \
-
-# This test includes the compat implementation of copy_file_range,
-# which uses internal, unexported libc functions.
-tests-static += tst-copy_file_range-compat
-tests-internal += tst-copy_file_range-compat
+		   tst-copy_file_range tst-getcwd-abspath tst-lockf \
+		   tst-ftw-lnk
 
 # Likewise for statx, but we do not need static linking here.
 tests-internal += tst-statx

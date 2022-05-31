@@ -16,12 +16,12 @@ checkpkgver () {
 
 if [ "$type" = "configure" ]
 then
-    # We don't use a registry anymore, remove the old file
-    rm -f /etc/ld.so.hwcappkgs
- 
     # /etc/ld.so.nohwcap code:
     __NOHWCAP__
+fi
 
+if [ "$type" = configure -a -z "$DPKG_ROOT" ]
+then
     # Load debconf module if available
     if [ -f /usr/share/debconf/confmodule ] ; then
 	. /usr/share/debconf/confmodule
@@ -33,9 +33,10 @@ then
 	    check="$check boa cucipop courier-authdaemon cron cups exim"
 	    check="$check exim4-base dovecot-common cucipop incron lprng lpr"
 	    check="$check lpr-ppd mysql-server nis openbsd-inetd"
-	    check="$check openldapd postgresql-common proftpd postfix postfix-tls"
-	    check="$check rsync samba sasl2-bin slapd smail sendmail snmpd ssh"
-	    check="$check spamassassin vsftpd wu-ftpd wu-ftpd-academ wwwoffle"
+	    check="$check openldapd openssh-server postgresql-common proftpd"
+	    check="$check postfix postfix-tls rsync samba sasl2-bin slapd"
+	    check="$check smail sendmail snmpd spamassassin vsftpd"
+	    check="$check wu-ftpd wu-ftpd-academ wwwoffle"
 	    check="$check webmin dropbear gdm"
 	    # NSS services check: 
 	    __NSS_CHECK__
@@ -160,10 +161,6 @@ then
         # Skip if systemd is the active PID 1, since systemd doesn't
         # need a reexec for a clean shutdown
         TELINIT=no
-    elif [ -x "`which initctl`" ]; then
-        # This is an old upstart that can't re-exec statefully:
-        TELINIT=no
-        touch /var/run/init.upgraded
     fi
     if [ "$TELINIT" = "yes" ]; then
         telinit u 2>/dev/null || true ; sleep 1

@@ -1,5 +1,5 @@
 /* strcmp/wcscmp/strncmp/wcsncmp optimized with AVX2.
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #if IS_IN (libc)
 
@@ -79,15 +79,15 @@
 ENTRY (STRCMP)
 # ifdef USE_AS_STRNCMP
 	/* Check for simple cases (0 or 1) in offset.  */
-	cmp	$1, %rdx
+	cmp	$1, %RDX_LP
 	je	L(char0)
 	jb	L(zero)
 #  ifdef USE_AS_WCSCMP
 	/* Convert units: from wide to byte char.  */
-	shl	$2, %rdx
+	shl	$2, %RDX_LP
 #  endif
 	/* Register %r11 tracks the maximum offset.  */
-	movq	%rdx, %r11
+	mov	%RDX_LP, %R11_LP
 # endif
 	movl	%edi, %eax
 	xorl	%edx, %edx

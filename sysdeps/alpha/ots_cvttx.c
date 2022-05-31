@@ -1,5 +1,5 @@
 /* Software floating-point emulation: floating point extension.
-   Copyright (C) 1997-2018 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Richard Henderson (rth@cygnus.com) and
 		  Jakub Jelinek (jj@ultra.linux.cz).
@@ -16,7 +16,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library.  If not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include "local-soft-fp.h"
 #include "double.h"
@@ -35,7 +35,7 @@ _OtsConvertFloatTX(double a)
   AXP_DECL_RETURN_Q(c);
 
   FP_UNPACK_RAW_D(A, a);
-#if (2 * _FP_W_TYPE_SIZE) < _FP_FRACBITS_Q
+#if _FP_W_TYPE_SIZE < 64
   FP_EXTEND(Q,D,4,2,C,A);
 #else
   FP_EXTEND(Q,D,2,1,C,A);

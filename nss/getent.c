@@ -1,4 +1,4 @@
-/* Copyright (c) 1998-2018 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Thorsten Kukuk <kukuk@suse.de>, 1998.
 
@@ -14,7 +14,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 /* getent: get entries from administrative database.  */
 
@@ -40,6 +40,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <scratch_buffer.h>
+#include <inttypes.h>
 
 /* Get libc version number.  */
 #include <version.h>
@@ -88,7 +89,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2018");
+"), "2020");
   fprintf (stream, gettext ("Written by %s.\n"), "Thorsten Kukuk");
 }
 
@@ -393,15 +394,34 @@ ahosts_keys_int (int af, int xflags, int number, char *key[])
 		  sockstr = sockbuf;
 		}
 
+	      /* Three digits per byte, plus '%' and null terminator.  */
+	      char scope[3 * sizeof (uint32_t) + 2];
+	      struct sockaddr_in6 *addr6
+		= (struct sockaddr_in6 *) runp->ai_addr;
+	      if (runp->ai_family != AF_INET6 || addr6->sin6_scope_id == 0)
+		/* No scope ID present.  */
+		scope[0] = '\0';
+	      else
+		snprintf (scope, sizeof (scope), "%%%" PRIu32,
+			  addr6->sin6_scope_id);
+
 	      char buf[INET6_ADDRSTRLEN];
-	      printf ("%-15s %-6s %s\n",
-		      inet_ntop (runp->ai_family,
-				 runp->ai_family == AF_INET
-				 ? (void *) &((struct sockaddr_in *) runp->ai_addr)->sin_addr
-				 : (void *) &((struct sockaddr_in6 *) runp->ai_addr)->sin6_addr,
-				 buf, sizeof (buf)),
-		      sockstr,
-		      runp->ai_canonname ?: "");
+	      if (inet_ntop (runp->ai_family,
+			     runp->ai_family == AF_INET
+			     ? (void *) &((struct sockaddr_in *) runp->ai_addr)->sin_addr
+			     : &addr6->sin6_addr,
+			     buf, sizeof (buf)) == NULL)
+		{
+		  strcpy (buf, "<invalid>");
+		  scope[0] = '\0';
+		}
+
+	      int pad = 15 - strlen (buf) - strlen (scope);
+	      if (pad < 0)
+		pad = 0;
+
+	      printf ("%s%-*s %-6s %s\n",
+		      buf, pad, scope, sockstr, runp->ai_canonname ?: "");
 
 	      runp = runp->ai_next;
 	    }

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, see
-   <http://www.gnu.org/licenses/>.  */
+   <https://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <stdarg.h>
@@ -59,7 +59,7 @@ maybe_script_execute (const char *file, char *const argv[], char *const envp[])
   new_argv[0] = (char *) _PATH_BSHELL;
   new_argv[1] = (char *) file;
   if (argc > 1)
-    memcpy (new_argv + 2, argv + 1, argc * sizeof(char *));
+    memcpy (new_argv + 2, argv + 1, argc * sizeof (char *));
   else
     new_argv[2] = NULL;
 

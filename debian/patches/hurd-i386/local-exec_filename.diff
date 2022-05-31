@@ -3,10 +3,10 @@ Keep compatibility with experimental implementation
 ---
  hurd/Makefile                       |    4 ++--
  hurd/Versions                       |    4 ++++
- hurd/hurdexec.c                     |   32 ++++++++++++++++++++++++++++++++
+ hurd/hurdexec.c                     |   29 +++++++++++++++++++++++++++++
  sysdeps/mach/hurd/i386/libc.abilist |    1 +
  sysdeps/mach/hurd/spawni.c          |   13 +++++++++++++
- 5 files changed, 52 insertions(+), 2 deletions(-)
+ 5 files changed, 49 insertions(+), 2 deletions(-)
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
@@ -19,7 +19,7 @@ Keep compatibility with experimental implementation
 +				       exec exec_experimental exec_startup crash interrupt \
 +				       fs fs_experimental fsys io io_reply io_request \
  				       term tioctl socket ifsock \
- 				       login password pfinet \
+ 				       login password pfinet pci \
  				       )
 --- a/hurd/Versions
 +++ b/hurd/Versions
@@ -83,13 +83,10 @@ Keep compatibility with experimental implementation
  	err = __file_exec (file, task, flags,
  			   args, argslen, env, envlen,
  			   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
-@@ -436,3 +459,12 @@
+@@ -436,3 +459,9 @@
    return err;
  }
  libc_hidden_def (_hurd_exec_paths)
-+#if SHLIB_COMPAT (libc, GLIBC_2_26, GLIBC_2_27)
-+compat_symbol (libc, _hurd_exec_paths, _hurd_exec_paths, GLIBC_2_26);
-+#endif
 +extern error_t _hurd_exec_file_name (task_t task,
 +				     file_t file,
 +				     const char *filename,
@@ -106,7 +103,7 @@ Keep compatibility with experimental implementation
  #include <assert.h>
  #include <argz.h>
  #include "spawn_int.h"
-@@ -658,6 +659,18 @@
+@@ -770,6 +771,18 @@
  	   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
  	   ports, MACH_MSG_TYPE_COPY_SEND, _hurd_nports,
  	   ints, INIT_INT_MAX,
@@ -127,11 +124,11 @@ Keep compatibility with experimental implementation
  	/* Fallback for backwards compatibility.  This can just be removed
 --- a/sysdeps/mach/hurd/i386/libc.abilist
 +++ b/sysdeps/mach/hurd/i386/libc.abilist
-@@ -1978,6 +1978,7 @@
+@@ -1947,6 +1947,7 @@
  GLIBC_2.2.6 xprt_unregister F
  GLIBC_2.21 __mach_host_self_ D 0x4
  GLIBC_2.21 __pthread_get_cleanup_stack F
 +GLIBC_2.21 _hurd_exec_file_name F
- GLIBC_2.21 _hurd_sigstate_delete F
- GLIBC_2.21 _hurd_sigstate_lock F
- GLIBC_2.21 _hurd_sigstate_pending F
+ GLIBC_2.21 mach_print F
+ GLIBC_2.21 pthread_attr_destroy F
+ GLIBC_2.21 pthread_attr_getdetachstate F
