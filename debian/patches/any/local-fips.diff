@@ -1,10 +1,8 @@
-diff --git a/sysdeps/unix/sysv/linux/Versions b/sysdeps/unix/sysv/linux/Versions
-index 336c13b5..2cd3784f 100644
 --- a/sysdeps/unix/sysv/linux/Versions
 +++ b/sysdeps/unix/sysv/linux/Versions
-@@ -171,6 +171,9 @@ libc {
-     mlock2;
-     pkey_alloc; pkey_free; pkey_set; pkey_get; pkey_mprotect;
+@@ -177,6 +177,9 @@
+   GLIBC_2.30 {
+     getdents64; gettid; tgkill;
    }
 +  GLIBC_2.28 {
 +    _fips_config_check;
@@ -12,9 +10,6 @@ index 336c13b5..2cd3784f 100644
    GLIBC_PRIVATE {
      # functions used in other libraries
      __syscall_rt_sigqueueinfo;
-diff --git a/sysdeps/unix/sysv/linux/fips.c b/sysdeps/unix/sysv/linux/fips.c
-new file mode 100644
-index 00000000..1eb498f8
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/fips.c
 @@ -0,0 +1,20 @@
@@ -38,24 +33,20 @@ index 00000000..1eb498f8
 +  }
 +  return 0;
 +}
-diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
-index f71cc39c..451d69ca 100644
 --- a/sysdeps/unix/sysv/linux/Makefile
 +++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -14,7 +14,7 @@ endif
+@@ -56,7 +56,7 @@
  ifeq ($(subdir),misc)
  include $(firstword $(wildcard $(sysdirs:=/sysctl.mk)))
  
--sysdep_routines += clone umount umount2 readahead \
-+sysdep_routines += clone fips umount umount2 readahead \
+-sysdep_routines += adjtimex clone umount umount2 readahead \
++sysdep_routines += adjtimex clone fips umount umount2 readahead \
  		   setfsuid setfsgid epoll_pwait signalfd \
  		   eventfd eventfd_read eventfd_write prlimit \
  		   personality epoll_wait tee vmsplice splice \
-diff --git a/sysdeps/unix/sysv/linux/i386/libc.abilist b/sysdeps/unix/sysv/linux/i386/libc.abilist
-index 9762c813..564a02a6 100644
 --- a/sysdeps/unix/sysv/linux/i386/libc.abilist
 +++ b/sysdeps/unix/sysv/linux/i386/libc.abilist
-@@ -2037,6 +2037,7 @@ GLIBC_2.27 wcstof64 F
+@@ -2042,6 +2042,7 @@
  GLIBC_2.27 wcstof64_l F
  GLIBC_2.27 wcstof64x F
  GLIBC_2.27 wcstof64x_l F
@@ -63,11 +54,9 @@ index 9762c813..564a02a6 100644
  GLIBC_2.28 fcntl F
  GLIBC_2.28 fcntl64 F
  GLIBC_2.28 renameat2 F
-diff --git a/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist b/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
-index 816e4a74..b68a9b28 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
 +++ b/sysdeps/unix/sysv/linux/x86_64/64/libc.abilist
-@@ -1888,6 +1888,7 @@ GLIBC_2.27 wcstof64 F
+@@ -1893,6 +1893,7 @@
  GLIBC_2.27 wcstof64_l F
  GLIBC_2.27 wcstof64x F
  GLIBC_2.27 wcstof64x_l F
@@ -75,11 +64,9 @@ index 816e4a74..b68a9b28 100644
  GLIBC_2.28 fcntl64 F
  GLIBC_2.28 renameat2 F
  GLIBC_2.28 statx F
-diff --git a/sysdeps/unix/sysv/linux/x86_64/x32/libc.abilist b/sysdeps/unix/sysv/linux/x86_64/x32/libc.abilist
-index 6fee16a8..50dc94ee 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/x32/libc.abilist
 +++ b/sysdeps/unix/sysv/linux/x86_64/x32/libc.abilist
-@@ -2139,6 +2139,7 @@ GLIBC_2.27 wcstof64 F
+@@ -2144,6 +2144,7 @@
  GLIBC_2.27 wcstof64_l F
  GLIBC_2.27 wcstof64x F
  GLIBC_2.27 wcstof64x_l F
