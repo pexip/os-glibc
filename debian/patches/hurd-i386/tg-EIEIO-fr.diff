@@ -9,11 +9,9 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  po/fr.po |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Index: glibc-2.21/po/fr.po
-===================================================================
---- glibc-2.21.orig/po/fr.po
-+++ glibc-2.21/po/fr.po
-@@ -6464,7 +6464,7 @@ msgstr "Vous avez vraiment tout gâcher
+--- a/po/fr.po
++++ b/po/fr.po
+@@ -6281,7 +6281,7 @@
  #. TRANS @c an idiomatic funny way of saying that the computer died.
  #: sysdeps/gnu/errlist.c:991
  msgid "Computer bought the farm"

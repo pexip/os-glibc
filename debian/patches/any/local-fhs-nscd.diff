@@ -4,7 +4,7 @@
 
 --- a/nscd/nscd.h
 +++ b/nscd/nscd.h
-@@ -112,11 +112,11 @@
+@@ -161,11 +161,11 @@
  
  
  /* Paths of the file for the persistent storage.  */

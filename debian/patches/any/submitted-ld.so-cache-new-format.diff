@@ -7,7 +7,7 @@
 
 --- a/elf/dl-cache.c
 +++ b/elf/dl-cache.c
-@@ -203,7 +203,14 @@ _dl_load_cache_lookup (const char *name)
+@@ -206,7 +206,14 @@
  	 - the old format with the new format in it
  	 - only the new format
  	 The following checks if the cache contains any of these formats.  */
@@ -23,7 +23,7 @@
  	  && memcmp (file, CACHEMAGIC, sizeof CACHEMAGIC - 1) == 0
  	  /* Check for corruption, avoiding overflow.  */
  	  && ((cachesize - sizeof *cache) / sizeof (struct file_entry)
-@@ -223,13 +230,6 @@ _dl_load_cache_lookup (const char *name)
+@@ -226,13 +233,6 @@
  			 sizeof CACHEMAGIC_VERSION_NEW - 1) != 0)
  	    cache_new = (void *) -1;
  	}
@@ -39,16 +39,16 @@
  	  if (file != MAP_FAILED)
 --- a/elf/ldconfig.c
 +++ b/elf/ldconfig.c
-@@ -95,7 +95,7 @@ int opt_verbose;
-
+@@ -110,7 +110,7 @@
+ 
  /* Format to support.  */
  /* 0: only libc5/glibc2; 1: both; 2: only glibc 2.2.  */
 -int opt_format = 1;
 +int opt_format = 2;
-
+ 
  /* Build cache.  */
  static int opt_build_cache = 1;
-@@ -148,7 +148,7 @@ static const struct argp_option options[] =
+@@ -163,7 +163,7 @@
    { NULL, 'f', N_("CONF"), 0, N_("Use CONF as configuration file"), 0},
    { NULL, 'n', NULL, 0, N_("Only process directories specified on the command line.  Don't build cache."), 0},
    { NULL, 'l', NULL, 0, N_("Manually link individual libraries."), 0},

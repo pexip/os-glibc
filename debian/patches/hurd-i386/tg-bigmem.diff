@@ -14,7 +14,7 @@ anyway.
 
 --- a/sysdeps/mach/hurd/dl-sysdep.c
 +++ b/sysdeps/mach/hurd/dl-sysdep.c
-@@ -87,12 +87,28 @@ static void fmh(void) {
+@@ -88,12 +88,28 @@
  	max=a; break;}
        fmha=a+=fmhs;}
      if (err) assert(err==KERN_NO_SPACE);

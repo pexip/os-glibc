@@ -9,11 +9,9 @@ Date:   Sun Jun 7 02:57:04 2020 +0200
     * htl/register-atfork.c (__register_atfork): Add new hooks at the end of
     the list instead of the beginning.
 
-diff --git a/htl/register-atfork.c b/htl/register-atfork.c
-index 256b1148ac..4581ac5bba 100644
 --- a/htl/register-atfork.c
 +++ b/htl/register-atfork.c
-@@ -109,15 +109,15 @@ __register_atfork (void (*prepare) (void),
+@@ -109,15 +109,15 @@
    new->parent = parent;
    new->child = child;
    new->dso_handle = dso_handle;

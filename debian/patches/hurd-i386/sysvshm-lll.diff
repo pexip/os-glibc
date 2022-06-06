@@ -1,10 +1,8 @@
 To be folded into tg-sysvshm.diff once upgraded to 2.33
 
-Index: glibc-2.31/hurd/sysvshm.c
-===================================================================
---- glibc-2.31.orig/hurd/sysvshm.c
-+++ glibc-2.31/hurd/sysvshm.c
-@@ -45,7 +45,7 @@ struct sysvshm_attach
+--- a/hurd/sysvshm.c
++++ b/hurd/sysvshm.c
+@@ -45,7 +45,7 @@
  static struct sysvshm_attach *attach_list;
  
  /* A lock to protect the linked list of shared memory attachments.  */

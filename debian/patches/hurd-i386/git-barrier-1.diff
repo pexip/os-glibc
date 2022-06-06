@@ -6,11 +6,9 @@ Date:   Sun Feb 9 23:02:13 2020 +0000
 
     htl: Fix barrier_wait with one thread
 
-diff --git a/sysdeps/htl/pt-barrier-wait.c b/sysdeps/htl/pt-barrier-wait.c
-index 47ec440b26..146605abd8 100644
 --- a/sysdeps/htl/pt-barrier-wait.c
 +++ b/sysdeps/htl/pt-barrier-wait.c
-@@ -29,7 +29,9 @@ pthread_barrier_wait (pthread_barrier_t *barrier)
+@@ -29,7 +29,9 @@
      {
        barrier->__pending = barrier->__count;
  

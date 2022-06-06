@@ -4,7 +4,7 @@
 
 --- a/sysdeps/unix/grantpt.c
 +++ b/sysdeps/unix/grantpt.c
-@@ -201,9 +201,13 @@
+@@ -219,9 +219,13 @@
    else
      {
        int w;

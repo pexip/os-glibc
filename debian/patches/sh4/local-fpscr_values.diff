@@ -27,7 +27,7 @@
      alphasort64;
 --- a/sysdeps/unix/sysv/linux/sh/le/libc.abilist
 +++ b/sysdeps/unix/sysv/linux/sh/le/libc.abilist
-@@ -267,6 +267,7 @@
+@@ -256,6 +256,7 @@
  GLIBC_2.2 __flbf F
  GLIBC_2.2 __fork F
  GLIBC_2.2 __fpending F

@@ -1,6 +1,6 @@
 --- a/sysdeps/unix/sysv/linux/powerpc/dl-auxv.h
 +++ b/sysdeps/unix/sysv/linux/powerpc/dl-auxv.h
-@@ -23,8 +23,25 @@ int GLRO(dl_cache_line_size);
+@@ -23,8 +23,25 @@
  #endif
  
  /* Scan the Aux Vector for the "Data Cache Block Size" entry and assign it

@@ -115,7 +115,7 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 +				      (AArch64).  */
 --- a/elf/elf.h
 +++ b/elf/elf.h
-@@ -1110,81 +1110,7 @@
+@@ -1156,81 +1156,7 @@
      } a_un;
  } Elf64_auxv_t;
  
@@ -200,7 +200,7 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
  
 --- a/misc/Makefile
 +++ b/misc/Makefile
-@@ -34,7 +34,7 @@
+@@ -35,7 +35,7 @@
  	   regexp.h bits/select.h bits/mman.h sys/xattr.h \
  	   syslog.h sys/syslog.h \
  	   bits/syslog.h bits/syslog-ldbl.h bits/syslog-path.h bits/error.h \

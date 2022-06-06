@@ -7,7 +7,7 @@
 
 --- a/nss/nsswitch.c
 +++ b/nss/nsswitch.c
-@@ -395,9 +395,20 @@
+@@ -359,9 +359,20 @@
        ni->library->lib_handle = __libc_dlopen (shlib_name);
        if (ni->library->lib_handle == NULL)
  	{

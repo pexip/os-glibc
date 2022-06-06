@@ -1,10 +1,8 @@
 Upstream uses prefix= while we use prefix=/usr
 
-Index: glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-===================================================================
---- glibc-2.27.orig/sysdeps/mach/hurd/i386/libc.abilist
-+++ glibc-2.27/sysdeps/mach/hurd/i386/libc.abilist
-@@ -641,7 +641,7 @@ GLIBC_2.2.6 _libc_intl_domainname D 0x5
+--- a/sysdeps/mach/hurd/i386/libc.abilist
++++ b/sysdeps/mach/hurd/i386/libc.abilist
+@@ -593,7 +593,7 @@
  GLIBC_2.2.6 _longjmp F
  GLIBC_2.2.6 _mcleanup F
  GLIBC_2.2.6 _mcount F

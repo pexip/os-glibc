@@ -6,11 +6,9 @@ Date:   Thu Aug 27 13:35:58 2020 +0200
 
     hurd: define BSD 4.3 ioctls only under __USE_MISC
 
-diff --git a/sysdeps/mach/hurd/bits/ioctls.h b/sysdeps/mach/hurd/bits/ioctls.h
-index eed63e759b..1226186ff9 100644
 --- a/sysdeps/mach/hurd/bits/ioctls.h
 +++ b/sysdeps/mach/hurd/bits/ioctls.h
-@@ -321,6 +321,7 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_32, IOC_64 };
+@@ -329,6 +329,7 @@
  /* Compatibility with 4.3 BSD terminal driver.
     From 4.4 <sys/ioctl_compat.h>.  */
  
@@ -18,7 +16,7 @@ index eed63e759b..1226186ff9 100644
  #ifdef USE_OLD_TTY
  # undef  TIOCGETD
  # define TIOCGETD	_IOR('t', 0, int)	/* get line discipline */
-@@ -428,5 +429,6 @@ enum __ioctl_datum { IOC_8, IOC_16, IOC_32, IOC_64 };
+@@ -440,5 +441,6 @@
  # define EXTA	14
  # define EXTB	15
  #endif /* USE_OLD_TTY */

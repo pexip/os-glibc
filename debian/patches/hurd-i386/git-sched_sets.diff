@@ -9,9 +9,6 @@ Date:   Wed Aug 5 23:46:14 2020 +0200
     * sysdeps/mach/hurd/sched_gets.c: New file.
     * sysdeps/mach/hurd/sched_sets.c: New file.
 
-diff --git a/sysdeps/mach/hurd/sched_gets.c b/sysdeps/mach/hurd/sched_gets.c
-new file mode 100644
-index 0000000000..9fe31ce79e
 --- /dev/null
 +++ b/sysdeps/mach/hurd/sched_gets.c
 @@ -0,0 +1,30 @@
@@ -45,9 +42,6 @@ index 0000000000..9fe31ce79e
 +  return SCHED_OTHER;
 +}
 +weak_alias (__sched_getscheduler, sched_getscheduler)
-diff --git a/sysdeps/mach/hurd/sched_sets.c b/sysdeps/mach/hurd/sched_sets.c
-new file mode 100644
-index 0000000000..54d368abf5
 --- /dev/null
 +++ b/sysdeps/mach/hurd/sched_sets.c
 @@ -0,0 +1,45 @@

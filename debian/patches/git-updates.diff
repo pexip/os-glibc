@@ -1,10 +1,8 @@
 GIT update of https://sourceware.org/git/glibc.git/release/2.31/master from glibc-2.31
 
-diff --git a/NEWS b/NEWS
-index 292fbc595a..4402867631 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,78 @@ See the end for copying conditions.
+@@ -5,6 +5,78 @@
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
@@ -83,11 +81,9 @@ index 292fbc595a..4402867631 100644
  Version 2.31
  
  Major new features:
-diff --git a/Rules b/Rules
-index 8b771f6095..beab969fde 100644
 --- a/Rules
 +++ b/Rules
-@@ -155,6 +155,7 @@ xtests: tests $(xtests-special)
+@@ -155,6 +155,7 @@
  else
  tests: $(tests:%=$(objpfx)%.out) $(tests-internal:%=$(objpfx)%.out) \
         $(tests-container:%=$(objpfx)%.out) \
@@ -95,7 +91,7 @@ index 8b771f6095..beab969fde 100644
         $(tests-special) $(tests-printers-out)
  xtests: tests $(xtests:%=$(objpfx)%.out) $(xtests-special)
  endif
-@@ -165,7 +166,7 @@ ifeq ($(run-built-tests),no)
+@@ -165,7 +166,7 @@
  tests-expected =
  else
  tests-expected = $(tests) $(tests-internal) $(tests-printers) \
@@ -104,7 +100,7 @@ index 8b771f6095..beab969fde 100644
  endif
  tests:
  	$(..)scripts/merge-test-results.sh -s $(objpfx) $(subdir) \
-@@ -191,6 +192,7 @@ else
+@@ -191,6 +192,7 @@
  binaries-pie-tests =
  binaries-pie-notests =
  endif
@@ -112,7 +108,7 @@ index 8b771f6095..beab969fde 100644
  else
  binaries-all-notests =
  binaries-all-tests = $(tests) $(tests-internal) $(xtests) $(test-srcs)
-@@ -200,6 +202,7 @@ binaries-static-tests =
+@@ -200,6 +202,7 @@
  binaries-static =
  binaries-pie-tests =
  binaries-pie-notests =
@@ -120,7 +116,7 @@ index 8b771f6095..beab969fde 100644
  endif
  
  binaries-pie = $(binaries-pie-tests) $(binaries-pie-notests)
-@@ -223,6 +226,14 @@ $(addprefix $(objpfx),$(binaries-shared-tests)): %: %.o \
+@@ -223,6 +226,14 @@
  	$(+link-tests)
  endif
  
@@ -135,7 +131,7 @@ index 8b771f6095..beab969fde 100644
  ifneq "$(strip $(binaries-pie-tests))" ""
  $(addprefix $(objpfx),$(binaries-pie-tests)): %: %.o \
    $(link-extra-libs-tests) \
-@@ -253,6 +264,12 @@ $(addprefix $(objpfx),$(binaries-static-tests)): %: %.o \
+@@ -253,6 +264,12 @@
  	$(+link-static-tests)
  endif
  
@@ -148,11 +144,9 @@ index 8b771f6095..beab969fde 100644
  ifneq "$(strip $(tests) $(tests-internal) $(xtests) $(test-srcs))" ""
  # These are the implicit rules for making test outputs
  # from the test programs and whatever input files are present.
-diff --git a/configure b/configure
-index b959d2d988..3b98ec312f 100755
 --- a/configure
 +++ b/configure
-@@ -4035,7 +4035,7 @@ if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
+@@ -4035,7 +4035,7 @@
  	    -o conftest conftest.S 1>&5 2>&5; then
    # Do a link to see if the backend supports IFUNC relocs.
    $READELF -r conftest 1>&5
@@ -161,11 +155,9 @@ index b959d2d988..3b98ec312f 100755
      libc_cv_ld_gnu_indirect_function=yes
    }
  fi
-diff --git a/configure.ac b/configure.ac
-index 49b900c1ed..e20034f301 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -649,7 +649,7 @@ if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS \
+@@ -649,7 +649,7 @@
  	    -o conftest conftest.S 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
    # Do a link to see if the backend supports IFUNC relocs.
    $READELF -r conftest 1>&AS_MESSAGE_LOG_FD
@@ -174,8 +166,6 @@ index 49b900c1ed..e20034f301 100644
      libc_cv_ld_gnu_indirect_function=yes
    }
  fi
-diff --git a/debug/backtrace.c b/debug/backtrace.c
-index cc4b9a5c90..69cf4c23c8 100644
 --- a/debug/backtrace.c
 +++ b/debug/backtrace.c
 @@ -23,6 +23,7 @@
@@ -186,7 +176,7 @@ index cc4b9a5c90..69cf4c23c8 100644
  
  struct trace_arg
  {
-@@ -78,6 +79,10 @@ backtrace_helper (struct _Unwind_Context *ctx, void *a)
+@@ -78,6 +79,10 @@
    if (arg->cnt != -1)
      {
        arg->array[arg->cnt] = (void *) unwind_getip (ctx);
@@ -197,11 +187,9 @@ index cc4b9a5c90..69cf4c23c8 100644
  
        /* Check whether we make any progress.  */
        _Unwind_Word cfa = unwind_getcfa (ctx);
-diff --git a/elf/Makefile b/elf/Makefile
-index 632a4d8b0f..f9646f9c8c 100644
 --- a/elf/Makefile
 +++ b/elf/Makefile
-@@ -1348,6 +1348,8 @@ CFLAGS-ifuncmain7pie.c += $(pie-ccflag)
+@@ -1348,6 +1348,8 @@
  CFLAGS-ifuncmain9pie.c += $(pie-ccflag)
  CFLAGS-tst-ifunc-textrel.c += $(pic-ccflag)
  
@@ -210,7 +198,7 @@ index 632a4d8b0f..f9646f9c8c 100644
  $(objpfx)ifuncmain1pie: $(objpfx)ifuncmod1.so
  $(objpfx)ifuncmain1staticpie: $(objpfx)ifuncdep1pic.o
  $(objpfx)ifuncmain1vispie: $(objpfx)ifuncmod1.so
-@@ -1581,8 +1583,6 @@ $(objpfx)tst-nodelete-dlclose.out: $(objpfx)tst-nodelete-dlclose-dso.so \
+@@ -1581,8 +1583,6 @@
  
  tst-env-setuid-ENV = MALLOC_CHECK_=2 MALLOC_MMAP_THRESHOLD_=4096 \
  		     LD_HWCAP_MASK=0x1
@@ -219,11 +207,9 @@ index 632a4d8b0f..f9646f9c8c 100644
  
  $(objpfx)tst-debug1: $(libdl)
  $(objpfx)tst-debug1.out: $(objpfx)tst-debug1mod1.so
-diff --git a/elf/dl-tunables.c b/elf/dl-tunables.c
-index 44d06665b4..2296ad3870 100644
 --- a/elf/dl-tunables.c
 +++ b/elf/dl-tunables.c
-@@ -177,6 +177,7 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -177,6 +177,7 @@
      return;
  
    char *p = tunestr;
@@ -231,7 +217,7 @@ index 44d06665b4..2296ad3870 100644
  
    while (true)
      {
-@@ -190,7 +191,11 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -190,7 +191,11 @@
        /* If we reach the end of the string before getting a valid name-value
  	 pair, bail out.  */
        if (p[len] == '\0')
@@ -244,7 +230,7 @@ index 44d06665b4..2296ad3870 100644
  
        /* We did not find a valid name-value pair before encountering the
  	 colon.  */
-@@ -216,35 +221,28 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -216,35 +221,28 @@
  
  	  if (tunable_is_name (cur->name, name))
  	    {
@@ -299,7 +285,7 @@ index 44d06665b4..2296ad3870 100644
  		    }
  
  		  if (cur->security_level != TUNABLE_SECLEVEL_NONE)
-@@ -257,9 +255,7 @@ parse_tunables (char *tunestr, char *valstring)
+@@ -257,9 +255,7 @@
  	    }
  	}
  
@@ -310,8 +296,6 @@ index 44d06665b4..2296ad3870 100644
  	p += len + 1;
      }
  }
-diff --git a/elf/ifuncmain6pie.c b/elf/ifuncmain6pie.c
-index 04faeb86ef..4a01906836 100644
 --- a/elf/ifuncmain6pie.c
 +++ b/elf/ifuncmain6pie.c
 @@ -9,7 +9,6 @@
@@ -322,7 +306,7 @@ index 04faeb86ef..4a01906836 100644
  
  static int
  one (void)
-@@ -28,20 +27,17 @@ foo_ifunc (void)
+@@ -28,20 +27,17 @@
  }
  
  extern int foo (void);
@@ -346,7 +330,7 @@ index 04faeb86ef..4a01906836 100644
      abort ();
  
    p = get_foo_p ();
-@@ -52,12 +48,8 @@ main (void)
+@@ -52,12 +48,8 @@
  
    if (foo_ptr != foo)
      abort ();
@@ -359,11 +343,9 @@ index 04faeb86ef..4a01906836 100644
    if (foo () != -30)
      abort ();
  
-diff --git a/elf/ifuncmod6.c b/elf/ifuncmod6.c
-index 2e16c1d06d..2f6d0715e6 100644
 --- a/elf/ifuncmod6.c
 +++ b/elf/ifuncmod6.c
-@@ -4,7 +4,7 @@ extern int foo (void);
+@@ -4,7 +4,7 @@
  
  typedef int (*foo_p) (void);
  
@@ -372,7 +354,7 @@ index 2e16c1d06d..2f6d0715e6 100644
  
  foo_p
  get_foo_p (void)
-@@ -12,8 +12,8 @@ get_foo_p (void)
+@@ -12,8 +12,8 @@
    return foo_ptr;
  }
  
@@ -384,8 +366,6 @@ index 2e16c1d06d..2f6d0715e6 100644
 -  return foo;
 +  return foo ();
  }
-diff --git a/elf/tst-env-setuid-tunables.c b/elf/tst-env-setuid-tunables.c
-index 971d5892b1..ca0c8c245c 100644
 --- a/elf/tst-env-setuid-tunables.c
 +++ b/elf/tst-env-setuid-tunables.c
 @@ -25,35 +25,76 @@
@@ -394,15 +374,6 @@ index 971d5892b1..ca0c8c245c 100644
  
 -#define test_parent test_parent_tunables
 -#define test_child test_child_tunables
--
--static int test_child_tunables (void);
--static int test_parent_tunables (void);
--
--#include "tst-env-setuid.c"
--
--#define CHILD_VALSTRING_VALUE "glibc.malloc.mmap_threshold=4096"
--#define PARENT_VALSTRING_VALUE \
--  "glibc.malloc.check=2:glibc.malloc.mmap_threshold=4096"
 +#include <errno.h>
 +#include <fcntl.h>
 +#include <stdlib.h>
@@ -419,7 +390,11 @@ index 971d5892b1..ca0c8c245c 100644
 +#include <support/support.h>
 +#include <support/test-driver.h>
 +#include <support/capture_subprocess.h>
-+
+ 
+-static int test_child_tunables (void);
+-static int test_parent_tunables (void);
+-
+-#include "tst-env-setuid.c"
 +const char *teststrings[] =
 +{
 +  "glibc.malloc.check=2:glibc.malloc.mmap_threshold=4096",
@@ -437,7 +412,10 @@ index 971d5892b1..ca0c8c245c 100644
 +  "not_valid.malloc.check=2",
 +  "glibc.not_valid.check=2",
 +};
-+
+ 
+-#define CHILD_VALSTRING_VALUE "glibc.malloc.mmap_threshold=4096"
+-#define PARENT_VALSTRING_VALUE \
+-  "glibc.malloc.check=2:glibc.malloc.mmap_threshold=4096"
 +const char *resultstrings[] =
 +{
 +  "glibc.malloc.mmap_threshold=4096",
@@ -480,7 +458,7 @@ index 971d5892b1..ca0c8c245c 100644
        return 1;
      }
    return 0;
-@@ -61,15 +102,48 @@ test_child_tunables (void)
+@@ -61,15 +102,48 @@
  }
  
  static int
@@ -536,8 +514,6 @@ index 971d5892b1..ca0c8c245c 100644
 +
 +#define TEST_FUNCTION_ARGV do_test
 +#include <support/test-driver.c>
-diff --git a/elf/tst-env-setuid.c b/elf/tst-env-setuid.c
-index 41dc79e83a..2dbccdb69e 100644
 --- a/elf/tst-env-setuid.c
 +++ b/elf/tst-env-setuid.c
 @@ -29,173 +29,12 @@
@@ -716,7 +692,7 @@ index 41dc79e83a..2dbccdb69e 100644
  
  #ifndef test_child
  static int
-@@ -256,40 +95,32 @@ do_test (int argc, char **argv)
+@@ -256,40 +95,32 @@
    if (argc == 2 && strcmp (argv[1], SETGID_CHILD) == 0)
      {
        if (getgid () == getegid ())
@@ -769,11 +745,9 @@ index 41dc79e83a..2dbccdb69e 100644
  }
  
  #define TEST_FUNCTION_ARGV do_test
-diff --git a/iconv/Makefile b/iconv/Makefile
-index b8fe8c47df..f9b51e23ec 100644
 --- a/iconv/Makefile
 +++ b/iconv/Makefile
-@@ -26,7 +26,7 @@ headers		= iconv.h gconv.h
+@@ -26,7 +26,7 @@
  routines	= iconv_open iconv iconv_close \
  		  gconv_open gconv gconv_close gconv_db gconv_conf \
  		  gconv_builtin gconv_simple gconv_trans gconv_cache
@@ -782,7 +756,7 @@ index b8fe8c47df..f9b51e23ec 100644
  
  vpath %.c ../locale/programs ../intl
  
-@@ -44,7 +44,7 @@ CFLAGS-linereader.c += -DNO_TRANSLITERATION
+@@ -44,7 +44,7 @@
  CFLAGS-simple-hash.c += -I../locale
  
  tests	= tst-iconv1 tst-iconv2 tst-iconv3 tst-iconv4 tst-iconv5 tst-iconv6 \
@@ -791,7 +765,7 @@ index b8fe8c47df..f9b51e23ec 100644
  
  others		= iconv_prog iconvconfig
  install-others-programs	= $(inst_bindir)/iconv
-@@ -61,6 +61,7 @@ include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
+@@ -61,6 +61,7 @@
  
  ifeq ($(run-built-tests),yes)
  xtests-special += $(objpfx)test-iconvconfig.out
@@ -799,7 +773,7 @@ index b8fe8c47df..f9b51e23ec 100644
  endif
  
  # Make a copy of the file because gconv module names are constructed
-@@ -81,6 +82,13 @@ endif
+@@ -81,6 +82,13 @@
  
  include ../Rules
  
@@ -813,7 +787,7 @@ index b8fe8c47df..f9b51e23ec 100644
  $(inst_bindir)/iconv: $(objpfx)iconv_prog $(+force)
  	$(do-install-program)
  
-@@ -95,3 +103,8 @@ $(objpfx)test-iconvconfig.out: /dev/null $(objpfx)iconvconfig
+@@ -95,3 +103,8 @@
  	 cmp $$tmp $(inst_gconvdir)/gconv-modules.cache; \
  	 rm -f $$tmp) > $@; \
  	$(evaluate-test)
@@ -822,11 +796,9 @@ index b8fe8c47df..f9b51e23ec 100644
 +	$(BASH) $< $(common-objdir) '$(test-wrapper-env)' \
 +		 '$(run-program-env)' > $@; \
 +	$(evaluate-test)
-diff --git a/iconv/Versions b/iconv/Versions
-index 60ab10a277..d51af52fa3 100644
 --- a/iconv/Versions
 +++ b/iconv/Versions
-@@ -7,6 +7,9 @@ libc {
+@@ -7,6 +7,9 @@
      # functions shared with iconv program
      __gconv_get_alias_db; __gconv_get_cache; __gconv_get_modules_db;
  
@@ -836,9 +808,6 @@ index 60ab10a277..d51af52fa3 100644
      # function used by the gconv modules
      __gconv_transliterate;
    }
-diff --git a/iconv/gconv_charset.c b/iconv/gconv_charset.c
-new file mode 100644
-index 0000000000..4ba0aa99f5
 --- /dev/null
 +++ b/iconv/gconv_charset.c
 @@ -0,0 +1,228 @@
@@ -1070,8 +1039,6 @@ index 0000000000..4ba0aa99f5
 +  return;
 +}
 +libc_hidden_def (__gconv_destroy_spec)
-diff --git a/iconv/gconv_charset.h b/iconv/gconv_charset.h
-index 348acc089b..e9c122cf7e 100644
 --- a/iconv/gconv_charset.h
 +++ b/iconv/gconv_charset.h
 @@ -19,9 +19,41 @@
@@ -1117,11 +1084,9 @@ index 348acc089b..e9c122cf7e 100644
  strip (char *wp, const char *s)
  {
    int slash_count = 0;
-diff --git a/iconv/gconv_int.h b/iconv/gconv_int.h
-index fbaf12cee2..f721ce30ff 100644
 --- a/iconv/gconv_int.h
 +++ b/iconv/gconv_int.h
-@@ -75,6 +75,15 @@ struct gconv_module
+@@ -75,6 +75,15 @@
  };
  
  
@@ -1137,7 +1102,7 @@ index fbaf12cee2..f721ce30ff 100644
  /* Flags for `gconv_open'.  */
  enum
  {
-@@ -136,10 +145,33 @@ __libc_lock_define (extern, __gconv_lock attribute_hidden)
+@@ -136,10 +145,33 @@
    })
  
  
@@ -1175,8 +1140,6 @@ index fbaf12cee2..f721ce30ff 100644
  
  /* Free resources associated with transformation descriptor CD.  */
  extern int __gconv_close (__gconv_t cd)
-diff --git a/iconv/gconv_open.c b/iconv/gconv_open.c
-index b39626d252..2878620957 100644
 --- a/iconv/gconv_open.c
 +++ b/iconv/gconv_open.c
 @@ -31,7 +31,7 @@
@@ -1188,7 +1151,7 @@ index b39626d252..2878620957 100644
  	      int flags)
  {
    struct __gconv_step *steps;
-@@ -40,77 +40,38 @@ __gconv_open (const char *toset, const char *fromset, __gconv_t *handle,
+@@ -40,77 +40,38 @@
    size_t cnt = 0;
    int res;
    int conv_flags = 0;
@@ -1277,16 +1240,14 @@ index b39626d252..2878620957 100644
    if (res == __GCONV_OK)
      {
        /* Allocate room for handle.  */
-@@ -209,3 +170,4 @@ __gconv_open (const char *toset, const char *fromset, __gconv_t *handle,
+@@ -209,3 +170,4 @@
    *handle = result;
    return res;
  }
 +libc_hidden_def (__gconv_open)
-diff --git a/iconv/gconv_simple.c b/iconv/gconv_simple.c
-index d4797fba17..963b29f246 100644
 --- a/iconv/gconv_simple.c
 +++ b/iconv/gconv_simple.c
-@@ -239,11 +239,9 @@ ucs4_internal_loop (struct __gconv_step *step,
+@@ -239,11 +239,9 @@
    int flags = step_data->__flags;
    const unsigned char *inptr = *inptrp;
    unsigned char *outptr = *outptrp;
@@ -1299,7 +1260,7 @@ index d4797fba17..963b29f246 100644
      {
        uint32_t inval;
  
-@@ -307,11 +305,9 @@ ucs4_internal_loop_unaligned (struct __gconv_step *step,
+@@ -307,11 +305,9 @@
    int flags = step_data->__flags;
    const unsigned char *inptr = *inptrp;
    unsigned char *outptr = *outptrp;
@@ -1312,7 +1273,7 @@ index d4797fba17..963b29f246 100644
      {
        if (__glibc_unlikely (inptr[0] > 0x80))
  	{
-@@ -613,11 +609,9 @@ ucs4le_internal_loop (struct __gconv_step *step,
+@@ -613,11 +609,9 @@
    int flags = step_data->__flags;
    const unsigned char *inptr = *inptrp;
    unsigned char *outptr = *outptrp;
@@ -1325,7 +1286,7 @@ index d4797fba17..963b29f246 100644
      {
        uint32_t inval;
  
-@@ -684,11 +678,9 @@ ucs4le_internal_loop_unaligned (struct __gconv_step *step,
+@@ -684,11 +678,9 @@
    int flags = step_data->__flags;
    const unsigned char *inptr = *inptrp;
    unsigned char *outptr = *outptrp;
@@ -1338,8 +1299,6 @@ index d4797fba17..963b29f246 100644
      {
        if (__glibc_unlikely (inptr[3] > 0x80))
  	{
-diff --git a/iconv/iconv_open.c b/iconv/iconv_open.c
-index 687067070a..5b30055c04 100644
 --- a/iconv/iconv_open.c
 +++ b/iconv/iconv_open.c
 @@ -31,49 +31,15 @@
@@ -1398,8 +1357,6 @@ index 687067070a..5b30055c04 100644
  
    if (__builtin_expect (res, __GCONV_OK) != __GCONV_OK)
      {
-diff --git a/iconv/iconv_prog.c b/iconv/iconv_prog.c
-index 9709e4a701..d59979759c 100644
 --- a/iconv/iconv_prog.c
 +++ b/iconv/iconv_prog.c
 @@ -39,6 +39,7 @@
@@ -1410,7 +1367,7 @@ index 9709e4a701..d59979759c 100644
  
  /* Get libc version number.  */
  #include "../version.h"
-@@ -118,8 +119,7 @@ main (int argc, char *argv[])
+@@ -118,8 +119,7 @@
  {
    int status = EXIT_SUCCESS;
    int remaining;
@@ -1420,7 +1377,7 @@ index 9709e4a701..d59979759c 100644
    struct charmap_t *from_charmap = NULL;
    struct charmap_t *to_charmap = NULL;
  
-@@ -139,39 +139,6 @@ main (int argc, char *argv[])
+@@ -139,39 +139,6 @@
        exit (EXIT_SUCCESS);
      }
  
@@ -1460,7 +1417,7 @@ index 9709e4a701..d59979759c 100644
    /* POSIX 1003.2b introduces a silly thing: the arguments to -t anf -f
       can be file names of charmaps.  In this case iconv will have to read
       those charmaps and use them to do the conversion.  But there are
-@@ -184,10 +151,10 @@ main (int argc, char *argv[])
+@@ -184,10 +151,10 @@
         file.  */
      from_charmap = charmap_read (from_code, /*0, 1*/1, 0, 0, 0);
  
@@ -1473,7 +1430,7 @@ index 9709e4a701..d59979759c 100644
  
  
    /* At this point we have to handle two cases.  The first one is
-@@ -201,9 +168,25 @@ main (int argc, char *argv[])
+@@ -201,9 +168,25 @@
  				 argc, remaining, argv, output_file);
    else
      {
@@ -1501,7 +1458,7 @@ index 9709e4a701..d59979759c 100644
  	{
  	  if (errno == EINVAL)
  	    {
-@@ -221,7 +204,7 @@ main (int argc, char *argv[])
+@@ -221,7 +204,7 @@
  	      const char *from_pretty =
  		(from_code[0] ? from_code : nl_langinfo (CODESET));
  	      const char *to_pretty =
@@ -1510,9 +1467,6 @@ index 9709e4a701..d59979759c 100644
  
  	      if (from_wrong)
  		{
-diff --git a/iconv/tst-iconv-opt.c b/iconv/tst-iconv-opt.c
-new file mode 100644
-index 0000000000..669d812a6a
 --- /dev/null
 +++ b/iconv/tst-iconv-opt.c
 @@ -0,0 +1,347 @@
@@ -1863,9 +1817,6 @@ index 0000000000..669d812a6a
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/iconv/tst-iconv8.c b/iconv/tst-iconv8.c
-new file mode 100644
-index 0000000000..0b92b19f66
 --- /dev/null
 +++ b/iconv/tst-iconv8.c
 @@ -0,0 +1,50 @@
@@ -1919,9 +1870,6 @@ index 0000000000..0b92b19f66
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/iconv/tst-iconv_prog.sh b/iconv/tst-iconv_prog.sh
-new file mode 100644
-index 0000000000..d8db7b335c
 --- /dev/null
 +++ b/iconv/tst-iconv_prog.sh
 @@ -0,0 +1,284 @@
@@ -2209,8 +2157,6 @@ index 0000000000..d8db7b335c
 +  execute_test
 +  check_errtest_result
 +done
-diff --git a/iconvdata/Makefile b/iconvdata/Makefile
-index c83962f351..8fbb67a52b 100644
 --- a/iconvdata/Makefile
 +++ b/iconvdata/Makefile
 @@ -1,4 +1,5 @@
@@ -2219,7 +2165,7 @@ index c83962f351..8fbb67a52b 100644
  # This file is part of the GNU C Library.
  
  # The GNU C Library is free software; you can redistribute it and/or
-@@ -73,7 +74,8 @@ modules.so := $(addsuffix .so, $(modules))
+@@ -73,7 +74,8 @@
  ifeq (yes,$(build-shared))
  tests = bug-iconv1 bug-iconv2 tst-loading tst-e2big tst-iconv4 bug-iconv4 \
  	tst-iconv6 bug-iconv5 bug-iconv6 tst-iconv7 bug-iconv8 bug-iconv9 \
@@ -2229,7 +2175,7 @@ index c83962f351..8fbb67a52b 100644
  ifeq ($(have-thread-library),yes)
  tests += bug-iconv3
  endif
-@@ -316,6 +318,10 @@ $(objpfx)bug-iconv10.out: $(objpfx)gconv-modules \
+@@ -316,6 +318,10 @@
  			  $(addprefix $(objpfx),$(modules.so))
  $(objpfx)bug-iconv12.out: $(objpfx)gconv-modules \
  			  $(addprefix $(objpfx),$(modules.so))
@@ -2240,9 +2186,6 @@ index c83962f351..8fbb67a52b 100644
  
  $(objpfx)iconv-test.out: run-iconv-test.sh $(objpfx)gconv-modules \
  			 $(addprefix $(objpfx),$(modules.so)) \
-diff --git a/iconvdata/bug-iconv13.c b/iconvdata/bug-iconv13.c
-new file mode 100644
-index 0000000000..87aaff398e
 --- /dev/null
 +++ b/iconvdata/bug-iconv13.c
 @@ -0,0 +1,53 @@
@@ -2299,9 +2242,6 @@ index 0000000000..87aaff398e
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/iconvdata/bug-iconv14.c b/iconvdata/bug-iconv14.c
-new file mode 100644
-index 0000000000..902f140fa9
 --- /dev/null
 +++ b/iconvdata/bug-iconv14.c
 @@ -0,0 +1,127 @@
@@ -2432,9 +2372,6 @@ index 0000000000..902f140fa9
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/iconvdata/bug-iconv15.c b/iconvdata/bug-iconv15.c
-new file mode 100644
-index 0000000000..cc04bd0313
 --- /dev/null
 +++ b/iconvdata/bug-iconv15.c
 @@ -0,0 +1,60 @@
@@ -2498,11 +2435,9 @@ index 0000000000..cc04bd0313
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/iconvdata/euc-kr.c b/iconvdata/euc-kr.c
-index b0d56cf3ee..1045bae926 100644
 --- a/iconvdata/euc-kr.c
 +++ b/iconvdata/euc-kr.c
-@@ -80,11 +80,7 @@ euckr_from_ucs4 (uint32_t ch, unsigned char *cp)
+@@ -80,11 +80,7 @@
  									      \
      if (ch <= 0x9f)							      \
        ++inptr;								      \
@@ -2515,11 +2450,9 @@ index b0d56cf3ee..1045bae926 100644
        {									      \
  	/* This is illegal.  */						      \
  	STANDARD_FROM_LOOP_ERR_HANDLER (1);				      \
-diff --git a/iconvdata/ibm1364.c b/iconvdata/ibm1364.c
-index 49e7267ab4..521f0825b7 100644
 --- a/iconvdata/ibm1364.c
 +++ b/iconvdata/ibm1364.c
-@@ -158,24 +158,14 @@ enum
+@@ -158,24 +158,14 @@
  									      \
      if (__builtin_expect (ch, 0) == SO)					      \
        {									      \
@@ -2546,8 +2479,6 @@ index 49e7267ab4..521f0825b7 100644
  	curcs = sb;							      \
  	++inptr;							      \
  	continue;							      \
-diff --git a/iconvdata/iso-2022-jp-3.c b/iconvdata/iso-2022-jp-3.c
-index 8c3b7e627e..c7b470db61 100644
 --- a/iconvdata/iso-2022-jp-3.c
 +++ b/iconvdata/iso-2022-jp-3.c
 @@ -1,5 +1,6 @@
@@ -2557,7 +2488,7 @@ index 8c3b7e627e..c7b470db61 100644
     This file is part of the GNU C Library.
     Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998,
     and Bruno Haible <bruno@clisp.org>, 2002.
-@@ -67,10 +68,15 @@ enum
+@@ -67,10 +68,15 @@
    CURRENT_SEL_MASK = 7 << 3
  };
  
@@ -2577,7 +2508,7 @@ index 8c3b7e627e..c7b470db61 100644
  
  /* Since this is a stateful encoding we have to provide code which resets
     the output state to the initial state.  This has to be done during the
-@@ -80,10 +86,27 @@ enum
+@@ -80,10 +86,27 @@
      {									      \
        if (FROM_DIRECTION)						      \
  	{								      \
@@ -2609,7 +2540,7 @@ index 8c3b7e627e..c7b470db61 100644
  	}								      \
        else								      \
  	{								      \
-@@ -151,7 +174,21 @@ enum
+@@ -151,7 +174,21 @@
  #define LOOPFCT			FROM_LOOP
  #define BODY \
    {									      \
@@ -2632,7 +2563,7 @@ index 8c3b7e627e..c7b470db61 100644
  									      \
      /* Recognize escape sequences.  */					      \
      if (__glibc_unlikely (ch == ESC))					      \
-@@ -297,21 +334,25 @@ enum
+@@ -297,21 +334,25 @@
  	    uint32_t u1 = __jisx0213_to_ucs_combining[ch - 1][0];	      \
  	    uint32_t u2 = __jisx0213_to_ucs_combining[ch - 1][1];	      \
  									      \
@@ -2667,11 +2598,9 @@ index 8c3b7e627e..c7b470db61 100644
  	  }								      \
  									      \
  	inptr += 2;							      \
-diff --git a/iconvdata/ksc5601.h b/iconvdata/ksc5601.h
-index d3eb3a4ff8..f5cdc72797 100644
 --- a/iconvdata/ksc5601.h
 +++ b/iconvdata/ksc5601.h
-@@ -50,15 +50,15 @@ ksc5601_to_ucs4 (const unsigned char **s, size_t avail, unsigned char offset)
+@@ -50,15 +50,15 @@
    unsigned char ch2;
    int idx;
  
@@ -2690,8 +2619,6 @@ index d3eb3a4ff8..f5cdc72797 100644
    ch2 = (*s)[1];
    if (ch2 < offset || (ch2 - offset) <= 0x20 || (ch2 - offset) >= 0x7f)
      return __UNKNOWN_10646_CHAR;
-diff --git a/include/libc-symbols.h b/include/libc-symbols.h
-index 685e20fdc0..68fc798051 100644
 --- a/include/libc-symbols.h
 +++ b/include/libc-symbols.h
 @@ -59,6 +59,19 @@
@@ -2714,7 +2641,7 @@ index 685e20fdc0..68fc798051 100644
  #ifndef _ISOMAC
  
  /* This is defined for the compilation of all C library code.  features.h
-@@ -396,19 +409,6 @@ for linking")
+@@ -396,19 +409,6 @@
     past the last element in SET.  */
  #define symbol_set_end_p(set, ptr) ((ptr) >= (void *const *) &__stop_##set)
  
@@ -2734,8 +2661,6 @@ index 685e20fdc0..68fc798051 100644
  #ifdef SHARED
  # define symbol_version(real, name, version) \
    symbol_version_reference(real, name, version)
-diff --git a/include/sys/prctl.h b/include/sys/prctl.h
-index 0920ed642b..d33f3a290e 100644
 --- a/include/sys/prctl.h
 +++ b/include/sys/prctl.h
 @@ -4,6 +4,7 @@
@@ -2746,8 +2671,6 @@ index 0920ed642b..d33f3a290e 100644
  
  # endif /* !_ISOMAC */
  #endif
-diff --git a/include/sys/un.h b/include/sys/un.h
-index bdbee99980..152afd9fc7 100644
 --- a/include/sys/un.h
 +++ b/include/sys/un.h
 @@ -1 +1,13 @@
@@ -2764,11 +2687,9 @@ index bdbee99980..152afd9fc7 100644
 +  attribute_hidden;
 +
 +#endif /* _ISOMAC */
-diff --git a/intl/dcigettext.c b/intl/dcigettext.c
-index 465c8df34c..bd332e71da 100644
 --- a/intl/dcigettext.c
 +++ b/intl/dcigettext.c
-@@ -1119,11 +1119,19 @@ _nl_find_msg (struct loaded_l10nfile *domain_file,
+@@ -1119,11 +1119,19 @@
  		      outcharset = encoding;
  
  # ifdef _LIBC
@@ -2792,8 +2713,6 @@ index 465c8df34c..bd332e71da 100644
  		      if (__builtin_expect (r != __GCONV_OK, 0))
  			{
  			  /* If the output encoding is the same there is
-diff --git a/intl/tst-codeset.c b/intl/tst-codeset.c
-index fd70432eca..e9f6e5e09f 100644
 --- a/intl/tst-codeset.c
 +++ b/intl/tst-codeset.c
 @@ -22,13 +22,11 @@
@@ -2811,7 +2730,7 @@ index fd70432eca..e9f6e5e09f 100644
    unsetenv ("LANGUAGE");
    unsetenv ("OUTPUT_CHARSET");
    setlocale (LC_ALL, "de_DE.ISO-8859-1");
-@@ -36,25 +34,21 @@ do_test (void)
+@@ -36,25 +34,21 @@
    bindtextdomain ("codeset", OBJPFX "domaindir");
  
    /* Here we expect output in ISO-8859-1.  */
@@ -2834,8 +2753,6 @@ index fd70432eca..e9f6e5e09f 100644
 -      printf ("call 2 returned: %s\n", s);
 -      result = 1;
 -    }
--
--  return result;
 +  /* `a with umlaut' is transliterated to `ae'.  */
 +  bind_textdomain_codeset ("codeset", "ASCII//TRANSLIT");
 +  TEST_COMPARE_STRING (gettext ("cheese"), "Kaese");
@@ -2843,18 +2760,17 @@ index fd70432eca..e9f6e5e09f 100644
 +  /* Transliteration also works by default even if not set.  */
 +  bind_textdomain_codeset ("codeset", "ASCII");
 +  TEST_COMPARE_STRING (gettext ("cheese"), "Kaese");
-+
+ 
+-  return result;
 +  return 0;
  }
  
 -#define TEST_FUNCTION do_test ()
 -#include "../test-skeleton.c"
 +#include <support/test-driver.c>
-diff --git a/localedata/locales/oc_FR b/localedata/locales/oc_FR
-index d0d89a149e..ba9377ed41 100644
 --- a/localedata/locales/oc_FR
 +++ b/localedata/locales/oc_FR
-@@ -92,7 +92,7 @@ day     "dimenge";/
+@@ -92,7 +92,7 @@
          "diluns";/
          "dimars";/
          "dim<U00E8>cres";/
@@ -2863,7 +2779,7 @@ index d0d89a149e..ba9377ed41 100644
          "divendres";/
          "dissabte"
  abmon   "gen.";/
-@@ -110,7 +110,7 @@ abmon   "gen.";/
+@@ -110,7 +110,7 @@
  alt_mon "geni<U00E8>r";/
          "febri<U00E8>r";/
          "mar<U00E7>";/
@@ -2872,7 +2788,7 @@ index d0d89a149e..ba9377ed41 100644
          "mai";/
          "junh";/
          "julhet";/
-@@ -122,7 +122,7 @@ alt_mon "geni<U00E8>r";/
+@@ -122,7 +122,7 @@
  mon     "de geni<U00E8>r";/
          "de febri<U00E8>r";/
          "de mar<U00E7>";/
@@ -2881,11 +2797,9 @@ index d0d89a149e..ba9377ed41 100644
          "de mai";/
          "de junh";/
          "de julhet";/
-diff --git a/malloc/Makefile b/malloc/Makefile
-index 984045b5b9..8edeb3d621 100644
 --- a/malloc/Makefile
 +++ b/malloc/Makefile
-@@ -61,6 +61,16 @@ endif
+@@ -61,6 +61,16 @@
  tests += $(tests-static)
  test-srcs = tst-mtrace
  
@@ -2902,7 +2816,7 @@ index 984045b5b9..8edeb3d621 100644
  routines = malloc morecore mcheck mtrace obstack reallocarray \
    scratch_buffer_grow scratch_buffer_grow_preserve \
    scratch_buffer_set_array_size \
-@@ -99,6 +109,11 @@ $(objpfx)tst-malloc-thread-exit: $(shared-thread-library)
+@@ -99,6 +109,11 @@
  $(objpfx)tst-malloc-thread-fail: $(shared-thread-library)
  $(objpfx)tst-malloc-fork-deadlock: $(shared-thread-library)
  $(objpfx)tst-malloc-stats-cancellation: $(shared-thread-library)
@@ -2914,7 +2828,7 @@ index 984045b5b9..8edeb3d621 100644
  
  # Export the __malloc_initialize_hook variable to libc.so.
  LDFLAGS-tst-mallocstate = -rdynamic
-@@ -238,6 +253,8 @@ $(tests:%=$(objpfx)%.o): CPPFLAGS += -DTEST_NO_MALLOPT
+@@ -238,6 +253,8 @@
  $(objpfx)tst-interpose-nothread: $(objpfx)tst-interpose-aux-nothread.o
  $(objpfx)tst-interpose-thread: \
    $(objpfx)tst-interpose-aux-thread.o $(shared-thread-library)
@@ -2923,18 +2837,16 @@ index 984045b5b9..8edeb3d621 100644
  $(objpfx)tst-interpose-static-nothread: $(objpfx)tst-interpose-aux-nothread.o
  $(objpfx)tst-interpose-static-thread: \
    $(objpfx)tst-interpose-aux-thread.o $(static-thread-library)
-@@ -255,3 +272,6 @@ $(objpfx)tst-dynarray-fail-mem.out: $(objpfx)tst-dynarray-fail.out
+@@ -255,3 +272,6 @@
  $(objpfx)tst-malloc-tcache-leak: $(shared-thread-library)
  $(objpfx)tst-malloc_info: $(shared-thread-library)
  $(objpfx)tst-mallocfork2: $(shared-thread-library)
 +$(objpfx)tst-malloc-tcache-leak-mcheck: $(shared-thread-library)
 +$(objpfx)tst-malloc_info-mcheck: $(shared-thread-library)
 +$(objpfx)tst-mallocfork2-mcheck: $(shared-thread-library)
-diff --git a/malloc/tst-mallocfork2.c b/malloc/tst-mallocfork2.c
-index 0602a94895..fc1fd64b21 100644
 --- a/malloc/tst-mallocfork2.c
 +++ b/malloc/tst-mallocfork2.c
-@@ -62,6 +62,9 @@ static volatile sig_atomic_t sigusr1_received;
+@@ -62,6 +62,9 @@
     progress.  Checked by liveness_signal_handler.  */
  static volatile sig_atomic_t progress_indicator = 1;
  
@@ -2944,7 +2856,7 @@ index 0602a94895..fc1fd64b21 100644
  static void
  sigusr1_handler (int signo)
  {
-@@ -72,7 +75,8 @@ sigusr1_handler (int signo)
+@@ -72,7 +75,8 @@
    if (pid == -1)
      {
        write_message ("error: fork\n");
@@ -2954,7 +2866,7 @@ index 0602a94895..fc1fd64b21 100644
      }
    if (pid == 0)
      _exit (0);
-@@ -81,12 +85,14 @@ sigusr1_handler (int signo)
+@@ -81,12 +85,14 @@
    if (ret < 0)
      {
        write_message ("error: waitpid\n");
@@ -2971,7 +2883,7 @@ index 0602a94895..fc1fd64b21 100644
      }
  }
  
-@@ -122,9 +128,25 @@ signal_sender (int signo, bool sleep)
+@@ -122,9 +128,25 @@
      }
  }
  
@@ -2997,7 +2909,7 @@ index 0602a94895..fc1fd64b21 100644
    /* shared->barrier is intialized along with sigusr1_sender_pids
       below.  */
    shared = support_shared_allocate (sizeof (*shared));
-@@ -148,14 +170,13 @@ do_test (void)
+@@ -148,14 +170,13 @@
        return 1;
      }
  
@@ -3013,7 +2925,7 @@ index 0602a94895..fc1fd64b21 100644
    {
      pthread_barrierattr_t attr;
      xpthread_barrierattr_init (&attr);
-@@ -166,7 +187,7 @@ do_test (void)
+@@ -166,7 +187,7 @@
    }
    for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
      {
@@ -3022,7 +2934,7 @@ index 0602a94895..fc1fd64b21 100644
        if (sigusr1_sender_pids[i] == 0)
          signal_sender (SIGUSR1, false);
      }
-@@ -211,7 +232,7 @@ do_test (void)
+@@ -211,7 +232,7 @@
          ++malloc_signals;
        xpthread_barrier_wait (&shared->barrier);
  
@@ -3031,7 +2943,7 @@ index 0602a94895..fc1fd64b21 100644
          {
            printf ("error: malloc: %m\n");
            for (size_t i = 0; i < array_length (sigusr1_sender_pids); ++i)
-@@ -225,10 +246,6 @@ do_test (void)
+@@ -225,10 +246,6 @@
    for (int slot = 0; slot < malloc_objects; ++slot)
      free (objects[slot]);
  
@@ -3042,11 +2954,9 @@ index 0602a94895..fc1fd64b21 100644
    printf ("info: signals received during fork: %u\n", fork_signals);
    printf ("info: signals received during free: %u\n", free_signals);
    printf ("info: signals received during malloc: %u\n", malloc_signals);
-diff --git a/math/Makefile b/math/Makefile
-index 5985b6744b..3496af4040 100644
 --- a/math/Makefile
 +++ b/math/Makefile
-@@ -644,6 +644,128 @@ ifneq ($(long-double-fcts),yes)
+@@ -644,6 +644,128 @@
  # We won't compile the `long double' code at all.  Tell the `double' code
  # to define aliases for the `FUNCl' names.
  math-CPPFLAGS += -DNO_LONG_DOUBLE
@@ -3175,11 +3085,9 @@ index 5985b6744b..3496af4040 100644
  endif
  
  # These files quiet sNaNs in a way that is optimized away without
-diff --git a/misc/Makefile b/misc/Makefile
-index e0465980c7..e167e199eb 100644
 --- a/misc/Makefile
 +++ b/misc/Makefile
-@@ -87,7 +87,7 @@ tests := tst-dirname tst-tsearch tst-fdset tst-mntent tst-hsearch \
+@@ -87,7 +87,7 @@
  	 tst-preadvwritev tst-preadvwritev64 tst-makedev tst-empty \
  	 tst-preadvwritev2 tst-preadvwritev64v2 tst-warn-wide \
  	 tst-ldbl-warn tst-ldbl-error tst-dbl-efgcvt tst-ldbl-efgcvt \
@@ -3188,9 +3096,6 @@ index e0465980c7..e167e199eb 100644
  
  # Tests which need libdl.
  ifeq (yes,$(build-shared))
-diff --git a/misc/tst-syscalls.c b/misc/tst-syscalls.c
-new file mode 100644
-index 0000000000..cfcd382320
 --- /dev/null
 +++ b/misc/tst-syscalls.c
 @@ -0,0 +1,167 @@
@@ -3361,11 +3266,9 @@ index 0000000000..cfcd382320
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/nptl/Makefile b/nptl/Makefile
-index 584e0ffd96..2df4c9098c 100644
 --- a/nptl/Makefile
 +++ b/nptl/Makefile
-@@ -332,7 +332,7 @@ tests-internal := tst-rwlock19 tst-rwlock20 \
+@@ -332,7 +332,7 @@
  		  tst-mutexpi8 tst-mutexpi8-static tst-cancel25
  
  xtests = tst-setuid1 tst-setuid1-static tst-setuid2 \
@@ -3374,11 +3277,9 @@ index 584e0ffd96..2df4c9098c 100644
  
  # This test can run into task limits because of a linux kernel bug
  # and then cause the make process to fail too, see bug 24537.
-diff --git a/nptl/descr.h b/nptl/descr.h
-index 9dcf480bdf..5f1f35e9a4 100644
 --- a/nptl/descr.h
 +++ b/nptl/descr.h
-@@ -94,7 +94,13 @@ struct pthread_unwind_buf
+@@ -94,7 +94,13 @@
  struct xid_command
  {
    int syscall_no;
@@ -3393,9 +3294,6 @@ index 9dcf480bdf..5f1f35e9a4 100644
    volatile int cntr;
    volatile int error; /* -1: no call yet, 0: success seen, >0: error seen.  */
  };
-diff --git a/nptl/tst-setgroups.c b/nptl/tst-setgroups.c
-new file mode 100644
-index 0000000000..ae3c1b1ba0
 --- /dev/null
 +++ b/nptl/tst-setgroups.c
 @@ -0,0 +1,79 @@
@@ -3478,11 +3376,9 @@ index 0000000000..ae3c1b1ba0
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/nscd/netgroupcache.c b/nscd/netgroupcache.c
-index 88c69d1e9c..381aa721ef 100644
 --- a/nscd/netgroupcache.c
 +++ b/nscd/netgroupcache.c
-@@ -248,7 +248,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+@@ -248,7 +248,7 @@
  					     : NULL);
  				    ndomain = (ndomain ? newbuf + ndomaindiff
  					       : NULL);
@@ -3491,7 +3387,7 @@ index 88c69d1e9c..381aa721ef 100644
  				  }
  
  				nhost = memcpy (buffer + bufused,
-@@ -319,7 +319,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
+@@ -319,7 +319,7 @@
  		    else if (status == NSS_STATUS_TRYAGAIN && e == ERANGE)
  		      {
  			buflen *= 2;
@@ -3500,8 +3396,6 @@ index 88c69d1e9c..381aa721ef 100644
  		      }
  		    else if (status == NSS_STATUS_RETURN
  			     || status == NSS_STATUS_NOTFOUND
-diff --git a/nscd/selinux.c b/nscd/selinux.c
-index a4ea8008e2..1ebf924826 100644
 --- a/nscd/selinux.c
 +++ b/nscd/selinux.c
 @@ -33,6 +33,7 @@
@@ -3512,7 +3406,7 @@ index a4ea8008e2..1ebf924826 100644
  
  #include "dbg_log.h"
  #include "selinux.h"
-@@ -320,6 +321,12 @@ avc_free_lock (void *lock)
+@@ -320,6 +321,12 @@
  }
  
  
@@ -3525,7 +3419,7 @@ index a4ea8008e2..1ebf924826 100644
  /* Initialize the user space access vector cache (AVC) for NSCD along with
     log/thread/lock callbacks.  */
  void
-@@ -335,7 +342,14 @@ nscd_avc_init (void)
+@@ -335,7 +342,14 @@
    audit_init ();
  #endif
  }
@@ -3540,7 +3434,7 @@ index a4ea8008e2..1ebf924826 100644
  
  /* Check the permission from the caller (via getpeercon) to nscd.
     Returns 0 if access is allowed, 1 if denied, and -1 on error.
-@@ -422,6 +436,7 @@ out:
+@@ -422,6 +436,7 @@
  
    return rc;
  }
@@ -3548,8 +3442,6 @@ index a4ea8008e2..1ebf924826 100644
  
  
  /* Wrapper to get AVC statistics.  */
-diff --git a/nss/makedb.c b/nss/makedb.c
-index 8e389a1683..8e1e8ec9ad 100644
 --- a/nss/makedb.c
 +++ b/nss/makedb.c
 @@ -38,6 +38,7 @@
@@ -3560,7 +3452,7 @@ index 8e389a1683..8e1e8ec9ad 100644
  
  /* Get libc version number.  */
  #include "../version.h"
-@@ -841,6 +842,13 @@ print_database (int fd)
+@@ -841,6 +842,13 @@
  
  
  #ifdef HAVE_SELINUX
@@ -3574,7 +3466,7 @@ index 8e389a1683..8e1e8ec9ad 100644
  static void
  set_file_creation_context (const char *outname, mode_t mode)
  {
-@@ -870,6 +878,7 @@ set_file_creation_context (const char *outname, mode_t mode)
+@@ -870,6 +878,7 @@
        freecon (ctx);
      }
  }
@@ -3582,11 +3474,9 @@ index 8e389a1683..8e1e8ec9ad 100644
  
  static void
  reset_file_creation_context (void)
-diff --git a/nss/nss_compat/compat-grp.c b/nss/nss_compat/compat-grp.c
-index a8de1e03b3..f8b19a5cf0 100644
 --- a/nss/nss_compat/compat-grp.c
 +++ b/nss/nss_compat/compat-grp.c
-@@ -142,7 +142,7 @@ _nss_compat_setgrent (int stayopen)
+@@ -142,7 +142,7 @@
  }
  
  
@@ -3595,7 +3485,7 @@ index a8de1e03b3..f8b19a5cf0 100644
  internal_endgrent (ent_t *ent)
  {
    if (ent->stream != NULL)
-@@ -163,6 +163,15 @@ internal_endgrent (ent_t *ent)
+@@ -163,6 +163,15 @@
    return NSS_STATUS_SUCCESS;
  }
  
@@ -3611,7 +3501,7 @@ index a8de1e03b3..f8b19a5cf0 100644
  enum nss_status
  _nss_compat_endgrent (void)
  {
-@@ -483,7 +492,7 @@ _nss_compat_getgrnam_r (const char *name, struct group *grp,
+@@ -483,7 +492,7 @@
    if (result == NSS_STATUS_SUCCESS)
      result = internal_getgrnam_r (name, grp, &ent, buffer, buflen, errnop);
  
@@ -3620,7 +3510,7 @@ index a8de1e03b3..f8b19a5cf0 100644
  
    return result;
  }
-@@ -612,7 +621,7 @@ _nss_compat_getgrgid_r (gid_t gid, struct group *grp,
+@@ -612,7 +621,7 @@
    if (result == NSS_STATUS_SUCCESS)
      result = internal_getgrgid_r (gid, grp, &ent, buffer, buflen, errnop);
  
@@ -3629,11 +3519,9 @@ index a8de1e03b3..f8b19a5cf0 100644
  
    return result;
  }
-diff --git a/nss/nss_compat/compat-initgroups.c b/nss/nss_compat/compat-initgroups.c
-index 939b25b33b..7591442ff9 100644
 --- a/nss/nss_compat/compat-initgroups.c
 +++ b/nss/nss_compat/compat-initgroups.c
-@@ -133,7 +133,7 @@ internal_setgrent (ent_t *ent)
+@@ -133,7 +133,7 @@
  }
  
  
@@ -3642,7 +3530,7 @@ index 939b25b33b..7591442ff9 100644
  internal_endgrent (ent_t *ent)
  {
    if (ent->stream != NULL)
-@@ -157,6 +157,15 @@ internal_endgrent (ent_t *ent)
+@@ -157,6 +157,15 @@
    return NSS_STATUS_SUCCESS;
  }
  
@@ -3658,7 +3546,7 @@ index 939b25b33b..7591442ff9 100644
  /* Add new group record.  */
  static void
  add_group (long int *start, long int *size, gid_t **groupsp, long int limit,
-@@ -501,7 +510,7 @@ _nss_compat_initgroups_dyn (const char *user, gid_t group, long int *start,
+@@ -501,7 +510,7 @@
   done:
    scratch_buffer_free (&tmpbuf);
  
@@ -3667,11 +3555,9 @@ index 939b25b33b..7591442ff9 100644
  
    return status;
  }
-diff --git a/nss/nss_compat/compat-pwd.c b/nss/nss_compat/compat-pwd.c
-index ec3f35c594..bd5e707da0 100644
 --- a/nss/nss_compat/compat-pwd.c
 +++ b/nss/nss_compat/compat-pwd.c
-@@ -259,7 +259,7 @@ _nss_compat_setpwent (int stayopen)
+@@ -259,7 +259,7 @@
  }
  
  
@@ -3680,7 +3566,7 @@ index ec3f35c594..bd5e707da0 100644
  internal_endpwent (ent_t *ent)
  {
    if (ent->stream != NULL)
-@@ -287,6 +287,15 @@ internal_endpwent (ent_t *ent)
+@@ -287,6 +287,15 @@
    return NSS_STATUS_SUCCESS;
  }
  
@@ -3696,7 +3582,7 @@ index ec3f35c594..bd5e707da0 100644
  enum nss_status
  _nss_compat_endpwent (void)
  {
-@@ -822,7 +831,7 @@ _nss_compat_getpwnam_r (const char *name, struct passwd *pwd,
+@@ -822,7 +831,7 @@
    if (result == NSS_STATUS_SUCCESS)
      result = internal_getpwnam_r (name, pwd, &ent, buffer, buflen, errnop);
  
@@ -3705,7 +3591,7 @@ index ec3f35c594..bd5e707da0 100644
  
    return result;
  }
-@@ -1061,7 +1070,7 @@ _nss_compat_getpwuid_r (uid_t uid, struct passwd *pwd,
+@@ -1061,7 +1070,7 @@
    if (result == NSS_STATUS_SUCCESS)
      result = internal_getpwuid_r (uid, pwd, &ent, buffer, buflen, errnop);
  
@@ -3714,11 +3600,9 @@ index ec3f35c594..bd5e707da0 100644
  
    return result;
  }
-diff --git a/nss/nss_compat/compat-spwd.c b/nss/nss_compat/compat-spwd.c
-index f6b7a1ef15..d0e3c51b45 100644
 --- a/nss/nss_compat/compat-spwd.c
 +++ b/nss/nss_compat/compat-spwd.c
-@@ -215,7 +215,7 @@ _nss_compat_setspent (int stayopen)
+@@ -215,7 +215,7 @@
  }
  
  
@@ -3727,7 +3611,7 @@ index f6b7a1ef15..d0e3c51b45 100644
  internal_endspent (ent_t *ent)
  {
    if (ent->stream != NULL)
-@@ -244,6 +244,15 @@ internal_endspent (ent_t *ent)
+@@ -244,6 +244,15 @@
    return NSS_STATUS_SUCCESS;
  }
  
@@ -3743,7 +3627,7 @@ index f6b7a1ef15..d0e3c51b45 100644
  enum nss_status
  _nss_compat_endspent (void)
  {
-@@ -261,7 +270,6 @@ _nss_compat_endspent (void)
+@@ -261,7 +270,6 @@
    return result;
  }
  
@@ -3751,7 +3635,7 @@ index f6b7a1ef15..d0e3c51b45 100644
  static enum nss_status
  getspent_next_nss_netgr (const char *name, struct spwd *result, ent_t *ent,
  			 char *group, char *buffer, size_t buflen,
-@@ -786,7 +794,7 @@ _nss_compat_getspnam_r (const char *name, struct spwd *pwd,
+@@ -786,7 +794,7 @@
    if (result == NSS_STATUS_SUCCESS)
      result = internal_getspnam_r (name, pwd, &ent, buffer, buflen, errnop);
  
@@ -3760,11 +3644,9 @@ index f6b7a1ef15..d0e3c51b45 100644
  
    return result;
  }
-diff --git a/posix/glob.c b/posix/glob.c
-index cba9cd1819..4580cefb9f 100644
 --- a/posix/glob.c
 +++ b/posix/glob.c
-@@ -827,31 +827,32 @@ __glob (const char *pattern, int flags, int (*errfunc) (const char *, int),
+@@ -827,31 +827,32 @@
  	      {
  		size_t home_len = strlen (p->pw_dir);
  		size_t rest_len = end_name == NULL ? 0 : strlen (end_name);
@@ -3809,11 +3691,9 @@ index cba9cd1819..4580cefb9f 100644
  		dirlen = home_len + rest_len;
  		dirname_modified = 1;
  	      }
-diff --git a/posix/wordexp-test.c b/posix/wordexp-test.c
-index ed1b22308e..cb3f989cba 100644
 --- a/posix/wordexp-test.c
 +++ b/posix/wordexp-test.c
-@@ -183,6 +183,7 @@ struct test_case_struct
+@@ -183,6 +183,7 @@
      { 0, NULL, "$var", 0, 0, { NULL, }, IFS },
      { 0, NULL, "\"\\n\"", 0, 1, { "\\n", }, IFS },
      { 0, NULL, "", 0, 0, { NULL, }, IFS },
@@ -3821,11 +3701,9 @@ index ed1b22308e..cb3f989cba 100644
  
      /* Flags not already covered (testit() has special handling for these) */
      { 0, NULL, "one two", WRDE_DOOFFS, 2, { "one", "two", }, IFS },
-diff --git a/posix/wordexp.c b/posix/wordexp.c
-index e082d94895..56289503a1 100644
 --- a/posix/wordexp.c
 +++ b/posix/wordexp.c
-@@ -1399,7 +1399,7 @@ envsubst:
+@@ -1399,7 +1399,7 @@
    /* Is it a numeric parameter? */
    else if (isdigit (env[0]))
      {
@@ -3834,11 +3712,9 @@ index e082d94895..56289503a1 100644
  
        if (n >= __libc_argc)
  	/* Substitute NULL. */
-diff --git a/socket/Makefile b/socket/Makefile
-index 125c042cab..19fc6ab41d 100644
 --- a/socket/Makefile
 +++ b/socket/Makefile
-@@ -29,10 +29,14 @@ headers	:= sys/socket.h sys/un.h bits/sockaddr.h bits/socket.h \
+@@ -29,10 +29,14 @@
  routines := accept bind connect getpeername getsockname getsockopt	\
  	    listen recv recvfrom recvmsg send sendmsg sendto		\
  	    setsockopt shutdown socket socketpair isfdtype opensock	\
@@ -3854,9 +3730,6 @@ index 125c042cab..19fc6ab41d 100644
  aux	 := sa_len
  
  include ../Rules
-diff --git a/socket/sockaddr_un_set.c b/socket/sockaddr_un_set.c
-new file mode 100644
-index 0000000000..0bd40dc34e
 --- /dev/null
 +++ b/socket/sockaddr_un_set.c
 @@ -0,0 +1,41 @@
@@ -3901,9 +3774,6 @@ index 0000000000..0bd40dc34e
 +  memcpy (addr->sun_path, pathname, name_length + 1);
 +  return 0;
 +}
-diff --git a/socket/tst-sockaddr_un_set.c b/socket/tst-sockaddr_un_set.c
-new file mode 100644
-index 0000000000..29c2a81afd
 --- /dev/null
 +++ b/socket/tst-sockaddr_un_set.c
 @@ -0,0 +1,62 @@
@@ -3969,11 +3839,9 @@ index 0000000000..29c2a81afd
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/stdlib/Makefile b/stdlib/Makefile
-index 45214b59e4..4615f6dfe7 100644
 --- a/stdlib/Makefile
 +++ b/stdlib/Makefile
-@@ -70,7 +70,7 @@ tests		:= tst-strtol tst-strtod testmb testrand testsort testdiv   \
+@@ -70,7 +70,7 @@
  		   test-canon test-canon2 tst-strtoll tst-environ	    \
  		   tst-xpg-basename tst-random tst-random2 tst-bsearch	    \
  		   tst-limits tst-rand48 bug-strtod tst-setcontext	    \
@@ -3982,7 +3850,7 @@ index 45214b59e4..4615f6dfe7 100644
  		   bug-strtod2 tst-atof1 tst-atof2 tst-strtod2		    \
  		   tst-rand48-2 tst-makecontext tst-strtod5		    \
  		   tst-qsort2 tst-makecontext2 tst-strtod6 tst-unsetenv1    \
-@@ -92,6 +92,7 @@ tests		:= tst-strtol tst-strtod testmb testrand testsort testdiv   \
+@@ -92,6 +92,7 @@
  tests-internal	:= tst-strtod1i tst-strtod3 tst-strtod4 tst-strtod5i \
  		   tst-tls-atexit tst-tls-atexit-nodelete
  tests-static	:= tst-secure-getenv
@@ -3990,8 +3858,6 @@ index 45214b59e4..4615f6dfe7 100644
  
  ifeq ($(build-hardcoded-path-in-tests),yes)
  tests += tst-empty-env
-diff --git a/stdlib/tst-secure-getenv.c b/stdlib/tst-secure-getenv.c
-index 3cfe9a05c3..d4b1139c5e 100644
 --- a/stdlib/tst-secure-getenv.c
 +++ b/stdlib/tst-secure-getenv.c
 @@ -30,167 +30,12 @@
@@ -4164,7 +4030,7 @@ index 3cfe9a05c3..d4b1139c5e 100644
  
  static int
  do_test (void)
-@@ -212,15 +57,15 @@ do_test (void)
+@@ -212,15 +57,15 @@
        exit (1);
      }
  
@@ -4189,7 +4055,7 @@ index 3cfe9a05c3..d4b1139c5e 100644
  }
  
  static void
-@@ -229,23 +74,15 @@ alternative_main (int argc, char **argv)
+@@ -229,23 +74,15 @@
    if (argc == 2 && strcmp (argv[1], MAGIC_ARGUMENT) == 0)
      {
        if (getgid () == getegid ())
@@ -4220,8 +4086,6 @@ index 3cfe9a05c3..d4b1139c5e 100644
      }
  }
  
-diff --git a/stdlib/tst-system.c b/stdlib/tst-system.c
-index b6c5aea08f..eddea33f4c 100644
 --- a/stdlib/tst-system.c
 +++ b/stdlib/tst-system.c
 @@ -17,14 +17,130 @@
@@ -4359,11 +4223,9 @@ index b6c5aea08f..eddea33f4c 100644
 -#define TEST_FUNCTION do_test ()
 -#include "../test-skeleton.c"
 +#include <support/test-driver.c>
-diff --git a/sunrpc/Makefile b/sunrpc/Makefile
-index d5840d0770..162a5cef53 100644
 --- a/sunrpc/Makefile
 +++ b/sunrpc/Makefile
-@@ -95,7 +95,8 @@ others += rpcgen
+@@ -95,7 +95,8 @@
  endif
  
  tests = tst-xdrmem tst-xdrmem2 test-rpcent tst-udp-error tst-udp-timeout \
@@ -4373,17 +4235,15 @@ index d5840d0770..162a5cef53 100644
  xtests := tst-getmyaddr
  
  ifeq ($(have-thread-library),yes)
-@@ -246,3 +247,5 @@ $(objpfx)tst-udp-timeout: $(common-objpfx)linkobj/libc.so
+@@ -246,3 +247,5 @@
  $(objpfx)tst-udp-nonblocking: $(common-objpfx)linkobj/libc.so
  $(objpfx)tst-udp-garbage: \
    $(common-objpfx)linkobj/libc.so $(shared-thread-library)
 +
 +$(objpfx)tst-bug22542: $(common-objpfx)linkobj/libc.so
-diff --git a/sunrpc/clnt_gen.c b/sunrpc/clnt_gen.c
-index 13ced8994e..b44357cd88 100644
 --- a/sunrpc/clnt_gen.c
 +++ b/sunrpc/clnt_gen.c
-@@ -57,9 +57,13 @@ clnt_create (const char *hostname, u_long prog, u_long vers,
+@@ -57,9 +57,13 @@
  
    if (strcmp (proto, "unix") == 0)
      {
@@ -4400,11 +4260,9 @@ index 13ced8994e..b44357cd88 100644
        sock = RPC_ANYSOCK;
        client = clntunix_create (&sun, prog, vers, &sock, 0, 0);
        if (client == NULL)
-diff --git a/sunrpc/svc_unix.c b/sunrpc/svc_unix.c
-index e01afeabe6..b065d6063a 100644
 --- a/sunrpc/svc_unix.c
 +++ b/sunrpc/svc_unix.c
-@@ -154,7 +154,10 @@ svcunix_create (int sock, u_int sendsize, u_int recvsize, char *path)
+@@ -154,7 +154,10 @@
    SVCXPRT *xprt;
    struct unix_rendezvous *r;
    struct sockaddr_un addr;
@@ -4416,7 +4274,7 @@ index e01afeabe6..b065d6063a 100644
  
    if (sock == RPC_ANYSOCK)
      {
-@@ -165,12 +168,6 @@ svcunix_create (int sock, u_int sendsize, u_int recvsize, char *path)
+@@ -165,12 +168,6 @@
  	}
        madesock = TRUE;
      }
@@ -4429,9 +4287,6 @@ index e01afeabe6..b065d6063a 100644
    __bind (sock, (struct sockaddr *) &addr, len);
  
    if (__getsockname (sock, (struct sockaddr *) &addr, &len) != 0
-diff --git a/sunrpc/tst-bug22542.c b/sunrpc/tst-bug22542.c
-new file mode 100644
-index 0000000000..d6cd79787b
 --- /dev/null
 +++ b/sunrpc/tst-bug22542.c
 @@ -0,0 +1,44 @@
@@ -4479,9 +4334,6 @@ index 0000000000..d6cd79787b
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/sunrpc/tst-bug28768.c b/sunrpc/tst-bug28768.c
-new file mode 100644
-index 0000000000..35a4b7b0b3
 --- /dev/null
 +++ b/sunrpc/tst-bug28768.c
 @@ -0,0 +1,42 @@
@@ -4527,11 +4379,9 @@ index 0000000000..35a4b7b0b3
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/support/capture_subprocess.h b/support/capture_subprocess.h
-index 9808750f80..421f657678 100644
 --- a/support/capture_subprocess.h
 +++ b/support/capture_subprocess.h
-@@ -41,6 +41,12 @@ struct support_capture_subprocess support_capture_subprocess
+@@ -41,6 +41,12 @@
  struct support_capture_subprocess support_capture_subprogram
    (const char *file, char *const argv[]);
  
@@ -4544,11 +4394,9 @@ index 9808750f80..421f657678 100644
  /* Deallocate the subprocess data captured by
     support_capture_subprocess.  */
  void support_capture_subprocess_free (struct support_capture_subprocess *);
-diff --git a/support/shell-container.c b/support/shell-container.c
-index 509e0d69b1..201536d24e 100644
 --- a/support/shell-container.c
 +++ b/support/shell-container.c
-@@ -135,6 +135,37 @@ copy_func (char **argv)
+@@ -135,6 +135,37 @@
  
  }
  
@@ -4586,7 +4434,7 @@ index 509e0d69b1..201536d24e 100644
  /* This is a list of all the built-in commands we understand.  */
  static struct {
    const char *name;
-@@ -143,6 +174,8 @@ static struct {
+@@ -143,6 +174,8 @@
    { "true", true_func },
    { "echo", echo_func },
    { "cp", copy_func },
@@ -4595,7 +4443,7 @@ index 509e0d69b1..201536d24e 100644
    { NULL, NULL }
  };
  
-@@ -238,7 +271,7 @@ run_command_array (char **argv)
+@@ -238,7 +271,7 @@
  
        fprintf (stderr, "sh: execing %s failed: %s",
  	       argv[0], strerror (errno));
@@ -4604,7 +4452,7 @@ index 509e0d69b1..201536d24e 100644
      }
  
    waitpid (pid, &status, 0);
-@@ -251,6 +284,11 @@ run_command_array (char **argv)
+@@ -251,6 +284,11 @@
        if (rv)
  	exit (rv);
      }
@@ -4616,11 +4464,9 @@ index 509e0d69b1..201536d24e 100644
    else
      exit (1);
  }
-diff --git a/support/subprocess.h b/support/subprocess.h
-index 8b442fd5c0..34ffd02e8e 100644
 --- a/support/subprocess.h
 +++ b/support/subprocess.h
-@@ -38,6 +38,11 @@ struct support_subprocess support_subprocess
+@@ -38,6 +38,11 @@
  struct support_subprocess support_subprogram
    (const char *file, char *const argv[]);
  
@@ -4632,8 +4478,6 @@ index 8b442fd5c0..34ffd02e8e 100644
  /* Wait for the subprocess indicated by PROC::PID.  Return the status
     indicate by waitpid call.  */
  int support_process_wait (struct support_subprocess *proc);
-diff --git a/support/support_capture_subprocess.c b/support/support_capture_subprocess.c
-index eeed676e3d..28a37df67f 100644
 --- a/support/support_capture_subprocess.c
 +++ b/support/support_capture_subprocess.c
 @@ -20,11 +20,14 @@
@@ -4651,7 +4495,7 @@ index eeed676e3d..28a37df67f 100644
  
  static void
  transfer (const char *what, struct pollfd *pfd, struct xmemstream *stream)
-@@ -36,7 +39,7 @@ transfer (const char *what, struct pollfd *pfd, struct xmemstream *stream)
+@@ -36,7 +39,7 @@
        if (ret < 0)
          {
            support_record_failure ();
@@ -4660,7 +4504,7 @@ index eeed676e3d..28a37df67f 100644
            pfd->events = 0;
            pfd->revents = 0;
          }
-@@ -102,6 +105,129 @@ support_capture_subprogram (const char *file, char *const argv[])
+@@ -102,6 +105,129 @@
    return result;
  }
  
@@ -4790,8 +4634,6 @@ index eeed676e3d..28a37df67f 100644
  void
  support_capture_subprocess_free (struct support_capture_subprocess *p)
  {
-diff --git a/support/support_subprocess.c b/support/support_subprocess.c
-index 36e3a77af2..4a25828111 100644
 --- a/support/support_subprocess.c
 +++ b/support/support_subprocess.c
 @@ -27,7 +27,7 @@
@@ -4803,7 +4645,7 @@ index 36e3a77af2..4a25828111 100644
  {
    struct support_subprocess result;
  
-@@ -48,7 +48,7 @@ support_suprocess_init (void)
+@@ -48,7 +48,7 @@
  struct support_subprocess
  support_subprocess (void (*callback) (void *), void *closure)
  {
@@ -4812,7 +4654,7 @@ index 36e3a77af2..4a25828111 100644
  
    result.pid = xfork ();
    if (result.pid == 0)
-@@ -71,7 +71,7 @@ support_subprocess (void (*callback) (void *), void *closure)
+@@ -71,7 +71,7 @@
  struct support_subprocess
  support_subprogram (const char *file, char *const argv[])
  {
@@ -4821,7 +4663,7 @@ index 36e3a77af2..4a25828111 100644
  
    posix_spawn_file_actions_t fa;
    /* posix_spawn_file_actions_init does not fail.  */
-@@ -84,7 +84,7 @@ support_subprogram (const char *file, char *const argv[])
+@@ -84,7 +84,7 @@
    xposix_spawn_file_actions_addclose (&fa, result.stdout_pipe[1]);
    xposix_spawn_file_actions_addclose (&fa, result.stderr_pipe[1]);
  
@@ -4830,11 +4672,10 @@ index 36e3a77af2..4a25828111 100644
  
    xclose (result.stdout_pipe[1]);
    xclose (result.stderr_pipe[1]);
-@@ -92,6 +92,19 @@ support_subprogram (const char *file, char *const argv[])
-   return result;
+@@ -93,6 +93,19 @@
  }
  
-+int
+ int
 +support_subprogram_wait (const char *file, char *const argv[])
 +{
 +  posix_spawn_file_actions_t fa;
@@ -4847,14 +4688,13 @@ index 36e3a77af2..4a25828111 100644
 +  return support_process_wait (&res);
 +}
 +
- int
++int
  support_process_wait (struct support_subprocess *proc)
  {
-diff --git a/sysdeps/aarch64/dl-machine.h b/sysdeps/aarch64/dl-machine.h
-index db3335e5ad..8ffa0d1c51 100644
+   xclose (proc->stdout_pipe[0]);
 --- a/sysdeps/aarch64/dl-machine.h
 +++ b/sysdeps/aarch64/dl-machine.h
-@@ -392,13 +392,6 @@ elf_machine_lazy_rel (struct link_map *map,
+@@ -392,13 +392,6 @@
    /* Check for unexpected PLT reloc type.  */
    if (__builtin_expect (r_type == AARCH64_R(JUMP_SLOT), 1))
      {
@@ -4868,7 +4708,7 @@ index db3335e5ad..8ffa0d1c51 100644
        if (__glibc_unlikely (map->l_info[DT_AARCH64 (VARIANT_PCS)] != NULL))
  	{
  	  /* Check the symbol table for variant PCS symbols.  */
-@@ -422,7 +415,10 @@ elf_machine_lazy_rel (struct link_map *map,
+@@ -422,7 +415,10 @@
  	    }
  	}
  
@@ -4880,8 +4720,6 @@ index db3335e5ad..8ffa0d1c51 100644
      }
    else if (__builtin_expect (r_type == AARCH64_R(TLSDESC), 1))
      {
-diff --git a/sysdeps/aarch64/memcpy.S b/sysdeps/aarch64/memcpy.S
-index d0d47e90b8..e0b4c4502f 100644
 --- a/sysdeps/aarch64/memcpy.S
 +++ b/sysdeps/aarch64/memcpy.S
 @@ -33,11 +33,11 @@
@@ -4919,17 +4757,11 @@ index d0d47e90b8..e0b4c4502f 100644
  #endif
  
 -ENTRY_ALIGN (MEMMOVE, 6)
-+/* This implementation supports both memcpy and memmove and shares most code.
-+   It uses unaligned accesses and branchless sequences to keep the code small,
-+   simple and improve performance.
- 
+-
 -	DELOUSE (0)
 -	DELOUSE (1)
 -	DELOUSE (2)
-+   Copies are split into 3 main cases: small copies of up to 32 bytes, medium
-+   copies of up to 128 bytes, and large copies.  The overhead of the overlap
-+   check in memmove is negligible since it is only required for large copies.
- 
+-
 -	sub	tmp1, dstin, src
 -	cmp	count, 128
 -	ccmp	tmp1, count, 2, hi
@@ -4939,6 +4771,14 @@ index d0d47e90b8..e0b4c4502f 100644
 -END (MEMMOVE)
 -libc_hidden_builtin_def (MEMMOVE)
 -ENTRY (MEMCPY)
++/* This implementation supports both memcpy and memmove and shares most code.
++   It uses unaligned accesses and branchless sequences to keep the code small,
++   simple and improve performance.
++
++   Copies are split into 3 main cases: small copies of up to 32 bytes, medium
++   copies of up to 128 bytes, and large copies.  The overhead of the overlap
++   check in memmove is negligible since it is only required for large copies.
++
 +   Large copies use a software pipelined loop processing 64 bytes per
 +   iteration.  The destination pointer is 16-byte aligned to minimize
 +   unaligned accesses.  The loop tail is handled by always copying 64 bytes
@@ -5091,7 +4931,7 @@ index d0d47e90b8..e0b4c4502f 100644
  	sub	src, src, tmp1
  	add	count, count, tmp1	/* Count is now 16 too large.  */
  	ldp	A_l, A_h, [src, 16]
-@@ -188,7 +175,8 @@ L(copy_long):
+@@ -188,7 +175,8 @@
  	ldp	C_l, C_h, [src, 48]
  	ldp	D_l, D_h, [src, 64]!
  	subs	count, count, 128 + 16	/* Test and readjust count.  */
@@ -5101,7 +4941,7 @@ index d0d47e90b8..e0b4c4502f 100644
  L(loop64):
  	stp	A_l, A_h, [dst, 16]
  	ldp	A_l, A_h, [src, 16]
-@@ -201,10 +189,8 @@ L(loop64):
+@@ -201,10 +189,8 @@
  	subs	count, count, 64
  	b.hi	L(loop64)
  
@@ -5114,7 +4954,7 @@ index d0d47e90b8..e0b4c4502f 100644
  	ldp	E_l, E_h, [srcend, -64]
  	stp	A_l, A_h, [dst, 16]
  	ldp	A_l, A_h, [srcend, -48]
-@@ -219,20 +205,42 @@ L(last64):
+@@ -219,20 +205,42 @@
  	stp	C_l, C_h, [dstend, -16]
  	ret
  
@@ -5165,7 +5005,7 @@ index d0d47e90b8..e0b4c4502f 100644
  	sub	srcend, srcend, tmp1
  	sub	count, count, tmp1
  	ldp	A_l, A_h, [srcend, -16]
-@@ -242,10 +250,9 @@ L(move_long):
+@@ -242,10 +250,9 @@
  	ldp	D_l, D_h, [srcend, -64]!
  	sub	dstend, dstend, tmp1
  	subs	count, count, 128
@@ -5178,7 +5018,7 @@ index d0d47e90b8..e0b4c4502f 100644
  	stp	A_l, A_h, [dstend, -16]
  	ldp	A_l, A_h, [srcend, -16]
  	stp	B_l, B_h, [dstend, -32]
-@@ -255,12 +262,10 @@ L(move_long):
+@@ -255,12 +262,10 @@
  	stp	D_l, D_h, [dstend, -64]!
  	ldp	D_l, D_h, [srcend, -64]!
  	subs	count, count, 64
@@ -5194,7 +5034,7 @@ index d0d47e90b8..e0b4c4502f 100644
  	ldp	G_l, G_h, [src, 48]
  	stp	A_l, A_h, [dstend, -16]
  	ldp	A_l, A_h, [src, 32]
-@@ -273,7 +278,7 @@ L(move_long):
+@@ -273,7 +278,7 @@
  	stp	A_l, A_h, [dstin, 32]
  	stp	B_l, B_h, [dstin, 16]
  	stp	C_l, C_h, [dstin]
@@ -5205,8 +5045,6 @@ index d0d47e90b8..e0b4c4502f 100644
 -libc_hidden_builtin_def (MEMCPY)
 +END (MEMMOVE)
 +libc_hidden_builtin_def (MEMMOVE)
-diff --git a/sysdeps/aarch64/multiarch/Makefile b/sysdeps/aarch64/multiarch/Makefile
-index 8378107c78..3c5292d1a3 100644
 --- a/sysdeps/aarch64/multiarch/Makefile
 +++ b/sysdeps/aarch64/multiarch/Makefile
 @@ -1,5 +1,5 @@
@@ -5216,11 +5054,9 @@ index 8378107c78..3c5292d1a3 100644
  		   memcpy_falkor memmove_falkor \
  		   memset_generic memset_falkor memset_emag memset_kunpeng \
  		   memchr_generic memchr_nosimd \
-diff --git a/sysdeps/aarch64/multiarch/ifunc-impl-list.c b/sysdeps/aarch64/multiarch/ifunc-impl-list.c
-index b7da62c3b0..4b004ac47f 100644
 --- a/sysdeps/aarch64/multiarch/ifunc-impl-list.c
 +++ b/sysdeps/aarch64/multiarch/ifunc-impl-list.c
-@@ -42,11 +42,13 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -42,11 +42,13 @@
  	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_thunderx)
  	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_thunderx2)
  	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_falkor)
@@ -5234,8 +5070,6 @@ index b7da62c3b0..4b004ac47f 100644
  	      IFUNC_IMPL_ADD (array, i, memmove, 1, __memmove_generic))
    IFUNC_IMPL (i, name, memset,
  	      /* Enable this on non-falkor processors too so that other cores
-diff --git a/sysdeps/aarch64/multiarch/memcpy.c b/sysdeps/aarch64/multiarch/memcpy.c
-index 2fafefd5d2..799d60c98c 100644
 --- a/sysdeps/aarch64/multiarch/memcpy.c
 +++ b/sysdeps/aarch64/multiarch/memcpy.c
 @@ -29,6 +29,7 @@
@@ -5246,7 +5080,7 @@ index 2fafefd5d2..799d60c98c 100644
  extern __typeof (__redirect_memcpy) __memcpy_thunderx attribute_hidden;
  extern __typeof (__redirect_memcpy) __memcpy_thunderx2 attribute_hidden;
  extern __typeof (__redirect_memcpy) __memcpy_falkor attribute_hidden;
-@@ -36,11 +37,14 @@ extern __typeof (__redirect_memcpy) __memcpy_falkor attribute_hidden;
+@@ -36,11 +37,14 @@
  libc_ifunc (__libc_memcpy,
              (IS_THUNDERX (midr)
  	     ? __memcpy_thunderx
@@ -5263,9 +5097,6 @@ index 2fafefd5d2..799d60c98c 100644
  
  # undef memcpy
  strong_alias (__libc_memcpy, memcpy);
-diff --git a/sysdeps/aarch64/multiarch/memcpy_advsimd.S b/sysdeps/aarch64/multiarch/memcpy_advsimd.S
-new file mode 100644
-index 0000000000..48bb6d7ca4
 --- /dev/null
 +++ b/sysdeps/aarch64/multiarch/memcpy_advsimd.S
 @@ -0,0 +1,248 @@
@@ -5517,8 +5348,6 @@ index 0000000000..48bb6d7ca4
 +
 +END (__memmove_simd)
 +libc_hidden_builtin_def (__memmove_simd)
-diff --git a/sysdeps/aarch64/multiarch/memmove.c b/sysdeps/aarch64/multiarch/memmove.c
-index ed5a47f6f8..46a4cb3a54 100644
 --- a/sysdeps/aarch64/multiarch/memmove.c
 +++ b/sysdeps/aarch64/multiarch/memmove.c
 @@ -29,6 +29,7 @@
@@ -5529,7 +5358,7 @@ index ed5a47f6f8..46a4cb3a54 100644
  extern __typeof (__redirect_memmove) __memmove_thunderx attribute_hidden;
  extern __typeof (__redirect_memmove) __memmove_thunderx2 attribute_hidden;
  extern __typeof (__redirect_memmove) __memmove_falkor attribute_hidden;
-@@ -40,7 +41,10 @@ libc_ifunc (__libc_memmove,
+@@ -40,7 +41,10 @@
  		? __memmove_falkor
  		: (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr)
  		  ? __memmove_thunderx2
@@ -5541,11 +5370,9 @@ index ed5a47f6f8..46a4cb3a54 100644
  
  # undef memmove
  strong_alias (__libc_memmove, memmove);
-diff --git a/sysdeps/aarch64/strcpy.S b/sysdeps/aarch64/strcpy.S
-index 548130e413..a8ff52c072 100644
 --- a/sysdeps/aarch64/strcpy.S
 +++ b/sysdeps/aarch64/strcpy.S
-@@ -234,8 +234,13 @@ L(entry_no_page_cross):
+@@ -234,8 +234,13 @@
  #endif
  	/* calculate the loc value */
  	cmeq	datav.16b, datav.16b, #0
@@ -5559,11 +5386,9 @@ index 548130e413..a8ff52c072 100644
  	cmp	data1, 0
  	csel	data1, data1, data2, ne
  	mov	pos, 8
-diff --git a/sysdeps/aarch64/strnlen.S b/sysdeps/aarch64/strnlen.S
-index 5981247dd9..086a5c7e99 100644
 --- a/sysdeps/aarch64/strnlen.S
 +++ b/sysdeps/aarch64/strnlen.S
-@@ -154,8 +154,13 @@ L(loop_end):
+@@ -154,8 +154,13 @@
  	   byte.  */
  
  	cmeq	datav.16b, datav.16b, #0
@@ -5577,8 +5402,6 @@ index 5981247dd9..086a5c7e99 100644
  	cmp	data1, 0
  	csel	data1, data1, data2, ne
  	sub	len, src, srcin
-diff --git a/sysdeps/aarch64/sysdep.h b/sysdeps/aarch64/sysdep.h
-index 604c489170..f1feb19dc7 100644
 --- a/sysdeps/aarch64/sysdep.h
 +++ b/sysdeps/aarch64/sysdep.h
 @@ -45,7 +45,7 @@
@@ -5590,11 +5413,9 @@ index 604c489170..f1feb19dc7 100644
    C_LABEL(name)							\
    cfi_startproc;						\
    CALL_MCOUNT
-diff --git a/sysdeps/arm/armv7/multiarch/memcpy_impl.S b/sysdeps/arm/armv7/multiarch/memcpy_impl.S
-index bf4ac7077f..379bb56fc9 100644
 --- a/sysdeps/arm/armv7/multiarch/memcpy_impl.S
 +++ b/sysdeps/arm/armv7/multiarch/memcpy_impl.S
-@@ -268,7 +268,7 @@ ENTRY(memcpy)
+@@ -268,7 +268,7 @@
  
  	mov	dst, dstin	/* Preserve dstin, we need to return it.  */
  	cmp	count, #64
@@ -5603,7 +5424,7 @@ index bf4ac7077f..379bb56fc9 100644
  	/* Deal with small copies quickly by dropping straight into the
  	   exit block.  */
  
-@@ -351,10 +351,10 @@ ENTRY(memcpy)
+@@ -351,10 +351,10 @@
  
  1:
  	subs	tmp2, count, #64	/* Use tmp2 for count.  */
@@ -5616,7 +5437,7 @@ index bf4ac7077f..379bb56fc9 100644
  
  .Lcpy_body_medium:			/* Count in tmp2.  */
  #ifdef USE_VFP
-@@ -378,7 +378,7 @@ ENTRY(memcpy)
+@@ -378,7 +378,7 @@
  	add	src, src, #64
  	vstr	d1, [dst, #56]
  	add	dst, dst, #64
@@ -5625,7 +5446,7 @@ index bf4ac7077f..379bb56fc9 100644
  	tst	tmp2, #0x3f
  	beq	.Ldone
  
-@@ -412,7 +412,7 @@ ENTRY(memcpy)
+@@ -412,7 +412,7 @@
  	ldrd	A_l, A_h, [src, #64]!
  	strd	A_l, A_h, [dst, #64]!
  	subs	tmp2, tmp2, #64
@@ -5634,7 +5455,7 @@ index bf4ac7077f..379bb56fc9 100644
  	tst	tmp2, #0x3f
  	bne	1f
  	ldr	tmp2,[sp], #FRAME_SIZE
-@@ -482,7 +482,7 @@ ENTRY(memcpy)
+@@ -482,7 +482,7 @@
  	add	src, src, #32
  
  	subs	tmp2, tmp2, #prefetch_lines * 64 * 2
@@ -5643,7 +5464,7 @@ index bf4ac7077f..379bb56fc9 100644
  1:
  	cpy_line_vfp	d3, 0
  	cpy_line_vfp	d4, 64
-@@ -494,7 +494,7 @@ ENTRY(memcpy)
+@@ -494,7 +494,7 @@
  	add	dst, dst, #2 * 64
  	add	src, src, #2 * 64
  	subs	tmp2, tmp2, #prefetch_lines * 64
@@ -5652,7 +5473,7 @@ index bf4ac7077f..379bb56fc9 100644
  
  2:
  	cpy_tail_vfp	d3, 0
-@@ -615,8 +615,8 @@ ENTRY(memcpy)
+@@ -615,8 +615,8 @@
  1:
  	pld	[src, #(3 * 64)]
  	subs	count, count, #64
@@ -5663,7 +5484,7 @@ index bf4ac7077f..379bb56fc9 100644
  	pld	[src, #(4 * 64)]
  
  #ifdef USE_NEON
-@@ -633,7 +633,7 @@ ENTRY(memcpy)
+@@ -633,7 +633,7 @@
  	neon_load_multi d0-d3, src
  	neon_load_multi d4-d7, src
  	subs	count, count, #64
@@ -5672,7 +5493,7 @@ index bf4ac7077f..379bb56fc9 100644
  1:
  	pld	[src, #(4 * 64)]
  	neon_store_multi d0-d3, dst
-@@ -641,7 +641,7 @@ ENTRY(memcpy)
+@@ -641,7 +641,7 @@
  	neon_store_multi d4-d7, dst
  	neon_load_multi d4-d7, src
  	subs	count, count, #64
@@ -5681,25 +5502,17 @@ index bf4ac7077f..379bb56fc9 100644
  2:
  	neon_store_multi d0-d3, dst
  	neon_store_multi d4-d7, dst
-diff --git a/sysdeps/arm/be/nofpu/Implies b/sysdeps/arm/be/nofpu/Implies
-new file mode 100644
-index 0000000000..c90dd7fd5c
 --- /dev/null
 +++ b/sysdeps/arm/be/nofpu/Implies
 @@ -0,0 +1 @@
 +arm/nofpu
-diff --git a/sysdeps/arm/le/nofpu/Implies b/sysdeps/arm/le/nofpu/Implies
-new file mode 100644
-index 0000000000..c90dd7fd5c
 --- /dev/null
 +++ b/sysdeps/arm/le/nofpu/Implies
 @@ -0,0 +1 @@
 +arm/nofpu
-diff --git a/sysdeps/arm/memcpy.S b/sysdeps/arm/memcpy.S
-index 510e8adaf2..bcfbc51d99 100644
 --- a/sysdeps/arm/memcpy.S
 +++ b/sysdeps/arm/memcpy.S
-@@ -68,7 +68,7 @@ ENTRY(memcpy)
+@@ -68,7 +68,7 @@
  		cfi_remember_state
  
  		subs	r2, r2, #4
@@ -5708,7 +5521,7 @@ index 510e8adaf2..bcfbc51d99 100644
  		ands	ip, r0, #3
  	PLD(	pld	[r1, #0]		)
  		bne	9f
-@@ -82,7 +82,7 @@ ENTRY(memcpy)
+@@ -82,7 +82,7 @@
  		cfi_rel_offset (r6, 4)
  		cfi_rel_offset (r7, 8)
  		cfi_rel_offset (r8, 12)
@@ -5717,7 +5530,7 @@ index 510e8adaf2..bcfbc51d99 100644
  
  	CALGN(	ands	ip, r1, #31		)
  	CALGN(	rsb	r3, ip, #32		)
-@@ -98,9 +98,9 @@ ENTRY(memcpy)
+@@ -98,9 +98,9 @@
  #endif
  
  	PLD(	pld	[r1, #0]		)
@@ -5729,7 +5542,7 @@ index 510e8adaf2..bcfbc51d99 100644
  	PLD(	pld	[r1, #60]		)
  	PLD(	pld	[r1, #92]		)
  
-@@ -108,9 +108,7 @@ ENTRY(memcpy)
+@@ -108,9 +108,7 @@
  4:		ldmia	r1!, {r3, r4, r5, r6, r7, r8, ip, lr}
  		subs	r2, r2, #32
  		stmia	r0!, {r3, r4, r5, r6, r7, r8, ip, lr}
@@ -5740,7 +5553,7 @@ index 510e8adaf2..bcfbc51d99 100644
  
  5:		ands	ip, r2, #28
  		rsb	ip, ip, #32
-@@ -222,7 +220,7 @@ ENTRY(memcpy)
+@@ -222,7 +220,7 @@
  		strbge	r4, [r0], #1
  		subs	r2, r2, ip
  		strb	lr, [r0], #1
@@ -5749,7 +5562,7 @@ index 510e8adaf2..bcfbc51d99 100644
  		ands	ip, r1, #3
  		beq	1b
  
-@@ -236,7 +234,7 @@ ENTRY(memcpy)
+@@ -236,7 +234,7 @@
  		.macro	forward_copy_shift pull push
  
  		subs	r2, r2, #28
@@ -5758,7 +5571,7 @@ index 510e8adaf2..bcfbc51d99 100644
  
  	CALGN(	ands	ip, r1, #31		)
  	CALGN(	rsb	ip, ip, #32		)
-@@ -253,9 +251,9 @@ ENTRY(memcpy)
+@@ -253,9 +251,9 @@
  		cfi_rel_offset (r10, 16)
  
  	PLD(	pld	[r1, #0]		)
@@ -5770,7 +5583,7 @@ index 510e8adaf2..bcfbc51d99 100644
  	PLD(	pld	[r1, #60]		)
  	PLD(	pld	[r1, #92]		)
  
-@@ -280,9 +278,7 @@ ENTRY(memcpy)
+@@ -280,9 +278,7 @@
  		mov	ip, ip, PULL #\pull
  		orr	ip, ip, lr, PUSH #\push
  		stmia	r0!, {r3, r4, r5, r6, r7, r8, r10, ip}
@@ -5781,11 +5594,9 @@ index 510e8adaf2..bcfbc51d99 100644
  
  		pop	{r5 - r8, r10}
  		cfi_adjust_cfa_offset (-20)
-diff --git a/sysdeps/arm/memmove.S b/sysdeps/arm/memmove.S
-index 954037ef3a..0d07b76ee6 100644
 --- a/sysdeps/arm/memmove.S
 +++ b/sysdeps/arm/memmove.S
-@@ -85,7 +85,7 @@ ENTRY(memmove)
+@@ -85,7 +85,7 @@
  		add	r1, r1, r2
  		add	r0, r0, r2
  		subs	r2, r2, #4
@@ -5794,7 +5605,7 @@ index 954037ef3a..0d07b76ee6 100644
  		ands	ip, r0, #3
  	PLD(	pld	[r1, #-4]		)
  		bne	9f
-@@ -99,7 +99,7 @@ ENTRY(memmove)
+@@ -99,7 +99,7 @@
  		cfi_rel_offset (r6, 4)
  		cfi_rel_offset (r7, 8)
  		cfi_rel_offset (r8, 12)
@@ -5803,7 +5614,7 @@ index 954037ef3a..0d07b76ee6 100644
  
  	CALGN(	ands	ip, r1, #31		)
  	CALGN(	sbcsne	r4, ip, r2		)  @ C is always set here
-@@ -114,9 +114,9 @@ ENTRY(memmove)
+@@ -114,9 +114,9 @@
  #endif
  
  	PLD(	pld	[r1, #-4]		)
@@ -5815,7 +5626,7 @@ index 954037ef3a..0d07b76ee6 100644
  	PLD(	pld	[r1, #-64]		)
  	PLD(	pld	[r1, #-96]		)
  
-@@ -124,9 +124,7 @@ ENTRY(memmove)
+@@ -124,9 +124,7 @@
  4:		ldmdb	r1!, {r3, r4, r5, r6, r7, r8, ip, lr}
  		subs	r2, r2, #32
  		stmdb	r0!, {r3, r4, r5, r6, r7, r8, ip, lr}
@@ -5826,7 +5637,7 @@ index 954037ef3a..0d07b76ee6 100644
  
  5:		ands	ip, r2, #28
  		rsb	ip, ip, #32
-@@ -237,7 +235,7 @@ ENTRY(memmove)
+@@ -237,7 +235,7 @@
  		strbge	r4, [r0, #-1]!
  		subs	r2, r2, ip
  		strb	lr, [r0, #-1]!
@@ -5835,7 +5646,7 @@ index 954037ef3a..0d07b76ee6 100644
  		ands	ip, r1, #3
  		beq	1b
  
-@@ -251,7 +249,7 @@ ENTRY(memmove)
+@@ -251,7 +249,7 @@
  		.macro	backward_copy_shift push pull
  
  		subs	r2, r2, #28
@@ -5844,7 +5655,7 @@ index 954037ef3a..0d07b76ee6 100644
  
  	CALGN(	ands	ip, r1, #31		)
  	CALGN(	rsb	ip, ip, #32		)
-@@ -268,9 +266,9 @@ ENTRY(memmove)
+@@ -268,9 +266,9 @@
  		cfi_rel_offset (r10, 16)
  
  	PLD(	pld	[r1, #-4]		)
@@ -5856,7 +5667,7 @@ index 954037ef3a..0d07b76ee6 100644
  	PLD(	pld	[r1, #-64]		)
  	PLD(	pld	[r1, #-96]		)
  
-@@ -295,9 +293,7 @@ ENTRY(memmove)
+@@ -295,9 +293,7 @@
  		mov     r4, r4, PUSH #\push
  		orr     r4, r4, r3, PULL #\pull
  		stmdb   r0!, {r4 - r8, r10, ip, lr}
@@ -5867,9 +5678,6 @@ index 954037ef3a..0d07b76ee6 100644
  
  		pop	{r5 - r8, r10}
  		cfi_adjust_cfa_offset (-20)
-diff --git a/sysdeps/generic/unwind-arch.h b/sysdeps/generic/unwind-arch.h
-new file mode 100644
-index 0000000000..d712e5e11d
 --- /dev/null
 +++ b/sysdeps/generic/unwind-arch.h
 @@ -0,0 +1,30 @@
@@ -5903,11 +5711,9 @@ index 0000000000..d712e5e11d
 +}
 +
 +#endif
-diff --git a/sysdeps/hppa/dl-fptr.c b/sysdeps/hppa/dl-fptr.c
-index 0a37397284..25ca8f8463 100644
 --- a/sysdeps/hppa/dl-fptr.c
 +++ b/sysdeps/hppa/dl-fptr.c
-@@ -172,8 +172,8 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
+@@ -172,8 +172,8 @@
      }
  
   install:
@@ -5917,7 +5723,7 @@ index 0a37397284..25ca8f8463 100644
  
    return (ElfW(Addr)) fdesc;
  }
-@@ -350,7 +350,9 @@ ElfW(Addr)
+@@ -350,7 +350,9 @@
  _dl_lookup_address (const void *address)
  {
    ElfW(Addr) addr = (ElfW(Addr)) address;
@@ -5928,7 +5734,7 @@ index 0a37397284..25ca8f8463 100644
  
    /* Return ADDR if the least-significant two bits of ADDR are not consistent
       with ADDR being a linker defined function pointer.  The normal value for
-@@ -367,7 +369,11 @@ _dl_lookup_address (const void *address)
+@@ -367,7 +369,11 @@
    if (!_dl_read_access_allowed (desc))
      return addr;
  
@@ -5941,7 +5747,7 @@ index 0a37397284..25ca8f8463 100644
       with word alignment and point to memory that can be read.  */
    gptr = (unsigned int *) desc[0];
    if (((unsigned int) gptr & 3) != 0
-@@ -377,8 +383,8 @@ _dl_lookup_address (const void *address)
+@@ -377,8 +383,8 @@
    /* See if descriptor requires resolution.  The following trampoline is
       used in each global offset table for function resolution:
  
@@ -5952,7 +5758,7 @@ index 0a37397284..25ca8f8463 100644
  		ldw 4(r20),r21
       tramp:	b,l .-12,r20
  		depwi 0,31,2,r20
-@@ -389,7 +395,15 @@ _dl_lookup_address (const void *address)
+@@ -389,7 +395,15 @@
    if (gptr[0] == 0xea9f1fdd			/* b,l .-12,r20     */
        && gptr[1] == 0xd6801c1e			/* depwi 0,31,2,r20 */
        && (ElfW(Addr)) gptr[2] == elf_machine_resolve ())
@@ -5969,8 +5775,6 @@ index 0a37397284..25ca8f8463 100644
  
    return (ElfW(Addr)) desc[0];
  }
-diff --git a/sysdeps/hppa/dl-machine.h b/sysdeps/hppa/dl-machine.h
-index 9e98366ea3..8ecff97706 100644
 --- a/sysdeps/hppa/dl-machine.h
 +++ b/sysdeps/hppa/dl-machine.h
 @@ -48,6 +48,14 @@
@@ -5988,7 +5792,7 @@ index 9e98366ea3..8ecff97706 100644
  /* Initialize the function descriptor table before relocations */
  static inline void
  __hppa_init_bootstrap_fdesc_table (struct link_map *map)
-@@ -117,10 +125,28 @@ elf_machine_fixup_plt (struct link_map *map, lookup_t t,
+@@ -117,10 +125,28 @@
    volatile Elf32_Addr *rfdesc = reloc_addr;
    /* map is the link_map for the caller, t is the link_map for the object
       being called */
@@ -6021,7 +5825,7 @@ index 9e98366ea3..8ecff97706 100644
    return value;
  }
  
-@@ -265,7 +291,7 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+@@ -265,7 +291,7 @@
  		     here.  The trampoline code will load the proper
  		     LTP and pass the reloc offset to the fixup
  		     function.  */
@@ -6030,9 +5834,6 @@ index 9e98366ea3..8ecff97706 100644
  		} /* r_sym != 0 */
  	      else
  		{
-diff --git a/sysdeps/hppa/dl-runtime.c b/sysdeps/hppa/dl-runtime.c
-new file mode 100644
-index 0000000000..885a3f1837
 --- /dev/null
 +++ b/sysdeps/hppa/dl-runtime.c
 @@ -0,0 +1,58 @@
@@ -6094,8 +5895,6 @@ index 0000000000..885a3f1837
 +  ABORT_INSTRUCTION;
 +  return 0;
 +}
-diff --git a/sysdeps/hppa/dl-trampoline.S b/sysdeps/hppa/dl-trampoline.S
-index 0114ca8b19..d0804b30c0 100644
 --- a/sysdeps/hppa/dl-trampoline.S
 +++ b/sysdeps/hppa/dl-trampoline.S
 @@ -31,7 +31,7 @@
@@ -6107,7 +5906,7 @@ index 0114ca8b19..d0804b30c0 100644
  
  	/* RELOCATION MARKER: bl to provide gcc's __cffc with fixup loc. */
  	.text
-@@ -61,17 +61,20 @@ _dl_runtime_resolve:
+@@ -61,17 +61,20 @@
  	copy	%sp, %r1	/* Copy previous sp */
  	/* Save function result address (on entry) */
  	stwm	%r28,128(%sp)
@@ -6130,7 +5929,7 @@ index 0114ca8b19..d0804b30c0 100644
  	fstd,ma	%fr7,-8(%r1)
  
  	/* Set up args to fixup func, needs only two arguments  */
-@@ -79,7 +82,7 @@ _dl_runtime_resolve:
+@@ -79,7 +82,7 @@
  	copy	%r19,%r25		/* (2) reloc offset  */
  
  	/* Call the real address resolver. */
@@ -6139,7 +5938,7 @@ index 0114ca8b19..d0804b30c0 100644
  	copy	%r21,%r19		/* set fixup func ltp */
  
  	/* While the linker will set a function pointer to NULL when it
-@@ -102,7 +105,7 @@ _dl_runtime_resolve:
+@@ -102,7 +105,7 @@
  	copy	%r29, %r19
  
  	/* Reload arguments fp args */
@@ -6148,7 +5947,7 @@ index 0114ca8b19..d0804b30c0 100644
  	fldd,ma	-8(%r1),%fr4
  	fldd,ma	-8(%r1),%fr5
  	fldd,ma	-8(%r1),%fr6
-@@ -129,6 +132,25 @@ _dl_runtime_resolve:
+@@ -129,6 +132,25 @@
  	bv	%r0(%rp)
  	ldo	-128(%sp),%sp
  
@@ -6174,7 +5973,7 @@ index 0114ca8b19..d0804b30c0 100644
          .EXIT
          .PROCEND
  	cfi_endproc
-@@ -153,7 +175,7 @@ _dl_runtime_profile:
+@@ -153,7 +175,7 @@
  	copy	%sp, %r1	/* Copy previous sp */
  	/* Save function result address (on entry) */
  	stwm	%r28,192(%sp)
@@ -6183,7 +5982,7 @@ index 0114ca8b19..d0804b30c0 100644
  	stw	%r1,-4(%sp)	/* Previous sp */
  	stw	%r21,-32(%sp)	/* PIC register value */
  
-@@ -181,10 +203,11 @@ _dl_runtime_profile:
+@@ -181,10 +203,11 @@
  	fstd,ma	%fr5,8(%r1)
  	fstd,ma	%fr6,8(%r1)
  	fstd,ma	%fr7,8(%r1)
@@ -6198,7 +5997,7 @@ index 0114ca8b19..d0804b30c0 100644
  
  	/* Set up args to fixup func, needs five arguments  */
  	ldw	8+4(%r20),%r26		/* (1) got[1] == struct link_map */
-@@ -197,7 +220,7 @@ _dl_runtime_profile:
+@@ -197,7 +220,7 @@
  	stw	%r1, -52(%sp)		/* (5) long int *framesizep */
  
  	/* Call the real address resolver. */
@@ -6207,7 +6006,7 @@ index 0114ca8b19..d0804b30c0 100644
  	copy	%r21,%r19		/* set fixup func ltp */
  
  	/* Load up the returned function descriptor */
-@@ -215,7 +238,9 @@ _dl_runtime_profile:
+@@ -215,7 +238,9 @@
  	fldd,ma	8(%r1),%fr5
  	fldd,ma	8(%r1),%fr6
  	fldd,ma	8(%r1),%fr7
@@ -6218,7 +6017,7 @@ index 0114ca8b19..d0804b30c0 100644
  
  	/* Reload static link register -(192+16) without adjusting stack */
  	ldw	-208(%sp),%r29
-@@ -303,6 +328,33 @@ L(cont):
+@@ -303,6 +328,33 @@
          ldw -20(%sp),%rp
  	/* Return */
  	bv,n	0(%r2)
@@ -6252,11 +6051,9 @@ index 0114ca8b19..d0804b30c0 100644
          .EXIT
          .PROCEND
  	cfi_endproc
-diff --git a/sysdeps/i386/dl-machine.h b/sysdeps/i386/dl-machine.h
-index 8af0789a9c..4334ade2a0 100644
 --- a/sysdeps/i386/dl-machine.h
 +++ b/sysdeps/i386/dl-machine.h
-@@ -338,16 +338,22 @@ elf_machine_rel (struct link_map *map, const Elf32_Rel *reloc,
+@@ -338,16 +338,22 @@
  	{
  # ifndef RTLD_BOOTSTRAP
  	  if (sym_map != map
@@ -6284,11 +6081,9 @@ index 8af0789a9c..4334ade2a0 100644
  	    }
  # endif
  	  value = ((Elf32_Addr (*) (void)) value) ();
-diff --git a/sysdeps/i386/sysdep.h b/sysdeps/i386/sysdep.h
-index b4bcd8fb6c..6094af8fec 100644
 --- a/sysdeps/i386/sysdep.h
 +++ b/sysdeps/i386/sysdep.h
-@@ -61,7 +61,7 @@ lose: SYSCALL_PIC_SETUP							      \
+@@ -61,7 +61,7 @@
  
  # define SETUP_PIC_REG(reg) \
    .ifndef GET_PC_THUNK(reg);						      \
@@ -6297,7 +6092,7 @@ index b4bcd8fb6c..6094af8fec 100644
    .globl GET_PC_THUNK(reg);						      \
    .hidden GET_PC_THUNK(reg);						      \
    .p2align 4;								      \
-@@ -97,7 +97,8 @@ GET_PC_THUNK(reg):							      \
+@@ -97,7 +97,8 @@
  
  # define SETUP_PIC_REG_STR(reg)						\
    ".ifndef " GET_PC_THUNK_STR (reg) "\n"				\
@@ -6307,8 +6102,6 @@ index b4bcd8fb6c..6094af8fec 100644
    ".globl " GET_PC_THUNK_STR (reg) "\n"					\
    ".hidden " GET_PC_THUNK_STR (reg) "\n"				\
    ".p2align 4\n"							\
-diff --git a/sysdeps/ieee754/ldbl-96/Makefile b/sysdeps/ieee754/ldbl-96/Makefile
-index 995e90d6da..6030adf7e7 100644
 --- a/sysdeps/ieee754/ldbl-96/Makefile
 +++ b/sysdeps/ieee754/ldbl-96/Makefile
 @@ -17,5 +17,8 @@
@@ -6321,11 +6114,9 @@ index 995e90d6da..6030adf7e7 100644
 +CFLAGS-test-sinl-pseudo.c += -fstack-protector-all
  endif
 +endif # $(subdir) == math
-diff --git a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
-index 5f742321ae..bcdf20179f 100644
 --- a/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
 +++ b/sysdeps/ieee754/ldbl-96/e_rem_pio2l.c
-@@ -210,6 +210,18 @@ __ieee754_rem_pio2l (long double x, long double *y)
+@@ -210,6 +210,18 @@
        return 0;
      }
  
@@ -6344,9 +6135,6 @@ index 5f742321ae..bcdf20179f 100644
    /* Split the 64 bits of the mantissa into three 24-bit integers
       stored in a double array.  */
    exp = j0 - 23;
-diff --git a/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
-new file mode 100644
-index 0000000000..f59b97769d
 --- /dev/null
 +++ b/sysdeps/ieee754/ldbl-96/test-sinl-pseudo.c
 @@ -0,0 +1,41 @@
@@ -6391,11 +6179,9 @@ index 0000000000..f59b97769d
 +}
 +
 +#include <support/test-driver.c>
-diff --git a/sysdeps/posix/system.c b/sysdeps/posix/system.c
-index e613e6a344..a03f478fc7 100644
 --- a/sysdeps/posix/system.c
 +++ b/sysdeps/posix/system.c
-@@ -101,7 +101,8 @@ cancel_handler (void *arg)
+@@ -101,7 +101,8 @@
  static int
  do_system (const char *line)
  {
@@ -6405,7 +6191,7 @@ index e613e6a344..a03f478fc7 100644
    pid_t pid;
    struct sigaction sa;
  #ifndef _LIBC_REENTRANT
-@@ -144,14 +145,14 @@ do_system (const char *line)
+@@ -144,14 +145,14 @@
    __posix_spawnattr_setflags (&spawn_attr,
  			      POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK);
  
@@ -6426,7 +6212,7 @@ index e613e6a344..a03f478fc7 100644
      {
        /* Cancellation results in cleanup handlers running as exceptions in
  	 the block where they were installed, so it is safe to reference
-@@ -186,6 +187,9 @@ do_system (const char *line)
+@@ -186,6 +187,9 @@
      }
    DO_UNLOCK ();
  
@@ -6436,11 +6222,9 @@ index e613e6a344..a03f478fc7 100644
    return status;
  }
  
-diff --git a/sysdeps/powerpc/powerpc32/sysdep.h b/sysdeps/powerpc/powerpc32/sysdep.h
-index 2ba009e919..829eec266a 100644
 --- a/sysdeps/powerpc/powerpc32/sysdep.h
 +++ b/sysdeps/powerpc/powerpc32/sysdep.h
-@@ -179,8 +179,8 @@ GOT_LABEL:			;					      \
+@@ -179,8 +179,8 @@
  #else
  /* Position-dependent code does not require access to the GOT.  */
  # define __GLRO(rOUT, rGOT, member, offset)				\
@@ -6451,11 +6235,9 @@ index 2ba009e919..829eec266a 100644
  #endif	/* PIC */
  
  #endif	/* __ASSEMBLER__ */
-diff --git a/sysdeps/powerpc/powerpc64/backtrace.c b/sysdeps/powerpc/powerpc64/backtrace.c
-index 8a53a1088f..362a2b713c 100644
 --- a/sysdeps/powerpc/powerpc64/backtrace.c
 +++ b/sysdeps/powerpc/powerpc64/backtrace.c
-@@ -54,11 +54,22 @@ struct signal_frame_64 {
+@@ -54,11 +54,22 @@
    /* We don't care about the rest, since the IP value is at 'uc' field.  */
  };
  
@@ -6479,11 +6261,9 @@ index 8a53a1088f..362a2b713c 100644
      return true;
  #endif
    return false;
-diff --git a/sysdeps/s390/configure b/sysdeps/s390/configure
-index fa46e9e351..e7f576338d 100644
 --- a/sysdeps/s390/configure
 +++ b/sysdeps/s390/configure
-@@ -123,7 +123,9 @@ void testinsn (char *buf)
+@@ -123,7 +123,9 @@
      __asm__ (".machine \"arch13\" \n\t"
  	     ".machinemode \"zarch_nohighgprs\" \n\t"
  	     "lghi %%r0,16 \n\t"
@@ -6494,7 +6274,7 @@ index fa46e9e351..e7f576338d 100644
  }
  EOF
  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS --shared conftest.c
-@@ -271,7 +273,9 @@ else
+@@ -271,7 +273,9 @@
  void testinsn (char *buf)
  {
      __asm__ ("lghi %%r0,16 \n\t"
@@ -6505,11 +6285,9 @@ index fa46e9e351..e7f576338d 100644
  }
  EOF
  if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS --shared conftest.c
-diff --git a/sysdeps/s390/configure.ac b/sysdeps/s390/configure.ac
-index 3ed5a8ef87..5c3479e8cf 100644
 --- a/sysdeps/s390/configure.ac
 +++ b/sysdeps/s390/configure.ac
-@@ -88,7 +88,9 @@ void testinsn (char *buf)
+@@ -88,7 +88,9 @@
      __asm__ (".machine \"arch13\" \n\t"
  	     ".machinemode \"zarch_nohighgprs\" \n\t"
  	     "lghi %%r0,16 \n\t"
@@ -6520,7 +6298,7 @@ index 3ed5a8ef87..5c3479e8cf 100644
  }
  EOF
  dnl test, if assembler supports S390 arch13 instructions
-@@ -195,7 +197,9 @@ cat > conftest.c <<\EOF
+@@ -195,7 +197,9 @@
  void testinsn (char *buf)
  {
      __asm__ ("lghi %%r0,16 \n\t"
@@ -6531,11 +6309,9 @@ index 3ed5a8ef87..5c3479e8cf 100644
  }
  EOF
  dnl test, if assembler supports S390 arch13 zarch instructions as default
-diff --git a/sysdeps/s390/memmove.c b/sysdeps/s390/memmove.c
-index 5fc85e129f..ee59b5de14 100644
 --- a/sysdeps/s390/memmove.c
 +++ b/sysdeps/s390/memmove.c
-@@ -43,7 +43,7 @@ extern __typeof (__redirect_memmove) MEMMOVE_ARCH13 attribute_hidden;
+@@ -43,7 +43,7 @@
  s390_libc_ifunc_expr (__redirect_memmove, memmove,
  		      ({
  			s390_libc_ifunc_expr_stfle_init ();
@@ -6544,11 +6320,9 @@ index 5fc85e129f..ee59b5de14 100644
  			 && S390_IS_ARCH13_MIE3 (stfle_bits))
  			  ? MEMMOVE_ARCH13
  			  : (HAVE_MEMMOVE_Z13 && (hwcap & HWCAP_S390_VX))
-diff --git a/sysdeps/s390/multiarch/ifunc-impl-list.c b/sysdeps/s390/multiarch/ifunc-impl-list.c
-index e6195c6e26..17c0cc3952 100644
 --- a/sysdeps/s390/multiarch/ifunc-impl-list.c
 +++ b/sysdeps/s390/multiarch/ifunc-impl-list.c
-@@ -171,7 +171,8 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -171,7 +171,8 @@
      IFUNC_IMPL (i, name, memmove,
  # if HAVE_MEMMOVE_ARCH13
  		IFUNC_IMPL_ADD (array, i, memmove,
@@ -6558,22 +6332,14 @@ index e6195c6e26..17c0cc3952 100644
  				MEMMOVE_ARCH13)
  # endif
  # if HAVE_MEMMOVE_Z13
-diff --git a/sysdeps/sh/be/sh4/fpu/Implies b/sysdeps/sh/be/sh4/fpu/Implies
-new file mode 100644
-index 0000000000..71b28ee1a4
 --- /dev/null
 +++ b/sysdeps/sh/be/sh4/fpu/Implies
 @@ -0,0 +1 @@
 +sh/sh4/fpu
-diff --git a/sysdeps/sh/le/sh4/fpu/Implies b/sysdeps/sh/le/sh4/fpu/Implies
-new file mode 100644
-index 0000000000..71b28ee1a4
 --- /dev/null
 +++ b/sysdeps/sh/le/sh4/fpu/Implies
 @@ -0,0 +1 @@
 +sh/sh4/fpu
-diff --git a/sysdeps/unix/make-syscalls.sh b/sysdeps/unix/make-syscalls.sh
-index c07626677f..4f6c3490a2 100644
 --- a/sysdeps/unix/make-syscalls.sh
 +++ b/sysdeps/unix/make-syscalls.sh
 @@ -30,6 +30,7 @@
@@ -6584,7 +6350,7 @@ index c07626677f..4f6c3490a2 100644
  # v: vararg scalar (e.g., optional 3rd arg to open)
  # V: byte-per-page vector (3rd arg to mincore)
  # W: wait status, optionally-NULL pointer to int (e.g., 2nd arg of wait4)
-@@ -184,6 +185,27 @@ while read file srcfile caller syscall args strong weak; do
+@@ -184,6 +185,27 @@
    ?:?????????) nargs=9;;
    esac
  
@@ -6612,7 +6378,7 @@ index c07626677f..4f6c3490a2 100644
    # Make sure only the first syscall rule is used, if multiple dirs
    # define the same syscall.
    echo ''
-@@ -245,6 +267,8 @@ while read file srcfile caller syscall args strong weak; do
+@@ -245,6 +267,8 @@
  	\$(make-target-directory)
  	(echo '#define SYSCALL_NAME $syscall'; \\
  	 echo '#define SYSCALL_NARGS $nargs'; \\
@@ -6621,8 +6387,6 @@ index c07626677f..4f6c3490a2 100644
  	 echo '#define SYSCALL_SYMBOL $strong'; \\
  	 echo '#define SYSCALL_NOERRNO $noerrno'; \\
  	 echo '#define SYSCALL_ERRVAL $errval'; \\
-diff --git a/sysdeps/unix/syscall-template.S b/sysdeps/unix/syscall-template.S
-index cf6c7a58fb..f807a8603f 100644
 --- a/sysdeps/unix/syscall-template.S
 +++ b/sysdeps/unix/syscall-template.S
 @@ -25,6 +25,12 @@
@@ -6686,7 +6450,7 @@ index cf6c7a58fb..f807a8603f 100644
  	ret_NOERRNO
  T_PSEUDO_END_NOERRNO (SYSCALL_SYMBOL)
  
-@@ -66,7 +99,12 @@ T_PSEUDO_END_NOERRNO (SYSCALL_SYMBOL)
+@@ -66,7 +99,12 @@
     value, or zero for success.  We may massage the kernel's return value
     to meet that ABI, but we never set errno here.  */
  
@@ -6699,7 +6463,7 @@ index cf6c7a58fb..f807a8603f 100644
  	ret_ERRVAL
  T_PSEUDO_END_ERRVAL (SYSCALL_SYMBOL)
  
-@@ -75,7 +113,12 @@ T_PSEUDO_END_ERRVAL (SYSCALL_SYMBOL)
+@@ -75,7 +113,12 @@
  /* This is a "normal" system call stub: if there is an error,
     it returns -1 and sets errno.  */
  
@@ -6712,11 +6476,9 @@ index cf6c7a58fb..f807a8603f 100644
  	ret
  T_PSEUDO_END (SYSCALL_SYMBOL)
  
-diff --git a/sysdeps/unix/syscalls.list b/sysdeps/unix/syscalls.list
-index e28e801c7a..6b22b2cb45 100644
 --- a/sysdeps/unix/syscalls.list
 +++ b/sysdeps/unix/syscalls.list
-@@ -39,27 +39,27 @@ kill		-	kill		i:ii	__kill		kill
+@@ -39,27 +39,27 @@
  link		-	link		i:ss	__link		link
  listen		-	listen		i:ii	__listen	listen
  lseek		-	lseek		i:iii	__libc_lseek	__lseek lseek
@@ -6754,18 +6516,16 @@ index e28e801c7a..6b22b2cb45 100644
  setdomain	-	setdomainname	i:si	setdomainname
  setegid		-	setegid		i:i	__setegid	setegid
  seteuid		-	seteuid		i:i	__seteuid	seteuid
-@@ -94,5 +94,5 @@ uname		-	uname		i:p	__uname		uname
+@@ -94,5 +94,5 @@
  unlink		-	unlink		i:s	__unlink	unlink
  utimes		-	utimes		i:sp	__utimes	utimes
  vhangup		-	vhangup		i:i	vhangup
 -write		-	write		Ci:ibn	__libc_write	__write write
 +write		-	write		Ci:ibU	__libc_write	__write write
  writev		-	writev		Ci:ipi	__writev	writev
-diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
-index f12b7b1a2d..5fbde369c3 100644
 --- a/sysdeps/unix/sysv/linux/Makefile
 +++ b/sysdeps/unix/sysv/linux/Makefile
-@@ -60,7 +60,9 @@ sysdep_routines += adjtimex clone umount umount2 readahead \
+@@ -60,7 +60,9 @@
  		   setfsuid setfsgid epoll_pwait signalfd \
  		   eventfd eventfd_read eventfd_write prlimit \
  		   personality epoll_wait tee vmsplice splice \
@@ -6776,8 +6536,6 @@ index f12b7b1a2d..5fbde369c3 100644
  
  CFLAGS-gethostid.c = -fexceptions
  CFLAGS-tee.c = -fexceptions -fasynchronous-unwind-tables
-diff --git a/sysdeps/unix/sysv/linux/aarch64/arch-syscall.h b/sysdeps/unix/sysv/linux/aarch64/arch-syscall.h
-index 9378387747..c8471947b9 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/arch-syscall.h
 +++ b/sysdeps/unix/sysv/linux/aarch64/arch-syscall.h
 @@ -17,6 +17,7 @@
@@ -6788,8 +6546,6 @@ index 9378387747..c8471947b9 100644
  #define __NR_close 57
  #define __NR_connect 203
  #define __NR_copy_file_range 285
-diff --git a/sysdeps/unix/sysv/linux/aarch64/cpu-features.h b/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
-index 1389cea1b3..346d045fb4 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
 +++ b/sysdeps/unix/sysv/linux/aarch64/cpu-features.h
 @@ -51,8 +51,12 @@
@@ -6807,11 +6563,9 @@ index 1389cea1b3..346d045fb4 100644
  
  #define IS_EMAG(midr) (MIDR_IMPLEMENTOR(midr) == 'P'			      \
                         && MIDR_PARTNUM(midr) == 0x000)
-diff --git a/sysdeps/unix/sysv/linux/aarch64/localplt.data b/sysdeps/unix/sysv/linux/aarch64/localplt.data
-index a60053b914..08af68b5e8 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/localplt.data
 +++ b/sysdeps/unix/sysv/linux/aarch64/localplt.data
-@@ -7,6 +7,9 @@ libc.so: malloc
+@@ -7,6 +7,9 @@
  libc.so: memalign
  libc.so: realloc
  libm.so: matherr
@@ -6821,11 +6575,9 @@ index a60053b914..08af68b5e8 100644
  # The dynamic loader needs __tls_get_addr for TLS.
  ld.so: __tls_get_addr
  # The main malloc is interposed into the dynamic linker, for
-diff --git a/sysdeps/unix/sysv/linux/hppa/atomic-machine.h b/sysdeps/unix/sysv/linux/hppa/atomic-machine.h
-index 9d8ffbe860..bf61b66b70 100644
 --- a/sysdeps/unix/sysv/linux/hppa/atomic-machine.h
 +++ b/sysdeps/unix/sysv/linux/hppa/atomic-machine.h
-@@ -36,9 +36,37 @@ typedef uintptr_t uatomicptr_t;
+@@ -36,9 +36,37 @@
  typedef intmax_t atomic_max_t;
  typedef uintmax_t uatomic_max_t;
  
@@ -6863,11 +6615,9 @@ index 9d8ffbe860..bf61b66b70 100644
  /* XXX Is this actually correct?  */
  #define ATOMIC_EXCHANGE_USES_CAS 1
  
-diff --git a/sysdeps/unix/sysv/linux/microblaze/sysdep.h b/sysdeps/unix/sysv/linux/microblaze/sysdep.h
-index ed873d9dd4..796663a23a 100644
 --- a/sysdeps/unix/sysv/linux/microblaze/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/microblaze/sysdep.h
-@@ -209,8 +209,8 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -209,8 +209,8 @@
  
  # define inline_syscall0(name,dummy)                                          \
    ({                                                                          \
@@ -6878,7 +6628,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r12)                                                            \
-@@ -219,9 +219,10 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -219,9 +219,10 @@
  
  # define inline_syscall1(name,arg1)                                           \
    ({                                                                          \
@@ -6892,7 +6642,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r12)                                                 \
-@@ -230,10 +231,12 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -230,10 +231,12 @@
  
  # define inline_syscall2(name,arg1,arg2)                                      \
    ({                                                                          \
@@ -6909,7 +6659,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r6), "r"(__r12)                                      \
-@@ -243,11 +246,14 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -243,11 +246,14 @@
  
  # define inline_syscall3(name,arg1,arg2,arg3)                                 \
    ({                                                                          \
@@ -6929,7 +6679,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r6), "r"(__r7), "r"(__r12)                           \
-@@ -257,12 +263,16 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -257,12 +263,16 @@
  
  # define inline_syscall4(name,arg1,arg2,arg3,arg4)                            \
    ({                                                                          \
@@ -6952,7 +6702,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r6), "r"(__r7), "r"(__r8),"r"(__r12)                 \
-@@ -272,13 +282,18 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -272,13 +282,18 @@
  
  # define inline_syscall5(name,arg1,arg2,arg3,arg4,arg5)                       \
    ({                                                                          \
@@ -6978,7 +6728,7 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r6), "r"(__r7), "r"(__r8),"r"(__r9), "r"(__r12)      \
-@@ -288,14 +303,20 @@ SYSCALL_ERROR_LABEL_DCL:                            \
+@@ -288,14 +303,20 @@
  
  # define inline_syscall6(name,arg1,arg2,arg3,arg4,arg5,arg6)                  \
    ({                                                                          \
@@ -7007,8 +6757,6 @@ index ed873d9dd4..796663a23a 100644
      __asm__ __volatile__( "brki r14,8; nop;"                                  \
        : "=r"(__ret)                                                           \
        : "r"(__r5), "r"(__r6), "r"(__r7), "r"(__r8),"r"(__r9), "r"(__r10),     \
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall5.S b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall5.S
-index b2bbf10181..ff445a5406 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall5.S
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall5.S
 @@ -22,9 +22,9 @@
@@ -7024,8 +6772,6 @@ index b2bbf10181..ff445a5406 100644
  
  ENTRY(__mips_syscall5)
  	lw	v0, 20(sp)
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall6.S b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall6.S
-index 572d7c1137..2b4a3117d1 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall6.S
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall6.S
 @@ -22,9 +22,9 @@
@@ -7041,8 +6787,6 @@ index 572d7c1137..2b4a3117d1 100644
  
  ENTRY(__mips_syscall6)
  	lw	v0, 24(sp)
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall7.S b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall7.S
-index 05164cb253..2723bbb138 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall7.S
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips-syscall7.S
 @@ -22,9 +22,10 @@
@@ -7059,8 +6803,6 @@ index 05164cb253..2723bbb138 100644
  
  ENTRY(__mips_syscall7)
  	lw	v0, 28(sp)
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall.h b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall.h
-index 9bf551ace8..f23ede0259 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall.h
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall.h
 @@ -19,51 +19,57 @@
@@ -7101,12 +6843,13 @@ index 9bf551ace8..f23ede0259 100644
  #define __mips16_syscall3(a0, a1, a2, number)				\
 -	__mips16_syscall3 ((long) (a0), (long) (a1), (long) (a2),	\
 -			   (long) (number))
+-
+-long long __nomips16 __mips16_syscall4 (long a0, long a1, long a2, long a3,
+-					long number);
 +	__mips16_syscall3 ((long int) (a0), (long int) (a1),		\
 +			   (long int) (a2),				\
 +			   (long int) (number))
- 
--long long __nomips16 __mips16_syscall4 (long a0, long a1, long a2, long a3,
--					long number);
++
 +long long int __nomips16 __mips16_syscall4 (long int a0, long int a1,
 +					    long int a2, long int a3,
 +					    long int number);
@@ -7150,8 +6893,6 @@ index 9bf551ace8..f23ede0259 100644
 +			 (long int) (number))
  
  #endif
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall0.c b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall0.c
-index 92f16e2724..43c05f8050 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall0.c
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall0.c
 @@ -20,8 +20,8 @@
@@ -7165,8 +6906,6 @@ index 92f16e2724..43c05f8050 100644
  {
    union __mips_syscall_return ret;
    ret.reg.v0 = INTERNAL_SYSCALL_MIPS16 (number, ret.reg.v1, 0);
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall1.c b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall1.c
-index fa985a96e5..16a567e834 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall1.c
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall1.c
 @@ -20,9 +20,9 @@
@@ -7182,8 +6921,6 @@ index fa985a96e5..16a567e834 100644
  {
    union __mips_syscall_return ret;
    ret.reg.v0 = INTERNAL_SYSCALL_MIPS16 (number, ret.reg.v1, 1,
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall2.c b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall2.c
-index f042ac815d..c0a856c344 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall2.c
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall2.c
 @@ -20,9 +20,9 @@
@@ -7199,8 +6936,6 @@ index f042ac815d..c0a856c344 100644
  {
    union __mips_syscall_return ret;
    ret.reg.v0 = INTERNAL_SYSCALL_MIPS16 (number, ret.reg.v1, 2,
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall3.c b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall3.c
-index dfe2f7feb5..042768ebf2 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall3.c
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall3.c
 @@ -20,9 +20,9 @@
@@ -7216,8 +6951,6 @@ index dfe2f7feb5..042768ebf2 100644
  {
    union __mips_syscall_return ret;
    ret.reg.v0 = INTERNAL_SYSCALL_MIPS16 (number, ret.reg.v1, 3,
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall4.c b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall4.c
-index 39de510357..8658d822ab 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall4.c
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/mips16/mips16-syscall4.c
 @@ -20,9 +20,9 @@
@@ -7233,8 +6966,6 @@ index 39de510357..8658d822ab 100644
  {
    union __mips_syscall_return ret;
    ret.reg.v0 = INTERNAL_SYSCALL_MIPS16 (number, ret.reg.v1, 4,
-diff --git a/sysdeps/unix/sysv/linux/mips/mips32/sysdep.h b/sysdeps/unix/sysv/linux/mips/mips32/sysdep.h
-index beefcf284b..0c6a83e9b3 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips32/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/mips/mips32/sysdep.h
 @@ -52,7 +52,7 @@
@@ -7274,7 +7005,7 @@ index beefcf284b..0c6a83e9b3 100644
        }
      reg;
    };
-@@ -152,13 +152,13 @@ union __mips_syscall_return
+@@ -152,13 +152,13 @@
  
  #define internal_syscall0(v0_init, input, number, err, dummy...)	\
  ({									\
@@ -7292,7 +7023,7 @@ index beefcf284b..0c6a83e9b3 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-@@ -175,14 +175,15 @@ union __mips_syscall_return
+@@ -175,14 +175,15 @@
  
  #define internal_syscall1(v0_init, input, number, err, arg1)		\
  ({									\
@@ -7313,7 +7044,7 @@ index beefcf284b..0c6a83e9b3 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-@@ -199,15 +200,17 @@ union __mips_syscall_return
+@@ -199,15 +200,17 @@
  
  #define internal_syscall2(v0_init, input, number, err, arg1, arg2)	\
  ({									\
@@ -7337,7 +7068,7 @@ index beefcf284b..0c6a83e9b3 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-@@ -225,16 +228,19 @@ union __mips_syscall_return
+@@ -225,16 +228,19 @@
  #define internal_syscall3(v0_init, input, number, err,			\
  			  arg1, arg2, arg3)				\
  ({									\
@@ -7364,7 +7095,7 @@ index beefcf284b..0c6a83e9b3 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-@@ -252,16 +258,20 @@ union __mips_syscall_return
+@@ -252,16 +258,20 @@
  #define internal_syscall4(v0_init, input, number, err,			\
  			  arg1, arg2, arg3, arg4)			\
  ({									\
@@ -7392,7 +7123,7 @@ index beefcf284b..0c6a83e9b3 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-@@ -285,63 +295,66 @@ union __mips_syscall_return
+@@ -285,63 +295,66 @@
     compiler specifics required for the stack arguments to be pushed,
     which would be the case if these syscalls were inlined.  */
  
@@ -7490,8 +7221,6 @@ index beefcf284b..0c6a83e9b3 100644
  	err = _sc_ret.reg.v1;						\
  	_sc_ret.reg.v0;							\
  })
-diff --git a/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h b/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h
-index f96636538a..4a9d7054f9 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/mips/mips64/n32/sysdep.h
 @@ -47,14 +47,14 @@
@@ -7707,8 +7436,6 @@ index f96636538a..4a9d7054f9 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-diff --git a/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h b/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h
-index 9d30291f84..3e1f1cc3c5 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/mips/mips64/n64/sysdep.h
 @@ -50,7 +50,7 @@
@@ -7805,16 +7532,17 @@ index 9d30291f84..3e1f1cc3c5 100644
  									\
  	{								\
 -	register long __s0 asm ("$16") __attribute__ ((unused))		\
-+	long int _arg1 = (long int) (arg1);				\
-+	long int _arg2 = (long int) (arg2);				\
-+	long int _arg3 = (long int) (arg3);				\
-+	register long int __s0 asm ("$16") __attribute__ ((unused))	\
- 	  = (number);							\
+-	  = (number);							\
 -	register long __v0 asm ("$2");					\
 -	register long __a0 asm ("$4") = (long) (arg1);			\
 -	register long __a1 asm ("$5") = (long) (arg2);			\
 -	register long __a2 asm ("$6") = (long) (arg3);			\
 -	register long __a3 asm ("$7");					\
++	long int _arg1 = (long int) (arg1);				\
++	long int _arg2 = (long int) (arg2);				\
++	long int _arg3 = (long int) (arg3);				\
++	register long int __s0 asm ("$16") __attribute__ ((unused))	\
++	  = (number);							\
 +	register long int __v0 asm ("$2");				\
 +	register long int __a0 asm ("$4") = _arg1;			\
 +	register long int __a1 asm ("$5") = _arg2;			\
@@ -7832,17 +7560,18 @@ index 9d30291f84..3e1f1cc3c5 100644
  									\
  	{								\
 -	register long __s0 asm ("$16") __attribute__ ((unused))		\
-+	long int _arg1 = (long int) (arg1);				\
-+	long int _arg2 = (long int) (arg2);				\
-+	long int _arg3 = (long int) (arg3);				\
-+	long int _arg4 = (long int) (arg4);				\
-+	register long int __s0 asm ("$16") __attribute__ ((unused))	\
- 	  = (number);							\
+-	  = (number);							\
 -	register long __v0 asm ("$2");					\
 -	register long __a0 asm ("$4") = (long) (arg1);			\
 -	register long __a1 asm ("$5") = (long) (arg2);			\
 -	register long __a2 asm ("$6") = (long) (arg3);			\
 -	register long __a3 asm ("$7") = (long) (arg4);			\
++	long int _arg1 = (long int) (arg1);				\
++	long int _arg2 = (long int) (arg2);				\
++	long int _arg3 = (long int) (arg3);				\
++	long int _arg4 = (long int) (arg4);				\
++	register long int __s0 asm ("$16") __attribute__ ((unused))	\
++	  = (number);							\
 +	register long int __v0 asm ("$2");				\
 +	register long int __a0 asm ("$4") = _arg1;			\
 +	register long int __a1 asm ("$5") = _arg2;			\
@@ -7860,19 +7589,20 @@ index 9d30291f84..3e1f1cc3c5 100644
  									\
  	{								\
 -	register long __s0 asm ("$16") __attribute__ ((unused))		\
-+	long int _arg1 = (long int) (arg1);				\
-+	long int _arg2 = (long int) (arg2);				\
-+	long int _arg3 = (long int) (arg3);				\
-+	long int _arg4 = (long int) (arg4);				\
-+	long int _arg5 = (long int) (arg5);				\
-+	register long int __s0 asm ("$16") __attribute__ ((unused))	\
- 	  = (number);							\
+-	  = (number);							\
 -	register long __v0 asm ("$2");					\
 -	register long __a0 asm ("$4") = (long) (arg1);			\
 -	register long __a1 asm ("$5") = (long) (arg2);			\
 -	register long __a2 asm ("$6") = (long) (arg3);			\
 -	register long __a3 asm ("$7") = (long) (arg4);			\
 -	register long __a4 asm ("$8") = (long) (arg5);			\
++	long int _arg1 = (long int) (arg1);				\
++	long int _arg2 = (long int) (arg2);				\
++	long int _arg3 = (long int) (arg3);				\
++	long int _arg4 = (long int) (arg4);				\
++	long int _arg5 = (long int) (arg5);				\
++	register long int __s0 asm ("$16") __attribute__ ((unused))	\
++	  = (number);							\
 +	register long int __v0 asm ("$2");				\
 +	register long int __a0 asm ("$4") = _arg1;			\
 +	register long int __a1 asm ("$5") = _arg2;			\
@@ -7891,14 +7621,7 @@ index 9d30291f84..3e1f1cc3c5 100644
  									\
  	{								\
 -	register long __s0 asm ("$16") __attribute__ ((unused))		\
-+	long int _arg1 = (long int) (arg1);				\
-+	long int _arg2 = (long int) (arg2);				\
-+	long int _arg3 = (long int) (arg3);				\
-+	long int _arg4 = (long int) (arg4);				\
-+	long int _arg5 = (long int) (arg5);				\
-+	long int _arg6 = (long int) (arg6);				\
-+	register long int __s0 asm ("$16") __attribute__ ((unused))	\
- 	  = (number);							\
+-	  = (number);							\
 -	register long __v0 asm ("$2");					\
 -	register long __a0 asm ("$4") = (long) (arg1);			\
 -	register long __a1 asm ("$5") = (long) (arg2);			\
@@ -7906,6 +7629,14 @@ index 9d30291f84..3e1f1cc3c5 100644
 -	register long __a3 asm ("$7") = (long) (arg4);			\
 -	register long __a4 asm ("$8") = (long) (arg5);			\
 -	register long __a5 asm ("$9") = (long) (arg6);			\
++	long int _arg1 = (long int) (arg1);				\
++	long int _arg2 = (long int) (arg2);				\
++	long int _arg3 = (long int) (arg3);				\
++	long int _arg4 = (long int) (arg4);				\
++	long int _arg5 = (long int) (arg5);				\
++	long int _arg6 = (long int) (arg6);				\
++	register long int __s0 asm ("$16") __attribute__ ((unused))	\
++	  = (number);							\
 +	register long int __v0 asm ("$2");				\
 +	register long int __a0 asm ("$4") = _arg1;			\
 +	register long int __a1 asm ("$5") = _arg2;			\
@@ -7916,8 +7647,6 @@ index 9d30291f84..3e1f1cc3c5 100644
  	__asm__ volatile (						\
  	".set\tnoreorder\n\t"						\
  	v0_init								\
-diff --git a/sysdeps/unix/sysv/linux/mips/mips64/syscall.S b/sysdeps/unix/sysv/linux/mips/mips64/syscall.S
-index 26adf2cd04..a9baff3c17 100644
 --- a/sysdeps/unix/sysv/linux/mips/mips64/syscall.S
 +++ b/sysdeps/unix/sysv/linux/mips/mips64/syscall.S
 @@ -20,7 +20,7 @@
@@ -7929,8 +7658,6 @@ index 26adf2cd04..a9baff3c17 100644
  
     We need to do some arg shifting, syscall_number will be in v0.  */
  
-diff --git a/sysdeps/unix/sysv/linux/mips/sysdep.h b/sysdeps/unix/sysv/linux/mips/sysdep.h
-index cdfc0b1b58..a4cf1540fe 100644
 --- a/sysdeps/unix/sysv/linux/mips/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/mips/sysdep.h
 @@ -36,8 +36,8 @@
@@ -7944,9 +7671,6 @@ index cdfc0b1b58..a4cf1540fe 100644
      if (err)								\
        _ret = -_ret;							\
      _ret;								\
-diff --git a/sysdeps/unix/sysv/linux/mips/unwind-arch.h b/sysdeps/unix/sysv/linux/mips/unwind-arch.h
-new file mode 100644
-index 0000000000..a009899983
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/mips/unwind-arch.h
 @@ -0,0 +1,67 @@
@@ -8017,8 +7741,6 @@ index 0000000000..a009899983
 +}
 +
 +#endif
-diff --git a/sysdeps/unix/sysv/linux/msgctl.c b/sysdeps/unix/sysv/linux/msgctl.c
-index 27879e76cd..fd46aec1a0 100644
 --- a/sysdeps/unix/sysv/linux/msgctl.c
 +++ b/sysdeps/unix/sysv/linux/msgctl.c
 @@ -21,6 +21,7 @@
@@ -8029,7 +7751,7 @@ index 27879e76cd..fd46aec1a0 100644
  
  #ifndef DEFAULT_VERSION
  # ifndef __ASSUME_SYSVIPC_BROKEN_MODE_T
-@@ -61,7 +62,6 @@ __new_msgctl (int msqid, int cmd, struct msqid_ds *buf)
+@@ -61,7 +62,6 @@
  
    int ret = msgctl_syscall (msqid, cmd, buf);
  
@@ -8037,7 +7759,7 @@ index 27879e76cd..fd46aec1a0 100644
    if (ret >= 0)
      {
        switch (cmd)
-@@ -69,10 +69,16 @@ __new_msgctl (int msqid, int cmd, struct msqid_ds *buf)
+@@ -69,10 +69,16 @@
  	case IPC_STAT:
  	case MSG_STAT:
  	case MSG_STAT_ANY:
@@ -8055,9 +7777,6 @@ index 27879e76cd..fd46aec1a0 100644
  
    return ret;
  }
-diff --git a/sysdeps/unix/sysv/linux/nios2/kernel-features.h b/sysdeps/unix/sysv/linux/nios2/kernel-features.h
-deleted file mode 100644
-index d68d114981..0000000000
 --- a/sysdeps/unix/sysv/linux/nios2/kernel-features.h
 +++ /dev/null
 @@ -1,22 +0,0 @@
@@ -8083,8 +7802,6 @@ index d68d114981..0000000000
 -#include_next <kernel-features.h>
 -
 -#undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
-diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h b/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
-index 725dfafde8..ffc150851e 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/powerpc/powerpc32/sysdep.h
 @@ -134,47 +134,47 @@
@@ -8147,8 +7864,6 @@ index 725dfafde8..ffc150851e 100644
  
  # define ASM_INPUT_0 "0" (r0)
  # define ASM_INPUT_1 ASM_INPUT_0, "1" (r3)
-diff --git a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
-index ee7f43653d..8a3f1c43e4 100644
 --- a/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/powerpc/powerpc64/sysdep.h
 @@ -139,47 +139,47 @@
@@ -8211,9 +7926,6 @@ index ee7f43653d..8a3f1c43e4 100644
  
  #define ASM_INPUT_0 "0" (r0)
  #define ASM_INPUT_1 ASM_INPUT_0, "1" (r3)
-diff --git a/sysdeps/unix/sysv/linux/prctl.c b/sysdeps/unix/sysv/linux/prctl.c
-new file mode 100644
-index 0000000000..d5725f14cf
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/prctl.c
 @@ -0,0 +1,42 @@
@@ -8259,9 +7971,6 @@ index 0000000000..d5725f14cf
 +
 +libc_hidden_def (__prctl)
 +weak_alias (__prctl, prctl)
-diff --git a/sysdeps/unix/sysv/linux/process_vm_readv.c b/sysdeps/unix/sysv/linux/process_vm_readv.c
-new file mode 100644
-index 0000000000..e1377f7e50
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/process_vm_readv.c
 @@ -0,0 +1,32 @@
@@ -8297,9 +8006,6 @@ index 0000000000..e1377f7e50
 +  return INLINE_SYSCALL_CALL (process_vm_readv, pid, local_iov,
 +			      liovcnt, remote_iov, riovcnt, flags);
 +}
-diff --git a/sysdeps/unix/sysv/linux/process_vm_writev.c b/sysdeps/unix/sysv/linux/process_vm_writev.c
-new file mode 100644
-index 0000000000..944ab9b7f1
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/process_vm_writev.c
 @@ -0,0 +1,32 @@
@@ -8335,8 +8041,6 @@ index 0000000000..944ab9b7f1
 +  return INLINE_SYSCALL_CALL (process_vm_writev, pid, local_iov,
 +			      liovcnt, remote_iov, riovcnt, flags);
 +}
-diff --git a/sysdeps/unix/sysv/linux/riscv/sysdep.h b/sysdeps/unix/sysv/linux/riscv/sysdep.h
-index 201bf9a91b..2bd9b16f32 100644
 --- a/sysdeps/unix/sysv/linux/riscv/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/riscv/sysdep.h
 @@ -176,10 +176,11 @@
@@ -8493,8 +8197,6 @@ index 201bf9a91b..2bd9b16f32 100644
  	__asm__ volatile ( 						\
  	"scall\n\t" 							\
  	: "+r" (__a0)							\
-diff --git a/sysdeps/unix/sysv/linux/semctl.c b/sysdeps/unix/sysv/linux/semctl.c
-index 0c3eb0932f..30571af49f 100644
 --- a/sysdeps/unix/sysv/linux/semctl.c
 +++ b/sysdeps/unix/sysv/linux/semctl.c
 @@ -22,6 +22,7 @@
@@ -8505,7 +8207,7 @@ index 0c3eb0932f..30571af49f 100644
  
  /* Define a `union semun' suitable for Linux here.  */
  union semun
-@@ -92,7 +93,6 @@ __new_semctl (int semid, int semnum, int cmd, ...)
+@@ -92,7 +93,6 @@
  
    int ret = semctl_syscall (semid, semnum, cmd, arg);
  
@@ -8513,7 +8215,7 @@ index 0c3eb0932f..30571af49f 100644
    if (ret >= 0)
      {
        switch (cmd)
-@@ -100,10 +100,16 @@ __new_semctl (int semid, int semnum, int cmd, ...)
+@@ -100,10 +100,16 @@
          case IPC_STAT:
          case SEM_STAT:
          case SEM_STAT_ANY:
@@ -8531,22 +8233,14 @@ index 0c3eb0932f..30571af49f 100644
  
    return ret;
  }
-diff --git a/sysdeps/unix/sysv/linux/sh/be/sh4/fpu/Implies b/sysdeps/unix/sysv/linux/sh/be/sh4/fpu/Implies
-new file mode 100644
-index 0000000000..7eeaf15a5a
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/sh/be/sh4/fpu/Implies
 @@ -0,0 +1 @@
 +unix/sysv/linux/sh/sh4/fpu
-diff --git a/sysdeps/unix/sysv/linux/sh/le/sh4/fpu/Implies b/sysdeps/unix/sysv/linux/sh/le/sh4/fpu/Implies
-new file mode 100644
-index 0000000000..7eeaf15a5a
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/sh/le/sh4/fpu/Implies
 @@ -0,0 +1 @@
 +unix/sysv/linux/sh/sh4/fpu
-diff --git a/sysdeps/unix/sysv/linux/shmctl.c b/sysdeps/unix/sysv/linux/shmctl.c
-index 39fa861e17..f41b359b8b 100644
 --- a/sysdeps/unix/sysv/linux/shmctl.c
 +++ b/sysdeps/unix/sysv/linux/shmctl.c
 @@ -22,6 +22,7 @@
@@ -8557,7 +8251,7 @@ index 39fa861e17..f41b359b8b 100644
  
  #ifndef DEFAULT_VERSION
  # ifndef __ASSUME_SYSVIPC_BROKEN_MODE_T
-@@ -63,7 +64,6 @@ __new_shmctl (int shmid, int cmd, struct shmid_ds *buf)
+@@ -63,7 +64,6 @@
  
    int ret = shmctl_syscall (shmid, cmd, buf);
  
@@ -8565,7 +8259,7 @@ index 39fa861e17..f41b359b8b 100644
    if (ret >= 0)
      {
        switch (cmd)
-@@ -71,10 +71,16 @@ __new_shmctl (int shmid, int cmd, struct shmid_ds *buf)
+@@ -71,10 +71,16 @@
          case IPC_STAT:
          case SHM_STAT:
          case SHM_STAT_ANY:
@@ -8583,11 +8277,9 @@ index 39fa861e17..f41b359b8b 100644
  
    return ret;
  }
-diff --git a/sysdeps/unix/sysv/linux/sparc/Makefile b/sysdeps/unix/sysv/linux/sparc/Makefile
-index b0d182a439..1475039677 100644
 --- a/sysdeps/unix/sysv/linux/sparc/Makefile
 +++ b/sysdeps/unix/sysv/linux/sparc/Makefile
-@@ -11,8 +11,12 @@ ifeq ($(subdir),sysvipc)
+@@ -11,8 +11,12 @@
  sysdep_routines += getshmlba
  endif
  
@@ -8602,8 +8294,6 @@ index b0d182a439..1475039677 100644
 +libpthread-routines += sysdep sigreturn_stub
 +libpthread-shared-only-routines += sysdep sigreturn_stub
  endif
-diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c b/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
-index 6b2f664226..938aa7aa8c 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc32/sigaction.c
 @@ -24,8 +24,8 @@
@@ -8617,7 +8307,7 @@ index 6b2f664226..938aa7aa8c 100644
  
  #define STUB(act, sigsetsize) \
    (act) ? ((unsigned long)((act->sa_flags & SA_SIGINFO)	\
-@@ -35,25 +35,3 @@ static void __sigreturn_stub (void);
+@@ -35,25 +35,3 @@
    (sigsetsize)
  
  #include <sysdeps/unix/sysv/linux/sigaction.c>
@@ -8643,9 +8333,6 @@ index 6b2f664226..938aa7aa8c 100644
 -	   : /* no outputs */
 -	   : "i" (__NR_sigreturn));
 -}
-diff --git a/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
-new file mode 100644
-index 0000000000..727cc94737
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc32/sigreturn_stub.S
 @@ -0,0 +1,34 @@
@@ -8683,8 +8370,6 @@ index 0000000000..727cc94737
 +	mov	__NR_sigreturn, %g1
 +	ta	0x10
 +END (__sigreturn_stub)
-diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c b/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
-index 9c0dc2a630..4e26172321 100644
 --- a/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc64/sigaction.c
 @@ -22,21 +22,11 @@
@@ -8711,9 +8396,6 @@ index 9c0dc2a630..4e26172321 100644
 -	   : /* no outputs */
 -	   : "i" (__NR_rt_sigreturn));
 -}
-diff --git a/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
-new file mode 100644
-index 0000000000..add4766831
 --- /dev/null
 +++ b/sysdeps/unix/sysv/linux/sparc/sparc64/sigreturn_stub.S
 @@ -0,0 +1,29 @@
@@ -8746,8 +8428,6 @@ index 0000000000..add4766831
 +	mov	__NR_rt_sigreturn, %g1
 +	ta	0x6d
 +END (__rt_sigreturn_stub)
-diff --git a/sysdeps/unix/sysv/linux/syscall-names.list b/sysdeps/unix/sysv/linux/syscall-names.list
-index 36e087d8f4..3d89814003 100644
 --- a/sysdeps/unix/sysv/linux/syscall-names.list
 +++ b/sysdeps/unix/sysv/linux/syscall-names.list
 @@ -21,8 +21,8 @@
@@ -8761,11 +8441,9 @@ index 36e087d8f4..3d89814003 100644
  
  FAST_atomic_update
  FAST_cmpxchg
-diff --git a/sysdeps/unix/sysv/linux/syscalls.list b/sysdeps/unix/sysv/linux/syscalls.list
-index 5f1352ad43..52e6dafc86 100644
 --- a/sysdeps/unix/sysv/linux/syscalls.list
 +++ b/sysdeps/unix/sysv/linux/syscalls.list
-@@ -28,25 +28,24 @@ inotify_add_watch	EXTRA	inotify_add_watch	i:isi	inotify_add_watch
+@@ -28,25 +28,24 @@
  inotify_init	EXTRA	inotify_init	i:	inotify_init
  inotify_init1	EXTRA	inotify_init1	i:I	inotify_init1
  inotify_rm_watch	EXTRA	inotify_rm_watch	i:ii	inotify_rm_watch
@@ -8798,7 +8476,7 @@ index 5f1352ad43..52e6dafc86 100644
  sched_getp	-	sched_getparam	i:ip	__sched_getparam	sched_getparam
  sched_gets	-	sched_getscheduler	i:i	__sched_getscheduler	sched_getscheduler
  sched_primax	-	sched_get_priority_max	i:i	__sched_get_priority_max	sched_get_priority_max
-@@ -55,8 +54,8 @@ sched_rr_gi	-	sched_rr_get_interval	i:ip	__sched_rr_get_interval	sched_rr_get_in
+@@ -55,8 +54,8 @@
  sched_setp	-	sched_setparam	i:ip	__sched_setparam	sched_setparam
  sched_sets	-	sched_setscheduler	i:iip	__sched_setscheduler	sched_setscheduler
  sched_yield	-	sched_yield	i:	__sched_yield	sched_yield
@@ -8809,7 +8487,7 @@ index 5f1352ad43..52e6dafc86 100644
  setfsgid	EXTRA	setfsgid	i:i	setfsgid
  setfsuid	EXTRA	setfsuid	i:i	setfsuid
  setpgid		-	setpgid		i:ii	__setpgid	setpgid
-@@ -73,19 +72,19 @@ chown		-	chown		i:sii	__libc_chown	__chown chown
+@@ -73,19 +72,19 @@
  fchownat	-	fchownat	i:isiii	fchownat
  linkat		-	linkat		i:isisi	linkat
  mkdirat		-	mkdirat		i:isi	mkdirat
@@ -8839,7 +8517,7 @@ index 5f1352ad43..52e6dafc86 100644
  removexattr	-	removexattr	i:ss	removexattr
  lremovexattr	-	lremovexattr	i:ss	lremovexattr
  fremovexattr	-	fremovexattr	i:is	fremovexattr
-@@ -102,8 +101,6 @@ name_to_handle_at EXTRA	name_to_handle_at i:isppi name_to_handle_at
+@@ -102,8 +101,6 @@
  
  setns		EXTRA	setns		i:ii	setns
  
@@ -8848,8 +8526,6 @@ index 5f1352ad43..52e6dafc86 100644
  memfd_create    EXTRA	memfd_create	i:si    memfd_create
  pkey_alloc	EXTRA	pkey_alloc	i:ii	pkey_alloc
  pkey_free	EXTRA	pkey_free	i:i	pkey_free
-diff --git a/sysdeps/unix/sysv/linux/x86_64/sysdep.h b/sysdeps/unix/sysv/linux/x86_64/sysdep.h
-index c2eb37e575..c7f740a1df 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/x86_64/sysdep.h
 @@ -61,13 +61,31 @@
@@ -8877,14 +8553,14 @@ index c2eb37e575..c7f740a1df 100644
 +  ENTRY (name)							      \
 +    DO_CALL (syscall_name, args, ulong_arg_1, ulong_arg_2);	      \
 +    cmpq $-4095, %rax;						      \
-     jae SYSCALL_ERROR_LABEL
++    jae SYSCALL_ERROR_LABEL
 +# else
 +#  define PSEUDO(name, syscall_name, args) \
 +  .text;							      \
 +  ENTRY (name)							      \
 +    DO_CALL (syscall_name, args, 0, 0);				      \
 +    cmpq $-4095, %rax;						      \
-+    jae SYSCALL_ERROR_LABEL
+     jae SYSCALL_ERROR_LABEL
 +# endif
  
  # undef	PSEUDO_END
@@ -8984,8 +8660,6 @@ index c2eb37e575..c7f740a1df 100644
  
  #undef INTERNAL_SYSCALL
  #define INTERNAL_SYSCALL(name, err, nr, args...)			\
-diff --git a/sysdeps/unix/sysv/linux/x86_64/x32/sysdep.h b/sysdeps/unix/sysv/linux/x86_64/x32/sysdep.h
-index 5bf9eed80b..62e6f8fe11 100644
 --- a/sysdeps/unix/sysv/linux/x86_64/x32/sysdep.h
 +++ b/sysdeps/unix/sysv/linux/x86_64/x32/sysdep.h
 @@ -26,4 +26,39 @@
@@ -9028,11 +8702,9 @@ index 5bf9eed80b..62e6f8fe11 100644
 +#endif	/* __ASSEMBLER__ */
 +
  #endif /* linux/x86_64/x32/sysdep.h */
-diff --git a/sysdeps/x86/Makefile b/sysdeps/x86/Makefile
-index 95182a508c..a5112ef367 100644
 --- a/sysdeps/x86/Makefile
 +++ b/sysdeps/x86/Makefile
-@@ -12,6 +12,12 @@ endif
+@@ -12,6 +12,12 @@
  ifeq ($(subdir),setjmp)
  gen-as-const-headers += jmp_buf-ssp.sym
  sysdep_routines += __longjmp_cancel
@@ -9045,11 +8717,9 @@ index 95182a508c..a5112ef367 100644
  endif
  
  ifeq ($(enable-cet),yes)
-diff --git a/sysdeps/x86/cacheinfo.c b/sysdeps/x86/cacheinfo.c
-index e3e8ef27bb..39c13b7195 100644
 --- a/sysdeps/x86/cacheinfo.c
 +++ b/sysdeps/x86/cacheinfo.c
-@@ -722,7 +722,7 @@ intel_bug_no_cache_info:
+@@ -722,7 +722,7 @@
  	      threads = 1 << ((ecx >> 12) & 0x0f);
  	    }
  
@@ -9058,7 +8728,7 @@ index e3e8ef27bb..39c13b7195 100644
  	    {
  	      /* If APIC ID width is not available, use logical
  		 processor count.  */
-@@ -737,8 +737,22 @@ intel_bug_no_cache_info:
+@@ -737,8 +737,22 @@
  	  if (threads > 0)
  	    shared /= threads;
  
@@ -9083,7 +8753,7 @@ index e3e8ef27bb..39c13b7195 100644
  	}
  
  #ifndef DISABLE_PREFETCHW
-@@ -778,14 +792,20 @@ intel_bug_no_cache_info:
+@@ -778,14 +792,20 @@
        __x86_shared_cache_size = shared;
      }
  
@@ -9109,11 +8779,9 @@ index e3e8ef27bb..39c13b7195 100644
  }
  
  #endif
-diff --git a/sysdeps/x86/dl-cet.c b/sysdeps/x86/dl-cet.c
-index ca3b5849bc..8ffaf94a00 100644
 --- a/sysdeps/x86/dl-cet.c
 +++ b/sysdeps/x86/dl-cet.c
-@@ -105,7 +105,11 @@ dl_cet_check (struct link_map *m, const char *program)
+@@ -105,7 +105,11 @@
    /* No legacy object check if both IBT and SHSTK are always on.  */
    if (enable_ibt_type == CET_ALWAYS_ON
        && enable_shstk_type == CET_ALWAYS_ON)
@@ -9126,20 +8794,13 @@ index ca3b5849bc..8ffaf94a00 100644
  
    /* Check if IBT is enabled by kernel.  */
    bool ibt_enabled
-diff --git a/sysdeps/x86/tst-setjmp-cet.c b/sysdeps/x86/tst-setjmp-cet.c
-new file mode 100644
-index 0000000000..42c795d2a8
 --- /dev/null
 +++ b/sysdeps/x86/tst-setjmp-cet.c
 @@ -0,0 +1 @@
 +#include <setjmp/tst-setjmp.c>
-diff --git a/sysdeps/x86_64/configure b/sysdeps/x86_64/configure
-old mode 100644
-new mode 100755
-index 84f82c2406..fc1840e23f
 --- a/sysdeps/x86_64/configure
 +++ b/sysdeps/x86_64/configure
-@@ -107,39 +107,6 @@ if test x"$build_mathvec" = xnotset; then
+@@ -107,39 +107,6 @@
    build_mathvec=yes
  fi
  
@@ -9179,11 +8840,9 @@ index 84f82c2406..fc1840e23f
  $as_echo "#define PI_STATIC_AND_HIDDEN 1" >>confdefs.h
  
  
-diff --git a/sysdeps/x86_64/configure.ac b/sysdeps/x86_64/configure.ac
-index cdaba0c075..611a7d9ba3 100644
 --- a/sysdeps/x86_64/configure.ac
 +++ b/sysdeps/x86_64/configure.ac
-@@ -53,31 +53,6 @@ if test x"$build_mathvec" = xnotset; then
+@@ -53,31 +53,6 @@
    build_mathvec=yes
  fi
  
@@ -9215,11 +8874,9 @@ index cdaba0c075..611a7d9ba3 100644
  dnl It is always possible to access static and hidden symbols in an
  dnl position independent way.
  AC_DEFINE(PI_STATIC_AND_HIDDEN)
-diff --git a/sysdeps/x86_64/dl-machine.h b/sysdeps/x86_64/dl-machine.h
-index 8e9baffeb4..74029871d8 100644
 --- a/sysdeps/x86_64/dl-machine.h
 +++ b/sysdeps/x86_64/dl-machine.h
-@@ -315,16 +315,22 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
+@@ -315,16 +315,22 @@
  	{
  # ifndef RTLD_BOOTSTRAP
  	  if (sym_map != map
@@ -9247,8 +8904,6 @@ index 8e9baffeb4..74029871d8 100644
  	    }
  # endif
  	  value = ((ElfW(Addr) (*) (void)) value) ();
-diff --git a/sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S b/sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
-index c763b7d871..06f70eb1b0 100644
 --- a/sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
 +++ b/sysdeps/x86_64/multiarch/memmove-vec-unaligned-erms.S
 @@ -67,6 +67,13 @@
@@ -9265,7 +8920,7 @@ index c763b7d871..06f70eb1b0 100644
  #ifndef PREFETCH
  # define PREFETCH(addr) prefetcht0 addr
  #endif
-@@ -244,7 +251,7 @@ L(return):
+@@ -244,7 +251,7 @@
  	ret
  
  L(movsb):
@@ -9274,7 +8929,7 @@ index c763b7d871..06f70eb1b0 100644
  	jae	L(more_8x_vec)
  	cmpq	%rsi, %rdi
  	jb	1f
-@@ -257,7 +264,21 @@ L(movsb):
+@@ -257,7 +264,21 @@
  #  error Unsupported REP_MOVSB_THRESHOLD and VEC_SIZE!
  # endif
  	jb	L(more_8x_vec_backward)
@@ -9296,7 +8951,7 @@ index c763b7d871..06f70eb1b0 100644
  	mov	%RDX_LP, %RCX_LP
  	rep movsb
  L(nop):
-@@ -402,7 +423,7 @@ L(more_8x_vec):
+@@ -402,7 +423,7 @@
  	addq	%r8, %rdx
  #if (defined USE_MULTIARCH || VEC_SIZE == 16) && IS_IN (libc)
  	/* Check non-temporal store threshold.  */
@@ -9305,7 +8960,7 @@ index c763b7d871..06f70eb1b0 100644
  	ja	L(large_forward)
  #endif
  L(loop_4x_vec_forward):
-@@ -454,7 +475,7 @@ L(more_8x_vec_backward):
+@@ -454,7 +475,7 @@
  	subq	%r8, %rdx
  #if (defined USE_MULTIARCH || VEC_SIZE == 16) && IS_IN (libc)
  	/* Check non-temporal store threshold.  */
@@ -9314,11 +8969,9 @@ index c763b7d871..06f70eb1b0 100644
  	ja	L(large_backward)
  #endif
  L(loop_4x_vec_backward):
-diff --git a/sysdeps/x86_64/multiarch/strcmp-avx2.S b/sysdeps/x86_64/multiarch/strcmp-avx2.S
-index 48d03a9f46..ee82fa3e19 100644
 --- a/sysdeps/x86_64/multiarch/strcmp-avx2.S
 +++ b/sysdeps/x86_64/multiarch/strcmp-avx2.S
-@@ -591,7 +591,14 @@ L(loop_cross_page_2_vec):
+@@ -591,7 +591,14 @@
  	movl	$(PAGE_SIZE / (VEC_SIZE * 4) - 1), %esi
  
  	testq	%rdi, %rdi
@@ -9333,7 +8986,7 @@ index 48d03a9f46..ee82fa3e19 100644
  	tzcntq	%rdi, %rcx
  	addq	%r10, %rcx
  	/* Adjust for number of bytes skipped.  */
-@@ -627,6 +634,14 @@ L(loop_cross_page_2_vec):
+@@ -627,6 +634,14 @@
  	VZEROUPPER
  	ret
  

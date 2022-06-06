@@ -9,11 +9,9 @@ Date:   Sun Mar 29 19:42:55 2020 +0200
     * hurd/lookup-retry.c (__hurd_file_name_lookup_retry): Call
     __file_utimens after __file_set_size.
 
-diff --git a/hurd/lookup-retry.c b/hurd/lookup-retry.c
-index c90eda808d..6d8b05e4e6 100644
 --- a/hurd/lookup-retry.c
 +++ b/hurd/lookup-retry.c
-@@ -178,8 +178,17 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
+@@ -178,8 +178,17 @@
  	      /* We got a successful translation.  Now apply any open-time
  		 action flags we were passed.  */
  

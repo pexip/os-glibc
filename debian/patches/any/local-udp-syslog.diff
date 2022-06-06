@@ -1,17 +1,15 @@
-diff --git a/misc/syslog.c b/misc/syslog.c
-index 7156b4f..0584832 100644
 --- a/misc/syslog.c
 +++ b/misc/syslog.c
-@@ -328,7 +328,7 @@ __vsyslog(int pri, const char *fmt, va_list ap)
- ldbl_hidden_def (__vsyslog, vsyslog)
- ldbl_weak_alias (__vsyslog, vsyslog)
+@@ -328,7 +328,7 @@
+ 		free (buf);
+ }
  
 -static struct sockaddr_un SyslogAddr;	/* AF_UNIX address of local logger */
 +static struct sockaddr_in SyslogAddr;	/* AF_INET address of local logger */
  
  
  static void
-@@ -341,41 +341,28 @@ openlog_internal(const char *ident, int logstat, int logfac)
+@@ -340,41 +340,28 @@
  	if (logfac != 0 && (logfac &~ LOG_FACMASK) == 0)
  		LogFacility = logfac;
  
@@ -25,6 +23,7 @@ index 7156b4f..0584832 100644
 -			  LogFile = __socket(AF_UNIX, LogType | SOCK_CLOEXEC, 0);
 -			  if (LogFile == -1)
 -			    return;
+-			}
 +	if (LogFile == -1) {
 +		SyslogAddr.sin_family = AF_INET;
 +		SyslogAddr.sin_port = htons(514);
@@ -33,7 +32,6 @@ index 7156b4f..0584832 100644
 +			LogFile = __socket(AF_INET, LogType | SOCK_CLOEXEC, 0);
 +			if (LogFile == -1)
 +				return;
--			}
  		}
 -		if (LogFile != -1 && !connected)
 +	}

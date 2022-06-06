@@ -15,11 +15,9 @@ Date:   Sat May 16 19:29:50 2020 +0200
     * sunrpc/tst-udp-timeout.c (test_udp_server): Add more timeout slack.
     * sunrpc/tst-udp-nonblocking.c (do_test): Likewise.
 
-diff --git a/sunrpc/tst-udp-nonblocking.c b/sunrpc/tst-udp-nonblocking.c
-index 189136c9f9..45d6b8919f 100644
 --- a/sunrpc/tst-udp-nonblocking.c
 +++ b/sunrpc/tst-udp-nonblocking.c
-@@ -290,7 +290,7 @@ do_test (void)
+@@ -290,7 +290,7 @@
      printf ("info: send/receive took %f seconds\n",
              after_pings - before_pings);
    /* Expected timeout is 0.75 seconds.  */
@@ -28,11 +26,9 @@ index 189136c9f9..45d6b8919f 100644
    TEST_VERIFY (after_pings - before_pings < 1.2);
  
    uint32_t xid;
-diff --git a/sunrpc/tst-udp-timeout.c b/sunrpc/tst-udp-timeout.c
-index 26869f5547..7ca284d84b 100644
 --- a/sunrpc/tst-udp-timeout.c
 +++ b/sunrpc/tst-udp-timeout.c
-@@ -294,10 +294,10 @@ test_udp_server (int port)
+@@ -283,10 +283,10 @@
    double after = get_ticks ();
    if (test_verbose)
      printf ("info: 21 garbage packets took %f seconds\n", after - before);
@@ -47,7 +43,7 @@ index 26869f5547..7ca284d84b 100644
    TEST_VERIFY (after - before < 1.2);
    test_call_flush (clnt);
  
-@@ -316,7 +316,7 @@ test_udp_server (int port)
+@@ -305,7 +305,7 @@
              after - before);
    /* Expected timeout is 1.5 seconds.  Do not accept a second retry
       (which would happen at 3 seconds).  */
@@ -56,7 +52,7 @@ index 26869f5547..7ca284d84b 100644
    TEST_VERIFY (after - before < 2.9);
    test_call_flush (clnt);
  
-@@ -331,7 +331,7 @@ test_udp_server (int port)
+@@ -320,7 +320,7 @@
    if (test_verbose)
      printf ("info: 0.75 second timeout took %f seconds\n",
              after - before);
@@ -65,7 +61,7 @@ index 26869f5547..7ca284d84b 100644
    TEST_VERIFY (after - before < 1.4);
    test_call_flush (clnt);
  
-@@ -351,7 +351,7 @@ test_udp_server (int port)
+@@ -340,7 +340,7 @@
          printf ("info: test_udp_server: 0.75 second timeout took %f seconds"
                  " (garbage %d)\n",
                  after - before, with_garbage);
@@ -74,7 +70,7 @@ index 26869f5547..7ca284d84b 100644
        TEST_VERIFY (after - before < 1.4);
        test_call_flush (clnt);
  
-@@ -369,7 +369,7 @@ test_udp_server (int port)
+@@ -358,7 +358,7 @@
          printf ("info: test_udp_server: 2.5 second timeout took %f seconds"
                  " (garbage %d)\n",
                  after - before, with_garbage);

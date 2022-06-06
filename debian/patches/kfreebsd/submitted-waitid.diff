@@ -4,11 +4,9 @@ http://sourceware.org/bugzilla/show_bug.cgi?id=15544
 
 
 
-diff --git a/bits/waitflags.h b/bits/waitflags.h
-index 59215f6..73fd714 100644
 --- a/bits/waitflags.h
 +++ b/bits/waitflags.h
-@@ -24,3 +24,16 @@
+@@ -32,3 +32,16 @@
  # define WNOWAIT	8		/* Don't reap, just poll status.  */
  # define WEXITED	16		/* Report dead child.  */
  #endif
@@ -25,11 +23,9 @@ index 59215f6..73fd714 100644
 +} idtype_t;
 +# endif
 +#endif
-diff --git a/posix/sys/wait.h b/posix/sys/wait.h
-index 3ecc493..5692b07 100644
 --- a/posix/sys/wait.h
 +++ b/posix/sys/wait.h
-@@ -94,17 +94,6 @@ typedef union
+@@ -69,17 +69,6 @@
  # define W_STOPCODE(sig)	__W_STOPCODE (sig)
  #endif
  
@@ -47,11 +43,9 @@ index 3ecc493..5692b07 100644
  /* Wait for a child to die.  When one does, put its status in *STAT_LOC
     and return its process ID.  For errors, return (pid_t) -1.
  
-diff --git a/sysdeps/unix/sysv/linux/bits/waitflags.h b/sysdeps/unix/sysv/linux/bits/waitflags.h
-index 2be017d..2ede21b 100644
 --- a/sysdeps/unix/sysv/linux/bits/waitflags.h
 +++ b/sysdeps/unix/sysv/linux/bits/waitflags.h
-@@ -35,3 +35,23 @@
+@@ -37,3 +37,23 @@
  				      in this group */
  #define __WALL		0x40000000 /* Wait for any child.  */
  #define __WCLONE	0x80000000 /* Wait for cloned process.  */

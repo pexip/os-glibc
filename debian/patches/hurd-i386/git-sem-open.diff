@@ -9,11 +9,9 @@ Date:   Sun Dec 13 15:20:32 2020 +0000
     This just moves the existing nptl implementation to reuse as it is in
     htl.
 
-Index: glibc-2.31/htl/Makefile
-===================================================================
---- glibc-2.31.orig/htl/Makefile
-+++ glibc-2.31/htl/Makefile
-@@ -129,8 +129,8 @@ libpthread-routines := pt-attr pt-attr-d
+--- a/htl/Makefile
++++ b/htl/Makefile
+@@ -129,8 +129,8 @@
  	pt-getschedparam pt-setschedparam pt-setschedprio		    \
  	pt-yield							    \
  									    \
@@ -24,10 +22,8 @@ Index: glibc-2.31/htl/Makefile
  	sem-wait sem-waitfast						    \
  									    \
  	shm-directory							    \
-Index: glibc-2.31/htl/semaphoreP.h
-===================================================================
 --- /dev/null
-+++ glibc-2.31/htl/semaphoreP.h
++++ b/htl/semaphoreP.h
 @@ -0,0 +1,49 @@
 +/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -78,9 +74,7 @@ Index: glibc-2.31/htl/semaphoreP.h
 +  /* This always is a shared semaphore.  */
 +  *sem = (struct new_sem) __SEMAPHORE_INITIALIZER (1, value);
 +}
-Index: glibc-2.31/sysdeps/htl/sem-close.c
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/sem-close.c
+--- a/sysdeps/htl/sem-close.c
 +++ /dev/null
 @@ -1,31 +0,0 @@
 -/* Close a named semaphore.  Generic version.
@@ -114,9 +108,7 @@ Index: glibc-2.31/sysdeps/htl/sem-close.c
 -}
 -
 -strong_alias (__sem_close, sem_close);
-Index: glibc-2.31/sysdeps/htl/sem-open.c
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/sem-open.c
+--- a/sysdeps/htl/sem-open.c
 +++ /dev/null
 @@ -1,31 +0,0 @@
 -/* Open a named semaphore.  Generic version.
@@ -150,9 +142,7 @@ Index: glibc-2.31/sysdeps/htl/sem-open.c
 -}
 -
 -strong_alias (__sem_open, sem_open);
-Index: glibc-2.31/sysdeps/htl/sem-unlink.c
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/sem-unlink.c
+--- a/sysdeps/htl/sem-unlink.c
 +++ /dev/null
 @@ -1,31 +0,0 @@
 -/* Unlink a named semaphore.  Generic version.
@@ -186,9 +176,7 @@ Index: glibc-2.31/sysdeps/htl/sem-unlink.c
 -}
 -
 -strong_alias (__sem_unlink, sem_unlink);
-Index: glibc-2.31/nptl/sem_close.c
-===================================================================
---- glibc-2.31.orig/nptl/sem_close.c
+--- a/nptl/sem_close.c
 +++ /dev/null
 @@ -1,81 +0,0 @@
 -/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
@@ -272,9 +260,7 @@ Index: glibc-2.31/nptl/sem_close.c
 -
 -  return result;
 -}
-Index: glibc-2.31/nptl/sem_open.c
-===================================================================
---- glibc-2.31.orig/nptl/sem_open.c
+--- a/nptl/sem_open.c
 +++ /dev/null
 @@ -1,320 +0,0 @@
 -/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
@@ -597,9 +583,7 @@ Index: glibc-2.31/nptl/sem_open.c
 -
 -  return result;
 -}
-Index: glibc-2.31/nptl/sem_unlink.c
-===================================================================
---- glibc-2.31.orig/nptl/sem_unlink.c
+--- a/nptl/sem_unlink.c
 +++ /dev/null
 @@ -1,38 +0,0 @@
 -/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
@@ -640,10 +624,8 @@ Index: glibc-2.31/nptl/sem_unlink.c
 -    __set_errno (EACCES);
 -  return ret;
 -}
-Index: glibc-2.31/sysdeps/pthread/sem_close.c
-===================================================================
 --- /dev/null
-+++ glibc-2.31/sysdeps/pthread/sem_close.c
++++ b/sysdeps/pthread/sem_close.c
 @@ -0,0 +1,81 @@
 +/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -726,10 +708,8 @@ Index: glibc-2.31/sysdeps/pthread/sem_close.c
 +
 +  return result;
 +}
-Index: glibc-2.31/sysdeps/pthread/sem_open.c
-===================================================================
 --- /dev/null
-+++ glibc-2.31/sysdeps/pthread/sem_open.c
++++ b/sysdeps/pthread/sem_open.c
 @@ -0,0 +1,320 @@
 +/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
@@ -1051,10 +1031,8 @@ Index: glibc-2.31/sysdeps/pthread/sem_open.c
 +
 +  return result;
 +}
-Index: glibc-2.31/sysdeps/pthread/sem_unlink.c
-===================================================================
 --- /dev/null
-+++ glibc-2.31/sysdeps/pthread/sem_unlink.c
++++ b/sysdeps/pthread/sem_unlink.c
 @@ -0,0 +1,38 @@
 +/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.

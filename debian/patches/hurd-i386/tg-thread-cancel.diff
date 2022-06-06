@@ -88,5 +88,3 @@ http://lists.gnu.org/archive/html/bug-hurd/2014-05/msg00025.html
    __spin_lock (&ss->critical_section_lock);
  
    _hurd_sigstate_lock (ss);
----
-tg: (9a079e2..) t/thread-cancel (depends on: baseline)

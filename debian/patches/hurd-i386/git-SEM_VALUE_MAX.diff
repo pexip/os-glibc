@@ -6,8 +6,6 @@ Date:   Sun Feb 9 22:44:08 2020 +0000
 
     htl: Add support for semaphore maximum value
 
-diff --git a/sysdeps/mach/hurd/bits/local_lim.h b/sysdeps/mach/hurd/bits/local_lim.h
-index 348eee74bb..8e781e4965 100644
 --- a/sysdeps/mach/hurd/bits/local_lim.h
 +++ b/sysdeps/mach/hurd/bits/local_lim.h
 @@ -41,3 +41,6 @@

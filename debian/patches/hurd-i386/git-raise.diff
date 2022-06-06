@@ -26,7 +26,7 @@ Date:   Sun Jun 7 01:55:54 2020 +0200
 
 --- a/hurd/hurd-raise.c
 +++ b/hurd/hurd-raise.c
-@@ -28,6 +28,13 @@ int
+@@ -28,6 +28,13 @@
  _hurd_raise_signal (struct hurd_sigstate *ss,
  		    int signo, const struct hurd_signal_detail *detail)
  {

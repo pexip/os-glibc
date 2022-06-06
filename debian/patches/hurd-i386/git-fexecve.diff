@@ -9,8 +9,6 @@ Date:   Thu May 28 23:28:07 2020 +0000
     * sysdeps/mach/hurd/fexecve.c (fexecve): Re-lookup fd with O_EXEC before
     calling _hurd_exec_paths.
 
-diff --git a/sysdeps/mach/hurd/fexecve.c b/sysdeps/mach/hurd/fexecve.c
-index 2b24e46fbf..c6a00ebf1e 100644
 --- a/sysdeps/mach/hurd/fexecve.c
 +++ b/sysdeps/mach/hurd/fexecve.c
 @@ -25,10 +25,23 @@

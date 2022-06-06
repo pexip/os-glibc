@@ -9,7 +9,7 @@
 
 --- a/sysdeps/mips/dl-machine.h
 +++ b/sysdeps/mips/dl-machine.h
-@@ -68,7 +68,8 @@
+@@ -78,7 +78,8 @@
  	 ptr += (l)->l_info[DT_MIPS (RLD_MAP_REL)]->d_un.d_val; \
  	 *(ElfW(Addr) *)ptr = (ElfW(Addr)) (r); \
         } \

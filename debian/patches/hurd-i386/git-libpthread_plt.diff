@@ -16,7 +16,7 @@ Date:   Thu Dec 3 12:21:47 2020 +0100
 
 --- a/htl/pt-create.c
 +++ b/htl/pt-create.c
-@@ -80,6 +80,7 @@ __pthread_create (pthread_t * thread, co
+@@ -80,6 +80,7 @@
    return err;
  }
  strong_alias (__pthread_create, pthread_create)
@@ -26,14 +26,14 @@ Date:   Thu Dec 3 12:21:47 2020 +0100
     pt-internal.h.  */
 --- a/htl/pt-detach.c
 +++ b/htl/pt-detach.c
-@@ -78,3 +78,4 @@ __pthread_detach (pthread_t thread)
+@@ -78,3 +78,4 @@
    return err;
  }
  strong_alias (__pthread_detach, pthread_detach)
 +hidden_def (__pthread_detach)
 --- a/sysdeps/htl/pthreadP.h
 +++ b/sysdeps/htl/pthreadP.h
-@@ -70,6 +70,8 @@ int __pthread_attr_getstack (const pthre
+@@ -70,6 +70,8 @@
  struct __pthread_cancelation_handler **___pthread_get_cleanup_stack (void) attribute_hidden;
  
  #if IS_IN (libpthread)

@@ -1,8 +1,6 @@
-diff --git a/sysdeps/unix/sysv/linux/arm/readelflib.c b/sysdeps/unix/sysv/linux/arm/readelflib.c
-index e767f9e..37483fc 100644
 --- a/sysdeps/unix/sysv/linux/arm/readelflib.c
 +++ b/sysdeps/unix/sysv/linux/arm/readelflib.c
-@@ -25,6 +25,131 @@ int process_elf64_file (const char *file_name, const char *lib, int *flag,
+@@ -25,6 +25,131 @@
  			unsigned int *osversion, char **soname,
  			void *file_contents, size_t file_length);
  
@@ -134,7 +132,7 @@ index e767f9e..37483fc 100644
  /* Returns 0 if everything is ok, != 0 in case of error.  */
  int
  process_elf_file (const char *file_name, const char *lib, int *flag,
-@@ -47,6 +171,8 @@ process_elf_file (const char *file_name, const char *lib, int *flag,
+@@ -47,6 +172,8 @@
  	    *flag = FLAG_ARM_LIBHF|FLAG_ELF_LIBC6;
  	  else if (elf32_header->e_flags & EF_ARM_ABI_FLOAT_SOFT)
  	    *flag = FLAG_ARM_LIBSF|FLAG_ELF_LIBC6;

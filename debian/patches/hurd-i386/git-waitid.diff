@@ -10,11 +10,9 @@ Date:   Mon Dec 28 23:37:04 2020 +0100
     properly implement waitid, and thus define the missing W* macros
     (according to FreeBSD values).
 
-Index: glibc-2.31/bits/waitflags.h
-===================================================================
---- glibc-2.31.orig/bits/waitflags.h
-+++ glibc-2.31/bits/waitflags.h
-@@ -25,3 +25,11 @@
+--- a/bits/waitflags.h
++++ b/bits/waitflags.h
+@@ -24,3 +24,11 @@
  /* Bits in the third argument to `waitpid'.  */
  #define	WNOHANG		1	/* Don't block waiting.  */
  #define	WUNTRACED	2	/* Report status of stopped children.  */
@@ -26,10 +24,8 @@ Index: glibc-2.31/bits/waitflags.h
 +# define WNOWAIT	8		/* Don't reap, just poll status.  */
 +# define WEXITED	16		/* Report dead child.  */
 +#endif
-Index: glibc-2.31/sysdeps/mach/hurd/waitid.c
-===================================================================
 --- /dev/null
-+++ glibc-2.31/sysdeps/mach/hurd/waitid.c
++++ b/sysdeps/mach/hurd/waitid.c
 @@ -0,0 +1,124 @@
 +/* Implementation of waitid.  Hurd version.
 +   Copyright (C) 1997-2020 Free Software Foundation, Inc.
@@ -155,11 +151,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/waitid.c
 +}
 +weak_alias (__waitid, waitid)
 +strong_alias (__waitid, __libc_waitid)
-Index: glibc-2.31/conform/data/sys/wait.h-data
-===================================================================
---- glibc-2.31.orig/conform/data/sys/wait.h-data
-+++ glibc-2.31/conform/data/sys/wait.h-data
-@@ -8,8 +8,7 @@ constant WUNTRACED
+--- a/conform/data/sys/wait.h-data
++++ b/conform/data/sys/wait.h-data
+@@ -8,8 +8,7 @@
  
  macro WEXITSTATUS
  # if !defined XPG4 && !defined POSIX && !defined POSIX2008
@@ -169,7 +163,7 @@ Index: glibc-2.31/conform/data/sys/wait.h-data
  # endif
  macro WIFEXITED
  macro WIFSIGNALED
-@@ -17,15 +16,14 @@ macro WIFSTOPPED
+@@ -17,15 +16,14 @@
  macro WSTOPSIG
  macro WTERMSIG
  

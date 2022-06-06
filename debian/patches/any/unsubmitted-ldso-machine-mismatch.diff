@@ -1,6 +1,6 @@
---- glibc/elf/dl-load.c	2013-01-23 20:55:08.648614327 -0700
-+++ glibc/elf/dl-load.c	2013-01-23 20:55:52.852612764 -0700
-@@ -2008,6 +2008,12 @@
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1621,6 +1621,12 @@
  	      goto close_and_out;
  	    }
  #endif

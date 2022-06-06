@@ -15,11 +15,9 @@ Date:   Wed Jun 10 20:03:52 2020 +0000
     __pthread_enable_asynccancel reference.
     * htl/Makefile: Install libpthread_syms.a and link it into static tests.
 
-diff --git a/htl/Makefile b/htl/Makefile
-index 2de98e1774..c424bd512b 100644
 --- a/htl/Makefile
 +++ b/htl/Makefile
-@@ -173,6 +173,7 @@ static-only-routines = pt-atfork
+@@ -173,6 +173,7 @@
  extra-libs := libpthread
  extra-libs-others := $(extra-libs)
  install-lib := libpthread.so
@@ -27,7 +25,7 @@ index 2de98e1774..c424bd512b 100644
  
  include ../Makeconfig
  
-@@ -180,7 +181,7 @@ CFLAGS-lockfile.c = -D_IO_MTSAFE_IO
+@@ -180,7 +181,7 @@
  
  all: # Make this the default target; it will be defined in Rules.
  
@@ -36,7 +34,7 @@ index 2de98e1774..c424bd512b 100644
  
  # XXX: If $(inst_libdir)/libpthread2.a is installed and
  # $(inst_libdir)/libpthread is not, we can have some issues.
-@@ -198,6 +199,9 @@ $(inst_libdir)/libpthread2_pic.a: $(inst_libdir)/libpthread_pic.a
+@@ -198,6 +199,9 @@
  	mv $< $@
  	$(INSTALL_DATA) $(srcdir)/libpthread_pic.a $<
  
@@ -46,7 +44,7 @@ index 2de98e1774..c424bd512b 100644
  libc-link.so = $(common-objpfx)libc.so
  
  extra-B-pthread.so = -B$(common-objpfx)htl/
-@@ -217,7 +221,7 @@ $(objpfx)tst-unload: $(libdl)
+@@ -217,7 +221,7 @@
  $(addprefix $(objpfx), $(tests-reverse)): \
    $(objpfx)../libc.so $(objpfx)libpthread.so
  $(objpfx)../libc.so: $(common-objpfx)libc.so ;
@@ -56,8 +54,6 @@ index 2de98e1774..c424bd512b 100644
 -$(addprefix $(objpfx),$(tests) $(test-srcs)): $(objpfx)libpthread.a
 +$(addprefix $(objpfx),$(tests) $(test-srcs)): $(srcdir)/libpthread_syms.a $(objpfx)libpthread.a
  endif
-diff --git a/htl/libpthread.a b/htl/libpthread.a
-index e5bd2cc229..cfc1893b2b 100644
 --- a/htl/libpthread.a
 +++ b/htl/libpthread.a
 @@ -1,22 +1,2 @@
@@ -84,8 +80,6 @@ index e5bd2cc229..cfc1893b2b 100644
 -
 +GROUP(-lpthread_syms)
  GROUP(-lpthread2 -lrt)
-diff --git a/htl/libpthread_pic.a b/htl/libpthread_pic.a
-index 33346b4b39..8794ac6dab 100644
 --- a/htl/libpthread_pic.a
 +++ b/htl/libpthread_pic.a
 @@ -1,22 +1,2 @@
@@ -112,9 +106,6 @@ index 33346b4b39..8794ac6dab 100644
 -
 +GROUP(-lpthread_syms)
  GROUP(-lpthread2_pic)
-diff --git a/htl/libpthread_syms.a b/htl/libpthread_syms.a
-new file mode 100644
-index 0000000000..3801ec93c8
 --- /dev/null
 +++ b/htl/libpthread_syms.a
 @@ -0,0 +1,21 @@

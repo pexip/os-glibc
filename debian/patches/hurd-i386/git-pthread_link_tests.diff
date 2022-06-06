@@ -17,11 +17,9 @@ Date:   Mon Jun 8 13:32:08 2020 +0200
     * htl/Makefile: ... here and...
     * nptl/Makefile: ... there.
 
-Index: glibc-2.31/htl/Makefile
-===================================================================
---- glibc-2.31.orig/htl/Makefile
-+++ glibc-2.31/htl/Makefile
-@@ -204,9 +204,20 @@ extra-B-pthread.so = -B$(common-objpfx)h
+--- a/htl/Makefile
++++ b/htl/Makefile
+@@ -204,9 +204,20 @@
  
  include ../Rules
  

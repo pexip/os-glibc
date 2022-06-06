@@ -17,11 +17,9 @@ Date:   Thu Jun 4 20:52:19 2020 +0200
     * support/support_descriptor_supports_holes.c
     (support_descriptor_supports_holes): Set block_headroom to 32.
 
-diff --git a/support/support_descriptor_supports_holes.c b/support/support_descriptor_supports_holes.c
-index fc2aa76f10..d3d5d3a938 100644
 --- a/support/support_descriptor_supports_holes.c
 +++ b/support/support_descriptor_supports_holes.c
-@@ -34,8 +34,10 @@ support_descriptor_supports_holes (int fd)
+@@ -34,8 +34,10 @@
        write_offset = 16 * 1024 * 1024,
  
        /* Our write may add this number of additional blocks (see

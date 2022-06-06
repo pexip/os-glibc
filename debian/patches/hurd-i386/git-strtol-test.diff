@@ -16,11 +16,9 @@ Date:   Wed Apr 29 16:31:29 2020 -0400
     
     Reviewed-by: DJ Delorie <dj@redhat.com>
 
-diff --git a/support/test-container.c b/support/test-container.c
-index 08d5195b7e..afc23db148 100644
 --- a/support/test-container.c
 +++ b/support/test-container.c
-@@ -940,7 +940,9 @@ main (int argc, char **argv)
+@@ -902,7 +902,9 @@
  	    else if (nt == 3 && strcmp (the_words[0], "chmod") == 0)
  	      {
  		long int m;
@@ -30,11 +28,9 @@ index 08d5195b7e..afc23db148 100644
  		if (chmod (the_words[2], m) < 0)
  		    FAIL_EXIT1 ("chmod %s: %s\n",
  				the_words[2], strerror (errno));
-diff --git a/support/tst-support_capture_subprocess.c b/support/tst-support_capture_subprocess.c
-index 67bbc1e8ae..6094dba49e 100644
 --- a/support/tst-support_capture_subprocess.c
 +++ b/support/tst-support_capture_subprocess.c
-@@ -133,7 +133,9 @@ static int
+@@ -133,7 +133,9 @@
  parse_int (const char *str)
  {
    char *endptr;

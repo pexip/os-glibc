@@ -9,11 +9,9 @@ Date:   Mon May 11 01:30:29 2020 +0200
     * hurd/hurdsig.c (_hurd_thread_sigstate): Initialize
       critical_section_lock, active_resources, cancel, and cancel_hook fields.
 
-diff --git a/hurd/hurdsig.c b/hurd/hurdsig.c
-index 1e42246ee6..a2741bb7c8 100644
 --- a/hurd/hurdsig.c
 +++ b/hurd/hurdsig.c
-@@ -85,8 +85,9 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -85,8 +85,9 @@
        ss = malloc (sizeof (*ss));
        if (ss == NULL)
  	__libc_fatal ("hurd: Can't allocate sigstate\n");
@@ -24,7 +22,7 @@ index 1e42246ee6..a2741bb7c8 100644
  
        /* Initialize default state.  */
        __sigemptyset (&ss->blocked);
-@@ -97,6 +98,9 @@ _hurd_thread_sigstate (thread_t thread)
+@@ -97,6 +98,9 @@
        ss->suspended = MACH_PORT_NULL;
        ss->intr_port = MACH_PORT_NULL;
        ss->context = NULL;

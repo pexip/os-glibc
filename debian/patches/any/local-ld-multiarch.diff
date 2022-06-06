@@ -26,7 +26,7 @@
  # Where to install the shared library.
  ifndef slibdir
  slibdir = $(exec_prefix)/lib
-@@ -589,6 +594,10 @@
+@@ -601,6 +606,10 @@
  default-rpath = $(libdir)
  endif
  
@@ -39,7 +39,7 @@
  link-extra-libs-static = $(link-extra-libs)
 --- a/elf/Makefile
 +++ b/elf/Makefile
-@@ -507,7 +507,7 @@
+@@ -568,7 +568,7 @@
  	$(make-target-directory)
  	echo "$(subst :, ,$(default-rpath) $(user-defined-trusted-dirs))"    \
  	| $(AWK) -f gen-trusted-dirs.awk > ${@:st=T};

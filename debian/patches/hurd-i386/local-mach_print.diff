@@ -14,7 +14,7 @@ patch.
    HURD_CTHREADS_0.3 {
 --- a/sysdeps/mach/hurd/i386/libc.abilist
 +++ b/sysdeps/mach/hurd/i386/libc.abilist
-@@ -1947,6 +1947,7 @@
+@@ -1946,6 +1946,7 @@
  GLIBC_2.2.6 xprt_unregister F
  GLIBC_2.21 __mach_host_self_ D 0x4
  GLIBC_2.21 __pthread_get_cleanup_stack F

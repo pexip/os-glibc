@@ -8,7 +8,7 @@
 
 --- a/config.h.in
 +++ b/config.h.in
-@@ -159,6 +159,9 @@
+@@ -124,6 +124,9 @@
  /* Linux specific: minimum supported kernel version.  */
  #undef	__LINUX_KERNEL_VERSION
  

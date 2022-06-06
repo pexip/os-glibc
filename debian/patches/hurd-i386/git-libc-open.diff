@@ -8,11 +8,9 @@ Date:   Sun Dec 13 13:29:25 2020 +0000
     
     Needed by libpthread for sem_open and sem_close
 
-diff --git a/hurd/Versions b/hurd/Versions
-index 1aad27d91f..b66d37be07 100644
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -153,6 +153,7 @@ libc {
+@@ -160,6 +160,7 @@
      __lll_abstimed_lock; __lll_robust_lock;
      __lll_robust_abstimed_lock; __lll_robust_trylock;
      __lll_robust_unlock;
@@ -20,11 +18,9 @@ index 1aad27d91f..b66d37be07 100644
  
      # Used by libpthread.
      _hurd_sigstate_set_global_rcv;
-diff --git a/sysdeps/mach/hurd/close.c b/sysdeps/mach/hurd/close.c
-index b461087447..b6530dfeee 100644
 --- a/sysdeps/mach/hurd/close.c
 +++ b/sysdeps/mach/hurd/close.c
-@@ -35,4 +35,5 @@ __close (int fd)
+@@ -31,4 +31,5 @@
    return err ? __hurd_fail (err) : 0;
  }
  libc_hidden_def (__close)

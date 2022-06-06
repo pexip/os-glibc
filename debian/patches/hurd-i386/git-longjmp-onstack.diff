@@ -15,9 +15,6 @@ Date:   Sat Jun 6 20:21:22 2020 +0200
     when jumping off the alternate stack.
     * sysdeps/mach/hurd/i386/__longjmp.S: New file.
 
-diff --git a/sysdeps/i386/htl/Makefile b/sysdeps/i386/htl/Makefile
-new file mode 100644
-index 0000000000..8573ce6990
 --- /dev/null
 +++ b/sysdeps/i386/htl/Makefile
 @@ -0,0 +1,20 @@
@@ -41,9 +38,6 @@ index 0000000000..8573ce6990
 +ifeq ($(subdir),csu)
 +gen-as-const-headers += tcb-offsets.sym
 +endif
-diff --git a/sysdeps/i386/htl/tcb-offsets.sym b/sysdeps/i386/htl/tcb-offsets.sym
-new file mode 100644
-index 0000000000..7b7c719369
 --- /dev/null
 +++ b/sysdeps/i386/htl/tcb-offsets.sym
 @@ -0,0 +1,8 @@
@@ -55,11 +49,9 @@ index 0000000000..7b7c719369
 +SYSINFO_OFFSET          offsetof (tcbhead_t, sysinfo)
 +POINTER_GUARD           offsetof (tcbhead_t, pointer_guard)
 +SIGSTATE_OFFSET         offsetof (tcbhead_t, _hurd_sigstate)
-diff --git a/sysdeps/mach/hurd/i386/Makefile b/sysdeps/mach/hurd/i386/Makefile
-index 068f7d0419..495b927b82 100644
 --- a/sysdeps/mach/hurd/i386/Makefile
 +++ b/sysdeps/mach/hurd/i386/Makefile
-@@ -7,6 +7,10 @@ ifeq ($(subdir),debug)
+@@ -7,6 +7,10 @@
  gen-as-const-headers += signal-defines.sym
  endif
  
@@ -70,8 +62,6 @@ index 068f7d0419..495b927b82 100644
  ifeq ($(subdir),csu)
  ifeq (yes,$(build-shared))
  sysdep_routines += divdi3
-diff --git a/sysdeps/mach/hurd/i386/____longjmp_chk.S b/sysdeps/mach/hurd/i386/____longjmp_chk.S
-index 819e5dc875..4d3a331728 100644
 --- a/sysdeps/mach/hurd/i386/____longjmp_chk.S
 +++ b/sysdeps/mach/hurd/i386/____longjmp_chk.S
 @@ -17,6 +17,7 @@
@@ -82,7 +72,7 @@ index 819e5dc875..4d3a331728 100644
  #include <asm-syntax.h>
  
  #include <signal-defines.h>
-@@ -47,65 +48,70 @@ longjmp_msg:
+@@ -47,65 +48,70 @@
  
  	.text
  ENTRY (____longjmp_chk)
@@ -119,35 +109,37 @@ index 819e5dc875..4d3a331728 100644
 -	executing on an alternative signal stack.  */
 +	/* Otherwise it's not allowed.  */
 +	CALL_FAIL
++
++.Lonstack:
++	/* We were on the alternate stack, can't really easily check anything
++	   since longjmp may get us out of the alternate stack.  */
++
++	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ecx
++	jb	.Loks		/* We jump below the alternate stack, switch.  */
++
++	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ebx
++	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%edi), %ebx
++	cmpl	%ebx, %ecx
++	jb	.Lok		/* We jump inside the alternate stack, do not switch.  */
  
 -	/* TODO: need locking?  */
 -	/* struct hurd_sigstate * _hurd_self_sigstate (void) */
 -	call	HIDDEN_JUMPTARGET(_hurd_self_sigstate)
 -	/* TODO: %eax and %eax->sigaltstack are always valid?  */
-+.Lonstack:
-+	/* We were on the alternate stack, can't really easily check anything
-+	   since longjmp may get us out of the alternate stack.  */
- 
+-
 -	testl	$SS_ONSTACK, (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%eax)
 -	/* Fail if SS_ONSTACK is not set.  */
 -	jz	.Lfail
-+	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ecx
-+	jb	.Loks		/* We jump below the alternate stack, switch.  */
- 
+-
 -	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%eax), %ebx
 -	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%eax), %ebx
 -	subl	%edi, %ebx
 -	cmpl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%eax), %ebx
 -	/* TODO: comment this calculation.  */
 -	jae	.Lok
-+	movl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SP__OFFSET)(%edi), %ebx
-+	addl	(HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_SIZE__OFFSET)(%edi), %ebx
-+	cmpl	%ebx, %ecx
-+	jb	.Lok		/* We jump inside the alternate stack, do not switch.  */
++	/* We jump above the alternate stack, switch.  */
  
 -.Lfail:	CALL_FAIL
-+	/* We jump above the alternate stack, switch.  */
-+
 +.Loks:	/* We jump out of the alternate stack, clear SS_ONSTACK flag.  */
 +	andl	$~(SS_ONSTACK), (HURD_SIGSTATE__SIGALTSTACK__OFFSET + SIGALTSTACK__SS_FLAGS__OFFSET)(%edi)
  
@@ -185,9 +177,6 @@ index 819e5dc875..4d3a331728 100644
  	/* Jump to saved PC.  */
  	jmp	*%edx
  END (____longjmp_chk)
-diff --git a/sysdeps/mach/hurd/i386/__longjmp.S b/sysdeps/mach/hurd/i386/__longjmp.S
-new file mode 100644
-index 0000000000..d123c214c9
 --- /dev/null
 +++ b/sysdeps/mach/hurd/i386/__longjmp.S
 @@ -0,0 +1,84 @@

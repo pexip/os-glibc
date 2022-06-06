@@ -21,11 +21,9 @@ Author: Samuel Thibault <samuel.thibault@ens-lyon.org>
     (__getpt): Do not define.
     (HAVE_GETPT): Define.
 
-diff --git a/sysdeps/unix/bsd/getpt.c b/sysdeps/unix/bsd/getpt.c
-index 46207f4e62..0eff0b54a3 100644
 --- a/sysdeps/unix/bsd/getpt.c
 +++ b/sysdeps/unix/bsd/getpt.c
-@@ -41,7 +41,7 @@ const char __libc_ptyname2[] attribute_hidden = PTYNAME2;
+@@ -41,7 +41,7 @@
  
  /* Open a master pseudo terminal and return its file descriptor.  */
  int
@@ -34,7 +32,7 @@ index 46207f4e62..0eff0b54a3 100644
  {
    char buf[sizeof (_PATH_PTY) + 2];
    const char *p, *q;
-@@ -61,7 +61,7 @@ __getpt (void)
+@@ -61,7 +61,7 @@
  
  	  s[1] = *q;
  
@@ -43,7 +41,7 @@ index 46207f4e62..0eff0b54a3 100644
  	  if (fd != -1)
  	    return fd;
  
-@@ -74,18 +74,20 @@ __getpt (void)
+@@ -74,18 +74,20 @@
    return -1;
  }
  
@@ -70,8 +68,6 @@ index 46207f4e62..0eff0b54a3 100644
 -
 -stub_warning (posix_openpt)
  #endif
-diff --git a/sysdeps/unix/sysv/linux/getpt.c b/sysdeps/unix/sysv/linux/getpt.c
-index cdde8377f5..1cb99d5185 100644
 --- a/sysdeps/unix/sysv/linux/getpt.c
 +++ b/sysdeps/unix/sysv/linux/getpt.c
 @@ -31,7 +31,7 @@
@@ -83,7 +79,7 @@ index cdde8377f5..1cb99d5185 100644
  
  /* Open a master pseudo terminal and return its file descriptor.  */
  int
-@@ -88,14 +88,15 @@ __getpt (void)
+@@ -88,14 +88,15 @@
  {
    int fd = __posix_openpt (O_RDWR);
    if (fd == -1)

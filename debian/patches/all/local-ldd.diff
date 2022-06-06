@@ -9,7 +9,7 @@
 
 --- a/elf/ldd.bash.in
 +++ b/elf/ldd.bash.in
-@@ -151,17 +152,18 @@
+@@ -150,17 +150,18 @@
      echo "ldd: ${file}:" $"not regular file" >&2
      result=1
    elif test -r "$file"; then

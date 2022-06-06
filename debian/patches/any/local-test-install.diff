@@ -3,9 +3,9 @@ Author: Adam Conrad <adconrad@ubuntu.com>
 Forwarded: no
 Last-Update: 2020-02-08
 
---- glibc-2.30.orig/Makefile
-+++ glibc-2.30/Makefile
-@@ -618,7 +618,7 @@ endif
+--- a/Makefile
++++ b/Makefile
+@@ -635,7 +635,7 @@
  	# Setting INSTALL_UNCOMPRESSED causes localedata/Makefile to
  	# install the charmaps uncompressed, as the testroot does not
  	# provide a gunzip program.

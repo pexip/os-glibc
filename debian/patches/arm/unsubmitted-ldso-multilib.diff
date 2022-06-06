@@ -1,6 +1,6 @@
---- glibc/elf/dl-load.c	2013-01-23 19:29:03.412797023 -0700
-+++ glibc/elf/dl-load.c	2013-01-23 19:30:02.556794931 -0700
-@@ -1999,6 +2000,15 @@
+--- a/elf/dl-load.c
++++ b/elf/dl-load.c
+@@ -1612,6 +1612,15 @@
  	      *found_other_class = true;
  	      goto close_and_out;
  	    }

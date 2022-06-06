@@ -1,8 +1,6 @@
-diff --git a/resolv/res_mkquery.c b/resolv/res_mkquery.c
-index d80b5318e5..99d7d96027 100644
 --- a/resolv/res_mkquery.c
 +++ b/resolv/res_mkquery.c
-@@ -83,6 +83,15 @@
+@@ -95,6 +95,15 @@
  #include <shlib-compat.h>
  #include <random-bits.h>
  
@@ -18,8 +16,6 @@ index d80b5318e5..99d7d96027 100644
  int
  __res_context_mkquery (struct resolv_context *ctx, int op, const char *dname,
                         int class, int type, const unsigned char *data,
-diff --git a/resolv/res_query.c b/resolv/res_query.c
-index 07dc6f6583..f26338bc9b 100644
 --- a/resolv/res_query.c
 +++ b/resolv/res_query.c
 @@ -81,6 +81,14 @@
@@ -37,7 +33,7 @@ index 07dc6f6583..f26338bc9b 100644
  #if PACKETSZ > 65536
  #define MAXPACKET	PACKETSZ
  #else
-@@ -117,8 +125,8 @@ __libc_res_nquery(res_state statp,
+@@ -112,8 +120,8 @@
  		     int *nanswerp2, int *resplen2, int *answerp2_malloced)
  {
  	struct __res_state *statp = ctx->resp;
@@ -48,7 +44,7 @@ index 07dc6f6583..f26338bc9b 100644
  	int n, use_malloc = 0;
  
  	size_t bufsize = (type == T_QUERY_A_AND_AAAA ? 2 : 1) * QUERYSIZE;
-@@ -235,7 +243,7 @@ __libc_res_nquery(res_state statp,
+@@ -217,7 +225,7 @@
  
  	if (answerp != NULL)
  	  /* __res_context_send might have reallocated the buffer.  */
@@ -57,7 +53,7 @@ index 07dc6f6583..f26338bc9b 100644
  
  	/* We simplify the following tests by assigning HP to HP2 or
  	   vice versa.  It is easy to verify that this is the same as
-@@ -246,7 +254,7 @@ __libc_res_nquery(res_state statp,
+@@ -228,7 +236,7 @@
  	  }
  	else
  	  {
@@ -66,7 +62,7 @@ index 07dc6f6583..f26338bc9b 100644
  	    if (n < (int) sizeof (HEADER))
  	      {
  	        hp = hp2;
-@@ -336,7 +344,7 @@ __libc_res_nsearch(res_state statp,
+@@ -327,7 +335,7 @@
  {
  	struct __res_state *statp = ctx->resp;
  	const char *cp;
@@ -75,11 +71,9 @@ index 07dc6f6583..f26338bc9b 100644
  	char tmp[NS_MAXDNAME];
  	u_int dots;
  	int trailing_dot, ret, saved_herrno;
-diff --git a/resolv/res_send.c b/resolv/res_send.c
-index 93db5b9a61..36a389509d 100644
 --- a/resolv/res_send.c
 +++ b/resolv/res_send.c
-@@ -110,6 +110,15 @@
+@@ -111,6 +111,15 @@
  #include <libc-diag.h>
  #include <random-bits.h>
  

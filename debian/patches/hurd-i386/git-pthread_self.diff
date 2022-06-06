@@ -9,8 +9,6 @@ Date:   Sat Feb 15 14:31:50 2020 +0000
     htl has been widely tested for a long time now with this coherency
     checked successfully.
 
-diff --git a/sysdeps/mach/hurd/htl/pt-sysdep.h b/sysdeps/mach/hurd/htl/pt-sysdep.h
-index c837415a9a..484d024bb0 100644
 --- a/sysdeps/mach/hurd/htl/pt-sysdep.h
 +++ b/sysdeps/mach/hurd/htl/pt-sysdep.h
 @@ -32,6 +32,7 @@
@@ -21,7 +19,7 @@ index c837415a9a..484d024bb0 100644
  #define _pthread_self()                                            \
  	({                                                         \
  	  struct __pthread *thread;                                \
-@@ -46,6 +47,9 @@ extern __thread struct __pthread *___pthread_self;
+@@ -46,6 +47,9 @@
                       ok; }));                                      \
            thread;                                                  \
           })

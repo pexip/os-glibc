@@ -9,11 +9,9 @@ Date:   Sun Dec 13 10:37:24 2020 +0000
     To be coherent with other ports, let's make lll_* take a variable, and
     rename those that keep taking a ptr into __lll_*.
 
-Index: glibc-2.31/hurd/hurdlock.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdlock.c
-+++ glibc-2.31/hurd/hurdlock.c
-@@ -48,7 +48,7 @@ __lll_abstimed_wait (void *ptr, int val,
+--- a/hurd/hurdlock.c
++++ b/hurd/hurdlock.c
+@@ -48,7 +48,7 @@
    const struct timespec *tsp, int flags, int clk)
  {
    int mlsec = compute_reltime (tsp, clk);
@@ -22,7 +20,7 @@ Index: glibc-2.31/hurd/hurdlock.c
  }
  
  int
-@@ -56,7 +56,7 @@ __lll_abstimed_xwait (void *ptr, int lo,
+@@ -56,7 +56,7 @@
    const struct timespec *tsp, int flags, int clk)
  {
    int mlsec = compute_reltime (tsp, clk);
@@ -31,7 +29,7 @@ Index: glibc-2.31/hurd/hurdlock.c
  	                                              flags);
  }
  
-@@ -64,7 +64,7 @@ int
+@@ -64,7 +64,7 @@
  __lll_abstimed_lock (void *ptr,
    const struct timespec *tsp, int flags, int clk)
  {
@@ -40,7 +38,7 @@ Index: glibc-2.31/hurd/hurdlock.c
      return 0;
  
    while (1)
-@@ -75,7 +75,7 @@ __lll_abstimed_lock (void *ptr,
+@@ -75,7 +75,7 @@
          return EINVAL;
  
        int mlsec = compute_reltime (tsp, clk);
@@ -49,7 +47,7 @@ Index: glibc-2.31/hurd/hurdlock.c
          return ETIMEDOUT;
      }
  }
-@@ -131,7 +131,7 @@ __lll_robust_lock (void *ptr, int flags)
+@@ -131,7 +131,7 @@
          }
        else
          {
@@ -58,7 +56,7 @@ Index: glibc-2.31/hurd/hurdlock.c
            if (wait_time < MAX_WAIT_TIME)
              wait_time <<= 1;
          }
-@@ -175,7 +175,7 @@ __lll_robust_abstimed_lock (void *ptr,
+@@ -175,7 +175,7 @@
            else if (mlsec > wait_time)
              mlsec = wait_time;
  
@@ -67,7 +65,7 @@ Index: glibc-2.31/hurd/hurdlock.c
            if (res == KERN_TIMEDOUT)
              return ETIMEDOUT;
            else if (wait_time < MAX_WAIT_TIME)
-@@ -211,7 +211,7 @@ __lll_robust_unlock (void *ptr, int flag
+@@ -211,7 +211,7 @@
      {
        if (val & LLL_WAITERS)
          {
@@ -76,11 +74,9 @@ Index: glibc-2.31/hurd/hurdlock.c
            break;
          }
        else if (atomic_compare_exchange_weak_release ((unsigned int *)ptr, &val, 0))
-Index: glibc-2.31/hurd/hurdlock.h
-===================================================================
---- glibc-2.31.orig/hurd/hurdlock.h
-+++ glibc-2.31/hurd/hurdlock.h
-@@ -31,21 +31,21 @@ struct timespec;
+--- a/hurd/hurdlock.h
++++ b/hurd/hurdlock.h
+@@ -31,21 +31,21 @@
  
  /* Wait on 64-bit address PTR, without blocking if its contents
     are different from the pair <LO, HI>.  */
@@ -108,7 +104,7 @@ Index: glibc-2.31/hurd/hurdlock.h
     using clock CLK.  */
  extern int __lll_abstimed_wait (void *__ptr, int __val,
    const struct timespec *__tsp, int __flags, int __clk);
-@@ -63,6 +63,8 @@ extern int __lll_abstimed_lock (void *__
+@@ -63,6 +63,8 @@
  /* Acquire the lock at PTR, but return with an error if
     the process containing the owner thread dies.  */
  extern int __lll_robust_lock (void *__ptr, int __flags);
@@ -117,7 +113,7 @@ Index: glibc-2.31/hurd/hurdlock.h
  
  /* Same as '__lll_robust_lock', but only block until TSP
     elapses, using clock CLK.  */
-@@ -72,19 +74,23 @@ extern int __lll_robust_abstimed_lock (v
+@@ -72,19 +74,23 @@
  /* Same as '__lll_robust_lock', but return with an error
     if the lock cannot be acquired without blocking.  */
  extern int __lll_robust_trylock (void *__ptr);
@@ -143,7 +139,7 @@ Index: glibc-2.31/hurd/hurdlock.h
    __gsync_requeue (__mach_task_self (), (vm_offset_t)src, \
      (vm_offset_t)dst, (boolean_t)wake_one, flags)
  
-@@ -93,31 +99,31 @@ extern void __lll_robust_unlock (void *_
+@@ -93,31 +99,31 @@
     every one of these calls, defaulting to CLOCK_REALTIME if
     no argument is passed.  */
  
@@ -183,11 +179,9 @@ Index: glibc-2.31/hurd/hurdlock.h
         __clk[sizeof (__clk) / sizeof (__clk[0]) - 1]);   \
     })
  
-Index: glibc-2.31/hurd/hurdpid.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdpid.c
-+++ glibc-2.31/hurd/hurdpid.c
-@@ -66,7 +66,7 @@ _S_msg_proc_newids (mach_port_t me,
+--- a/hurd/hurdpid.c
++++ b/hurd/hurdpid.c
+@@ -66,7 +66,7 @@
  
    /* Notify any waiting user threads that the id change as been completed.  */
    ++_hurd_pids_changed_stamp;
@@ -196,11 +190,9 @@ Index: glibc-2.31/hurd/hurdpid.c
  
    return 0;
  }
-Index: glibc-2.31/mach/lock-intern.h
-===================================================================
---- glibc-2.31.orig/mach/lock-intern.h
-+++ glibc-2.31/mach/lock-intern.h
-@@ -57,7 +57,7 @@ extern void __spin_lock (__spin_lock_t *
+--- a/mach/lock-intern.h
++++ b/mach/lock-intern.h
+@@ -57,7 +57,7 @@
  _EXTERN_INLINE void
  __spin_lock (__spin_lock_t *__lock)
  {
@@ -209,7 +201,7 @@ Index: glibc-2.31/mach/lock-intern.h
  }
  #endif
  
-@@ -68,7 +68,7 @@ extern void __spin_unlock (__spin_lock_t
+@@ -68,7 +68,7 @@
  _EXTERN_INLINE void
  __spin_unlock (__spin_lock_t *__lock)
  {
@@ -218,7 +210,7 @@ Index: glibc-2.31/mach/lock-intern.h
  }
  #endif
  
-@@ -79,7 +79,7 @@ extern int __spin_try_lock (__spin_lock_
+@@ -79,7 +79,7 @@
  _EXTERN_INLINE int
  __spin_try_lock (__spin_lock_t *__lock)
  {
@@ -227,10 +219,8 @@ Index: glibc-2.31/mach/lock-intern.h
  }
  #endif
  
-Index: glibc-2.31/mach/lowlevellock.h
-===================================================================
---- glibc-2.31.orig/mach/lowlevellock.h
-+++ glibc-2.31/mach/lowlevellock.h
+--- a/mach/lowlevellock.h
++++ b/mach/lowlevellock.h
 @@ -36,16 +36,20 @@
  
  /* Wait on address PTR, without blocking if its contents
@@ -293,11 +283,9 @@ Index: glibc-2.31/mach/lowlevellock.h
 +  __lll_unlock (&(var), flags)
  
  #endif
-Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/pt-mutex-lock.c
-+++ glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
-@@ -33,7 +33,7 @@ __pthread_mutex_lock (pthread_mutex_t *m
+--- a/sysdeps/mach/hurd/htl/pt-mutex-lock.c
++++ b/sysdeps/mach/hurd/htl/pt-mutex-lock.c
+@@ -33,7 +33,7 @@
    switch (MTX_TYPE (mtxp))
      {
      case PT_MTX_NORMAL:
@@ -306,7 +294,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
        break;
  
      case PT_MTX_RECURSIVE:
-@@ -47,7 +47,7 @@ __pthread_mutex_lock (pthread_mutex_t *m
+@@ -47,7 +47,7 @@
  	  return ret;
  	}
  
@@ -315,7 +303,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
        mtx_set_owner (mtxp, self, flags);
        mtxp->__cnt = 1;
        break;
-@@ -57,7 +57,7 @@ __pthread_mutex_lock (pthread_mutex_t *m
+@@ -57,7 +57,7 @@
        if (mtx_owned_p (mtxp, self, flags))
  	return EDEADLK;
  
@@ -324,7 +312,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
        mtx_set_owner (mtxp, self, flags);
        break;
  
-@@ -65,7 +65,7 @@ __pthread_mutex_lock (pthread_mutex_t *m
+@@ -65,7 +65,7 @@
      case PT_MTX_RECURSIVE | PTHREAD_MUTEX_ROBUST:
      case PT_MTX_ERRORCHECK | PTHREAD_MUTEX_ROBUST:
        self = _pthread_self ();
@@ -333,11 +321,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-lock.c
        break;
  
      default:
-Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
-+++ glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
-@@ -32,7 +32,7 @@ __pthread_mutex_timedlock (pthread_mutex
+--- a/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
++++ b/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
+@@ -32,7 +32,7 @@
    switch (MTX_TYPE (mtxp))
      {
      case PT_MTX_NORMAL:
@@ -346,7 +332,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
        break;
  
      case PT_MTX_RECURSIVE:
-@@ -45,7 +45,7 @@ __pthread_mutex_timedlock (pthread_mutex
+@@ -45,7 +45,7 @@
  	  ++mtxp->__cnt;
  	  ret = 0;
  	}
@@ -355,7 +341,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
  	{
  	  mtx_set_owner (mtxp, self, flags);
  	  mtxp->__cnt = 1;
-@@ -57,7 +57,7 @@ __pthread_mutex_timedlock (pthread_mutex
+@@ -57,7 +57,7 @@
        self = _pthread_self ();
        if (mtx_owned_p (mtxp, self, flags))
  	ret = EDEADLK;
@@ -364,11 +350,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-timedlock.c
  	mtx_set_owner (mtxp, self, flags);
  
        break;
-Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
-+++ glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
-@@ -32,7 +32,7 @@ __pthread_mutex_trylock (pthread_mutex_t
+--- a/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
++++ b/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
+@@ -32,7 +32,7 @@
    switch (MTX_TYPE (mtxp))
      {
      case PT_MTX_NORMAL:
@@ -377,7 +361,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
        if (ret)
  	ret = EBUSY;
        break;
-@@ -47,7 +47,7 @@ __pthread_mutex_trylock (pthread_mutex_t
+@@ -47,7 +47,7 @@
  	  ++mtxp->__cnt;
  	  ret = 0;
  	}
@@ -386,7 +370,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
  	{
  	  mtx_set_owner (mtxp, self, mtxp->__flags);
  	  mtxp->__cnt = 1;
-@@ -59,7 +59,7 @@ __pthread_mutex_trylock (pthread_mutex_t
+@@ -59,7 +59,7 @@
  
      case PT_MTX_ERRORCHECK:
        self = _pthread_self ();
@@ -395,7 +379,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
  	mtx_set_owner (mtxp, self, mtxp->__flags);
        else
  	ret = EBUSY;
-@@ -69,7 +69,7 @@ __pthread_mutex_trylock (pthread_mutex_t
+@@ -69,7 +69,7 @@
      case PT_MTX_RECURSIVE | PTHREAD_MUTEX_ROBUST:
      case PT_MTX_ERRORCHECK | PTHREAD_MUTEX_ROBUST:
        self = _pthread_self ();
@@ -404,11 +388,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-trylock.c
        break;
  
      default:
-Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
-+++ glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
-@@ -32,7 +32,7 @@ __pthread_mutex_unlock (pthread_mutex_t
+--- a/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
++++ b/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
+@@ -32,7 +32,7 @@
    switch (MTX_TYPE (mtxp))
      {
      case PT_MTX_NORMAL:
@@ -417,7 +399,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
        break;
  
      case PT_MTX_RECURSIVE:
-@@ -42,7 +42,7 @@ __pthread_mutex_unlock (pthread_mutex_t
+@@ -42,7 +42,7 @@
        else if (--mtxp->__cnt == 0)
  	{
  	  mtxp->__owner_id = mtxp->__shpid = 0;
@@ -426,7 +408,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
  	}
  
        break;
-@@ -54,7 +54,7 @@ __pthread_mutex_unlock (pthread_mutex_t
+@@ -54,7 +54,7 @@
        else
  	{
  	  mtxp->__owner_id = mtxp->__shpid = 0;
@@ -435,7 +417,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
  	}
  
        break;
-@@ -74,7 +74,7 @@ __pthread_mutex_unlock (pthread_mutex_t
+@@ -74,7 +74,7 @@
  	   * state, mark it as irrecoverable. */
  	  mtxp->__owner_id = ((mtxp->__lock & LLL_DEAD_OWNER)
  			      ? NOTRECOVERABLE_ID : 0);
@@ -444,10 +426,8 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex-unlock.c
  	}
  
        break;
-Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex.h
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/pt-mutex.h
-+++ glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex.h
+--- a/sysdeps/mach/hurd/htl/pt-mutex.h
++++ b/sysdeps/mach/hurd/htl/pt-mutex.h
 @@ -42,7 +42,7 @@
          return EDEADLK;   \
      }   \
@@ -457,11 +437,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/pt-mutex.h
    if (ret == 0 || ret == EOWNERDEAD)   \
      {   \
        if (mtxp->__owner_id == ENOTRECOVERABLE)   \
-Index: glibc-2.31/sysdeps/mach/hurd/setpgid.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/setpgid.c
-+++ glibc-2.31/sysdeps/mach/hurd/setpgid.c
-@@ -39,7 +39,7 @@ __setpgid (pid_t pid, pid_t pgid)
+--- a/sysdeps/mach/hurd/setpgid.c
++++ b/sysdeps/mach/hurd/setpgid.c
+@@ -39,7 +39,7 @@
      /* Synchronize with the signal thread to make sure we have
         received and processed proc_newids before returning to the user.  */
      while (_hurd_pids_changed_stamp == stamp)
@@ -470,11 +448,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/setpgid.c
  
    return 0;
  
-Index: glibc-2.31/sysdeps/mach/hurd/setsid.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/setsid.c
-+++ glibc-2.31/sysdeps/mach/hurd/setsid.c
-@@ -56,7 +56,7 @@ __setsid (void)
+--- a/sysdeps/mach/hurd/setsid.c
++++ b/sysdeps/mach/hurd/setsid.c
+@@ -56,7 +56,7 @@
  	 returned by `getpgrp ()' in other threads) has been updated before
  	 we return.  */
        while (_hurd_pids_changed_stamp == stamp)
@@ -483,10 +459,8 @@ Index: glibc-2.31/sysdeps/mach/hurd/setsid.c
      }
  
    HURD_CRITICAL_END;
-Index: glibc-2.31/sysdeps/mach/hurd/tls.h
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/tls.h
-+++ glibc-2.31/sysdeps/mach/hurd/tls.h
+--- a/sysdeps/mach/hurd/tls.h
++++ b/sysdeps/mach/hurd/tls.h
 @@ -61,7 +61,7 @@
  #define THREAD_GSCOPE_RESET_FLAG() \
    do 									      \
@@ -505,11 +479,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/tls.h
      }									      \
    while (0)
  
-Index: glibc-2.31/sysdeps/mach/libc-lock.h
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/libc-lock.h
-+++ glibc-2.31/sysdeps/mach/libc-lock.h
-@@ -74,14 +74,14 @@ typedef struct __libc_lock_recursive_opa
+--- a/sysdeps/mach/libc-lock.h
++++ b/sysdeps/mach/libc-lock.h
+@@ -74,14 +74,14 @@
  
  /* Lock the named lock variable.  */
  #define __libc_lock_lock(NAME)   \
@@ -527,7 +499,7 @@ Index: glibc-2.31/sysdeps/mach/libc-lock.h
  
  #define __libc_lock_define_recursive(CLASS,NAME) \
    CLASS __libc_lock_recursive_t NAME;
-@@ -111,7 +111,7 @@ typedef struct __libc_lock_recursive_opa
+@@ -111,7 +111,7 @@
       int __r = 0;   \
       if (__self == __lock->owner)   \
         ++__lock->cnt;   \
@@ -536,7 +508,7 @@ Index: glibc-2.31/sysdeps/mach/libc-lock.h
         __lock->owner = __self, __lock->cnt = 1;   \
       __r;   \
     })
-@@ -122,7 +122,7 @@ typedef struct __libc_lock_recursive_opa
+@@ -122,7 +122,7 @@
       void *__self = __libc_lock_owner_self ();   \
       if (__self != __lock->owner)   \
         {   \
@@ -545,7 +517,7 @@ Index: glibc-2.31/sysdeps/mach/libc-lock.h
           __lock->owner = __self;   \
         }   \
       ++__lock->cnt;   \
-@@ -135,7 +135,7 @@ typedef struct __libc_lock_recursive_opa
+@@ -135,7 +135,7 @@
       if (--__lock->cnt == 0)   \
         {   \
           __lock->owner = 0;   \

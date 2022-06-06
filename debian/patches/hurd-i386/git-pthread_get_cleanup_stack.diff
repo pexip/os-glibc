@@ -6,10 +6,8 @@ Date:   Sun Feb 9 23:13:24 2020 +0000
 
     htl: clean __pthread_get_cleanup_stack hidden proto
 
-Index: glibc-2.31/htl/pt-cleanup.c
-===================================================================
---- glibc-2.31.orig/htl/pt-cleanup.c
-+++ glibc-2.31/htl/pt-cleanup.c
+--- a/htl/pt-cleanup.c
++++ b/htl/pt-cleanup.c
 @@ -21,8 +21,8 @@
  #include <pt-internal.h>
  
@@ -21,11 +19,9 @@ Index: glibc-2.31/htl/pt-cleanup.c
  }
 -strong_alias (___pthread_get_cleanup_stack, __pthread_get_cleanup_stack)
 +hidden_def(__pthread_get_cleanup_stack)
-Index: glibc-2.31/htl/pt-exit.c
-===================================================================
---- glibc-2.31.orig/htl/pt-exit.c
-+++ glibc-2.31/htl/pt-exit.c
-@@ -41,7 +41,7 @@ __pthread_exit (void *status)
+--- a/htl/pt-exit.c
++++ b/htl/pt-exit.c
+@@ -41,7 +41,7 @@
       disabled.  */
    __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &oldstate);
  
@@ -34,10 +30,8 @@ Index: glibc-2.31/htl/pt-exit.c
         *handlers != NULL;
         *handlers = (*handlers)->__next)
      (*handlers)->__handler ((*handlers)->__arg);
-Index: glibc-2.31/htl/pt-join.c
-===================================================================
---- glibc-2.31.orig/htl/pt-join.c
-+++ glibc-2.31/htl/pt-join.c
+--- a/htl/pt-join.c
++++ b/htl/pt-join.c
 @@ -22,8 +22,6 @@
  
  #include <pt-internal.h>
@@ -47,11 +41,9 @@ Index: glibc-2.31/htl/pt-join.c
  /* Make calling thread wait for termination of thread THREAD.  Return
     the exit status of the thread in *STATUS.  */
  int
-Index: glibc-2.31/sysdeps/htl/pthreadP.h
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/pthreadP.h
-+++ glibc-2.31/sysdeps/htl/pthreadP.h
-@@ -67,7 +67,6 @@ int __pthread_attr_setstacksize (pthread
+--- a/sysdeps/htl/pthreadP.h
++++ b/sysdeps/htl/pthreadP.h
+@@ -67,7 +67,6 @@
  int __pthread_attr_setstack (pthread_attr_t *__attr, void *__stackaddr,
  			     size_t __stacksize);
  int __pthread_attr_getstack (const pthread_attr_t *, void **, size_t *);
@@ -59,7 +51,7 @@ Index: glibc-2.31/sysdeps/htl/pthreadP.h
  
  #if IS_IN (libpthread)
  hidden_proto (__pthread_create)
-@@ -76,6 +75,7 @@ hidden_proto (__pthread_key_create)
+@@ -76,6 +75,7 @@
  hidden_proto (__pthread_getspecific)
  hidden_proto (__pthread_setspecific)
  hidden_proto (_pthread_mutex_init)

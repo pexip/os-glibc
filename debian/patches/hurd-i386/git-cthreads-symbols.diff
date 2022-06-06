@@ -16,7 +16,7 @@ Date:   Thu Dec 3 10:48:27 2020 +0100
 
 --- a/htl/Versions
 +++ b/htl/Versions
-@@ -148,6 +148,8 @@ libpthread {
+@@ -148,6 +148,8 @@
  
      __cthread_detach;
      __cthread_fork;
@@ -27,7 +27,7 @@ Date:   Thu Dec 3 10:48:27 2020 +0100
      __cthread_setspecific;
 --- a/hurd/Versions
 +++ b/hurd/Versions
-@@ -144,7 +144,7 @@ libc {
+@@ -144,7 +144,7 @@
  
    HURD_CTHREADS_0.3 {
      # weak refs to libthreads functions that libc calls iff libthreads in use

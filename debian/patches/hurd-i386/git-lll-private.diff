@@ -6,8 +6,6 @@ Date:   Sun Dec 13 13:31:22 2020 +0000
 
     hurd: Add LLL_PRIVATE and LLL_SHARED
 
-diff --git a/mach/lowlevellock.h b/mach/lowlevellock.h
-index b872d0fe1e..9798d153cf 100644
 --- a/mach/lowlevellock.h
 +++ b/mach/lowlevellock.h
 @@ -34,6 +34,9 @@

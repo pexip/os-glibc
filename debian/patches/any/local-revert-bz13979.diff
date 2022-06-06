@@ -21,7 +21,7 @@ Warn if user requests __FORTIFY_SOURCE but it is disabled
 
 --- a/include/features.h
 +++ b/include/features.h
-@@ -368,18 +368,14 @@
+@@ -392,18 +392,14 @@
  # define __USE_GNU	1
  #endif
  

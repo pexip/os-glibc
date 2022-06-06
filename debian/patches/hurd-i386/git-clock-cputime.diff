@@ -9,8 +9,6 @@ Date:   Sun Oct 11 13:59:01 2020 +0000
     * sysdeps/mach/clock_gettime.c (__clock_gettime): Add support for
     CLOCK_PROCESS_CPUTIME_ID and CLOCK_THREAD_CPUTIME_ID.
 
-diff --git a/sysdeps/mach/clock_gettime.c b/sysdeps/mach/clock_gettime.c
-index fbd80536d5..840e06036b 100644
 --- a/sysdeps/mach/clock_gettime.c
 +++ b/sysdeps/mach/clock_gettime.c
 @@ -25,20 +25,80 @@

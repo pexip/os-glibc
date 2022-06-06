@@ -9,11 +9,9 @@ Date:   Sat Nov 14 23:35:35 2020 +0000
     Libc has actually been using mach's lock-internal.h mutex for a long
     time already.
 
-Index: glibc-2.31/conform/Makefile
-===================================================================
---- glibc-2.31.orig/conform/Makefile
-+++ glibc-2.31/conform/Makefile
-@@ -189,14 +189,15 @@ $(linknamespace-symlists-tests): $(objpf
+--- a/conform/Makefile
++++ b/conform/Makefile
+@@ -189,14 +189,15 @@
  
  linknamespace-libs-isoc = $(common-objpfx)libc.a $(common-objpfx)math/libm.a
  linknamespace-libs-thr = $(linknamespace-libs-isoc) \
@@ -31,11 +29,9 @@ Index: glibc-2.31/conform/Makefile
  linknamespace-libs-XPG4 = $(linknamespace-libs-isoc)
  linknamespace-libs-XPG42 = $(linknamespace-libs-XPG4)
  linknamespace-libs-POSIX = $(linknamespace-libs-thr)
-Index: glibc-2.31/htl/libpthread_syms.a
-===================================================================
---- glibc-2.31.orig/htl/libpthread_syms.a
-+++ glibc-2.31/htl/libpthread_syms.a
-@@ -15,7 +15,9 @@ EXTERN(__mutex_unlock_solid)
+--- a/htl/libpthread_syms.a
++++ b/htl/libpthread_syms.a
+@@ -15,7 +15,9 @@
  EXTERN(_cthreads_flockfile)
  EXTERN(_cthreads_funlockfile)
  EXTERN(_cthreads_ftrylockfile)
@@ -46,10 +42,8 @@ Index: glibc-2.31/htl/libpthread_syms.a
  EXTERN(pthread_getattr_np)
  EXTERN(pthread_attr_getstack)
  EXTERN(__pthread_enable_asynccancel)
-Index: glibc-2.31/htl/lockfile.c
-===================================================================
---- glibc-2.31.orig/htl/lockfile.c
-+++ glibc-2.31/htl/lockfile.c
+--- a/htl/lockfile.c
++++ b/htl/lockfile.c
 @@ -16,7 +16,6 @@
     License along with the GNU C Library;  if not, see
     <https://www.gnu.org/licenses/>.  */
@@ -58,10 +52,8 @@ Index: glibc-2.31/htl/lockfile.c
  #include <pthread.h>		/* Must come before <stdio.h>! */
  #include <stdio.h>
  
-Index: glibc-2.31/hurd/dtable.c
-===================================================================
---- glibc-2.31.orig/hurd/dtable.c
-+++ glibc-2.31/hurd/dtable.c
+--- a/hurd/dtable.c
++++ b/hurd/dtable.c
 @@ -22,7 +22,7 @@
  #include <stdio.h>
  #include <fcntl.h>
@@ -71,11 +63,9 @@ Index: glibc-2.31/hurd/dtable.c
  #include "set-hooks.h"
  #include "hurdmalloc.h"		/* XXX */
  
-Index: glibc-2.31/hurd/hurd.h
-===================================================================
---- glibc-2.31.orig/hurd/hurd.h
-+++ glibc-2.31/hurd/hurd.h
-@@ -102,7 +102,6 @@ extern error_t _hurd_ports_use (int whic
+--- a/hurd/hurd.h
++++ b/hurd/hurd.h
+@@ -102,7 +102,6 @@
  
  
  /* Base address and size of the initial stack set up by the exec server.
@@ -83,7 +73,7 @@ Index: glibc-2.31/hurd/hurd.h
     Not locked.  */
  
  extern vm_address_t _hurd_stack_base;
-@@ -122,9 +121,6 @@ extern int _hurd_orphaned;
+@@ -122,9 +121,6 @@
  
  /* This variable is incremented every time the process IDs change.  */
  extern unsigned int _hurd_pids_changed_stamp;
@@ -93,10 +83,8 @@ Index: glibc-2.31/hurd/hurd.h
  
  /* Unix `data break', for brk and sbrk.
     If brk and sbrk are not used, this info will not be initialized or used.  */
-Index: glibc-2.31/hurd/hurd/fd.h
-===================================================================
---- glibc-2.31.orig/hurd/hurd/fd.h
-+++ glibc-2.31/hurd/hurd/fd.h
+--- a/hurd/hurd/fd.h
++++ b/hurd/hurd/fd.h
 @@ -21,8 +21,6 @@
  #define	_HURD_FD_H	1
  #include <features.h>
@@ -106,7 +94,7 @@ Index: glibc-2.31/hurd/hurd/fd.h
  #include <hurd/hurd_types.h>
  #include <hurd/port.h>
  #include <sys/socket.h>
-@@ -47,9 +45,12 @@ struct hurd_fd
+@@ -47,9 +45,12 @@
  
  /* Current file descriptor table.  */
  
@@ -119,10 +107,8 @@ Index: glibc-2.31/hurd/hurd/fd.h
  
  #include <hurd/signal.h>
  
-Index: glibc-2.31/hurd/hurd/id.h
-===================================================================
---- glibc-2.31.orig/hurd/hurd/id.h
-+++ glibc-2.31/hurd/hurd/id.h
+--- a/hurd/hurd/id.h
++++ b/hurd/hurd/id.h
 @@ -24,7 +24,7 @@
  #include <errno.h>
  #include <bits/types/error_t.h>
@@ -132,10 +118,8 @@ Index: glibc-2.31/hurd/hurd/id.h
  
  /* Structure describing authorization data for the process.  */
  
-Index: glibc-2.31/hurd/hurd/signal.h
-===================================================================
---- glibc-2.31.orig/hurd/hurd/signal.h
-+++ glibc-2.31/hurd/hurd/signal.h
+--- a/hurd/hurd/signal.h
++++ b/hurd/hurd/signal.h
 @@ -37,7 +37,6 @@
  #include <bits/sigaction.h>
  #include <hurd/msg.h>
@@ -144,7 +128,7 @@ Index: glibc-2.31/hurd/hurd/signal.h
  #include <setjmp.h>		/* For `jmp_buf'.  */
  #include <spin-lock.h>
  struct hurd_signal_preemptor;	/* <hurd/sigpreempt.h> */
-@@ -122,8 +121,6 @@ struct hurd_sigstate
+@@ -122,8 +121,6 @@
  
  extern struct hurd_sigstate *_hurd_sigstates;
  
@@ -153,7 +137,7 @@ Index: glibc-2.31/hurd/hurd/signal.h
  /* Get the sigstate of a given thread.  If there was no sigstate for
     the thread, one is created, and the thread gains a reference.  If
     the given thread is MACH_PORT_NULL, return the global sigstate.  */
-@@ -335,7 +332,7 @@ _hurd_setup_sighandler (struct hurd_sigs
+@@ -335,7 +332,7 @@
  
  /* Function run by the signal thread to receive from the signal port.  */
  
@@ -162,10 +146,8 @@ Index: glibc-2.31/hurd/hurd/signal.h
  
  /* Set up STATE with a thread state that, when resumed, is
     like `longjmp (_hurd_sigthread_fault_env, 1)'.  */
-Index: glibc-2.31/hurd/hurdmalloc.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdmalloc.c
-+++ glibc-2.31/hurd/hurdmalloc.c
+--- a/hurd/hurdmalloc.c
++++ b/hurd/hurdmalloc.c
 @@ -4,6 +4,7 @@
  #include "hurdmalloc.h"		/* XXX see that file */
  
@@ -183,7 +165,7 @@ Index: glibc-2.31/hurd/hurdmalloc.c
  #define MCHECK
  
  /*
-@@ -221,7 +220,7 @@ malloc (size_t size)
+@@ -221,7 +220,7 @@
  		i += 1;
  		n <<= 1;
  	}
@@ -192,7 +174,7 @@ Index: glibc-2.31/hurd/hurdmalloc.c
  	fl = &malloc_free_list[i];
  	spin_lock(&fl->lock);
  	h = fl->head;
-@@ -291,11 +290,11 @@ free (void *base)
+@@ -291,11 +290,11 @@
  	 * Sanity checks.
  	 */
  	if (i < 0 || i >= NBUCKETS) {
@@ -206,7 +188,7 @@ Index: glibc-2.31/hurd/hurdmalloc.c
  		return;
  	}
  	/*
-@@ -340,11 +339,11 @@ realloc (void *old_base, size_t new_size
+@@ -340,11 +339,11 @@
  	 * Sanity checks.
  	 */
  	if (i < 0 || i >= NBUCKETS) {
@@ -220,11 +202,9 @@ Index: glibc-2.31/hurd/hurdmalloc.c
  		return 0;
  	}
  	/*
-Index: glibc-2.31/hurd/hurdpid.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdpid.c
-+++ glibc-2.31/hurd/hurdpid.c
-@@ -37,13 +37,11 @@ text_set_element (_hurd_proc_subinit, in
+--- a/hurd/hurdpid.c
++++ b/hurd/hurdpid.c
+@@ -37,13 +37,11 @@
  
  #include <hurd/msg_server.h>
  #include "set-hooks.h"
@@ -238,10 +218,8 @@ Index: glibc-2.31/hurd/hurdpid.c
  
  kern_return_t
  _S_msg_proc_newids (mach_port_t me,
-Index: glibc-2.31/hurd/hurdrlimit.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdrlimit.c
-+++ glibc-2.31/hurd/hurdrlimit.c
+--- a/hurd/hurdrlimit.c
++++ b/hurd/hurdrlimit.c
 @@ -17,7 +17,7 @@
     <https://www.gnu.org/licenses/>.  */
  
@@ -251,10 +229,8 @@ Index: glibc-2.31/hurd/hurdrlimit.c
  #include <hurd/resource.h>
  
  /* This must be given an initializer, or the a.out linking rules will
-Index: glibc-2.31/hurd/hurdsig.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdsig.c
-+++ glibc-2.31/hurd/hurdsig.c
+--- a/hurd/hurdsig.c
++++ b/hurd/hurdsig.c
 @@ -19,11 +19,12 @@
  #include <stdlib.h>
  #include <string.h>
@@ -269,7 +245,7 @@ Index: glibc-2.31/hurd/hurdsig.c
  
  #include <hurd.h>
  #include <hurd/id.h>
-@@ -1488,8 +1489,8 @@ _hurdsig_init (const int *intarray, size
+@@ -1488,8 +1489,8 @@
  
    /* Start the signal thread listening on the message port.  */
  
@@ -280,7 +256,7 @@ Index: glibc-2.31/hurd/hurdsig.c
      {
        err = __thread_create (__mach_task_self (), &_hurd_msgport_thread);
        assert_perror (err);
-@@ -1514,41 +1515,40 @@ _hurdsig_init (const int *intarray, size
+@@ -1514,41 +1515,40 @@
      }
    else
      {
@@ -344,10 +320,8 @@ Index: glibc-2.31/hurd/hurdsig.c
        while (_hurd_msgport_thread == 0)
  	__swtch_pri (0);
      }
-Index: glibc-2.31/hurd/hurdsock.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdsock.c
-+++ glibc-2.31/hurd/hurdsock.c
+--- a/hurd/hurdsock.c
++++ b/hurd/hurdsock.c
 @@ -23,7 +23,7 @@
  #include <hurd/paths.h>
  #include <stdio.h>
@@ -357,11 +331,9 @@ Index: glibc-2.31/hurd/hurdsock.c
  #include "hurdmalloc.h"		/* XXX */
  
  static struct mutex lock;
-Index: glibc-2.31/hurd/hurdstartup.c
-===================================================================
---- glibc-2.31.orig/hurd/hurdstartup.c
-+++ glibc-2.31/hurd/hurdstartup.c
-@@ -41,15 +41,7 @@ extern void __mach_init (void);
+--- a/hurd/hurdstartup.c
++++ b/hurd/hurdstartup.c
+@@ -41,15 +41,7 @@
     initialization so mig-generated stubs work, and then do an exec_startup
     RPC on our bootstrap port, to which the exec server responds with the
     information passed in the exec call, as well as our original bootstrap
@@ -378,11 +350,9 @@ Index: glibc-2.31/hurd/hurdstartup.c
  
  
  void
-Index: glibc-2.31/hurd/msgportdemux.c
-===================================================================
---- glibc-2.31.orig/hurd/msgportdemux.c
-+++ glibc-2.31/hurd/msgportdemux.c
-@@ -51,14 +51,14 @@ msgport_server (mach_msg_header_t *inp,
+--- a/hurd/msgportdemux.c
++++ b/hurd/msgportdemux.c
+@@ -51,14 +51,14 @@
  }
  
  /* This is the code that the signal thread runs.  */
@@ -400,11 +370,9 @@ Index: glibc-2.31/hurd/msgportdemux.c
       to initialize _hurd_msgport_thread (see hurdsig.c:_hurdsig_init).  */
  
    _hurd_msgport_thread = _hurd_self_sigstate ()->thread;
-Index: glibc-2.31/mach/lock-intern.h
-===================================================================
---- glibc-2.31.orig/mach/lock-intern.h
-+++ glibc-2.31/mach/lock-intern.h
-@@ -95,6 +95,15 @@ __spin_lock_locked (__spin_lock_t *__loc
+--- a/mach/lock-intern.h
++++ b/mach/lock-intern.h
+@@ -95,6 +95,15 @@
  #endif
  
  /* Name space-clean internal interface to mutex locks.  */
@@ -420,10 +388,8 @@ Index: glibc-2.31/mach/lock-intern.h
  
  /* Initialize the newly allocated mutex lock LOCK for further use.  */
  extern void __mutex_init (void *__lock);
-Index: glibc-2.31/mach/mutex-solid.c
-===================================================================
---- glibc-2.31.orig/mach/mutex-solid.c
-+++ glibc-2.31/mach/mutex-solid.c
+--- a/mach/mutex-solid.c
++++ b/mach/mutex-solid.c
 @@ -17,11 +17,10 @@
     <https://www.gnu.org/licenses/>.  */
  
@@ -439,11 +405,9 @@ Index: glibc-2.31/mach/mutex-solid.c
     some unused storage).  */
  
  void
-Index: glibc-2.31/scripts/check-local-headers.sh
-===================================================================
---- glibc-2.31.orig/scripts/check-local-headers.sh
-+++ glibc-2.31/scripts/check-local-headers.sh
-@@ -33,7 +33,7 @@ exec ${AWK} -v includedir="$includedir"
+--- a/scripts/check-local-headers.sh
++++ b/scripts/check-local-headers.sh
+@@ -33,7 +33,7 @@
  BEGIN {
    status = 0
    exclude = "^" includedir \
@@ -452,10 +416,8 @@ Index: glibc-2.31/scripts/check-local-headers.sh
  }
  /^[^ ]/ && $1 ~ /.*:/ { obj = $1 }
  {
-Index: glibc-2.31/sysdeps/htl/Makeconfig
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/Makeconfig
-+++ glibc-2.31/sysdeps/htl/Makeconfig
+--- a/sysdeps/htl/Makeconfig
++++ b/sysdeps/htl/Makeconfig
 @@ -4,7 +4,7 @@
  have-thread-library = yes
  
@@ -465,10 +427,8 @@ Index: glibc-2.31/sysdeps/htl/Makeconfig
  bounded-thread-library = $(static-thread-library)
  
  rpath-dirs += htl
-Index: glibc-2.31/sysdeps/htl/bits/pthread-np.h
-===================================================================
---- glibc-2.31.orig/sysdeps/htl/bits/pthread-np.h
-+++ glibc-2.31/sysdeps/htl/bits/pthread-np.h
+--- a/sysdeps/htl/bits/pthread-np.h
++++ b/sysdeps/htl/bits/pthread-np.h
 @@ -17,7 +17,7 @@
     <https://www.gnu.org/licenses/>.  */
  
@@ -478,20 +438,16 @@ Index: glibc-2.31/sysdeps/htl/bits/pthread-np.h
   */
  
  #ifndef _BITS_PTHREAD_NP_H
-Index: glibc-2.31/sysdeps/hurd/include/hurd/signal.h
-===================================================================
---- glibc-2.31.orig/sysdeps/hurd/include/hurd/signal.h
-+++ glibc-2.31/sysdeps/hurd/include/hurd/signal.h
+--- a/sysdeps/hurd/include/hurd/signal.h
++++ b/sysdeps/hurd/include/hurd/signal.h
 @@ -1,3 +1,5 @@
 +extern struct mutex _hurd_siglock; /* Locks _hurd_sigstates.  */
 +
  #ifndef	_HURD_SIGNAL_H
  extern struct hurd_sigstate *_hurd_self_sigstate (void) __attribute__ ((__const__));
  #ifndef _ISOMAC
-Index: glibc-2.31/sysdeps/mach/hurd/brk.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/brk.c
-+++ glibc-2.31/sysdeps/mach/hurd/brk.c
+--- a/sysdeps/mach/hurd/brk.c
++++ b/sysdeps/mach/hurd/brk.c
 @@ -18,7 +18,7 @@
  #include <errno.h>
  #include <hurd.h>
@@ -501,10 +457,8 @@ Index: glibc-2.31/sysdeps/mach/hurd/brk.c
  #include <vm_param.h>
  
  
-Index: glibc-2.31/sysdeps/mach/hurd/cthreads.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/cthreads.c
-+++ glibc-2.31/sysdeps/mach/hurd/cthreads.c
+--- a/sysdeps/mach/hurd/cthreads.c
++++ b/sysdeps/mach/hurd/cthreads.c
 @@ -18,7 +18,7 @@
  #include <libc-lock.h>
  #include <errno.h>
@@ -514,7 +468,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/cthreads.c
  
  /* This serves as stub "self" pointer for libc locks when TLS is not initialized
     yet.  */
-@@ -27,7 +27,7 @@ char __libc_lock_self0[0];
+@@ -27,7 +27,7 @@
  /* Placeholder for key creation routine from Hurd cthreads library.  */
  int
  weak_function
@@ -523,7 +477,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/cthreads.c
  {
    __set_errno (ENOSYS);
   *key = -1;
-@@ -37,7 +37,7 @@ __cthread_keycreate (cthread_key_t *key)
+@@ -37,7 +37,7 @@
  /* Placeholder for key retrieval routine from Hurd cthreads library.  */
  int
  weak_function
@@ -532,7 +486,7 @@ Index: glibc-2.31/sysdeps/mach/hurd/cthreads.c
  {
    *pval = NULL;
    __set_errno (ENOSYS);
-@@ -47,7 +47,7 @@ __cthread_getspecific (cthread_key_t key
+@@ -47,7 +47,7 @@
  /* Placeholder for key setting routine from Hurd cthreads library.  */
  int
  weak_function
@@ -541,11 +495,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/cthreads.c
  {
    __set_errno (ENOSYS);
    return -1;
-Index: glibc-2.31/sysdeps/mach/hurd/fork.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/fork.c
-+++ glibc-2.31/sysdeps/mach/hurd/fork.c
-@@ -497,7 +497,7 @@ __fork (void)
+--- a/sysdeps/mach/hurd/fork.c
++++ b/sysdeps/mach/hurd/fork.c
+@@ -497,7 +497,7 @@
  #else
        if (__hurd_sigthread_stack_end == 0)
  	{
@@ -554,10 +506,8 @@ Index: glibc-2.31/sysdeps/mach/hurd/fork.c
  	     The threadvar_stack variables conveniently tell us how
  	     to get to the highest address in the stack, just below
  	     the per-thread variables.  */
-Index: glibc-2.31/sysdeps/mach/hurd/htl/bits/pthread-np.h
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/htl/bits/pthread-np.h
-+++ glibc-2.31/sysdeps/mach/hurd/htl/bits/pthread-np.h
+--- a/sysdeps/mach/hurd/htl/bits/pthread-np.h
++++ b/sysdeps/mach/hurd/htl/bits/pthread-np.h
 @@ -17,7 +17,7 @@
     <https://www.gnu.org/licenses/>.  */
  
@@ -567,11 +517,9 @@ Index: glibc-2.31/sysdeps/mach/hurd/htl/bits/pthread-np.h
   */
  
  #ifndef _BITS_PTHREAD_NP_H
-Index: glibc-2.31/sysdeps/mach/hurd/i386/Makefile
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/i386/Makefile
-+++ glibc-2.31/sysdeps/mach/hurd/i386/Makefile
-@@ -109,6 +109,8 @@ ifeq ($(subdir),elf)
+--- a/sysdeps/mach/hurd/i386/Makefile
++++ b/sysdeps/mach/hurd/i386/Makefile
+@@ -109,6 +109,8 @@
  # We do use nested functions involving creation of trampolines, notably for
  # callbacks whose parameters don't permit to get the context parameters.
  check-execstack-xfail += ld.so libc.so libpthread.so
@@ -580,10 +528,8 @@ Index: glibc-2.31/sysdeps/mach/hurd/i386/Makefile
  endif
  
  ifeq ($(subdir),stdlib)
-Index: glibc-2.31/sysdeps/mach/hurd/profil.c
-===================================================================
---- glibc-2.31.orig/sysdeps/mach/hurd/profil.c
-+++ glibc-2.31/sysdeps/mach/hurd/profil.c
+--- a/sysdeps/mach/hurd/profil.c
++++ b/sysdeps/mach/hurd/profil.c
 @@ -22,7 +22,7 @@
  #include <hurd.h>
  #include <mach/mach4.h>

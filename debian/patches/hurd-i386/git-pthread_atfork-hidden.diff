@@ -14,8 +14,6 @@ Date:   Sun Jun 7 23:29:44 2020 +0000
     * sysdeps/htl/old_pt-atfork.c (pthread_atfork): Rename macro to
     __pthread_atfork to fix building the compatibility alias.
 
-diff --git a/sysdeps/htl/old_pt-atfork.c b/sysdeps/htl/old_pt-atfork.c
-index d954b68f63..c7231d1feb 100644
 --- a/sysdeps/htl/old_pt-atfork.c
 +++ b/sysdeps/htl/old_pt-atfork.c
 @@ -19,8 +19,8 @@
@@ -29,8 +27,6 @@ index d954b68f63..c7231d1feb 100644
 +# undef __pthread_atfork
  compat_symbol (libpthread, __dyn_pthread_atfork, pthread_atfork, GLIBC_2_12);
  #endif
-diff --git a/sysdeps/htl/pt-atfork.c b/sysdeps/htl/pt-atfork.c
-index d547dd58e6..db8068e656 100644
 --- a/sysdeps/htl/pt-atfork.c
 +++ b/sysdeps/htl/pt-atfork.c
 @@ -21,11 +21,21 @@

@@ -4,7 +4,7 @@
 
 --- a/sysdeps/unix/sysv/linux/arm/sigaction.c
 +++ b/sysdeps/unix/sysv/linux/arm/sigaction.c
-@@ -22,15 +22,10 @@ extern void __default_rt_sa_restorer (void);
+@@ -22,15 +22,10 @@
  
  #define SET_SA_RESTORER(kact, act)				\
   ({								\
