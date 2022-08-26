@@ -1,3 +1,24 @@
+glibc (2.31-13+deb11u4) bullseye; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/debhelper.in/libc-dev.NEWS: New file to explain how to update
+    programs to use the TI-RPC library instead of the Sun RPC one.  Closes:
+    #1014735.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix an off-by-one buffer overflow/underflow in getcwd() (CVE-2021-3999).
+    - Fix an overflow bug in the SSE2 and AVX2 implementations of wmemchr.
+    - Fix an overflow bug in the SSE4.1 and AVX2 implementations of wcslen and
+      wcsncat.
+    - Fix an overflow bug in the AVX2 and EVEX implementation of wcsncmp.
+    - Add a few EVEX optimized string functions to fix a performance issue (up
+      to 40%) with Skylake-X processors.
+    - Make grantpt usable after multi-threaded fork.  Closes: #1015740.
+    - debian/patches/hurd-i386/git-posix_openpt.diff: rebase.
+  * debian/rules.d/build.mk: pass --with-default-link=no to configure to
+    ensure that libio vtable protection is enabled.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 26 Aug 2022 23:32:46 +0200
+
 glibc (2.31-13+deb11u3) bullseye; urgency=medium
 
   [ Aurelien Jarno ]
