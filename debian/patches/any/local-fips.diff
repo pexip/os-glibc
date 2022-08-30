@@ -74,3 +74,13 @@
  GLIBC_2.28 fcntl64 F
  GLIBC_2.28 renameat2 F
  GLIBC_2.28 statx F
+--- a/sysdeps/unix/sysv/linux/aarch64/libc.abilist
++++ b/sysdeps/unix/sysv/linux/aarch64/libc.abilist
+@@ -2131,6 +2131,7 @@
+ GLIBC_2.27 wcstof64_l F
+ GLIBC_2.27 wcstof64x F
+ GLIBC_2.27 wcstof64x_l F
++GLIBC_2.28 _fips_config_check F
+ GLIBC_2.28 fcntl64 F
+ GLIBC_2.28 renameat2 F
+ GLIBC_2.28 statx F

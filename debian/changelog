@@ -1,3 +1,9 @@
+glibc (2.31-13+deb11u3pexip4) pexip-bullseye; urgency=medium
+
+  * Add _fips_config_check to aarch64 libc.abilist.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Tue, 30 Aug 2022 19:46:45 +0100
+
 glibc (2.31-13+deb11u3pexip3) pexip-bullseye; urgency=medium
 
   * Rebuild for override changes
