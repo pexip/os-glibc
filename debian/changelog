@@ -1,3 +1,9 @@
+glibc (2.31-13+deb11u3pexip5) pexip-bullseye; urgency=medium
+
+  * Bullseye rebuild for ARM64 inclusion
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Mon, 05 Sep 2022 10:31:47 +0100
+
 glibc (2.31-13+deb11u3pexip4) pexip-bullseye; urgency=medium
 
   * Add _fips_config_check to aarch64 libc.abilist.
