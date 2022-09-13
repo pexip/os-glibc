@@ -110,6 +110,7 @@ endif
 		--enable-stackguard-randomization \
 		--enable-stack-protector=strong \
 		--enable-obsolete-rpc \
+		--with-default-link=no \
 		--with-pkgversion="PexOS GLIBC $(DEB_VERSION)" \
 		--with-bugurl="http://www.pexip.com/" \
 		$(if $(filter $(pt_chown),yes),--enable-pt_chown) \
