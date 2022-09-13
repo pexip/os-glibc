@@ -1,3 +1,9 @@
+glibc (2.31-13+deb11u4pexip1) pexip-bullseye; urgency=medium
+
+  * New upstream release.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Tue, 13 Sep 2022 14:28:31 +0100
+
 glibc (2.31-13+deb11u4) bullseye; urgency=medium
 
   [ Aurelien Jarno ]
