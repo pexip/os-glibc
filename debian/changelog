@@ -1,3 +1,19 @@
+glibc (2.31-13+deb11u5pexip1) pexip; urgency=medium
+
+  * New upstream release.
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Mon, 19 Dec 2022 14:45:22 +0000
+
+glibc (2.31-13+deb11u5) bullseye; urgency=medium
+
+  * debian/patches/local-require-bmi-in-avx2-ifunc.diff: new patch extracted
+    from an upstream commit, to change the AVX2 ifunc selector to require the
+    BMI2 feature. It happened that the wmemchr and wcslen changes backported
+    in 2.31-13+deb11u4 relied on that commit which got forgotten.
+    Closes: #1019855.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 14 Oct 2022 21:35:00 +0200
+
 glibc (2.31-13+deb11u4pexip1) pexip-bullseye; urgency=medium
 
   * New upstream release.
