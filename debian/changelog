@@ -1,3 +1,9 @@
+glibc (2.31-13+deb11u5pexip2) pexip; urgency=medium
+
+  * Drop FIPS patch
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 09 Jan 2023 16:47:06 +0000
+
 glibc (2.31-13+deb11u5pexip1) pexip; urgency=medium
 
   * New upstream release.

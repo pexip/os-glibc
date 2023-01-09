@@ -174,4 +174,3 @@ any/local-CVE-2021-33574-mq_notify-use-after-free.diff
 
 # Pexip
 any/local-udp-syslog.diff
-any/local-fips.diff
