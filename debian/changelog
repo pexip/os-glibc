@@ -1,3 +1,9 @@
+glibc (2.31-13+deb11u5pexip3) pexip; urgency=medium
+
+  * Merge openssl3 changes to bullseye
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Mon, 30 Jan 2023 17:02:29 +0000
+
 glibc (2.31-13+deb11u5pexip2) pexip-bullseye-openssl3; urgency=medium
 
   * Drop FIPS patch
