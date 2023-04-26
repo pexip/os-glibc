@@ -22,6 +22,8 @@ alpha/local-string-functions.diff
 alpha/submitted-fts64.diff
 alpha/submitted-makecontext.diff
 
+amd64/local-require-bmi-in-avx2-ifunc.diff
+
 arm/local-sigaction.diff
 arm/unsubmitted-ldconfig-cache-abi.diff
 arm/local-soname-hack.diff

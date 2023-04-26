@@ -1,3 +1,14 @@
+glibc (2.31-13+deb11u4pexip2) pexip-bullseye; urgency=medium
+
+  * Backport security fix from 2.31-13+deb11u5:
+    + debian/patches/local-require-bmi-in-avx2-ifunc.diff: new patch
+      extracted from an upstream commit, to change the AVX2 ifunc
+      selector to require the BMI2 feature. It happened that the
+      wmemchr and wcslen changes backported in 2.31-13+deb11u4 relied
+      on that commit which got forgotten. Closes: #1019855.
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Wed, 26 Apr 2023 17:41:34 +0100
+
 glibc (2.31-13+deb11u4pexip1) pexip-bullseye; urgency=medium
 
   * New upstream release.
