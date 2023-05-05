@@ -23,16 +23,17 @@ index 242cb06f91..b487e18634 100644
  '--disable-werror'
       By default, the GNU C Library is built with '-Werror'.  If you wish
 diff --git a/NEWS b/NEWS
-index 292fbc595a..a3278be684 100644
+index 292fbc595a..8a20d3c4e3 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -5,6 +5,90 @@ See the end for copying conditions.
+@@ -5,6 +5,94 @@ See the end for copying conditions.
  Please send GNU C library bug reports via <https://sourceware.org/bugzilla/>
  using `glibc' in the "product" field.
  
 +Version 2.31.1
 +
 +The following bugs are resolved with this release:
++  [14231] stdio-common tests memory requirements
 +  [19519] iconv(1) with -c option hangs on illegal multi-byte sequences
 +    (CVE-2016-10228)
 +  [20019] NULL pointer dereference in libc.so.6 IFUNC due to uninitialized GOT
@@ -48,6 +49,7 @@ index 292fbc595a..a3278be684 100644
 +  [25635] arm: Wrong sysdep order selection for soft-fp
 +  [25639] localedata: Some names of days and months wrongly spelt in
 +    Occitan
++  [25691] stdio: Remove memory leak from multibyte convertion
 +  [25715] system() returns wrong errors when posix_spawn fails
 +  [25810] x32: Incorrect syscall entries with pointer, off_t and size_t
 +  [25896] Incorrect prctl
@@ -55,6 +57,7 @@ index 292fbc595a..a3278be684 100644
 +  [25933] Off by one error in __strncmp_avx2
 +  [25966] Incorrect access of __x86_shared_non_temporal_threshold for x32
 +  [25976] nss_compat: internal_end*ent may clobber errno, hiding ERANGE
++  [26211] printf integer overflow calculating allocation size
 +  [26224] iconv hangs when converting some invalid inputs from several IBM
 +    character sets (CVE-2020-27618)
 +  [26248] Incorrect argument types for INLINE_SETXID_SYSCALL
@@ -72,6 +75,7 @@ index 292fbc595a..a3278be684 100644
 +  [28769] CVE-2021-3999: Off-by-one buffer overflow/underflow in getcwd()
 +  [28896] strncmp-avx2-rtm and wcsncmp-avx2-rtm fallback on non-rtm
 +    variants when avoiding overflow
++  [29530] segfault in printf handling thousands separator
 +
 +Security related changes:
 +
@@ -117,7 +121,7 @@ index 292fbc595a..a3278be684 100644
  Version 2.31
  
  Major new features:
-@@ -141,6 +225,18 @@ Changes to build and runtime requirements:
+@@ -141,6 +229,18 @@ Changes to build and runtime requirements:
    source tree.  ChangeLog files are located in the ChangeLog.old directory as
    ChangeLog.N where the highest N has the latest entries.
  
@@ -4022,6 +4026,941 @@ index 0000000000..29c2a81afd
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/stdio-common/Makefile b/stdio-common/Makefile
+index 95af0c12d7..5e92d6b9ae 100644
+--- a/stdio-common/Makefile
++++ b/stdio-common/Makefile
+@@ -66,6 +66,10 @@ tests := tstscanf test_rdwr test-popen tstgetln test-fseek \
+ 	 tst-scanf-round \
+ 	 tst-renameat2 tst-bz11319 tst-bz11319-fortify2 \
+ 	 scanf14a scanf16a \
++	 tst-printf-bz25691 \
++	 tst-vfprintf-width-prec-alloc \
++	 tst-grouping2 \
++  # tests
+ 
+ 
+ test-srcs = tst-unbputc tst-printf tst-printfsz-islongdouble
+@@ -75,10 +79,12 @@ tests-special += $(objpfx)tst-unbputc.out $(objpfx)tst-printf.out \
+ 		 $(objpfx)tst-printf-bz18872-mem.out \
+ 		 $(objpfx)tst-setvbuf1-cmp.out \
+ 		 $(objpfx)tst-vfprintf-width-prec-mem.out \
+-		 $(objpfx)tst-printfsz-islongdouble.out
++		 $(objpfx)tst-printfsz-islongdouble.out \
++		 $(objpfx)tst-printf-bz25691-mem.out
+ generated += tst-printf-bz18872.c tst-printf-bz18872.mtrace \
+ 	     tst-printf-bz18872-mem.out \
+-	     tst-vfprintf-width-prec.mtrace tst-vfprintf-width-prec-mem.out
++	     tst-vfprintf-width-prec.mtrace tst-vfprintf-width-prec-mem.out \
++	     tst-printf-bz25691.mtrace tst-printf-bz25691-mem.out
+ endif
+ 
+ include ../Rules
+@@ -91,6 +97,7 @@ $(objpfx)bug14.out: $(gen-locales)
+ $(objpfx)scanf13.out: $(gen-locales)
+ $(objpfx)test-vfprintf.out: $(gen-locales)
+ $(objpfx)tst-grouping.out: $(gen-locales)
++$(objpfx)tst-grouping2.out: $(gen-locales)
+ $(objpfx)tst-sprintf.out: $(gen-locales)
+ $(objpfx)tst-sscanf.out: $(gen-locales)
+ $(objpfx)tst-swprintf.out: $(gen-locales)
+@@ -100,6 +107,8 @@ endif
+ tst-printf-bz18872-ENV = MALLOC_TRACE=$(objpfx)tst-printf-bz18872.mtrace
+ tst-vfprintf-width-prec-ENV = \
+   MALLOC_TRACE=$(objpfx)tst-vfprintf-width-prec.mtrace
++tst-printf-bz25691-ENV = \
++  MALLOC_TRACE=$(objpfx)tst-printf-bz25691.mtrace
+ 
+ $(objpfx)tst-unbputc.out: tst-unbputc.sh $(objpfx)tst-unbputc
+ 	$(SHELL) $< $(common-objpfx) '$(test-program-prefix)' > $@; \
+diff --git a/stdio-common/bug22.c b/stdio-common/bug22.c
+index b3d48eb8e1..029b549941 100644
+--- a/stdio-common/bug22.c
++++ b/stdio-common/bug22.c
+@@ -57,7 +57,7 @@ do_test (void)
+ 
+   ret = fprintf (fp, "%." SN3 "d", 1);
+   printf ("ret = %d\n", ret);
+-  if (ret != -1 || errno != EOVERFLOW)
++  if (ret != N3)
+ 	  return 1;
+ 
+   /* GCC 9 warns about output of more than INT_MAX characters; this is
+diff --git a/stdio-common/tst-grouping2.c b/stdio-common/tst-grouping2.c
+new file mode 100644
+index 0000000000..3024c942a6
+--- /dev/null
++++ b/stdio-common/tst-grouping2.c
+@@ -0,0 +1,39 @@
++/* Test printf with grouping and large width (bug 29530)
++   Copyright (C) 2022 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <locale.h>
++#include <stdio.h>
++#include <support/check.h>
++#include <support/support.h>
++
++static int
++do_test (void)
++{
++  const int field_width = 1000;
++  char buf[field_width + 1];
++
++  xsetlocale (LC_NUMERIC, "de_DE.UTF-8");
++
++  /* This used to crash in group_number.  */
++  TEST_COMPARE (sprintf (buf, "%'*d", field_width, 1000), field_width);
++  TEST_COMPARE_STRING (buf + field_width - 6, " 1.000");
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/tst-printf-bz25691.c b/stdio-common/tst-printf-bz25691.c
+new file mode 100644
+index 0000000000..37b30a3a8a
+--- /dev/null
++++ b/stdio-common/tst-printf-bz25691.c
+@@ -0,0 +1,108 @@
++/* Test for memory leak with large width (BZ#25691).
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <wchar.h>
++#include <stdint.h>
++#include <locale.h>
++
++#include <mcheck.h>
++#include <support/check.h>
++#include <support/support.h>
++
++static int
++do_test (void)
++{
++  mtrace ();
++
++  /* For 's' conversion specifier with 'l' modifier the array must be
++     converted to multibyte characters up to the precision specific
++     value.  */
++  {
++    /* The input size value is to force a heap allocation on temporary
++       buffer (in the old implementation).  */
++    const size_t winputsize = 64 * 1024 + 1;
++    wchar_t *winput = xmalloc (winputsize * sizeof (wchar_t));
++    wmemset (winput, L'a', winputsize - 1);
++    winput[winputsize - 1] = L'\0';
++
++    char result[9];
++    const char expected[] = "aaaaaaaa";
++    int ret;
++
++    ret = snprintf (result, sizeof (result), "%.65537ls", winput);
++    TEST_COMPARE (ret, winputsize - 1);
++    TEST_COMPARE_BLOB (result, sizeof (result), expected, sizeof (expected));
++
++    ret = snprintf (result, sizeof (result), "%ls", winput);
++    TEST_COMPARE (ret, winputsize - 1);
++    TEST_COMPARE_BLOB (result, sizeof (result), expected, sizeof (expected));
++
++    free (winput);
++  }
++
++  /* For 's' converstion specifier the array is interpreted as a multibyte
++     character sequence and converted to wide characters up to the precision
++     specific value.  */
++  {
++    /* The input size value is to force a heap allocation on temporary
++       buffer (in the old implementation).  */
++    const size_t mbssize = 32 * 1024;
++    char *mbs = xmalloc (mbssize);
++    memset (mbs, 'a', mbssize - 1);
++    mbs[mbssize - 1] = '\0';
++
++    const size_t expectedsize = 32 * 1024;
++    wchar_t *expected = xmalloc (expectedsize * sizeof (wchar_t));
++    wmemset (expected, L'a', expectedsize - 1);
++    expected[expectedsize-1] = L'\0';
++
++    const size_t resultsize = mbssize * sizeof (wchar_t);
++    wchar_t *result = xmalloc (resultsize);
++    int ret;
++
++    ret = swprintf (result, resultsize, L"%.65537s", mbs);
++    TEST_COMPARE (ret, mbssize - 1);
++    TEST_COMPARE_BLOB (result, (ret + 1) * sizeof (wchar_t),
++		       expected, expectedsize * sizeof (wchar_t));
++
++    ret = swprintf (result, resultsize, L"%1$.65537s", mbs);
++    TEST_COMPARE (ret, mbssize - 1);
++    TEST_COMPARE_BLOB (result, (ret + 1) * sizeof (wchar_t),
++		       expected, expectedsize * sizeof (wchar_t));
++
++    /* Same test, but with an invalid multibyte sequence.  */
++    mbs[mbssize - 2] = 0xff;
++
++    ret = swprintf (result, resultsize, L"%.65537s", mbs);
++    TEST_COMPARE (ret, -1);
++
++    ret = swprintf (result, resultsize, L"%1$.65537s", mbs);
++    TEST_COMPARE (ret, -1);
++
++    free (mbs);
++    free (result);
++    free (expected);
++  }
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/tst-vfprintf-width-prec-alloc.c b/stdio-common/tst-vfprintf-width-prec-alloc.c
+new file mode 100644
+index 0000000000..0a74b53a33
+--- /dev/null
++++ b/stdio-common/tst-vfprintf-width-prec-alloc.c
+@@ -0,0 +1,41 @@
++/* Test large width or precision does not involve large allocation.
++   Copyright (C) 2020 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <sys/resource.h>
++#include <support/check.h>
++
++char test_string[] = "test";
++
++static int
++do_test (void)
++{
++  struct rlimit limit;
++  TEST_VERIFY_EXIT (getrlimit (RLIMIT_AS, &limit) == 0);
++  limit.rlim_cur = 200 * 1024 * 1024;
++  TEST_VERIFY_EXIT (setrlimit (RLIMIT_AS, &limit) == 0);
++  FILE *fp = fopen ("/dev/null", "w");
++  TEST_VERIFY_EXIT (fp != NULL);
++  TEST_COMPARE (fprintf (fp, "%1000000000d", 1), 1000000000);
++  TEST_COMPARE (fprintf (fp, "%.1000000000s", test_string), 4);
++  TEST_COMPARE (fprintf (fp, "%1000000000d %1000000000d", 1, 2), 2000000001);
++  TEST_COMPARE (fprintf (fp, "%2$.*1$s", 0x7fffffff, test_string), 4);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/vfprintf-internal.c b/stdio-common/vfprintf-internal.c
+index 3be92d4b6e..b1c8f5c43e 100644
+--- a/stdio-common/vfprintf-internal.c
++++ b/stdio-common/vfprintf-internal.c
+@@ -31,6 +31,7 @@
+ #include <locale/localeinfo.h>
+ #include <stdio.h>
+ #include <scratch_buffer.h>
++#include <intprops.h>
+ 
+ /* This code is shared between the standard stdio implementation found
+    in GNU C library and the libio implementation originally found in
+@@ -45,10 +46,6 @@
+ #include <wctype.h>
+ #endif
+ 
+-/* In some cases we need extra space for all the output which is not
+-   counted in the width of the string. We assume 32 characters is
+-   enough.  */
+-#define EXTSIZ		32
+ #define ARGCHECK(S, Format) \
+   do									      \
+     {									      \
+@@ -119,22 +116,38 @@
+   while (0)
+ #endif
+ 
+-#define done_add(val) \
+-  do {									      \
+-    unsigned int _val = val;						      \
+-    assert ((unsigned int) done < (unsigned int) INT_MAX);		      \
+-    if (__glibc_unlikely (INT_MAX - done < _val))			      \
+-      {									      \
+-	done = -1;							      \
+-	 __set_errno (EOVERFLOW);					      \
+-	goto all_done;							      \
+-      }									      \
+-    done += _val;							      \
+-  } while (0)
++/* Add LENGTH to DONE.  Return the new value of DONE, or -1 on
++   overflow (and set errno accordingly).  */
++static inline int
++done_add_func (size_t length, int done)
++{
++  if (done < 0)
++    return done;
++  int ret;
++  if (INT_ADD_WRAPV (done, length, &ret))
++    {
++      __set_errno (EOVERFLOW);
++      return -1;
++    }
++  return ret;
++}
++
++#define done_add(val)							\
++  do									\
++    {									\
++      /* Ensure that VAL has a type similar to int.  */			\
++      _Static_assert (sizeof (val) == sizeof (int), "value int size");	\
++      _Static_assert ((__typeof__ (val)) -1 < 0, "value signed");	\
++      done = done_add_func ((val), done);				\
++      if (done < 0)							\
++	goto all_done;							\
++    }									\
++  while (0)
+ 
+ #ifndef COMPILE_WPRINTF
+ # define vfprintf	__vfprintf_internal
+ # define CHAR_T		char
++# define OTHER_CHAR_T   wchar_t
+ # define UCHAR_T	unsigned char
+ # define INT_T		int
+ typedef const char *THOUSANDS_SEP_T;
+@@ -143,25 +156,14 @@ typedef const char *THOUSANDS_SEP_T;
+ # define STR_LEN(Str)	strlen (Str)
+ 
+ # define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
+-# define PAD(Padchar) \
+-  do {									      \
+-    if (width > 0)							      \
+-      {									      \
+-	ssize_t written = _IO_padn (s, (Padchar), width);		      \
+-	if (__glibc_unlikely (written != width))			      \
+-	  {								      \
+-	    done = -1;							      \
+-	    goto all_done;						      \
+-	  }								      \
+-	done_add (written);						      \
+-      }									      \
+-  } while (0)
+ # define PUTC(C, F)	_IO_putc_unlocked (C, F)
+ # define ORIENT		if (_IO_vtable_offset (s) == 0 && _IO_fwide (s, -1) != -1)\
+ 			  return -1
++# define CONVERT_FROM_OTHER_STRING __wcsrtombs
+ #else
+ # define vfprintf	__vfwprintf_internal
+ # define CHAR_T		wchar_t
++# define OTHER_CHAR_T   char
+ /* This is a hack!!!  There should be a type uwchar_t.  */
+ # define UCHAR_T	unsigned int /* uwchar_t */
+ # define INT_T		wint_t
+@@ -173,21 +175,9 @@ typedef wchar_t THOUSANDS_SEP_T;
+ # include <_itowa.h>
+ 
+ # define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
+-# define PAD(Padchar) \
+-  do {									      \
+-    if (width > 0)							      \
+-      {									      \
+-	ssize_t written = _IO_wpadn (s, (Padchar), width);		      \
+-	if (__glibc_unlikely (written != width))			      \
+-	  {								      \
+-	    done = -1;							      \
+-	    goto all_done;						      \
+-	  }								      \
+-	done_add (written);						      \
+-      }									      \
+-  } while (0)
+ # define PUTC(C, F)	_IO_putwc_unlocked (C, F)
+ # define ORIENT		if (_IO_fwide (s, 1) != 1) return -1
++# define CONVERT_FROM_OTHER_STRING __mbsrtowcs
+ 
+ # undef _itoa
+ # define _itoa(Val, Buf, Base, Case) _itowa (Val, Buf, Base, Case)
+@@ -196,6 +186,33 @@ typedef wchar_t THOUSANDS_SEP_T;
+ # define EOF WEOF
+ #endif
+ 
++static inline int
++pad_func (FILE *s, CHAR_T padchar, int width, int done)
++{
++  if (width > 0)
++    {
++      ssize_t written;
++#ifndef COMPILE_WPRINTF
++      written = _IO_padn (s, padchar, width);
++#else
++      written = _IO_wpadn (s, padchar, width);
++#endif
++      if (__glibc_unlikely (written != width))
++	return -1;
++      return done_add_func (width, done);
++    }
++  return done;
++}
++
++#define PAD(Padchar)							\
++  do									\
++    {									\
++      done = pad_func (s, (Padchar), width, done);			\
++      if (done < 0)							\
++	goto all_done;							\
++    }									\
++  while (0)
++
+ #include "_i18n_number.h"
+ 
+ /* Include the shared code for parsing the format string.  */
+@@ -215,24 +232,115 @@ typedef wchar_t THOUSANDS_SEP_T;
+     }									      \
+   while (0)
+ 
+-#define outstring(String, Len)						      \
+-  do									      \
+-    {									      \
+-      assert ((size_t) done <= (size_t) INT_MAX);			      \
+-      if ((size_t) PUT (s, (String), (Len)) != (size_t) (Len))		      \
+-	{								      \
+-	  done = -1;							      \
+-	  goto all_done;						      \
+-	}								      \
+-      if (__glibc_unlikely (INT_MAX - done < (Len)))			      \
+-      {									      \
+-	done = -1;							      \
+-	 __set_errno (EOVERFLOW);					      \
+-	goto all_done;							      \
+-      }									      \
+-      done += (Len);							      \
+-    }									      \
+-  while (0)
++static inline int
++outstring_func (FILE *s, const UCHAR_T *string, size_t length, int done)
++{
++  assert ((size_t) done <= (size_t) INT_MAX);
++  if ((size_t) PUT (s, string, length) != (size_t) (length))
++    return -1;
++  return done_add_func (length, done);
++}
++
++#define outstring(String, Len)						\
++  do									\
++    {									\
++      const void *string_ = (String);					\
++      done = outstring_func (s, string_, (Len), done);			\
++      if (done < 0)							\
++	goto all_done;							\
++    }									\
++   while (0)
++
++/* Write the string SRC to S.  If PREC is non-negative, write at most
++   PREC bytes.  If LEFT is true, perform left justification.  */
++static int
++outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
++				 int width, bool left, int done)
++{
++  /* Use a small buffer to combine processing of multiple characters.
++     CONVERT_FROM_OTHER_STRING expects the buffer size in (wide)
++     characters, and buf_length counts that.  */
++  enum { buf_length = 256 / sizeof (CHAR_T) };
++  CHAR_T buf[buf_length];
++  _Static_assert (sizeof (buf) > MB_LEN_MAX,
++		  "buffer is large enough for a single multi-byte character");
++
++  /* Add the initial padding if needed.  */
++  if (width > 0 && !left)
++    {
++      /* Make a first pass to find the output width, so that we can
++	 add the required padding.  */
++      mbstate_t mbstate = { 0 };
++      const OTHER_CHAR_T *src_copy = src;
++      size_t total_written;
++      if (prec < 0)
++	total_written = CONVERT_FROM_OTHER_STRING
++	  (NULL, &src_copy, 0, &mbstate);
++      else
++	{
++	  /* The source might not be null-terminated.  Enforce the
++	     limit manually, based on the output length.  */
++	  total_written = 0;
++	  size_t limit = prec;
++	  while (limit > 0 && src_copy != NULL)
++	    {
++	      size_t write_limit = buf_length;
++	      if (write_limit > limit)
++		write_limit = limit;
++	      size_t written = CONVERT_FROM_OTHER_STRING
++		(buf, &src_copy, write_limit, &mbstate);
++	      if (written == (size_t) -1)
++		return -1;
++	      if (written == 0)
++		break;
++	      total_written += written;
++	      limit -= written;
++	    }
++	}
++
++      /* Output initial padding.  */
++      if (total_written < width)
++	{
++	  done = pad_func (s, L_(' '), width - total_written, done);
++	  if (done < 0)
++	    return done;
++	}
++    }
++
++  /* Convert the input string, piece by piece.  */
++  size_t total_written = 0;
++  {
++    mbstate_t mbstate = { 0 };
++    /* If prec is negative, remaining is not decremented, otherwise,
++      it serves as the write limit.  */
++    size_t remaining = -1;
++    if (prec >= 0)
++      remaining = prec;
++    while (remaining > 0 && src != NULL)
++      {
++	size_t write_limit = buf_length;
++	if (remaining < write_limit)
++	  write_limit = remaining;
++	size_t written = CONVERT_FROM_OTHER_STRING
++	  (buf, &src, write_limit, &mbstate);
++	if (written == (size_t) -1)
++	  return -1;
++	if (written == 0)
++	  break;
++	done = outstring_func (s, (const UCHAR_T *) buf, written, done);
++	if (done < 0)
++	  return done;
++	total_written += written;
++	if (prec >= 0)
++	  remaining -= written;
++      }
++  }
++
++  /* Add final padding.  */
++  if (width > 0 && left && total_written < width)
++    return pad_func (s, L_(' '), width - total_written, done);
++  return done;
++}
+ 
+ /* For handling long_double and longlong we use the same flag.  If
+    `long' and `long long' are effectively the same type define it to
+@@ -1022,7 +1130,6 @@ static const uint8_t jump_table[] =
+     LABEL (form_string):						      \
+       {									      \
+ 	size_t len;							      \
+-	int string_malloced;						      \
+ 									      \
+ 	/* The string argument could in fact be `char *' or `wchar_t *'.      \
+ 	   But this should not make a difference here.  */		      \
+@@ -1034,7 +1141,6 @@ static const uint8_t jump_table[] =
+ 	/* Entry point for printing other strings.  */			      \
+       LABEL (print_string):						      \
+ 									      \
+-	string_malloced = 0;						      \
+ 	if (string == NULL)						      \
+ 	  {								      \
+ 	    /* Write "(null)" if there's space.  */			      \
+@@ -1051,41 +1157,12 @@ static const uint8_t jump_table[] =
+ 	  }								      \
+ 	else if (!is_long && spec != L_('S'))				      \
+ 	  {								      \
+-	    /* This is complicated.  We have to transform the multibyte	      \
+-	       string into a wide character string.  */			      \
+-	    const char *mbs = (const char *) string;			      \
+-	    mbstate_t mbstate;						      \
+-									      \
+-	    len = prec != -1 ? __strnlen (mbs, (size_t) prec) : strlen (mbs); \
+-									      \
+-	    /* Allocate dynamically an array which definitely is long	      \
+-	       enough for the wide character version.  Each byte in the	      \
+-	       multi-byte string can produce at most one wide character.  */  \
+-	    if (__glibc_unlikely (len > SIZE_MAX / sizeof (wchar_t)))	      \
+-	      {								      \
+-		__set_errno (EOVERFLOW);				      \
+-		done = -1;						      \
+-		goto all_done;						      \
+-	      }								      \
+-	    else if (__libc_use_alloca (len * sizeof (wchar_t)))	      \
+-	      string = (CHAR_T *) alloca (len * sizeof (wchar_t));	      \
+-	    else if ((string = (CHAR_T *) malloc (len * sizeof (wchar_t)))    \
+-		     == NULL)						      \
+-	      {								      \
+-		done = -1;						      \
+-		goto all_done;						      \
+-	      }								      \
+-	    else							      \
+-	      string_malloced = 1;					      \
+-									      \
+-	    memset (&mbstate, '\0', sizeof (mbstate_t));		      \
+-	    len = __mbsrtowcs (string, &mbs, len, &mbstate);		      \
+-	    if (len == (size_t) -1)					      \
+-	      {								      \
+-		/* Illegal multibyte character.  */			      \
+-		done = -1;						      \
+-		goto all_done;						      \
+-	      }								      \
++	    done = outstring_converted_wide_string			      \
++	      (s, (const char *) string, prec, width, left, done);	      \
++	    if (done < 0)						      \
++	      goto all_done;						      \
++	    /* The padding has already been written.  */		      \
++	    break;							      \
+ 	  }								      \
+ 	else								      \
+ 	  {								      \
+@@ -1108,8 +1185,6 @@ static const uint8_t jump_table[] =
+ 	outstring (string, len);					      \
+ 	if (left)							      \
+ 	  PAD (L' ');							      \
+-	if (__glibc_unlikely (string_malloced))				      \
+-	  free (string);						      \
+       }									      \
+       break;
+ #else
+@@ -1158,7 +1233,6 @@ static const uint8_t jump_table[] =
+     LABEL (form_string):						      \
+       {									      \
+ 	size_t len;							      \
+-	int string_malloced;						      \
+ 									      \
+ 	/* The string argument could in fact be `char *' or `wchar_t *'.      \
+ 	   But this should not make a difference here.  */		      \
+@@ -1170,7 +1244,6 @@ static const uint8_t jump_table[] =
+ 	/* Entry point for printing other strings.  */			      \
+       LABEL (print_string):						      \
+ 									      \
+-	string_malloced = 0;						      \
+ 	if (string == NULL)						      \
+ 	  {								      \
+ 	    /* Write "(null)" if there's space.  */			      \
+@@ -1196,51 +1269,12 @@ static const uint8_t jump_table[] =
+ 	  }								      \
+ 	else								      \
+ 	  {								      \
+-	    const wchar_t *s2 = (const wchar_t *) string;		      \
+-	    mbstate_t mbstate;						      \
+-									      \
+-	    memset (&mbstate, '\0', sizeof (mbstate_t));		      \
+-									      \
+-	    if (prec >= 0)						      \
+-	      {								      \
+-		/* The string `s2' might not be NUL terminated.  */	      \
+-		if (__libc_use_alloca (prec))				      \
+-		  string = (char *) alloca (prec);			      \
+-		else if ((string = (char *) malloc (prec)) == NULL)	      \
+-		  {							      \
+-		    done = -1;						      \
+-		    goto all_done;					      \
+-		  }							      \
+-		else							      \
+-		  string_malloced = 1;					      \
+-		len = __wcsrtombs (string, &s2, prec, &mbstate);	      \
+-	      }								      \
+-	    else							      \
+-	      {								      \
+-		len = __wcsrtombs (NULL, &s2, 0, &mbstate);		      \
+-		if (len != (size_t) -1)					      \
+-		  {							      \
+-		    assert (__mbsinit (&mbstate));			      \
+-		    s2 = (const wchar_t *) string;			      \
+-		    if (__libc_use_alloca (len + 1))			      \
+-		      string = (char *) alloca (len + 1);		      \
+-		    else if ((string = (char *) malloc (len + 1)) == NULL)    \
+-		      {							      \
+-			done = -1;					      \
+-			goto all_done;					      \
+-		      }							      \
+-		    else						      \
+-		      string_malloced = 1;				      \
+-		    (void) __wcsrtombs (string, &s2, len + 1, &mbstate);      \
+-		  }							      \
+-	      }								      \
+-									      \
+-	    if (len == (size_t) -1)					      \
+-	      {								      \
+-		/* Illegal wide-character string.  */			      \
+-		done = -1;						      \
+-		goto all_done;						      \
+-	      }								      \
++	    done = outstring_converted_wide_string			      \
++	      (s, (const wchar_t *) string, prec, width, left, done);	      \
++	    if (done < 0)						      \
++	      goto all_done;						      \
++	    /* The padding has already been written.  */		      \
++	    break;							      \
+ 	  }								      \
+ 									      \
+ 	if ((width -= len) < 0)						      \
+@@ -1254,8 +1288,6 @@ static const uint8_t jump_table[] =
+ 	outstring (string, len);					      \
+ 	if (left)							      \
+ 	  PAD (' ');							      \
+-	if (__glibc_unlikely (string_malloced))			              \
+-	  free (string);						      \
+       }									      \
+       break;
+ #endif
+@@ -1307,7 +1339,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+ 
+   /* Buffer intermediate results.  */
+   CHAR_T work_buffer[WORK_BUFFER_SIZE];
+-  CHAR_T *workstart = NULL;
+   CHAR_T *workend;
+ 
+   /* We have to save the original argument pointer.  */
+@@ -1416,7 +1447,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+       UCHAR_T pad = L_(' ');/* Padding character.  */
+       CHAR_T spec;
+ 
+-      workstart = NULL;
+       workend = work_buffer + WORK_BUFFER_SIZE;
+ 
+       /* Get current character in format string.  */
+@@ -1508,31 +1538,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+ 	    pad = L_(' ');
+ 	    left = 1;
+ 	  }
+-
+-	if (__glibc_unlikely (width >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
+-	  {
+-	    __set_errno (EOVERFLOW);
+-	    done = -1;
+-	    goto all_done;
+-	  }
+-
+-	if (width >= WORK_BUFFER_SIZE - EXTSIZ)
+-	  {
+-	    /* We have to use a special buffer.  */
+-	    size_t needed = ((size_t) width + EXTSIZ) * sizeof (CHAR_T);
+-	    if (__libc_use_alloca (needed))
+-	      workend = (CHAR_T *) alloca (needed) + width + EXTSIZ;
+-	    else
+-	      {
+-		workstart = (CHAR_T *) malloc (needed);
+-		if (workstart == NULL)
+-		  {
+-		    done = -1;
+-		    goto all_done;
+-		  }
+-		workend = workstart + width + EXTSIZ;
+-	      }
+-	  }
+       }
+       JUMP (*f, step1_jumps);
+ 
+@@ -1540,31 +1545,13 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+     LABEL (width):
+       width = read_int (&f);
+ 
+-      if (__glibc_unlikely (width == -1
+-			    || width >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
++      if (__glibc_unlikely (width == -1))
+ 	{
+ 	  __set_errno (EOVERFLOW);
+ 	  done = -1;
+ 	  goto all_done;
+ 	}
+ 
+-      if (width >= WORK_BUFFER_SIZE - EXTSIZ)
+-	{
+-	  /* We have to use a special buffer.  */
+-	  size_t needed = ((size_t) width + EXTSIZ) * sizeof (CHAR_T);
+-	  if (__libc_use_alloca (needed))
+-	    workend = (CHAR_T *) alloca (needed) + width + EXTSIZ;
+-	  else
+-	    {
+-	      workstart = (CHAR_T *) malloc (needed);
+-	      if (workstart == NULL)
+-		{
+-		  done = -1;
+-		  goto all_done;
+-		}
+-	      workend = workstart + width + EXTSIZ;
+-	    }
+-	}
+       if (*f == L_('$'))
+ 	/* Oh, oh.  The argument comes from a positional parameter.  */
+ 	goto do_positional;
+@@ -1613,34 +1600,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+ 	}
+       else
+ 	prec = 0;
+-      if (prec > width && prec > WORK_BUFFER_SIZE - EXTSIZ)
+-	{
+-	  /* Deallocate any previously allocated buffer because it is
+-	     too small.  */
+-	  if (__glibc_unlikely (workstart != NULL))
+-	    free (workstart);
+-	  workstart = NULL;
+-	  if (__glibc_unlikely (prec >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
+-	    {
+-	      __set_errno (EOVERFLOW);
+-	      done = -1;
+-	      goto all_done;
+-	    }
+-	  size_t needed = ((size_t) prec + EXTSIZ) * sizeof (CHAR_T);
+-
+-	  if (__libc_use_alloca (needed))
+-	    workend = (CHAR_T *) alloca (needed) + prec + EXTSIZ;
+-	  else
+-	    {
+-	      workstart = (CHAR_T *) malloc (needed);
+-	      if (workstart == NULL)
+-		{
+-		  done = -1;
+-		  goto all_done;
+-		}
+-	      workend = workstart + prec + EXTSIZ;
+-	    }
+-	}
+       JUMP (*f, step2_jumps);
+ 
+       /* Process 'h' modifier.  There might another 'h' following.  */
+@@ -1704,10 +1663,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+       /* The format is correctly handled.  */
+       ++nspecs_done;
+ 
+-      if (__glibc_unlikely (workstart != NULL))
+-	free (workstart);
+-      workstart = NULL;
+-
+       /* Look for next format specifier.  */
+ #ifdef COMPILE_WPRINTF
+       f = __find_specwc ((end_of_spec = ++f));
+@@ -1725,18 +1680,11 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+ 
+   /* Hand off processing for positional parameters.  */
+ do_positional:
+-  if (__glibc_unlikely (workstart != NULL))
+-    {
+-      free (workstart);
+-      workstart = NULL;
+-    }
+   done = printf_positional (s, format, readonly_format, ap, &ap_save,
+ 			    done, nspecs_done, lead_str_end, work_buffer,
+ 			    save_errno, grouping, thousands_sep, mode_flags);
+ 
+  all_done:
+-  if (__glibc_unlikely (workstart != NULL))
+-    free (workstart);
+   /* Unlock the stream.  */
+   _IO_funlockfile (s);
+   _IO_cleanup_region_end (0);
+@@ -1780,8 +1728,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
+   /* Just a counter.  */
+   size_t cnt;
+ 
+-  CHAR_T *workstart = NULL;
+-
+   if (grouping == (const char *) -1)
+     {
+ #ifdef COMPILE_WPRINTF
+@@ -1974,7 +1920,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
+       char pad = specs[nspecs_done].info.pad;
+       CHAR_T spec = specs[nspecs_done].info.spec;
+ 
+-      workstart = NULL;
+       CHAR_T *workend = work_buffer + WORK_BUFFER_SIZE;
+ 
+       /* Fill in last information.  */
+@@ -2008,27 +1953,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
+ 	  prec = specs[nspecs_done].info.prec;
+ 	}
+ 
+-      /* Maybe the buffer is too small.  */
+-      if (MAX (prec, width) + EXTSIZ > WORK_BUFFER_SIZE)
+-	{
+-	  if (__libc_use_alloca ((MAX (prec, width) + EXTSIZ)
+-				 * sizeof (CHAR_T)))
+-	    workend = ((CHAR_T *) alloca ((MAX (prec, width) + EXTSIZ)
+-					  * sizeof (CHAR_T))
+-		       + (MAX (prec, width) + EXTSIZ));
+-	  else
+-	    {
+-	      workstart = (CHAR_T *) malloc ((MAX (prec, width) + EXTSIZ)
+-					     * sizeof (CHAR_T));
+-	      if (workstart == NULL)
+-		{
+-		  done = -1;
+-		  goto all_done;
+-		}
+-	      workend = workstart + (MAX (prec, width) + EXTSIZ);
+-	    }
+-	}
+-
+       /* Process format specifiers.  */
+       while (1)
+ 	{
+@@ -2102,18 +2026,12 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
+ 	  break;
+ 	}
+ 
+-      if (__glibc_unlikely (workstart != NULL))
+-	free (workstart);
+-      workstart = NULL;
+-
+       /* Write the following constant string.  */
+       outstring (specs[nspecs_done].end_of_fmt,
+ 		 specs[nspecs_done].next_fmt
+ 		 - specs[nspecs_done].end_of_fmt);
+     }
+  all_done:
+-  if (__glibc_unlikely (workstart != NULL))
+-    free (workstart);
+   scratch_buffer_free (&argsbuf);
+   scratch_buffer_free (&specsbuf);
+   return done;
+@@ -2236,7 +2154,8 @@ group_number (CHAR_T *front_ptr, CHAR_T *w, CHAR_T *rear_ptr,
+ 	    copy_rest:
+ 	      /* No further grouping to be done.  Copy the rest of the
+ 		 number.  */
+-	      memmove (w, s, (front_ptr -s) * sizeof (CHAR_T));
++	      w -= s - front_ptr;
++	      memmove (w, front_ptr, (s - front_ptr) * sizeof (CHAR_T));
+ 	      break;
+ 	    }
+ 	  else if (*grouping != '\0')
 diff --git a/stdlib/Makefile b/stdlib/Makefile
 index 45214b59e4..4615f6dfe7 100644
 --- a/stdlib/Makefile
@@ -4594,7 +5533,7 @@ index d961ac4493..02806f4ebd 100644
    printf ("%23s", "");
    FOR_EACH_IMPL (impl, 0)
 diff --git a/string/test-strnlen.c b/string/test-strnlen.c
-index 80ac9e8602..a1a6746cc9 100644
+index 80ac9e8602..ca34352b0d 100644
 --- a/string/test-strnlen.c
 +++ b/string/test-strnlen.c
 @@ -27,6 +27,7 @@
@@ -4613,46 +5552,73 @@ index 80ac9e8602..a1a6746cc9 100644
  # define CHAR wchar_t
  # define BIG_CHAR WCHAR_MAX
  # define MIDDLE_CHAR 1121
-@@ -87,6 +89,38 @@ do_test (size_t align, size_t len, size_t maxlen, int max_char)
+@@ -73,7 +75,7 @@ do_test (size_t align, size_t len, size_t maxlen, int max_char)
+ {
+   size_t i;
+ 
+-  align &= 63;
++  align &= (getpagesize () / sizeof (CHAR) - 1);
+   if ((align + len) * sizeof (CHAR) >= page_size)
+     return;
+ 
+@@ -87,6 +89,56 @@ do_test (size_t align, size_t len, size_t maxlen, int max_char)
      do_one_test (impl, (CHAR *) (buf + align), maxlen, MIN (len, maxlen));
  }
  
 +static void
 +do_overflow_tests (void)
 +{
-+  size_t i, j, len;
++  size_t i, j, al_idx, repeats, len;
 +  const size_t one = 1;
 +  uintptr_t buf_addr = (uintptr_t) buf1;
++  const size_t alignments[] = { 0, 1, 7, 9, 31, 33, 63, 65, 95, 97, 127, 129 };
 +
-+  for (i = 0; i < 750; ++i)
++  for (al_idx = 0; al_idx < sizeof (alignments) / sizeof (alignments[0]);
++       al_idx++)
 +    {
-+      do_test (0, i, SIZE_MAX - i, BIG_CHAR);
-+      do_test (0, i, i - buf_addr, BIG_CHAR);
-+      do_test (0, i, -buf_addr - i, BIG_CHAR);
-+      do_test (0, i, SIZE_MAX - buf_addr - i, BIG_CHAR);
-+      do_test (0, i, SIZE_MAX - buf_addr + i, BIG_CHAR);
++      for (repeats = 0; repeats < 2; ++repeats)
++	{
++	  size_t align = repeats ? (getpagesize () - alignments[al_idx])
++				 : alignments[al_idx];
++	  align /= sizeof (CHAR);
++	  for (i = 0; i < 750; ++i)
++	    {
++	      do_test (align, i, SIZE_MAX, BIG_CHAR);
 +
-+      len = 0;
-+      for (j = 8 * sizeof(size_t) - 1; j ; --j)
-+        {
-+          len |= one << j;
-+          do_test (0, i, len - i, BIG_CHAR);
-+          do_test (0, i, len + i, BIG_CHAR);
-+          do_test (0, i, len - buf_addr - i, BIG_CHAR);
-+          do_test (0, i, len - buf_addr + i, BIG_CHAR);
++	      do_test (align, i, SIZE_MAX - i, BIG_CHAR);
++	      do_test (align, i, i - buf_addr, BIG_CHAR);
++	      do_test (align, i, -buf_addr - i, BIG_CHAR);
++	      do_test (align, i, SIZE_MAX - buf_addr - i, BIG_CHAR);
++	      do_test (align, i, SIZE_MAX - buf_addr + i, BIG_CHAR);
 +
-+          do_test (0, i, ~len - i, BIG_CHAR);
-+          do_test (0, i, ~len + i, BIG_CHAR);
-+          do_test (0, i, ~len - buf_addr - i, BIG_CHAR);
-+          do_test (0, i, ~len - buf_addr + i, BIG_CHAR);
-+        }
++	      len = 0;
++	      for (j = 8 * sizeof (size_t) - 1; j; --j)
++		{
++		  len |= one << j;
++		  do_test (align, i, len, BIG_CHAR);
++		  do_test (align, i, len - i, BIG_CHAR);
++		  do_test (align, i, len + i, BIG_CHAR);
++		  do_test (align, i, len - buf_addr - i, BIG_CHAR);
++		  do_test (align, i, len - buf_addr + i, BIG_CHAR);
++
++		  do_test (align, i, ~len - i, BIG_CHAR);
++		  do_test (align, i, ~len + i, BIG_CHAR);
++		  do_test (align, i, ~len - buf_addr - i, BIG_CHAR);
++		  do_test (align, i, ~len - buf_addr + i, BIG_CHAR);
++
++		  do_test (align, i, -buf_addr, BIG_CHAR);
++		  do_test (align, i, j - buf_addr, BIG_CHAR);
++		  do_test (align, i, -buf_addr - j, BIG_CHAR);
++		}
++	    }
++	}
 +    }
 +}
 +
  static void
  do_random_tests (void)
  {
-@@ -153,7 +187,7 @@ do_page_tests (void)
+@@ -153,7 +205,7 @@ do_page_tests (void)
    size_t last_offset = (page_size / sizeof (CHAR)) - 1;
  
    CHAR *s = (CHAR *) buf2;
@@ -4661,7 +5627,7 @@ index 80ac9e8602..a1a6746cc9 100644
    s[last_offset] = 0;
  
    /* Place short strings ending at page boundary.  */
-@@ -196,6 +230,35 @@ do_page_tests (void)
+@@ -196,6 +248,35 @@ do_page_tests (void)
      }
  }
  
@@ -4697,7 +5663,7 @@ index 80ac9e8602..a1a6746cc9 100644
  int
  test_main (void)
  {
-@@ -242,6 +305,8 @@ test_main (void)
+@@ -242,6 +323,8 @@ test_main (void)
  
    do_random_tests ();
    do_page_tests ();
@@ -11886,7 +12852,7 @@ index 395e432c09..da1446d731 100644
  
  ifeq ($(subdir),debug)
 diff --git a/sysdeps/x86_64/multiarch/ifunc-avx2.h b/sysdeps/x86_64/multiarch/ifunc-avx2.h
-index 69f30398ae..74189b6aa5 100644
+index 69f30398ae..925e5b61eb 100644
 --- a/sysdeps/x86_64/multiarch/ifunc-avx2.h
 +++ b/sysdeps/x86_64/multiarch/ifunc-avx2.h
 @@ -21,16 +21,28 @@
@@ -11904,12 +12870,12 @@ index 69f30398ae..74189b6aa5 100644
 -  if (!CPU_FEATURES_ARCH_P (cpu_features, Prefer_No_VZEROUPPER)
 -      && CPU_FEATURES_ARCH_P (cpu_features, AVX2_Usable)
 +  if (CPU_FEATURES_ARCH_P (cpu_features, AVX2_Usable)
++      && CPU_FEATURES_CPU_P (cpu_features, BMI2)
        && CPU_FEATURES_ARCH_P (cpu_features, AVX_Fast_Unaligned_Load))
 -    return OPTIMIZE (avx2);
 +    {
 +      if (CPU_FEATURES_ARCH_P (cpu_features, AVX512VL_Usable)
-+	  && CPU_FEATURES_ARCH_P (cpu_features, AVX512BW_Usable)
-+	  && CPU_FEATURES_CPU_P (cpu_features, BMI2))
++	  && CPU_FEATURES_ARCH_P (cpu_features, AVX512BW_Usable))
 +	return OPTIMIZE (evex);
 +
 +      if (CPU_FEATURES_CPU_P (cpu_features, RTM))
@@ -11922,15 +12888,20 @@ index 69f30398ae..74189b6aa5 100644
    return OPTIMIZE (sse2);
  }
 diff --git a/sysdeps/x86_64/multiarch/ifunc-impl-list.c b/sysdeps/x86_64/multiarch/ifunc-impl-list.c
-index ce7eb1eecf..56b05ee741 100644
+index ce7eb1eecf..e712b148f5 100644
 --- a/sysdeps/x86_64/multiarch/ifunc-impl-list.c
 +++ b/sysdeps/x86_64/multiarch/ifunc-impl-list.c
-@@ -43,6 +43,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -41,8 +41,19 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/memchr.c.  */
+   IFUNC_IMPL (i, name, memchr,
  	      IFUNC_IMPL_ADD (array, i, memchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __memchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, memchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __memchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, memchr,
@@ -11941,7 +12912,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, memchr, 1, __memchr_sse2))
  
    /* Support sysdeps/x86_64/multiarch/memcmp.c.  */
-@@ -51,6 +60,16 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -51,6 +62,16 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      (HAS_ARCH_FEATURE (AVX2_Usable)
  			       && HAS_CPU_FEATURE (MOVBE)),
  			      __memcmp_avx2_movbe)
@@ -11958,7 +12929,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, memcmp, HAS_CPU_FEATURE (SSE4_1),
  			      __memcmp_sse4_1)
  	      IFUNC_IMPL_ADD (array, i, memcmp, HAS_CPU_FEATURE (SSSE3),
-@@ -64,10 +83,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -64,10 +85,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
  			      __memmove_chk_avx512_no_vzeroupper)
  	      IFUNC_IMPL_ADD (array, i, __memmove_chk,
@@ -11971,7 +12942,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memmove_chk_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, __memmove_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
-@@ -75,6 +94,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -75,6 +96,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, __memmove_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __memmove_chk_avx_unaligned_erms)
@@ -11992,7 +12963,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, __memmove_chk,
  			      HAS_CPU_FEATURE (SSSE3),
  			      __memmove_chk_ssse3_back)
-@@ -97,14 +130,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -97,14 +132,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, memmove,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __memmove_avx_unaligned_erms)
@@ -12023,23 +12994,29 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memmove_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, memmove, HAS_CPU_FEATURE (SSSE3),
  			      __memmove_ssse3_back)
-@@ -121,6 +168,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -119,8 +168,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/memrchr.c.  */
+   IFUNC_IMPL (i, name, memrchr,
  	      IFUNC_IMPL_ADD (array, i, memrchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __memrchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, memrchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __memrchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, memrchr,
 +			      (HAS_ARCH_FEATURE (AVX512VL_Usable)
-+			       && HAS_ARCH_FEATURE (AVX512BW_Usable)),
++			       && HAS_ARCH_FEATURE (AVX512BW_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
 +			      __memrchr_evex)
 +
  	      IFUNC_IMPL_ADD (array, i, memrchr, 1, __memrchr_sse2))
  
  #ifdef SHARED
-@@ -139,10 +195,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -139,10 +200,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __memset_chk_avx2_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, __memset_chk,
@@ -12070,7 +13047,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memset_chk_avx512_unaligned)
  	      IFUNC_IMPL_ADD (array, i, __memset_chk,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
-@@ -164,10 +238,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -164,10 +243,28 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __memset_avx2_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, memset,
@@ -12101,12 +13078,17 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memset_avx512_unaligned)
  	      IFUNC_IMPL_ADD (array, i, memset,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
-@@ -179,20 +271,51 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -177,22 +274,55 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/rawmemchr.c.  */
+   IFUNC_IMPL (i, name, rawmemchr,
  	      IFUNC_IMPL_ADD (array, i, rawmemchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __rawmemchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, rawmemchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __rawmemchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, rawmemchr,
@@ -12155,7 +13137,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strnlen, 1, __strnlen_sse2))
  
    /* Support sysdeps/x86_64/multiarch/stpncpy.c.  */
-@@ -201,6 +324,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -201,6 +331,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      __stpncpy_ssse3)
  	      IFUNC_IMPL_ADD (array, i, stpncpy, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __stpncpy_avx2)
@@ -12170,7 +13152,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, stpncpy, 1,
  			      __stpncpy_sse2_unaligned)
  	      IFUNC_IMPL_ADD (array, i, stpncpy, 1, __stpncpy_sse2))
-@@ -211,6 +342,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -211,6 +349,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      __stpcpy_ssse3)
  	      IFUNC_IMPL_ADD (array, i, stpcpy, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __stpcpy_avx2)
@@ -12185,7 +13167,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, stpcpy, 1, __stpcpy_sse2_unaligned)
  	      IFUNC_IMPL_ADD (array, i, stpcpy, 1, __stpcpy_sse2))
  
-@@ -245,6 +384,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -245,6 +391,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
    IFUNC_IMPL (i, name, strcat,
  	      IFUNC_IMPL_ADD (array, i, strcat, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strcat_avx2)
@@ -12200,12 +13182,17 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strcat, HAS_CPU_FEATURE (SSSE3),
  			      __strcat_ssse3)
  	      IFUNC_IMPL_ADD (array, i, strcat, 1, __strcat_sse2_unaligned)
-@@ -255,6 +402,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -253,23 +407,56 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/strchr.c.  */
+   IFUNC_IMPL (i, name, strchr,
  	      IFUNC_IMPL_ADD (array, i, strchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __strchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, strchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __strchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, strchr,
@@ -12216,12 +13203,16 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strchr, 1, __strchr_sse2_no_bsf)
  	      IFUNC_IMPL_ADD (array, i, strchr, 1, __strchr_sse2))
  
-@@ -263,6 +419,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/strchrnul.c.  */
+   IFUNC_IMPL (i, name, strchrnul,
  	      IFUNC_IMPL_ADD (array, i, strchrnul,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __strchrnul_avx2)
 +	      IFUNC_IMPL_ADD (array, i, strchrnul,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __strchrnul_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, strchrnul,
@@ -12232,22 +13223,26 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strchrnul, 1, __strchrnul_sse2))
  
    /* Support sysdeps/x86_64/multiarch/strrchr.c.  */
-@@ -270,6 +435,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   IFUNC_IMPL (i, name, strrchr,
  	      IFUNC_IMPL_ADD (array, i, strrchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __strrchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, strrchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __strrchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, strrchr,
 +			      (HAS_ARCH_FEATURE (AVX512VL_Usable)
-+			       && HAS_ARCH_FEATURE (AVX512BW_Usable)),
++			       && HAS_ARCH_FEATURE (AVX512BW_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
 +			      __strrchr_evex)
  	      IFUNC_IMPL_ADD (array, i, strrchr, 1, __strrchr_sse2))
  
    /* Support sysdeps/x86_64/multiarch/strcmp.c.  */
-@@ -277,6 +450,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -277,6 +464,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, strcmp,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strcmp_avx2)
@@ -12263,7 +13258,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strcmp, HAS_CPU_FEATURE (SSE4_2),
  			      __strcmp_sse42)
  	      IFUNC_IMPL_ADD (array, i, strcmp, HAS_CPU_FEATURE (SSSE3),
-@@ -288,6 +470,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -288,6 +484,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
    IFUNC_IMPL (i, name, strcpy,
  	      IFUNC_IMPL_ADD (array, i, strcpy, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strcpy_avx2)
@@ -12278,7 +13273,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strcpy, HAS_CPU_FEATURE (SSSE3),
  			      __strcpy_ssse3)
  	      IFUNC_IMPL_ADD (array, i, strcpy, 1, __strcpy_sse2_unaligned)
-@@ -331,6 +521,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -331,6 +535,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
    IFUNC_IMPL (i, name, strncat,
  	      IFUNC_IMPL_ADD (array, i, strncat, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strncat_avx2)
@@ -12293,7 +13288,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strncat, HAS_CPU_FEATURE (SSSE3),
  			      __strncat_ssse3)
  	      IFUNC_IMPL_ADD (array, i, strncat, 1,
-@@ -341,6 +539,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -341,6 +553,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
    IFUNC_IMPL (i, name, strncpy,
  	      IFUNC_IMPL_ADD (array, i, strncpy, HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strncpy_avx2)
@@ -12308,12 +13303,17 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strncpy, HAS_CPU_FEATURE (SSSE3),
  			      __strncpy_ssse3)
  	      IFUNC_IMPL_ADD (array, i, strncpy, 1,
-@@ -370,6 +576,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -368,29 +588,73 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/wcschr.c.  */
+   IFUNC_IMPL (i, name, wcschr,
  	      IFUNC_IMPL_ADD (array, i, wcschr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __wcschr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, wcschr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __wcschr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, wcschr,
@@ -12324,12 +13324,15 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wcschr, 1, __wcschr_sse2))
  
    /* Support sysdeps/x86_64/multiarch/wcsrchr.c.  */
-@@ -377,6 +592,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   IFUNC_IMPL (i, name, wcsrchr,
  	      IFUNC_IMPL_ADD (array, i, wcsrchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __wcsrchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, wcsrchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __wcsrchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, wcsrchr,
@@ -12340,12 +13343,15 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wcsrchr, 1, __wcsrchr_sse2))
  
    /* Support sysdeps/x86_64/multiarch/wcscmp.c.  */
-@@ -384,6 +608,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   IFUNC_IMPL (i, name, wcscmp,
  	      IFUNC_IMPL_ADD (array, i, wcscmp,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __wcscmp_avx2)
 +	      IFUNC_IMPL_ADD (array, i, wcscmp,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __wcscmp_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, wcscmp,
@@ -12356,12 +13362,15 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wcscmp, 1, __wcscmp_sse2))
  
    /* Support sysdeps/x86_64/multiarch/wcsncmp.c.  */
-@@ -391,6 +624,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   IFUNC_IMPL (i, name, wcsncmp,
  	      IFUNC_IMPL_ADD (array, i, wcsncmp,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __wcsncmp_avx2)
 +	      IFUNC_IMPL_ADD (array, i, wcsncmp,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __wcsncmp_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, wcsncmp,
@@ -12372,7 +13381,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wcsncmp, 1, __wcsncmp_sse2))
  
    /* Support sysdeps/x86_64/multiarch/wcscpy.c.  */
-@@ -402,15 +644,40 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -402,15 +666,40 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
    /* Support sysdeps/x86_64/multiarch/wcslen.c.  */
    IFUNC_IMPL (i, name, wcslen,
  	      IFUNC_IMPL_ADD (array, i, wcslen,
@@ -12415,12 +13424,17 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wcsnlen,
  			      HAS_CPU_FEATURE (SSE4_1),
  			      __wcsnlen_sse4_1)
-@@ -421,6 +688,15 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -419,8 +708,19 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+   /* Support sysdeps/x86_64/multiarch/wmemchr.c.  */
+   IFUNC_IMPL (i, name, wmemchr,
  	      IFUNC_IMPL_ADD (array, i, wmemchr,
- 			      HAS_ARCH_FEATURE (AVX2_Usable),
+-			      HAS_ARCH_FEATURE (AVX2_Usable),
++			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)),
  			      __wmemchr_avx2)
 +	      IFUNC_IMPL_ADD (array, i, wmemchr,
 +			      (HAS_ARCH_FEATURE (AVX2_Usable)
++			       && HAS_CPU_FEATURE (BMI2)
 +			       && HAS_CPU_FEATURE (RTM)),
 +			      __wmemchr_avx2_rtm)
 +	      IFUNC_IMPL_ADD (array, i, wmemchr,
@@ -12431,7 +13445,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wmemchr, 1, __wmemchr_sse2))
  
    /* Support sysdeps/x86_64/multiarch/wmemcmp.c.  */
-@@ -429,6 +705,16 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -429,6 +729,16 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      (HAS_ARCH_FEATURE (AVX2_Usable)
  			       && HAS_CPU_FEATURE (MOVBE)),
  			      __wmemcmp_avx2_movbe)
@@ -12448,7 +13462,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, wmemcmp, HAS_CPU_FEATURE (SSE4_1),
  			      __wmemcmp_sse4_1)
  	      IFUNC_IMPL_ADD (array, i, wmemcmp, HAS_CPU_FEATURE (SSSE3),
-@@ -443,7 +729,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -443,7 +753,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __wmemset_avx2_unaligned)
  	      IFUNC_IMPL_ADD (array, i, wmemset,
@@ -12464,7 +13478,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __wmemset_avx512_unaligned))
  
  #ifdef SHARED
-@@ -453,10 +746,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -453,10 +770,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
  			      __memcpy_chk_avx512_no_vzeroupper)
  	      IFUNC_IMPL_ADD (array, i, __memcpy_chk,
@@ -12477,7 +13491,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memcpy_chk_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, __memcpy_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
-@@ -464,6 +757,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -464,6 +781,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, __memcpy_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __memcpy_chk_avx_unaligned_erms)
@@ -12498,7 +13512,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, __memcpy_chk,
  			      HAS_CPU_FEATURE (SSSE3),
  			      __memcpy_chk_ssse3_back)
-@@ -486,6 +793,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -486,6 +817,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, memcpy,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __memcpy_avx_unaligned_erms)
@@ -12519,7 +13533,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, memcpy, HAS_CPU_FEATURE (SSSE3),
  			      __memcpy_ssse3_back)
  	      IFUNC_IMPL_ADD (array, i, memcpy, HAS_CPU_FEATURE (SSSE3),
-@@ -494,10 +815,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -494,10 +839,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
  			      __memcpy_avx512_no_vzeroupper)
  	      IFUNC_IMPL_ADD (array, i, memcpy,
@@ -12532,7 +13546,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __memcpy_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, memcpy, 1, __memcpy_sse2_unaligned)
  	      IFUNC_IMPL_ADD (array, i, memcpy, 1,
-@@ -511,10 +832,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -511,10 +856,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
  			      __mempcpy_chk_avx512_no_vzeroupper)
  	      IFUNC_IMPL_ADD (array, i, __mempcpy_chk,
@@ -12545,7 +13559,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __mempcpy_chk_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, __mempcpy_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
-@@ -522,6 +843,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -522,6 +867,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, __mempcpy_chk,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __mempcpy_chk_avx_unaligned_erms)
@@ -12566,7 +13580,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, __mempcpy_chk,
  			      HAS_CPU_FEATURE (SSSE3),
  			      __mempcpy_chk_ssse3_back)
-@@ -542,10 +877,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -542,10 +901,10 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  			      HAS_ARCH_FEATURE (AVX512F_Usable),
  			      __mempcpy_avx512_no_vzeroupper)
  	      IFUNC_IMPL_ADD (array, i, mempcpy,
@@ -12579,7 +13593,7 @@ index ce7eb1eecf..56b05ee741 100644
  			      __mempcpy_avx512_unaligned_erms)
  	      IFUNC_IMPL_ADD (array, i, mempcpy,
  			      HAS_ARCH_FEATURE (AVX_Usable),
-@@ -553,6 +888,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -553,6 +912,20 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, mempcpy,
  			      HAS_ARCH_FEATURE (AVX_Usable),
  			      __mempcpy_avx_unaligned_erms)
@@ -12600,7 +13614,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, mempcpy, HAS_CPU_FEATURE (SSSE3),
  			      __mempcpy_ssse3_back)
  	      IFUNC_IMPL_ADD (array, i, mempcpy, HAS_CPU_FEATURE (SSSE3),
-@@ -568,6 +917,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -568,6 +941,14 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, strncmp,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __strncmp_avx2)
@@ -12615,7 +13629,7 @@ index ce7eb1eecf..56b05ee741 100644
  	      IFUNC_IMPL_ADD (array, i, strncmp, HAS_CPU_FEATURE (SSE4_2),
  			      __strncmp_sse42)
  	      IFUNC_IMPL_ADD (array, i, strncmp, HAS_CPU_FEATURE (SSSE3),
-@@ -582,6 +939,9 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
+@@ -582,6 +963,9 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
  	      IFUNC_IMPL_ADD (array, i, __wmemset_chk,
  			      HAS_ARCH_FEATURE (AVX2_Usable),
  			      __wmemset_chk_avx2_unaligned)
@@ -19178,10 +20192,10 @@ index 0000000000..75b4b7612c
 +
 +#include "strlen-avx2.S"
 diff --git a/sysdeps/x86_64/multiarch/strlen-avx2.S b/sysdeps/x86_64/multiarch/strlen-avx2.S
-index 73421ec1b2..45e08e64d6 100644
+index 73421ec1b2..8cfb7391b0 100644
 --- a/sysdeps/x86_64/multiarch/strlen-avx2.S
 +++ b/sysdeps/x86_64/multiarch/strlen-avx2.S
-@@ -27,370 +27,531 @@
+@@ -27,370 +27,528 @@
  # ifdef USE_AS_WCSLEN
  #  define VPCMPEQ	vpcmpeqd
  #  define VPMINU	vpminud
@@ -19924,14 +20938,11 @@ index 73421ec1b2..45e08e64d6 100644
 +L(cross_page_less_vec):
 +	tzcntl	%eax, %eax
 +#  ifdef USE_AS_WCSLEN
-+	/* NB: Multiply length by 4 to get byte count.  */
-+	sall	$2, %esi
++	/* NB: Divide by 4 to convert from byte-count to length.  */
++	shrl	$2, %eax
 +#  endif
 +	cmpq	%rax, %rsi
 +	cmovb	%esi, %eax
-+#  ifdef USE_AS_WCSLEN
-+	shrl	$2, %eax
-+#  endif
 +	VZEROUPPER_RETURN
  # endif
 -	VZEROUPPER

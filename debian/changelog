@@ -1,3 +1,24 @@
+glibc (2.31-13+deb11u6pexip1) pexip; urgency=medium
+
+  * New upstream release.
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Fri, 05 Dec 2023 15:40:36 +0100
+
+glibc (2.31-13+deb11u6) bullseye; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Drop debian/patches/amd64/local-require-bmi-in-avx2-ifunc.diff
+      (obsolete).
+    - Fix memory leak in printf-family functions with long multibyte strings.
+    - Fix a crash in printf-family due to width/precision-dependent
+      allocations.
+    - Fix a segfault in printf handling thousands separator.
+    - Fix an overflow in the AVX2 implementation of wcsnlen when crossing
+      pages.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 19 Apr 2023 23:17:51 +0200
+
 glibc (2.31-13+deb11u5pexip3) pexip; urgency=medium
 
   * Merge openssl3 changes to bullseye
