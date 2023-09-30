@@ -1,5 +1,5 @@
 /* pthread_key internal declatations for the Hurd version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,14 +47,15 @@ extern int __pthread_key_invalid_count;
 /* Protects the above variables.  This must be a recursive lock: the
    destructors may call pthread_key_delete.  */
 extern pthread_mutex_t __pthread_key_lock;
+
+/* Protects the initialization of the mutex above.  */
+extern pthread_once_t __pthread_key_once;
 
 #include <assert.h>
 
 static inline void
 __pthread_key_lock_ready (void)
 {
-  static pthread_once_t o = PTHREAD_ONCE_INIT;
-
   void do_init (void)
   {
     int err;
@@ -66,12 +67,12 @@ __pthread_key_lock_ready (void)
     err = __pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
     assert_perror (err);
 
-    err = _pthread_mutex_init (&__pthread_key_lock, &attr);
+    err = __pthread_mutex_init (&__pthread_key_lock, &attr);
     assert_perror (err);
 
     err = __pthread_mutexattr_destroy (&attr);
     assert_perror (err);
   }
 
-  __pthread_once (&o, do_init);
+  __pthread_once (&__pthread_key_once, do_init);
 }

@@ -1,7 +1,6 @@
 /* Compute x * y + z as ternary operation.
-   Copyright (C) 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2010.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,12 +16,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define NO_MATH_REDIRECT
 #include <math.h>
 #include <fenv.h>
 #include <ieee754.h>
 #include <math-barriers.h>
 #include <fenv_private.h>
 #include <libm-alias-float.h>
+#include <math-use-builtins.h>
 
 /* This implementation relies on double being more than twice as
    precise as float and uses rounding to odd in order to avoid problems
@@ -33,6 +34,10 @@
 float
 __fmaf (float x, float y, float z)
 {
+#if USE_FMAF_BUILTIN
+  return __builtin_fmaf (x, y, z);
+#else
+  /* Use generic implementation.  */
   fenv_t env;
 
   /* Multiplication is always exact.  */
@@ -60,6 +65,7 @@ __fmaf (float x, float y, float z)
 
   /* And finally truncation with round to nearest.  */
   return (float) u.d;
+#endif /* ! USE_FMAF_BUILTIN  */
 }
 #ifndef __fmaf
 libm_alias_float (__fma, fma)

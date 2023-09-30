@@ -1,5 +1,5 @@
 /* Startup code for Nios II
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -92,18 +92,11 @@ _start:
 	addi	r2, r2, %lo(_gp_got - 1b)
 	add	r22, r22, r2
 
-	/* Push fini */
-	movhi	r8, %call_hiadj(__libc_csu_fini)
-	addi	r8, r8, %call_lo(__libc_csu_fini)
-	add	r8, r8, r22
-	ldw	r8, 0(r8)
-	stw	r8, 0(sp)
+	/* Used to be fini.  */
+	stw	zero, 0(sp)
 
-	/* r7 == init */
-	movhi	r7, %call_hiadj(__libc_csu_init)
-	addi	r7, r7, %call_lo(__libc_csu_init)
-	add	r7, r7, r22
-	ldw	r7, 0(r7)
+	/* Used to be init.  */
+	mov	r7, zero
 
 	/* r6 == argv */
 	addi	r6, sp, 16

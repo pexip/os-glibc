@@ -1,5 +1,5 @@
 /* Test program for process CPU clocks.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -124,7 +124,7 @@ do_test (void)
 	  child, (unsigned long int) child_clock,
 	  (uintmax_t) res.tv_sec, (uintmax_t) res.tv_nsec);
 
-  struct timespec before, after;
+  struct timespec before;
   if (clock_gettime (child_clock, &before) < 0)
     {
       printf ("clock_gettime on live PID %d clock %lx => %s\n",
@@ -136,42 +136,7 @@ do_test (void)
   printf ("live PID %d before sleep => %ju.%.9ju\n",
 	  child, (uintmax_t) before.tv_sec, (uintmax_t) before.tv_nsec);
 
-  struct timespec sleeptime = { .tv_nsec = 500000000 };
-  if (nanosleep (&sleeptime, NULL) != 0)
-    {
-      perror ("nanosleep");
-      result = 1;
-      goto done;
-    }
-
-  if (clock_gettime (child_clock, &after) < 0)
-    {
-      printf ("clock_gettime on live PID %d clock %lx => %s\n",
-	      child, (unsigned long int) child_clock, strerror (errno));
-      result = 1;
-      goto done;
-    }
-  /* Should be close to 0.5.  */
-  printf ("live PID %d after sleep => %ju.%.9ju\n",
-	  child, (uintmax_t) after.tv_sec, (uintmax_t) after.tv_nsec);
-
-  struct timespec diff = { .tv_sec = after.tv_sec - before.tv_sec,
-			   .tv_nsec = after.tv_nsec - before.tv_nsec };
-  if (diff.tv_nsec < 0)
-    {
-      --diff.tv_sec;
-      diff.tv_nsec += 1000000000;
-    }
-  if (diff.tv_sec != 0
-      || diff.tv_nsec > 600000000
-      || diff.tv_nsec < 100000000)
-    {
-      printf ("before - after %ju.%.9ju outside reasonable range\n",
-	      (uintmax_t) diff.tv_sec, (uintmax_t) diff.tv_nsec);
-      result = 1;
-    }
-
-  sleeptime.tv_nsec = 100000000;
+  struct timespec sleeptime = { .tv_nsec = 100000000 };
   e = clock_nanosleep (child_clock, 0, &sleeptime, NULL);
   if (e == EINVAL || e == ENOTSUP || e == ENOSYS)
     {
@@ -194,21 +159,9 @@ do_test (void)
 	}
       else
 	{
-	  struct timespec d = { .tv_sec = afterns.tv_sec - after.tv_sec,
-				.tv_nsec = afterns.tv_nsec - after.tv_nsec };
-	  if (d.tv_nsec < 0)
-	    {
-	      --d.tv_sec;
-	      d.tv_nsec += 1000000000;
-	    }
-	  if (d.tv_sec > 0
-	      || d.tv_nsec < sleeptime.tv_nsec
-	      || d.tv_nsec > sleeptime.tv_nsec * 2)
-	    {
-	      printf ("nanosleep time %ju.%.9ju outside reasonable range\n",
-		      (uintmax_t) d.tv_sec, (uintmax_t) d.tv_nsec);
-	      result = 1;
-	    }
+	  printf ("live PID %d after sleep => %ju.%.9ju\n",
+		  child, (uintmax_t) afterns.tv_sec,
+		  (uintmax_t) afterns.tv_nsec);
 	}
     }
 
@@ -237,23 +190,9 @@ do_test (void)
       result = 1;
       goto done;
     }
-  /* Should be close to 0.6.  */
+  /* Should be close to 0.1.  */
   printf ("dead PID %d => %ju.%.9ju\n",
 	  child, (uintmax_t) dead.tv_sec, (uintmax_t) dead.tv_nsec);
-
-  diff.tv_sec = dead.tv_sec - after.tv_sec;
-  diff.tv_nsec = dead.tv_nsec - after.tv_nsec;
-  if (diff.tv_nsec < 0)
-    {
-      --diff.tv_sec;
-      diff.tv_nsec += 1000000000;
-    }
-  if (diff.tv_sec != 0 || diff.tv_nsec > 200000000)
-    {
-      printf ("dead - after %ju.%.9ju outside reasonable range\n",
-	      (uintmax_t) diff.tv_sec, (uintmax_t) diff.tv_nsec);
-      result = 1;
-    }
 
   /* Now reap the child and verify that its clock is no longer valid.  */
   {

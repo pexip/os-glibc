@@ -1,7 +1,6 @@
 /* Hash table for TLS descriptors.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Alexandre Oliva  <aoliva@redhat.com>
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -78,6 +77,10 @@ map_generation (struct link_map *map)
   return GL(dl_tls_generation) + 1;
 }
 
+/* Returns the data pointer for a given map and tls offset that is used
+   to fill in one of the GOT entries referenced by a TLSDESC relocation
+   when using dynamic TLS.  This requires allocation, returns NULL on
+   allocation failure.  */
 void *
 _dl_make_tlsdesc_dynamic (struct link_map *map, size_t ti_offset)
 {
@@ -85,18 +88,12 @@ _dl_make_tlsdesc_dynamic (struct link_map *map, size_t ti_offset)
   void **entry;
   struct tlsdesc_dynamic_arg *td, test;
 
-  /* FIXME: We could use a per-map lock here, but is it worth it?  */
-  __rtld_lock_lock_recursive (GL(dl_load_lock));
-
   ht = map->l_mach.tlsdesc_table;
   if (! ht)
     {
       ht = htab_create ();
       if (! ht)
-	{
-	  __rtld_lock_unlock_recursive (GL(dl_load_lock));
-	  return 0;
-	}
+	return 0;
       map->l_mach.tlsdesc_table = ht;
     }
 
@@ -104,15 +101,11 @@ _dl_make_tlsdesc_dynamic (struct link_map *map, size_t ti_offset)
   test.tlsinfo.ti_offset = ti_offset;
   entry = htab_find_slot (ht, &test, 1, hash_tlsdesc, eq_tlsdesc);
   if (! entry)
-    {
-      __rtld_lock_unlock_recursive (GL(dl_load_lock));
-      return 0;
-    }
+    return 0;
 
   if (*entry)
     {
       td = *entry;
-      __rtld_lock_unlock_recursive (GL(dl_load_lock));
       return td;
     }
 
@@ -122,44 +115,9 @@ _dl_make_tlsdesc_dynamic (struct link_map *map, size_t ti_offset)
      thread.  */
   td->gen_count = map_generation (map);
   td->tlsinfo = test.tlsinfo;
-
-  __rtld_lock_unlock_recursive (GL(dl_load_lock));
   return td;
 }
 
 # endif /* SHARED */
-
-/* The idea of the following two functions is to stop multiple threads
-   from attempting to resolve the same TLS descriptor without busy
-   waiting.  Ideally, we should be able to release the lock right
-   after changing td->entry, and then using say a condition variable
-   or a futex wake to wake up any waiting threads, but let's try to
-   avoid introducing such dependencies.  */
-
-static int
-__attribute__ ((unused))
-_dl_tlsdesc_resolve_early_return_p (struct tlsdesc volatile *td, void *caller)
-{
-  if (caller != atomic_load_relaxed (&td->entry))
-    return 1;
-
-  __rtld_lock_lock_recursive (GL(dl_load_lock));
-  if (caller != atomic_load_relaxed (&td->entry))
-    {
-      __rtld_lock_unlock_recursive (GL(dl_load_lock));
-      return 1;
-    }
-
-  atomic_store_relaxed (&td->entry, _dl_tlsdesc_resolve_hold);
-
-  return 0;
-}
-
-static void
-__attribute__ ((unused))
-_dl_tlsdesc_wake_up_held_fixups (void)
-{
-  __rtld_lock_unlock_recursive (GL(dl_load_lock));
-}
 
 #endif

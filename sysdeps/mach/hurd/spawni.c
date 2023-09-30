@@ -1,5 +1,5 @@
 /* spawn a new process running an executable.  Hurd version.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -154,7 +154,7 @@ __spawni (pid_t *pid, const char *file,
      reauthenticated, or was newly opened on behalf of the child.  */
   error_t reauthenticate_fd (int fd)
     {
-      if (dtable_cells[fd] != NULL)
+      if (dtable_cells[fd] != NULL && dtable[fd] != MACH_PORT_NULL)
 	{
 	  file_t newfile;
 	  mach_port_t ref = __mach_reply_port ();
@@ -333,6 +333,7 @@ __spawni (pid_t *pid, const char *file,
 
   ss = _hurd_self_sigstate ();
 
+retry:
   assert (! __spin_lock_locked (&ss->critical_section_lock));
   __spin_lock (&ss->critical_section_lock);
 
@@ -437,7 +438,19 @@ __spawni (pid_t *pid, const char *file,
 						 MACH_PORT_RIGHT_SEND, +1));
 
   if (err)
-    goto out;
+    {
+      _hurd_critical_section_unlock (ss);
+
+      if (err == EINTR)
+	{
+	  /* Got a signal while inside an RPC of the critical section, retry again */
+	  __mach_port_deallocate (__mach_task_self (), auth);
+	  auth = MACH_PORT_NULL;
+	  goto retry;
+	}
+
+      goto out;
+    }
 
   /* Pack up the descriptor table to give the new program.
      These descriptors will need to be reauthenticated below
@@ -490,6 +503,19 @@ __spawni (pid_t *pid, const char *file,
 		return 0;
 	      }
 	    return EBADF;
+	  }
+
+	/* Close file descriptors in the child.  */
+	error_t do_closefrom (int lowfd)
+	  {
+	    while ((unsigned int) lowfd < dtablesize)
+	      {
+		error_t err = do_close (lowfd);
+		if (err != 0 && err != EBADF)
+		  return err;
+		lowfd++;
+	      }
+	    return 0;
 	  }
 
 	/* Make sure the dtable can hold NEWFD.  */
@@ -600,6 +626,23 @@ __spawni (pid_t *pid, const char *file,
 	  case spawn_do_fchdir:
 	    err = child_fchdir (action->action.fchdir_action.fd);
 	    break;
+
+	  case spawn_do_closefrom:
+	    err = do_closefrom (action->action.closefrom_action.from);
+	    break;
+
+	  case spawn_do_tcsetpgrp:
+	    {
+	      pid_t pgrp;
+	      /* Check if it is possible to avoid an extra syscall.  */
+	      if ((attrp->__flags & POSIX_SPAWN_SETPGROUP)
+		  != 0 && attrp->__pgrp != 0)
+		pgrp = attrp->__pgrp;
+	      else
+		err = __proc_getpgrp (proc, new_pid, &pgrp);
+	      if (!err)
+		err = __tcsetpgrp (action->action.setpgrp_action.fd, pgrp);
+	    }
 	  }
 
 	if (err)
@@ -838,11 +881,15 @@ __spawni (pid_t *pid, const char *file,
       err = exec (execfile);
     __mach_port_deallocate (__mach_task_self (), execfile);
 
-    if (err == ENOEXEC)
+    if ((err == ENOEXEC) && (xflags & SPAWN_XFLAGS_TRY_SHELL) != 0)
       {
 	/* The file is accessible but it is not an executable file.
 	   Invoke the shell to interpret it as a script.  */
-	err = __argz_insert (&args, &argslen, args, _PATH_BSHELL);
+	err = 0;
+	if (!argslen)
+	  err = __argz_insert (&args, &argslen, args, relpath);
+	if (!err)
+	  err = __argz_insert (&args, &argslen, args, _PATH_BSHELL);
 	if (!err)
 	  err = child_lookup (_PATH_BSHELL, O_EXEC, 0, &execfile);
 	if (!err)

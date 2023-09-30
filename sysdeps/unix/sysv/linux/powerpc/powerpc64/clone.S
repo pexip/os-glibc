@@ -1,5 +1,5 @@
 /* Wrapper around clone system call.  PowerPC64 version.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,10 @@ ENTRY (__clone)
 	beq-	cr0,L(badargs)
 
 	/* Save some regs in the "red zone".  */
+#ifdef USE_PPC_SCV
+	std	r28,-32(r1)
+	cfi_offset(r28,-32)
+#endif
 	std	r29,-24(r1)
 	std	r30,-16(r1)
 	std	r31,-8(r1)
@@ -68,11 +72,32 @@ ENTRY (__clone)
 	cfi_endproc
 
 	/* Do the call.  */
-	DO_CALL(SYS_ify(clone))
+	li 	r0,SYS_ify(clone)
+#ifdef USE_PPC_SCV
+	CHECK_SCV_SUPPORT r28 0f
+	/* This is equivalent to DO_CALL_SCV, but we cannot use the macro here
+	because it uses CFI directives and we just called cfi_endproc.  */
+	mflr 	r9
+	std 	r9,FRAME_LR_SAVE(r1)
+	.machine "push"
+	.machine "power9"
+	scv 	0
+	.machine "pop"
+	ld 	r9,FRAME_LR_SAVE(r1)
+	mtlr 	r9
 
 	/* Check for child process.  */
+	/* When using scv, error is indicated by negative r3.  */
+	cmpdi	cr1,r3,0
+	b 1f
+#endif /* USE_PPC_SCV */
+0:      DO_CALL_SC
+
+	/* Check for child process.  */
+	/* With sc, error is indicated by cr0.SO.  */
 	cmpdi	cr1,r3,0
 	crandc	cr1*4+eq,cr1*4+eq,cr0*4+so
+1:
 	bne-	cr1,L(parent)		/* The '-' is to minimise the race.  */
 
 	std	r2,FRAME_TOC_SAVE(r1)
@@ -82,7 +107,8 @@ ENTRY (__clone)
 	bctrl
 	ld	r2,FRAME_TOC_SAVE(r1)
 
-	DO_CALL(SYS_ify(exit))
+	li	r0,(SYS_ify(exit))
+	DO_CALL_SC
 	/* We won't ever get here but provide a nop so that the linker
 	   will insert a toc adjusting stub if necessary.  */
 	nop
@@ -93,7 +119,15 @@ L(badargs):
 	TAIL_CALL_SYSCALL_ERROR
 
 L(parent):
+	/* Check if scv is available. */
+	cmpdi cr1,r28,0
+
 	/* Parent.  Restore registers & return.  */
+#ifdef USE_PPC_SCV
+	cfi_offset(r28,-32)
+	ld	r28,-32(r1)
+	cfi_restore(r28)
+#endif
 	cfi_offset(r29,-24)
 	cfi_offset(r30,-16)
 	cfi_offset(r31,-8)
@@ -104,7 +138,14 @@ L(parent):
 	cfi_restore(r30)
 	cfi_restore(r31)
 
-	PSEUDO_RET
+#ifdef USE_PPC_SCV
+	beq cr1,0f
+	RET_SCV
+	b 1f
+#endif
+0:	RET_SC
+1:	TAIL_CALL_SYSCALL_ERROR
+
 
 END (__clone)
 

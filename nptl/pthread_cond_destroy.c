@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -58,5 +57,6 @@ __pthread_cond_destroy (pthread_cond_t *cond)
   /* The memory the condvar occupies can now be reused.  */
   return 0;
 }
-versioned_symbol (libpthread, __pthread_cond_destroy,
+libc_hidden_def (__pthread_cond_destroy)
+versioned_symbol (libc, __pthread_cond_destroy,
 		  pthread_cond_destroy, GLIBC_2_3_2);

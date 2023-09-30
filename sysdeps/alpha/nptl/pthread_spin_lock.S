@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Richard Henderson  <rth@twiddle.net>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,13 +15,14 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <shlib-compat.h>
 
 	.text
 	.align	4
 
-	.globl	pthread_spin_lock
-	.ent	pthread_spin_lock
-pthread_spin_lock:
+	.globl	__pthread_spin_lock
+	.ent	__pthread_spin_lock
+__pthread_spin_lock:
 	.frame	$sp, 0, $26, 0
 	.prologue 0
 
@@ -41,4 +41,9 @@ pthread_spin_lock:
 	unop
 	br	0b
 
-	.end	pthread_spin_lock
+	.end	__pthread_spin_lock
+versioned_symbol (libc, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_34)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_2)
+#endif

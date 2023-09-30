@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Thorsten Kukuk <kukuk@suse.de>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,18 +25,21 @@
 #include <string.h>
 #include <libc-lock.h>
 #include <kernel-features.h>
+#include <nss_files.h>
 
-static service_user *ni;
-static enum nss_status (*nss_setgrent) (int stayopen);
-static enum nss_status (*nss_getgrnam_r) (const char *name,
-					  struct group * grp, char *buffer,
-					  size_t buflen, int *errnop);
-static enum nss_status (*nss_getgrgid_r) (gid_t gid, struct group * grp,
-					  char *buffer, size_t buflen,
-					  int *errnop);
-static enum nss_status (*nss_getgrent_r) (struct group * grp, char *buffer,
-					  size_t buflen, int *errnop);
-static enum nss_status (*nss_endgrent) (void);
+NSS_DECLARE_MODULE_FUNCTIONS (compat)
+
+static nss_action_list ni;
+static enum nss_status (*setgrent_impl) (int stayopen);
+static enum nss_status (*getgrnam_r_impl) (const char *name,
+					   struct group * grp, char *buffer,
+					   size_t buflen, int *errnop);
+static enum nss_status (*getgrgid_r_impl) (gid_t gid, struct group * grp,
+					   char *buffer, size_t buflen,
+					   int *errnop);
+static enum nss_status (*getgrent_r_impl) (struct group * grp, char *buffer,
+					   size_t buflen, int *errnop);
+static enum nss_status (*endgrent_impl) (void);
 
 /* Get the declaration of the parser function.  */
 #define ENTNAME grent
@@ -78,13 +80,13 @@ static bool in_blacklist (const char *, int, ent_t *);
 static void
 init_nss_interface (void)
 {
-  if (__nss_database_lookup2 ("group_compat", NULL, "nis", &ni) >= 0)
+  if (__nss_database_get (nss_database_group_compat, &ni))
     {
-      nss_setgrent = __nss_lookup_function (ni, "setgrent");
-      nss_getgrnam_r = __nss_lookup_function (ni, "getgrnam_r");
-      nss_getgrgid_r = __nss_lookup_function (ni, "getgrgid_r");
-      nss_getgrent_r = __nss_lookup_function (ni, "getgrent_r");
-      nss_endgrent = __nss_lookup_function (ni, "endgrent");
+      setgrent_impl = __nss_lookup_function (ni, "setgrent");
+      getgrnam_r_impl = __nss_lookup_function (ni, "getgrnam_r");
+      getgrgid_r_impl = __nss_lookup_function (ni, "getgrgid_r");
+      getgrent_r_impl = __nss_lookup_function (ni, "getgrent_r");
+      endgrent_impl = __nss_lookup_function (ni, "endgrent");
     }
 }
 
@@ -106,19 +108,16 @@ internal_setgrent (ent_t *ent, int stayopen, int needent)
 
   if (ent->stream == NULL)
     {
-      ent->stream = fopen ("/etc/group", "rme");
+      ent->stream = __nss_files_fopen ("/etc/group");
 
       if (ent->stream == NULL)
 	status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
-      else
-	/* We take care of locking ourself.  */
-	__fsetlocking (ent->stream, FSETLOCKING_BYCALLER);
     }
   else
     rewind (ent->stream);
 
-  if (needent && status == NSS_STATUS_SUCCESS && nss_setgrent)
-    ent->setent_status = nss_setgrent (stayopen);
+  if (needent && status == NSS_STATUS_SUCCESS && setgrent_impl)
+    ent->setent_status = setgrent_impl (stayopen);
 
   return status;
 }
@@ -142,7 +141,7 @@ _nss_compat_setgrent (int stayopen)
 }
 
 
-static enum nss_status
+static enum nss_status __attribute_warn_unused_result__
 internal_endgrent (ent_t *ent)
 {
   if (ent->stream != NULL)
@@ -163,6 +162,15 @@ internal_endgrent (ent_t *ent)
   return NSS_STATUS_SUCCESS;
 }
 
+/* Like internal_endgrent, but preserve errno in all cases.  */
+static void
+internal_endgrent_noerror (ent_t *ent)
+{
+  int saved_errno = errno;
+  enum nss_status unused __attribute__ ((unused)) = internal_endgrent (ent);
+  __set_errno (saved_errno);
+}
+
 enum nss_status
 _nss_compat_endgrent (void)
 {
@@ -170,8 +178,8 @@ _nss_compat_endgrent (void)
 
   __libc_lock_lock (lock);
 
-  if (nss_endgrent)
-    nss_endgrent ();
+  if (endgrent_impl)
+    endgrent_impl ();
 
   result = internal_endgrent (&ext_ent);
 
@@ -185,7 +193,7 @@ static enum nss_status
 getgrent_next_nss (struct group *result, ent_t *ent, char *buffer,
 		   size_t buflen, int *errnop)
 {
-  if (!nss_getgrent_r)
+  if (!getgrent_r_impl)
     return NSS_STATUS_UNAVAIL;
 
   /* If the setgrent call failed, say so.  */
@@ -196,7 +204,7 @@ getgrent_next_nss (struct group *result, ent_t *ent, char *buffer,
     {
       enum nss_status status;
 
-      if ((status = nss_getgrent_r (result, buffer, buflen, errnop))
+      if ((status = getgrent_r_impl (result, buffer, buflen, errnop))
 	  != NSS_STATUS_SUCCESS)
 	return status;
     }
@@ -210,11 +218,11 @@ static enum nss_status
 getgrnam_plusgroup (const char *name, struct group *result, ent_t *ent,
 		    char *buffer, size_t buflen, int *errnop)
 {
-  if (!nss_getgrnam_r)
+  if (!getgrnam_r_impl)
     return NSS_STATUS_UNAVAIL;
 
-  enum nss_status status = nss_getgrnam_r (name, result, buffer, buflen,
-					   errnop);
+  enum nss_status status = getgrnam_r_impl (name, result, buffer, buflen,
+					    errnop);
   if (status != NSS_STATUS_SUCCESS)
     return status;
 
@@ -483,7 +491,7 @@ _nss_compat_getgrnam_r (const char *name, struct group *grp,
   if (result == NSS_STATUS_SUCCESS)
     result = internal_getgrnam_r (name, grp, &ent, buffer, buflen, errnop);
 
-  internal_endgrent (&ent);
+  internal_endgrent_noerror (&ent);
 
   return result;
 }
@@ -578,11 +586,11 @@ internal_getgrgid_r (gid_t gid, struct group *result, ent_t *ent,
       /* +:... */
       if (result->gr_name[0] == '+' && result->gr_name[1] == '\0')
 	{
-	  if (!nss_getgrgid_r)
+	  if (!getgrgid_r_impl)
 	    return NSS_STATUS_UNAVAIL;
 
-	  enum nss_status status = nss_getgrgid_r (gid, result, buffer, buflen,
-						   errnop);
+	  enum nss_status status = getgrgid_r_impl (gid, result,
+						    buffer, buflen, errnop);
 	  if (status == NSS_STATUS_RETURN) /* We couldn't parse the entry */
 	    return NSS_STATUS_NOTFOUND;
 	  else
@@ -612,7 +620,7 @@ _nss_compat_getgrgid_r (gid_t gid, struct group *grp,
   if (result == NSS_STATUS_SUCCESS)
     result = internal_getgrgid_r (gid, grp, &ent, buffer, buflen, errnop);
 
-  internal_endgrent (&ent);
+  internal_endgrent_noerror (&ent);
 
   return result;
 }

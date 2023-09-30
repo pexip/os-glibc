@@ -1,5 +1,5 @@
 /* Block a thread with a timeout.  Mach version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,6 +25,10 @@
 #include <mach/message.h>
 
 #include <pt-internal.h>
+
+#ifndef MSG_OPTIONS
+# define MSG_OPTIONS 0
+#endif
 
 /* Block THREAD.  */
 error_t
@@ -54,11 +58,13 @@ __pthread_timedblock (struct __pthread *thread,
     /* Need to do a carry.  */
     timeout -= (now.tv_nsec - abstime->tv_nsec + 999999) / 1000000;
 
-  err = __mach_msg (&msg, MACH_RCV_MSG | MACH_RCV_TIMEOUT, 0,
+  err = __mach_msg (&msg, MACH_RCV_MSG | MACH_RCV_TIMEOUT | MSG_OPTIONS, 0,
 		    sizeof msg, thread->wakeupmsg.msgh_remote_port,
 		    timeout, MACH_PORT_NULL);
   if (err == EMACH_RCV_TIMED_OUT)
     return ETIMEDOUT;
+  if ((MSG_OPTIONS & MACH_RCV_INTERRUPT) && err == MACH_RCV_INTERRUPTED)
+    return EINTR;
 
   assert_perror (err);
   return 0;

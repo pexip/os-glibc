@@ -1,7 +1,6 @@
 /* Test and measure string and memory functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sys/cdefs.h>
+#include <support/support.h>
 
 typedef struct
 {
@@ -68,7 +68,9 @@ extern impl_t __start_impls[], __stop_impls[];
 
 
 # define TEST_FUNCTION test_main
-# define TIMEOUT (4 * 60)
+# ifndef TIMEOUT
+#  define TIMEOUT (4 * 60)
+# endif
 # define OPT_ITERATIONS 10000
 # define OPT_RANDOM 10001
 # define OPT_SEED 10002
@@ -146,8 +148,8 @@ static impl_t *impl_array;
 	      skip = impl;						\
 	    else							\
 	      impl_count++;						\
-	  a = impl_array = malloc ((impl_count + func_count) *		\
-				   sizeof (impl_t));			\
+	  a = impl_array = xmalloc ((impl_count + func_count) *		\
+				    sizeof (impl_t));			\
 	  for (impl = __start_impls; impl < __stop_impls; ++impl)	\
 	    if (impl != skip)						\
 	      *a++ = *impl;						\

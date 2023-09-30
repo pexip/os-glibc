@@ -1,5 +1,5 @@
 /* Cancel a thread.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <hurd/signal.h>
 
 #include <pt-internal.h>
 #include <pthreadP.h>
@@ -47,9 +48,15 @@ __pthread_do_cancel (struct __pthread *p)
   else
     {
       error_t err;
+      struct hurd_sigstate *ss = _hurd_thread_sigstate (p->kernel_thread);
+
+      __spin_lock (&ss->critical_section_lock);
+      __spin_lock (&ss->lock);
 
       err = __thread_suspend (p->kernel_thread);
       assert_perror (err);
+
+      __spin_unlock (&ss->lock);
 
       err = __thread_abort (p->kernel_thread);
       assert_perror (err);
@@ -60,6 +67,8 @@ __pthread_do_cancel (struct __pthread *p)
 
       err = __thread_resume (p->kernel_thread);
       assert_perror (err);
+
+      _hurd_critical_section_unlock (ss);
     }
 
   return 0;

@@ -1,7 +1,6 @@
 /* Fully-inline hash table, used mainly for managing TLS descriptors.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Alexandre Oliva  <aoliva@redhat.com>
 
    This file is derived from a 2003's version of libiberty's
    hashtab.c, contributed by Vladimir Makarov (vmakarov@cygnus.com),
@@ -24,8 +23,6 @@
 
 #ifndef INLINE_HASHTAB_H
 # define INLINE_HASHTAB_H 1
-
-extern void weak_function free (void *ptr);
 
 struct hashtab
 {
@@ -53,11 +50,10 @@ htab_create (void)
     return NULL;
   ht->size = 3;
   ht->entries = malloc (sizeof (void *) * ht->size);
-  ht->free = free;
+  ht->free = __rtld_free;
   if (! ht->entries)
     {
-      if (ht->free)
-	ht->free (ht);
+      free (ht);
       return NULL;
     }
 
@@ -78,8 +74,7 @@ htab_delete (struct hashtab *htab)
   for (i = htab->size - 1; i >= 0; i--)
     free (htab->entries[i]);
 
-  if (htab->free)
-    htab->free (htab->entries);
+  htab->free (htab->entries);
   free (htab);
 }
 
@@ -167,12 +162,11 @@ htab_expand (struct hashtab *htab, int (*hash_fn) (void *))
      allocated early as long as there's no corresponding free(), but
      this isn't so much memory as to be significant.  */
 
-  if (htab->free)
-    htab->free (oentries);
+  htab->free (oentries);
 
   /* Use the free() corresponding to the malloc() above to free this
      up.  */
-  htab->free = free;
+  htab->free = __rtld_free;
 
   return 1;
 }

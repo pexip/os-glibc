@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,19 +28,12 @@ libc_hidden_proto (__posix_fallocate64_l64)
 int
 __posix_fallocate64_l64 (int fd, __off64_t offset, __off64_t len)
 {
-  INTERNAL_SYSCALL_DECL (err);
-#ifdef INTERNAL_SYSCALL_TYPES
-  int res = INTERNAL_SYSCALL_TYPES (fallocate, err, 4, int, fd,
-                                    int, 0, off_t, offset,
-                                    off_t, len);
-#else
-  int res = INTERNAL_SYSCALL_CALL (fallocate, err, fd, 0,
+  int res = INTERNAL_SYSCALL_CALL (fallocate, fd, 0,
 				   SYSCALL_LL64 (offset), SYSCALL_LL64 (len));
-#endif
-  if (! INTERNAL_SYSCALL_ERROR_P (res, err))
+  if (! INTERNAL_SYSCALL_ERROR_P (res))
     return 0;
-  if (INTERNAL_SYSCALL_ERRNO (res, err) != EOPNOTSUPP)
-    return INTERNAL_SYSCALL_ERRNO (res, err);
+  if (INTERNAL_SYSCALL_ERRNO (res) != EOPNOTSUPP)
+    return INTERNAL_SYSCALL_ERRNO (res);
   return internal_fallocate64 (fd, offset, len);
 }
 libc_hidden_def (__posix_fallocate64_l64)

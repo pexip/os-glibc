@@ -335,7 +335,7 @@ p_cdnname(const u_char *cp, const u_char *msg, int len, FILE *file) {
 	char name[MAXDNAME];
 	int n;
 
-	if ((n = dn_expand(msg, msg + len, cp, name, sizeof name)) < 0)
+	if ((n = __libc_dn_expand (msg, msg + len, cp, name, sizeof name)) < 0)
 		return (NULL);
 	if (name[0] == '\0')
 		putc('.', file);
@@ -359,7 +359,7 @@ p_fqnname (const u_char *cp, const u_char *msg, int msglen, char *name,
 {
 	int n, newlen;
 
-	if ((n = dn_expand(msg, cp + msglen, cp, name, namelen)) < 0)
+	if ((n = __libc_dn_expand (msg, cp + msglen, cp, name, namelen)) < 0)
 		return (NULL);
 	newlen = strlen(name);
 	if (newlen == 0 || name[newlen - 1] != '.') {
@@ -613,6 +613,7 @@ p_option(u_long option) {
 	case RES_NOTLDQUERY:	return "no-tld-query";
 	case RES_NORELOAD:	return "no-reload";
 	case RES_TRUSTAD:	return "trust-ad";
+	case RES_NOAAAA:	return "no-aaaa";
 				/* XXX nonreentrant */
 	default:		sprintf(nbuf, "?0x%lx?", (u_long)option);
 				return (nbuf);

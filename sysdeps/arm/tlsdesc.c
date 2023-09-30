@@ -1,5 +1,5 @@
 /* Manage TLS descriptors.  ARM version.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
 #include <tls.h>
 #include <dl-tlsdesc.h>
 #include <dl-unmap-segments.h>
-#define _dl_tlsdesc_resolve_hold 0
 #include <tlsdeschtab.h>
 
 /* Unmap the dynamic object, but also release its TLS descriptor table

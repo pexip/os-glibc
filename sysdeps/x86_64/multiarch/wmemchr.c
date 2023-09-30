@@ -1,6 +1,6 @@
 /* Multiple versions of wmemchr
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 # undef __wmemchr
 
 # define SYMBOL_NAME wmemchr
-# include "ifunc-avx2.h"
+# include "ifunc-evex.h"
 
 libc_ifunc_redirected (__redirect_wmemchr, __wmemchr, IFUNC_SELECTOR ());
 weak_alias (__wmemchr, wmemchr)

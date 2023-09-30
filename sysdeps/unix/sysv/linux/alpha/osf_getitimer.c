@@ -1,5 +1,5 @@
 /* getitimer -- Get the state of an interval timer.  Linux/Alpha/tv32 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,12 +20,13 @@
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
 
+#include <time.h>
 #include <sys/time.h>
 #include <tv32-compat.h>
 
 int
 attribute_compat_text_section
-__getitimer_tv32 (int which, struct itimerval32 *curr_value)
+__getitimer_tv32 (int which, struct __itimerval32 *curr_value)
 {
   struct itimerval curr_value_64;
   if (__getitimer (which, &curr_value_64) == -1)
@@ -33,9 +34,9 @@ __getitimer_tv32 (int which, struct itimerval32 *curr_value)
 
   /* Write all fields of 'curr_value' regardless of overflow.  */
   curr_value->it_interval
-    = valid_timeval64_to_timeval (curr_value_64.it_interval);
+    = valid_timeval_to_timeval32 (curr_value_64.it_interval);
   curr_value->it_value
-    = valid_timeval64_to_timeval (curr_value_64.it_value);
+    = valid_timeval_to_timeval32 (curr_value_64.it_value);
   return 0;
 }
 

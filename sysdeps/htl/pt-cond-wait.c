@@ -1,5 +1,5 @@
 /* Wait on a condition.  Generic version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 /* Implemented in pt-cond-timedwait.c.  */
 extern int __pthread_cond_timedwait_internal (pthread_cond_t *cond,
 					      pthread_mutex_t *mutex,
+					      clockid_t clockid,
 					      const struct timespec *abstime);
 
 
@@ -32,7 +33,7 @@ extern int __pthread_cond_timedwait_internal (pthread_cond_t *cond,
 int
 __pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-  return __pthread_cond_timedwait_internal (cond, mutex, 0);
+  return __pthread_cond_timedwait_internal (cond, mutex, -1, 0);
 }
 
-strong_alias (__pthread_cond_wait, pthread_cond_wait);
+weak_alias (__pthread_cond_wait, pthread_cond_wait);

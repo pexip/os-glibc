@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,6 @@ enum
 #define EFD_SEMAPHORE EFD_SEMAPHORE
     EFD_CLOEXEC = 010000000,
 #define EFD_CLOEXEC EFD_CLOEXEC
-    EFD_NONBLOCK = 00200004 /* HPUX has separate NDELAY & NONBLOCK */
+    EFD_NONBLOCK = 00200000
 #define EFD_NONBLOCK EFD_NONBLOCK
   };

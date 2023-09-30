@@ -1,5 +1,5 @@
 /* Internal definitions for posix_spawn functionality.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #define _SPAWN_INT_H
 
 #include <spawn.h>
+#include <spawn_int_def.h>
 #include <stdbool.h>
 
 /* Data structure to contain the action information.  */
@@ -32,6 +33,8 @@ struct __spawn_action
     spawn_do_open,
     spawn_do_chdir,
     spawn_do_fchdir,
+    spawn_do_closefrom,
+    spawn_do_tcsetpgrp
   } tag;
 
   union
@@ -60,6 +63,14 @@ struct __spawn_action
     {
       int fd;
     } fchdir_action;
+    struct
+    {
+      int from;
+    } closefrom_action;
+    struct
+    {
+      int fd;
+    } setpgrp_action;
   } action;
 };
 

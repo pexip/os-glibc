@@ -1,5 +1,5 @@
 /* Internal header file for <setjmp.h>.  Linux/x86 version.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 
 #include <bits/types/__sigset_t.h>
 #include <libc-pointer-arith.h>
+#include <sigsetops.h>
 
 /* <setjmp/setjmp.h> has
 
@@ -113,11 +114,9 @@ typedef union
 
 #include <signal.h>
 
-#define _SIGPROCMASK_NSIG_WORDS (_NSIG / (8 * sizeof (unsigned long int)))
-
 typedef struct
   {
-    unsigned long int __val[_SIGPROCMASK_NSIG_WORDS];
+    unsigned long int __val[__NSIG_WORDS];
   } __sigprocmask_sigset_t;
 
 extern jmp_buf ___buf;

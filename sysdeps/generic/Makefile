@@ -1,4 +1,4 @@
-# Copyright (C) 1992-2020 Free Software Foundation, Inc.
+# Copyright (C) 1992-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
 # <https://www.gnu.org/licenses/>.
 
 ifeq ($(subdir),string)
+sysdep_routines += tls-internal
 CFLAGS-wordcopy.c += -Wno-uninitialized
 endif
 
@@ -25,4 +26,12 @@ ifeq (yes:yes,$(build-shared):$(unwind-find-fde))
 sysdep_routines += framestate unwind-pe
 shared-only-routines += framestate unwind-pe
 endif
+endif
+
+ifeq ($(subdir),malloc)
+sysdep_malloc_debug_routines += malloc-hugepages
+endif
+
+ifeq ($(subdir),misc)
+sysdep_routines += malloc-hugepages
 endif

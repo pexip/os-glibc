@@ -1,7 +1,6 @@
 /* Simple transformations functions.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -239,11 +238,9 @@ ucs4_internal_loop (struct __gconv_step *step,
   int flags = step_data->__flags;
   const unsigned char *inptr = *inptrp;
   unsigned char *outptr = *outptrp;
-  size_t n_convert = MIN (inend - inptr, outend - outptr) / 4;
   int result;
-  size_t cnt;
 
-  for (cnt = 0; cnt < n_convert; ++cnt, inptr += 4)
+  for (; inptr + 4 <= inend && outptr + 4 <= outend; inptr += 4)
     {
       uint32_t inval;
 
@@ -307,11 +304,9 @@ ucs4_internal_loop_unaligned (struct __gconv_step *step,
   int flags = step_data->__flags;
   const unsigned char *inptr = *inptrp;
   unsigned char *outptr = *outptrp;
-  size_t n_convert = MIN (inend - inptr, outend - outptr) / 4;
   int result;
-  size_t cnt;
 
-  for (cnt = 0; cnt < n_convert; ++cnt, inptr += 4)
+  for (; inptr + 4 <= inend && outptr + 4 <= outend; inptr += 4)
     {
       if (__glibc_unlikely (inptr[0] > 0x80))
 	{
@@ -613,11 +608,9 @@ ucs4le_internal_loop (struct __gconv_step *step,
   int flags = step_data->__flags;
   const unsigned char *inptr = *inptrp;
   unsigned char *outptr = *outptrp;
-  size_t n_convert = MIN (inend - inptr, outend - outptr) / 4;
   int result;
-  size_t cnt;
 
-  for (cnt = 0; cnt < n_convert; ++cnt, inptr += 4)
+  for (; inptr + 4 <= inend && outptr + 4 <= outend; inptr += 4)
     {
       uint32_t inval;
 
@@ -684,11 +677,9 @@ ucs4le_internal_loop_unaligned (struct __gconv_step *step,
   int flags = step_data->__flags;
   const unsigned char *inptr = *inptrp;
   unsigned char *outptr = *outptrp;
-  size_t n_convert = MIN (inend - inptr, outend - outptr) / 4;
   int result;
-  size_t cnt;
 
-  for (cnt = 0; cnt < n_convert; ++cnt, inptr += 4)
+  for (; inptr + 4 <= inend && outptr + 4 <= outend; inptr += 4)
     {
       if (__glibc_unlikely (inptr[3] > 0x80))
 	{
@@ -968,8 +959,8 @@ ucs4le_internal_loop_single (struct __gconv_step *step,
       }									      \
     else								      \
       {									      \
-	uint_fast32_t cnt;						      \
-	uint_fast32_t i;						      \
+	unsigned int cnt;						      \
+	unsigned int i;						      \
 									      \
 	if (ch >= 0xc2 && ch < 0xe0)					      \
 	  {								      \

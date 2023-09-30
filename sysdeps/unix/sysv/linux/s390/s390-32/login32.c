@@ -1,5 +1,4 @@
-/* Copyright (C) 2008-2020 Free Software Foundation, Inc.
-   Contributed by Andreas Krebbel <Andreas.Krebbel@de.ibm.com>.
+/* Copyright (C) 2008-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,12 +15,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sys/types.h>
-#include <utmp.h>
-#include <libc-symbols.h>
+#ifdef SHARED
+# include <sys/types.h>
+# include <utmp.h>
+# include <libc-symbols.h>
 
-#include "utmp32.h"
-#include "utmp-convert.h"
+# include "utmp32.h"
+# include "utmp-convert.h"
 
 /* Write the given entry into utmp and wtmp.  */
 void
@@ -34,3 +34,4 @@ login32 (const struct utmp32 *entry)
 }
 
 symbol_version (login32, login, GLIBC_2.0);
+#endif

@@ -1,6 +1,5 @@
-/* Copyright (C) 2010-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Maxim Kuvyrkov <maxim@codesourcery.com>, 2010.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,21 +18,10 @@
 #ifndef _ATOMIC_MACHINE_H
 #define _ATOMIC_MACHINE_H	1
 
-#include <stdint.h>
 #include <sysdep.h>
 
 /* Coldfire has no atomic compare-and-exchange operation, but the
    kernel provides userspace atomicity operations.  Use them.  */
-
-typedef int32_t atomic32_t;
-typedef uint32_t uatomic32_t;
-typedef int_fast32_t atomic_fast32_t;
-typedef uint_fast32_t uatomic_fast32_t;
-
-typedef intptr_t atomicptr_t;
-typedef uintptr_t uatomicptr_t;
-typedef intmax_t atomic_max_t;
-typedef uintmax_t uatomic_max_t;
 
 #define __HAVE_64B_ATOMICS 0
 #define USE_ATOMIC_COMPILER_BUILTINS 0
@@ -61,6 +49,6 @@ typedef uintmax_t uatomic_max_t;
   })
 
 # define atomic_full_barrier()				\
-  (INTERNAL_SYSCALL (atomic_barrier, , 0), (void) 0)
+  (INTERNAL_SYSCALL_CALL (atomic_barrier), (void) 0)
 
 #endif

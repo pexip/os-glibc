@@ -112,8 +112,8 @@ __res_context_query (struct resolv_context *ctx, const char *name,
 		     int *nanswerp2, int *resplen2, int *answerp2_malloced)
 {
 	struct __res_state *statp = ctx->resp;
-	HEADER *hp = (HEADER *) answer;
-	HEADER *hp2;
+	UHEADER *hp = (UHEADER *) answer;
+	UHEADER *hp2;
 	int n, use_malloc = 0;
 
 	size_t bufsize = (type == T_QUERY_A_AND_AAAA ? 2 : 1) * QUERYSIZE;
@@ -204,10 +204,26 @@ __res_context_query (struct resolv_context *ctx, const char *name,
 			free (buf);
 		return (n);
 	}
-	assert (answerp == NULL || (void *) *answerp == (void *) answer);
-	n = __res_context_send (ctx, query1, nquery1, query2, nquery2, answer,
-				anslen, answerp, answerp2, nanswerp2, resplen2,
-				answerp2_malloced);
+
+	/* Suppress AAAA lookups if required.  __res_handle_no_aaaa
+	   checks RES_NOAAAA first, so avoids parsing the
+	   just-generated query packet in most cases.  nss_dns avoids
+	   using T_QUERY_A_AND_AAAA in RES_NOAAAA mode, so there is no
+	   need to handle it here.  */
+	if (type == T_AAAA && __res_handle_no_aaaa (ctx, query1, nquery1,
+						    answer, anslen, &n))
+	  /* There must be no second query for AAAA queries.  The code
+	     below is still needed to translate NODATA responses.  */
+	  assert (query2 == NULL);
+	else
+	  {
+	    assert (answerp == NULL || (void *) *answerp == (void *) answer);
+	    n = __res_context_send (ctx, query1, nquery1, query2, nquery2,
+				    answer, anslen,
+				    answerp, answerp2, nanswerp2, resplen2,
+				    answerp2_malloced);
+	  }
+
 	if (use_malloc)
 		free (buf);
 	if (n < 0) {
@@ -217,7 +233,7 @@ __res_context_query (struct resolv_context *ctx, const char *name,
 
 	if (answerp != NULL)
 	  /* __res_context_send might have reallocated the buffer.  */
-	  hp = (HEADER *) *answerp;
+	  hp = (UHEADER *) *answerp;
 
 	/* We simplify the following tests by assigning HP to HP2 or
 	   vice versa.  It is easy to verify that this is the same as
@@ -228,7 +244,7 @@ __res_context_query (struct resolv_context *ctx, const char *name,
 	  }
 	else
 	  {
-	    hp2 = (HEADER *) *answerp2;
+	    hp2 = (UHEADER *) *answerp2;
 	    if (n < (int) sizeof (HEADER))
 	      {
 	        hp = hp2;
@@ -276,7 +292,7 @@ __res_context_query (struct resolv_context *ctx, const char *name,
  success:
 	return (n);
 }
-libresolv_hidden_def (__res_context_query)
+libc_hidden_def (__res_context_query)
 
 /* Common part of res_nquery and res_query.  */
 static int
@@ -296,23 +312,34 @@ context_query_common (struct resolv_context *ctx,
 }
 
 int
-res_nquery(res_state statp,
-	   const char *name,	/* domain name */
-	   int class, int type,	/* class and type of query */
-	   u_char *answer,	/* buffer to put answer */
-	   int anslen)		/* size of answer buffer */
+___res_nquery (res_state statp,
+	       const char *name,      /* Domain name.  */
+	       int class, int type,   /* Class and type of query.  */
+	       unsigned char *answer, /* Buffer to put answer.  */
+	       int anslen)	      /* Size of answer buffer.  */
 {
   return context_query_common
     (__resolv_context_get_override (statp), name, class, type, answer, anslen);
 }
+versioned_symbol (libc, ___res_nquery, res_nquery, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_nquery, __res_nquery, GLIBC_2_2);
+#endif
 
 int
-res_query (const char *name, int class, int type,
-	   unsigned char *answer, int anslen)
+___res_query (const char *name, int class, int type,
+	      unsigned char *answer, int anslen)
 {
   return context_query_common
     (__resolv_context_get (), name, class, type, answer, anslen);
 }
+versioned_symbol (libc, ___res_query, res_query, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_0, GLIBC_2_2)
+compat_symbol (libresolv, ___res_query, res_query, GLIBC_2_0);
+#endif
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_query, __res_query, GLIBC_2_2);
+#endif
 
 /* Formulate a normal query, send, and retrieve answer in supplied
    buffer.  Return the size of the response on success, -1 on error.
@@ -327,7 +354,7 @@ __res_context_search (struct resolv_context *ctx,
 {
 	struct __res_state *statp = ctx->resp;
 	const char *cp;
-	HEADER *hp = (HEADER *) answer;
+	UHEADER *hp = (UHEADER *) answer;
 	char tmp[NS_MAXDNAME];
 	u_int dots;
 	int trailing_dot, ret, saved_herrno;
@@ -515,7 +542,7 @@ __res_context_search (struct resolv_context *ctx,
 		RES_SET_H_ERRNO(statp, TRY_AGAIN);
 	return (-1);
 }
-libresolv_hidden_def (__res_context_search)
+libc_hidden_def (__res_context_search)
 
 /* Common part of res_nsearch and res_search.  */
 static int
@@ -535,23 +562,34 @@ context_search_common (struct resolv_context *ctx,
 }
 
 int
-res_nsearch(res_state statp,
-	    const char *name,	/* domain name */
-	    int class, int type,	/* class and type of query */
-	    u_char *answer,	/* buffer to put answer */
-	    int anslen)		/* size of answer */
+___res_nsearch (res_state statp,
+		const char *name,      /* Domain name.  */
+		int class, int type,   /* Class and type of query.  */
+		unsigned char *answer, /* Buffer to put answer.  */
+		int anslen)	       /* Size of answer.  */
 {
   return context_search_common
     (__resolv_context_get_override (statp), name, class, type, answer, anslen);
 }
+versioned_symbol (libc, ___res_nsearch, res_nsearch, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_nsearch, __res_nsearch, GLIBC_2_2);
+#endif
 
 int
-res_search (const char *name, int class, int type,
-	    unsigned char *answer, int anslen)
+___res_search (const char *name, int class, int type,
+	       unsigned char *answer, int anslen)
 {
   return context_search_common
     (__resolv_context_get (), name, class, type, answer, anslen);
 }
+versioned_symbol (libc, ___res_search, res_search, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_0, GLIBC_2_2)
+compat_symbol (libresolv, ___res_search, res_search, GLIBC_2_0);
+#endif
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_search, __res_search, GLIBC_2_2);
+#endif
 
 /*  Perform a call on res_query on the concatenation of name and
     domain.  */
@@ -588,7 +626,9 @@ __res_context_querydomain (struct resolv_context *ctx,
 			RES_SET_H_ERRNO(statp, NO_RECOVERY);
 			return (-1);
 		}
-		sprintf(nbuf, "%s.%s", name, domain);
+		char *p = __stpcpy (nbuf, name);
+		*p++ = '.';
+		strcpy (p, domain);
 	}
 	return __res_context_query (ctx, longname, class, type, answer,
 				    anslen, answerp, answerp2, nanswerp2,
@@ -615,101 +655,33 @@ context_querydomain_common (struct resolv_context *ctx,
 }
 
 int
-res_nquerydomain(res_state statp,
-	    const char *name,
-	    const char *domain,
-	    int class, int type,	/* class and type of query */
-	    u_char *answer,		/* buffer to put answer */
-	    int anslen)		/* size of answer */
+___res_nquerydomain (res_state statp,
+		     const char *name,
+		     const char *domain,
+		     int class, int type, /* Class and type of query.  */
+		     unsigned char *answer, /* Buffer to put answer.  */
+		     int anslen)	    /* Size of answer.  */
 {
   return context_querydomain_common
     (__resolv_context_get_override (statp),
      name, domain, class, type, answer, anslen);
 }
+versioned_symbol (libc, ___res_nquerydomain, res_nquerydomain, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_nquerydomain, __res_nquerydomain, GLIBC_2_2);
+#endif
 
 int
-res_querydomain (const char *name, const char *domain, int class, int type,
-		 unsigned char *answer, int anslen)
+___res_querydomain (const char *name, const char *domain, int class, int type,
+		    unsigned char *answer, int anslen)
 {
   return context_querydomain_common
     (__resolv_context_get (), name, domain, class, type, answer, anslen);
 }
-
-const char *
-__res_context_hostalias (struct resolv_context *ctx,
-			 const char *name, char *dst, size_t siz)
-{
-	char *file, *cp1, *cp2;
-	char buf[BUFSIZ];
-	FILE *fp;
-
-	if (ctx->resp->options & RES_NOALIASES)
-		return (NULL);
-	file = getenv("HOSTALIASES");
-	if (file == NULL || (fp = fopen(file, "rce")) == NULL)
-		return (NULL);
-	setbuf(fp, NULL);
-	buf[sizeof(buf) - 1] = '\0';
-	while (fgets(buf, sizeof(buf), fp)) {
-		for (cp1 = buf; *cp1 && !isspace(*cp1); ++cp1)
-			;
-		if (!*cp1)
-			break;
-		*cp1 = '\0';
-		if (ns_samename(buf, name) == 1) {
-			while (isspace(*++cp1))
-				;
-			if (!*cp1)
-				break;
-			for (cp2 = cp1 + 1; *cp2 && !isspace(*cp2); ++cp2)
-				;
-			*cp2 = '\0';
-			strncpy(dst, cp1, siz - 1);
-			dst[siz - 1] = '\0';
-			fclose(fp);
-			return (dst);
-		}
-	}
-	fclose(fp);
-	return (NULL);
-}
-libresolv_hidden_def (__res_context_hostalias)
-
-/* Common part of res_hostalias and hostalias.  */
-static const char *
-context_hostalias_common (struct resolv_context *ctx,
-			  const char *name, char *dst, size_t siz)
-{
-  if (ctx == NULL)
-    {
-      RES_SET_H_ERRNO (&_res, NETDB_INTERNAL);
-      return NULL;
-    }
-  const char *result = __res_context_hostalias (ctx, name, dst, siz);
-  __resolv_context_put (ctx);
-  return result;
-}
-
-const char *
-res_hostalias (res_state statp, const char *name, char *dst, size_t siz)
-{
-  return context_hostalias_common
-    (__resolv_context_get_override (statp), name, dst, siz);
-}
-
-const char *
-hostalias (const char *name)
-{
-  static char abuf[MAXDNAME];
-  return context_hostalias_common
-    (__resolv_context_get (), name, abuf, sizeof (abuf));
-}
-
-#if SHLIB_COMPAT (libresolv, GLIBC_2_0, GLIBC_2_2)
-# undef res_query
-# undef res_querydomain
-# undef res_search
-weak_alias (__res_query, res_query);
-weak_alias (__res_querydomain, res_querydomain);
-weak_alias (__res_search, res_search);
+versioned_symbol (libc, ___res_querydomain, res_querydomain, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_0, GLIBC_2_2)
+compat_symbol (libresolv, ___res_querydomain, res_querydomain, GLIBC_2_0);
+#endif
+#if OTHER_SHLIB_COMPAT (libresolv, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libresolv, ___res_querydomain, __res_querydomain, GLIBC_2_2);
 #endif

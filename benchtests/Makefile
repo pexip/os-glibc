@@ -1,4 +1,5 @@
-# Copyright (C) 2013-2020 Free Software Foundation, Inc.
+# Copyright (C) 2013-2022 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -21,35 +22,174 @@
 subdir := benchtests
 
 include ../Makeconfig
-bench-math := acos acosh asin asinh atan atanh cos cosh exp exp2 log log2 \
-	      modf pow rint sin sincos sinh sqrt tan tanh fmin fmax fminf \
-	      fmaxf powf trunc truncf expf exp2f logf log2f sincosf sinf \
-	      cosf isnan isinf isfinite hypot logb logbf
 
-bench-pthread := pthread_once thread_create
+bench-math := \
+  acos \
+  acosh \
+  asin \
+  asinh \
+  atan \
+  atan2 \
+  atanh \
+  cbrt \
+  cos \
+  cosf \
+  cosh \
+  erf \
+  erfc \
+  exp \
+  exp10 \
+  exp10f \
+  exp2 \
+  exp2f \
+  expf \
+  expm1 \
+  fmax \
+  fmaxf \
+  fmin \
+  fminf \
+  hypot \
+  hypotf \
+  ilogb \
+  ilogbf \
+  isfinite \
+  isinf \
+  isnan \
+  j0 \
+  j1 \
+  lgamma \
+  log \
+  log10 \
+  log1p \
+  log2 \
+  log2f \
+  logb \
+  logbf \
+  logf \
+  modf \
+  pow \
+  powf \
+  rint \
+  roundeven \
+  roundevenf \
+  sin \
+  sincos \
+  sincosf \
+  sinf \
+  sinh \
+  sqrt \
+  tan \
+  tanh \
+  tgamma \
+  trunc \
+  truncf \
+  y0 \
+  y1 \
 
-bench-string := ffs ffsll
-
-ifeq (${BENCHSET},)
-bench := $(bench-math) $(bench-pthread) $(bench-string)
-else
-bench := $(foreach B,$(filter bench-%,${BENCHSET}), ${${B}})
+ifneq (,$(filter yes,$(float96-fcts)))
+bench-math += \
+  cbrtl \
+# bench-math
 endif
 
+ifneq (,$(filter yes,$(float128-fcts) $(float128-alias-fcts)))
+bench-math += \
+  expf128 \
+  ilogbf128 \
+  powf128 \
+  sinf128 \
+# bench-math
+endif
+
+bench-pthread := \
+  pthread-locks \
+  pthread-mutex-locks \
+  pthread_once \
+  thread_create \
+# bench-pthread
+
+bench-string := \
+  ffs \
+  ffsll \
+# bench-string
+
 # String function benchmarks.
-string-benchset := memccpy memchr memcmp memcpy memmem memmove \
-		   mempcpy memset rawmemchr stpcpy stpncpy strcasecmp strcasestr \
-		   strcat strchr strchrnul strcmp strcpy strcspn strlen \
-		   strncasecmp strncat strncmp strncpy strnlen strpbrk strrchr \
-		   strspn strstr strcpy_chk stpcpy_chk memrchr strsep strtok \
-		   strcoll memcpy-large memcpy-random memmove-large memset-large \
-		   memcpy-walk memset-walk memmove-walk
+string-benchset := \
+  bzero \
+  bzero-large \
+  bzero-walk \
+  memccpy \
+  memchr \
+  memcmp \
+  memcmpeq \
+  memcpy \
+  memcpy-large \
+  memcpy-random \
+  memcpy-walk \
+  memmem \
+  memmove \
+  memmove-large \
+  memmove-walk \
+  mempcpy \
+  memrchr \
+  memset \
+  memset-large \
+  memset-walk \
+  memset-zero \
+  memset-zero-large \
+  memset-zero-walk \
+  rawmemchr \
+  stpcpy \
+  stpcpy_chk \
+  stpncpy \
+  strcasecmp \
+  strcasestr \
+  strcat \
+  strchr \
+  strchrnul \
+  strcmp \
+  strcoll \
+  strcpy \
+  strcpy_chk \
+  strcspn \
+  strlen \
+  strncasecmp \
+  strncat \
+  strncmp \
+  strncpy \
+  strnlen \
+  strpbrk \
+  strrchr \
+  strsep \
+  strspn \
+  strstr \
+  strtok \
+# string-benchset
 
 # Build and run locale-dependent benchmarks only if we're building natively.
 ifeq (no,$(cross-compiling))
-wcsmbs-benchset := wcslen wcsnlen wcscpy wcpcpy wcsncpy wcpncpy wcscat wcsncat \
-		   wcscmp wcsncmp wcschr wcschrnul wcsrchr wcsspn wcspbrk wcscspn \
-		   wmemchr wmemset wmemcmp
+wcsmbs-benchset := \
+  wcpcpy \
+  wcpncpy \
+  wcrtomb \
+  wcscat \
+  wcschr \
+  wcschrnul \
+  wcscmp \
+  wcscpy \
+  wcscspn \
+  wcslen \
+  wcsncat \
+  wcsncmp \
+  wcsncpy \
+  wcsnlen \
+  wcspbrk \
+  wcsrchr \
+  wcsspn \
+  wmemchr \
+  wmemcmp \
+  wmemset \
+# wcsmbs-benchset
 else
 wcsmbs-benchset :=
 endif
@@ -58,15 +198,45 @@ string-benchset-all := $(string-benchset) ${wcsmbs-benchset}
 
 ifeq (no,$(cross-compiling))
 # We have to generate locales
-LOCALES := en_US.UTF-8 tr_TR.UTF-8 cs_CZ.UTF-8 fa_IR.UTF-8 fr_FR.UTF-8 \
-	   ja_JP.UTF-8 si_LK.UTF-8 en_GB.UTF-8 vi_VN.UTF-8 ar_SA.UTF-8 \
-	   da_DK.UTF-8 pl_PL.UTF-8 pt_PT.UTF-8 el_GR.UTF-8 ru_RU.UTF-8 \
-	   he_IL.UTF-8 is_IS.UTF-8 es_ES.UTF-8 hi_IN.UTF-8 sv_SE.UTF-8 \
-	   hu_HU.UTF-8 it_IT.UTF-8 sr_RS.UTF-8 zh_CN.UTF-8
+LOCALES := \
+  ar_SA.UTF-8 \
+  cs_CZ.UTF-8 \
+  da_DK.UTF-8 \
+  el_GR.UTF-8 \
+  en_GB.UTF-8 \
+  en_US.UTF-8 \
+  es_ES.UTF-8 \
+  fa_IR.UTF-8 \
+  fr_FR.UTF-8 \
+  he_IL.UTF-8 \
+  hi_IN.UTF-8 \
+  hu_HU.UTF-8 \
+  is_IS.UTF-8 \
+  it_IT.UTF-8 \
+  ja_JP.UTF-8 \
+  pl_PL.UTF-8 \
+  pt_PT.UTF-8 \
+  ru_RU.UTF-8 \
+  si_LK.UTF-8 \
+  sr_RS.UTF-8 \
+  sv_SE.UTF-8 \
+  tr_TR.UTF-8 \
+  vi_VN.UTF-8 \
+  zh_CN.UTF-8 \
+# LOCALES
 include ../gen-locales.mk
 endif
 
-stdlib-benchset := strtod
+hash-benchset := \
+  dl-elf-hash \
+  dl-new-hash \
+  nss-hash \
+# hash-benchset
+
+stdlib-benchset := \
+  arc4random \
+  strtod \
+  # stdlib-benchset
 
 stdio-common-benchset := sprintf
 
@@ -74,7 +244,7 @@ math-benchset := math-inlines
 
 ifeq (${BENCHSET},)
 benchset := $(string-benchset-all) $(stdlib-benchset) $(stdio-common-benchset) \
-	    $(math-benchset)
+	    $(math-benchset) $(hash-benchset)
 else
 benchset := $(foreach B,$(filter %-benchset,${BENCHSET}), ${${B}})
 endif
@@ -88,6 +258,8 @@ CFLAGS-bench-fmax.c += -fno-builtin
 CFLAGS-bench-fmaxf.c += -fno-builtin
 CFLAGS-bench-trunc.c += -fno-builtin
 CFLAGS-bench-truncf.c += -fno-builtin
+CFLAGS-bench-roundeven.c += -fno-builtin
+CFLAGS-bench-roundevenf.c += -fno-builtin
 CFLAGS-bench-isnan.c += -fsignaling-nans
 CFLAGS-bench-isinf.c += -fsignaling-nans
 CFLAGS-bench-isfinite.c += -fsignaling-nans
@@ -98,10 +270,24 @@ else
 bench-malloc := $(filter malloc-%,${BENCHSET})
 endif
 
-$(addprefix $(objpfx)bench-,$(bench-math)): $(libm)
-$(addprefix $(objpfx)bench-,$(math-benchset)): $(libm)
-$(addprefix $(objpfx)bench-,$(bench-pthread)): $(shared-thread-library)
-$(addprefix $(objpfx)bench-,$(bench-malloc)): $(shared-thread-library)
+ifeq (${STATIC-BENCHTESTS},yes)
++link-benchtests = $(+link-static-tests)
+link-libc-benchtests = $(link-libc-static)
+libm-benchtests = $(common-objpfx)math/libm.a
+thread-library-benchtests = $(static-thread-library)
+else
+link-libc-benchtests = $(link-libc)
++link-benchtests = $(+link-tests)
+thread-library-benchtests = $(shared-thread-library)
+libm-benchtests = $(libm)
+endif
+
+$(addprefix $(objpfx)bench-,$(bench-math)): $(libm-benchtests)
+$(addprefix $(objpfx)bench-,$(math-benchset)): $(libm-benchtests)
+$(addprefix $(objpfx)bench-,$(bench-pthread)): $(thread-library-benchtests)
+$(addprefix $(objpfx)bench-,$(bench-malloc)): $(thread-library-benchtests)
+$(addprefix $(objpfx)bench-,pthread-locks): $(libm-benchtests)
+$(addprefix $(objpfx)bench-,pthread-mutex-locks): $(libm-benchtests)
 
 
 
@@ -117,12 +303,6 @@ bench-extra-objs = json-lib.o
 extra-objs += $(bench-extra-objs)
 others-extras = $(bench-extra-objs)
 
-include ../Rules
-
-binaries-bench := $(addprefix $(objpfx)bench-,$(bench))
-binaries-benchset := $(addprefix $(objpfx)bench-,$(benchset))
-binaries-bench-malloc := $(addprefix $(objpfx)bench-,$(bench-malloc))
-
 # The default duration: 1 seconds.
 ifndef BENCH_DURATION
 BENCH_DURATION := 1
@@ -130,10 +310,16 @@ endif
 
 CPPFLAGS-nonlib += -DDURATION=$(BENCH_DURATION) -D_ISOMAC
 
+# Use clock_gettime to measure performance of functions.  The default is
+# to use the architecture-specific high precision timing instructions.
+ifdef USE_CLOCK_GETTIME
+CPPFLAGS-nonlib += -DUSE_CLOCK_GETTIME
+else
 # On x86 processors, use RDTSCP, instead of RDTSC, to measure performance
 # of functions.  All x86 processors since 2010 support RDTSCP instruction.
 ifdef USE_RDTSCP
 CPPFLAGS-nonlib += -DUSE_RDTSCP
+endif
 endif
 
 DETAILED_OPT :=
@@ -142,13 +328,6 @@ ifdef DETAILED
 DETAILED_OPT := -d
 endif
 
-# This makes sure CPPFLAGS-nonlib and CFLAGS-nonlib are passed
-# for all these modules.
-cpp-srcs-left := $(binaries-benchset:=.c) $(binaries-bench:=.c) \
-		 $(binaries-bench-malloc:=.c)
-lib := nonlib
-include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
-
 bench-deps := bench-skeleton.c bench-timing.h Makefile
 
 run-bench = $(test-wrapper-env) \
@@ -156,6 +335,33 @@ run-bench = $(test-wrapper-env) \
 	    $($*-ENV) $(test-via-rtld-prefix) $${run}
 
 timing-type := $(objpfx)bench-timing-type
+extra-objs += bench-timing-type.o
+
+include ../Rules
+
+bench-math += $(bench-libmvec)
+
+ifeq (${BENCHSET},)
+bench := $(bench-math) $(bench-pthread) $(bench-string)
+else
+bench := $(foreach B,$(filter bench-%,${BENCHSET}), ${${B}})
+endif
+
+# NB: Use "=" instead of ":=" since sysdeps Makefiles may add more
+# benches.
+binaries-bench = $(addprefix $(objpfx)bench-,$(bench))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(bench)))
+binaries-benchset = $(addprefix $(objpfx)bench-,$(benchset))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(benchset)))
+binaries-bench-malloc := $(addprefix $(objpfx)bench-,$(bench-malloc))
+extra-objs += $(addsuffix .o,$(addprefix bench-,$(bench-malloc)))
+
+# This makes sure CPPFLAGS-nonlib and CFLAGS-nonlib are passed
+# for all these modules.
+cpp-srcs-left := $(binaries-benchset:=.c) $(binaries-bench:=.c) \
+		 $(binaries-bench-malloc:=.c) $(timing-type:=.c)
+lib := nonlib
+include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 
 bench-clean:
 	rm -f $(binaries-bench) $(addsuffix .o,$(binaries-bench))
@@ -166,9 +372,20 @@ bench-clean:
 
 # Validate the passed in BENCHSET
 ifneq ($(strip ${BENCHSET}),)
-VALIDBENCHSETNAMES := bench-pthread bench-math bench-string string-benchset \
-   wcsmbs-benchset stdlib-benchset stdio-common-benchset math-benchset \
-   malloc-thread malloc-simple
+VALIDBENCHSETNAMES := \
+  bench-math \
+  bench-pthread \
+  bench-string \
+  hash-benchset \
+  malloc-simple \
+  malloc-thread \
+  math-benchset \
+  stdio-common-benchset \
+  stdlib-benchset \
+  string-benchset \
+  wcsmbs-benchset \
+# VALIDBENCHSETNAMES
+
 INVALIDBENCHSETNAMES := $(filter-out ${VALIDBENCHSETNAMES},${BENCHSET})
 ifneq (${INVALIDBENCHSETNAMES},)
 $(info The following values in BENCHSET are invalid: ${INVALIDBENCHSETNAMES})
@@ -224,11 +441,23 @@ bench-func: $(binaries-bench)
 	  echo "{\"timing_type\": \"$${timing_type}\","; \
 	  echo " \"functions\": {"; \
 	  for run in $^; do \
-	    if ! [ "x$${run}" = "x$<" ]; then \
-	      echo ","; \
-	    fi; \
-	    echo "Running $${run}" >&2; \
-	    $(run-bench) $(DETAILED_OPT); \
+	    op=$$($(run-bench) $(DETAILED_OPT)); \
+	    ret=$$?; \
+	    case "$${ret}" in \
+	      77) \
+	      echo "UNSUPPORTED $${run}: $${op}" >&2; \
+		;; \
+	      0) \
+		echo "Running $${run}" >&2; \
+		if [ "$${run}" != "$<" ]; then \
+		  echo ","; \
+		fi; \
+		echo "$${op}"; \
+		;; \
+	      *) \
+		echo "FAILED $${run}" >&2; \
+		;; \
+	    esac; \
 	  done; \
 	  echo; \
 	  echo " }"; \
@@ -251,9 +480,9 @@ bench-link-targets = $(timing-type) $(binaries-bench) $(binaries-benchset) \
 
 $(bench-link-targets): %: %.o $(objpfx)json-lib.o \
 	$(link-extra-libs-tests) \
-  $(sort $(filter $(common-objpfx)lib%,$(link-libc))) \
+  $(sort $(filter $(common-objpfx)lib%,$(link-libc-benchtests))) \
   $(addprefix $(csu-objpfx),start.o) $(+preinit) $(+postinit)
-	$(+link-tests)
+	$(+link-benchtests)
 
 $(bench-link-targets): LDFLAGS += $(link-bench-bind-now)
 

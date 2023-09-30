@@ -1,5 +1,5 @@
 /* Test for localtime bug in year 2039 (bug 22639).
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,16 @@ do_test (void)
       char buf[500];
       struct tm *tm = localtime (&ouch);
       TEST_VERIFY_EXIT (tm != NULL);
+      TEST_VERIFY_EXIT (strftime (buf, sizeof buf, "%Y-%m-%d %H:%M:%S %Z", tm)
+			> 0);
+      puts (buf);
+      TEST_VERIFY (strcmp (buf, "2039-04-30 14:00:00 PDT") == 0);
+
+      /* Same as before but for localtime_r.  */
+      struct tm tmd;
+      tm = localtime_r (&ouch, &tmd);
+      TEST_VERIFY_EXIT (tm == &tmd);
+
       TEST_VERIFY_EXIT (strftime (buf, sizeof buf, "%Y-%m-%d %H:%M:%S %Z", tm)
 			> 0);
       puts (buf);

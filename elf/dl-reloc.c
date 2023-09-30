@@ -1,5 +1,6 @@
 /* Relocate a shared object and resolve its references to other loaded objects.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,25 +40,28 @@
 /* We are trying to perform a static TLS relocation in MAP, but it was
    dynamically loaded.  This can only work if there is enough surplus in
    the static TLS area already allocated for each running thread.  If this
-   object's TLS segment is too big to fit, we fail.  If it fits,
-   we set MAP->l_tls_offset and return.
-   This function intentionally does not return any value but signals error
-   directly, as static TLS should be rare and code handling it should
-   not be inlined as much as possible.  */
+   object's TLS segment is too big to fit, we fail with -1.  If it fits,
+   we set MAP->l_tls_offset and return 0.
+   A portion of the surplus static TLS can be optionally used to optimize
+   dynamic TLS access (with TLSDESC or powerpc TLS optimizations).
+   If OPTIONAL is true then TLS is allocated for such optimization and
+   the caller must have a fallback in case the optional portion of surplus
+   TLS runs out.  If OPTIONAL is false then the entire surplus TLS area is
+   considered and the allocation only fails if that runs out.  */
 int
-_dl_try_allocate_static_tls (struct link_map *map)
+_dl_try_allocate_static_tls (struct link_map *map, bool optional)
 {
   /* If we've already used the variable with dynamic access, or if the
      alignment requirements are too high, fail.  */
   if (map->l_tls_offset == FORCED_DYNAMIC_TLS_OFFSET
-      || map->l_tls_align > GL(dl_tls_static_align))
+      || map->l_tls_align > GLRO (dl_tls_static_align))
     {
     fail:
       return -1;
     }
 
 #if TLS_TCB_AT_TP
-  size_t freebytes = GL(dl_tls_static_size) - GL(dl_tls_static_used);
+  size_t freebytes = GLRO (dl_tls_static_size) - GL(dl_tls_static_used);
   if (freebytes < TLS_TCB_SIZE)
     goto fail;
   freebytes -= TLS_TCB_SIZE;
@@ -68,8 +72,14 @@ _dl_try_allocate_static_tls (struct link_map *map)
 
   size_t n = (freebytes - blsize) / map->l_tls_align;
 
-  size_t offset = GL(dl_tls_static_used) + (freebytes - n * map->l_tls_align
-					    - map->l_tls_firstbyte_offset);
+  /* Account optional static TLS surplus usage.  */
+  size_t use = freebytes - n * map->l_tls_align - map->l_tls_firstbyte_offset;
+  if (optional && use > GL(dl_tls_static_optional))
+    goto fail;
+  else if (optional)
+    GL(dl_tls_static_optional) -= use;
+
+  size_t offset = GL(dl_tls_static_used) + use;
 
   map->l_tls_offset = GL(dl_tls_static_used) = offset;
 #elif TLS_DTV_AT_TP
@@ -80,8 +90,15 @@ _dl_try_allocate_static_tls (struct link_map *map)
 		   + map->l_tls_firstbyte_offset);
   size_t used = offset + map->l_tls_blocksize;
 
-  if (used > GL(dl_tls_static_size))
+  if (used > GLRO (dl_tls_static_size))
     goto fail;
+
+  /* Account optional static TLS surplus usage.  */
+  size_t use = used - GL(dl_tls_static_used);
+  if (optional && use > GL(dl_tls_static_optional))
+    goto fail;
+  else if (optional)
+    GL(dl_tls_static_optional) -= use;
 
   map->l_tls_offset = offset;
   map->l_tls_firstbyte_offset = GL(dl_tls_static_used);
@@ -102,7 +119,7 @@ _dl_try_allocate_static_tls (struct link_map *map)
 	(void) _dl_update_slotinfo (map->l_tls_modid);
 #endif
 
-      GL(dl_init_static_tls) (map);
+      dl_init_static_tls (map);
     }
   else
     map->l_need_tls_init = 1;
@@ -110,18 +127,22 @@ _dl_try_allocate_static_tls (struct link_map *map)
   return 0;
 }
 
+/* This function intentionally does not return any value but signals error
+   directly, as static TLS should be rare and code handling it should
+   not be inlined as much as possible.  */
 void
 __attribute_noinline__
 _dl_allocate_static_tls (struct link_map *map)
 {
   if (map->l_tls_offset == FORCED_DYNAMIC_TLS_OFFSET
-      || _dl_try_allocate_static_tls (map))
+      || _dl_try_allocate_static_tls (map, false))
     {
       _dl_signal_error (0, map->l_name, NULL, N_("\
 cannot allocate memory in static TLS block"));
     }
 }
 
+#if !PTHREAD_IN_LIBC
 /* Initialize static TLS area and DTV for current (only) thread.
    libpthread implementations should provide their own hook
    to handle all threads.  */
@@ -140,7 +161,45 @@ _dl_nothread_init_static_tls (struct link_map *map)
   memset (__mempcpy (dest, map->l_tls_initimage, map->l_tls_initimage_size),
 	  '\0', map->l_tls_blocksize - map->l_tls_initimage_size);
 }
+#endif /* !PTHREAD_IN_LIBC */
 
+static __always_inline lookup_t
+resolve_map (lookup_t l, struct r_scope_elem *scope[], const ElfW(Sym) **ref,
+	     const struct r_found_version *version, unsigned long int r_type)
+{
+  if (ELFW(ST_BIND) ((*ref)->st_info) == STB_LOCAL
+      || __glibc_unlikely (dl_symbol_visibility_binds_local_p (*ref)))
+    return l;
+
+  if (__glibc_unlikely (*ref == l->l_lookup_cache.sym)
+      && elf_machine_type_class (r_type) == l->l_lookup_cache.type_class)
+    {
+      bump_num_cache_relocations ();
+      *ref = l->l_lookup_cache.ret;
+    }
+  else
+    {
+      const int tc = elf_machine_type_class (r_type);
+      l->l_lookup_cache.type_class = tc;
+      l->l_lookup_cache.sym = *ref;
+      const char *undef_name
+	  = (const char *) D_PTR (l, l_info[DT_STRTAB]) + (*ref)->st_name;
+      const struct r_found_version *v = NULL;
+      if (version != NULL && version->hash != 0)
+	v = version;
+      lookup_t lr = _dl_lookup_symbol_x (
+	  undef_name, l, ref, scope, v, tc,
+	  DL_LOOKUP_ADD_DEPENDENCY | DL_LOOKUP_FOR_RELOCATE, NULL);
+      l->l_lookup_cache.ret = *ref;
+      l->l_lookup_cache.value = lr;
+    }
+  return l->l_lookup_cache.value;
+}
+
+/* This macro is used as a callback from the ELF_DYNAMIC_RELOCATE code.  */
+#define RESOLVE_MAP resolve_map
+
+#include "dynamic-link.h"
 
 void
 _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
@@ -159,12 +218,28 @@ _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
   int skip_ifunc = reloc_mode & __RTLD_NOIFUNC;
 
 #ifdef SHARED
+  bool consider_symbind = false;
   /* If we are auditing, install the same handlers we need for profiling.  */
   if ((reloc_mode & __RTLD_AUDIT) == 0)
-    consider_profiling |= GLRO(dl_audit) != NULL;
+    {
+      struct audit_ifaces *afct = GLRO(dl_audit);
+      for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
+	{
+	  /* Profiling is needed only if PLT hooks are provided.  */
+	  if (afct->ARCH_LA_PLTENTER != NULL
+	      || afct->ARCH_LA_PLTEXIT != NULL)
+	    consider_profiling = 1;
+	  if (afct->symbind != NULL)
+	    consider_symbind = true;
+
+	  afct = afct->next;
+	}
+    }
 #elif defined PROF
   /* Never use dynamic linker profiling for gprof profiling code.  */
 # define consider_profiling 0
+#else
+# define consider_symbind 0
 #endif
 
   if (l->l_relocated)
@@ -223,39 +298,10 @@ _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
   {
     /* Do the actual relocation of the object's GOT and other data.  */
 
-    /* String table object symbols.  */
-    const char *strtab = (const void *) D_PTR (l, l_info[DT_STRTAB]);
-
-    /* This macro is used as a callback from the ELF_DYNAMIC_RELOCATE code.  */
-#define RESOLVE_MAP(ref, version, r_type) \
-    ((ELFW(ST_BIND) ((*ref)->st_info) != STB_LOCAL			      \
-      && __glibc_likely (!dl_symbol_visibility_binds_local_p (*ref)))	      \
-     ? ((__builtin_expect ((*ref) == l->l_lookup_cache.sym, 0)		      \
-	 && elf_machine_type_class (r_type) == l->l_lookup_cache.type_class)  \
-	? (bump_num_cache_relocations (),				      \
-	   (*ref) = l->l_lookup_cache.ret,				      \
-	   l->l_lookup_cache.value)					      \
-	: ({ lookup_t _lr;						      \
-	     int _tc = elf_machine_type_class (r_type);			      \
-	     l->l_lookup_cache.type_class = _tc;			      \
-	     l->l_lookup_cache.sym = (*ref);				      \
-	     const struct r_found_version *v = NULL;			      \
-	     if ((version) != NULL && (version)->hash != 0)		      \
-	       v = (version);						      \
-	     _lr = _dl_lookup_symbol_x (strtab + (*ref)->st_name, l, (ref),   \
-					scope, v, _tc,			      \
-					DL_LOOKUP_ADD_DEPENDENCY	      \
-					| DL_LOOKUP_FOR_RELOCATE, NULL);      \
-	     l->l_lookup_cache.ret = (*ref);				      \
-	     l->l_lookup_cache.value = _lr; }))				      \
-     : l)
-
-#include "dynamic-link.h"
-
-    ELF_DYNAMIC_RELOCATE (l, lazy, consider_profiling, skip_ifunc);
+    ELF_DYNAMIC_RELOCATE (l, scope, lazy, consider_profiling, skip_ifunc);
 
 #ifndef PROF
-    if (__glibc_unlikely (consider_profiling)
+    if ((consider_profiling || consider_symbind)
 	&& l->l_info[DT_PLTRELSZ] != NULL)
       {
 	/* Allocate the array which will contain the already found

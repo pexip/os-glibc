@@ -1,7 +1,6 @@
 /* General definitions for localedef(1).
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -123,6 +122,7 @@ extern bool hard_links;
 
 /* Prototypes for a few program-wide used functions.  */
 #include <programs/xmalloc.h>
+#include <programs/xasprintf.h>
 
 
 /* Mark given locale as to be read.  */

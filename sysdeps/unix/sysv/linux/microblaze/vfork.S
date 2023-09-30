@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -28,11 +28,7 @@
 
 ENTRY (__vfork)
 
-#ifdef __NR_vfork
 	DO_CALL (vfork, 0)
-#else
-	DO_CALL (fork, 0)
-#endif
 	addik	r12,r0,-4095
 	cmpu	r12,r12,r3
 	bgei	r12,SYSCALL_ERROR_LABEL

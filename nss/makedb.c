@@ -1,7 +1,6 @@
 /* Create simple DB database from textual input.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,6 +37,7 @@
 #include <sys/stat.h>
 #include <sys/uio.h>
 #include "nss_db/nss_db.h"
+#include <libc-diag.h>
 
 /* Get libc version number.  */
 #include "../version.h"
@@ -386,7 +386,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2020");
+"), "2022");
   fprintf (stream, gettext ("Written by %s.\n"), "Ulrich Drepper");
 }
 
@@ -618,6 +618,45 @@ next_prime (size_t seed)
   return seed;
 }
 
+static size_t max_chainlength;
+static char *wp;
+static size_t nhashentries;
+static bool copy_string;
+
+void add_key(const void *nodep, VISIT which, void *arg)
+{
+  if (which != leaf && which != postorder)
+    return;
+
+  const struct database *db = (const struct database *) arg;
+  const struct dbentry *dbe = *(const struct dbentry **) nodep;
+
+  ptrdiff_t stridx;
+  if (copy_string)
+    {
+      stridx = wp - db->keystrtab;
+      wp = stpcpy (wp, dbe->str) + 1;
+    }
+  else
+    stridx = 0;
+
+  size_t hidx = dbe->hashval % nhashentries;
+  size_t hval2 = 1 + dbe->hashval % (nhashentries - 2);
+  size_t chainlength = 0;
+
+  while (db->hashtable[hidx] != ~((stridx_t) 0))
+    {
+      ++chainlength;
+      if ((hidx += hval2) >= nhashentries)
+	hidx -= nhashentries;
+    }
+
+  db->hashtable[hidx] = ((db->extra_string ? valstrlen : 0)
+			     + dbe->validx);
+  db->keyidxtab[hidx] = stridx;
+
+  max_chainlength = MAX (max_chainlength, chainlength);
+}
 
 static void
 compute_tables (void)
@@ -649,45 +688,6 @@ compute_tables (void)
 	db->keyidxtab = db->hashtable + nhashentries_max;
 	db->keystrtab = (char *) (db->keyidxtab + nhashentries_max);
 
-	static size_t max_chainlength;
-	static char *wp;
-	static size_t nhashentries;
-	static bool copy_string;
-
-	void add_key(const void *nodep, const VISIT which, const int depth)
-	{
-	  if (which != leaf && which != postorder)
-	    return;
-
-	  const struct dbentry *dbe = *(const struct dbentry **) nodep;
-
-	  ptrdiff_t stridx;
-	  if (copy_string)
-	    {
-	      stridx = wp - db->keystrtab;
-	      wp = stpcpy (wp, dbe->str) + 1;
-	    }
-	  else
-	    stridx = 0;
-
-	  size_t hidx = dbe->hashval % nhashentries;
-	  size_t hval2 = 1 + dbe->hashval % (nhashentries - 2);
-	  size_t chainlength = 0;
-
-	  while (db->hashtable[hidx] != ~((stridx_t) 0))
-	    {
-	      ++chainlength;
-	      if ((hidx += hval2) >= nhashentries)
-		hidx -= nhashentries;
-	    }
-
-	  db->hashtable[hidx] = ((db->extra_string ? valstrlen : 0)
-				 + dbe->validx);
-	  db->keyidxtab[hidx] = stridx;
-
-	  max_chainlength = MAX (max_chainlength, chainlength);
-	}
-
 	copy_string = false;
 	nhashentries = nhashentries_min;
 	for (size_t cnt = 0; cnt < TEST_RANGE; ++cnt)
@@ -697,7 +697,7 @@ compute_tables (void)
 	    max_chainlength = 0;
 	    wp = db->keystrtab;
 
-	    twalk (db->entries, add_key);
+	    twalk_r (db->entries, add_key, db);
 
 	    if (max_chainlength == 0)
 	      {
@@ -724,7 +724,7 @@ compute_tables (void)
 	copy_string = true;
 	wp = db->keystrtab;
 
-	twalk (db->entries, add_key);
+	twalk_r (db->entries, add_key, db);
 
 	db->nhashentries = nhashentries_best;
 	nhashentries_total += nhashentries_best;
@@ -746,7 +746,8 @@ write_output (int fd)
   header->valstrlen = valstrlen;
 
   size_t filled_dbs = 0;
-  struct iovec iov[2 + ndatabases * 3];
+  size_t iov_nelts = 2 + ndatabases * 3;
+  struct iovec iov[iov_nelts];
   iov[0].iov_base = header;
   iov[0].iov_len = file_offset;
 
@@ -790,11 +791,23 @@ write_output (int fd)
 			  + nhashentries_total * sizeof (stridx_t)));
   header->allocate = file_offset;
 
-  if (writev (fd, iov, 2 + ndatabases * 3) != keydataoffset)
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_PUSH_NEEDS_COMMENT;
+  /* Avoid GCC 10 false positive warning: specified size exceeds maximum
+     object size.  */
+  DIAG_IGNORE_NEEDS_COMMENT (10, "-Wstringop-overflow");
+#endif
+
+  assert (iov_nelts <= INT_MAX);
+  if (writev (fd, iov, iov_nelts) != keydataoffset)
     {
       error (0, errno, gettext ("failed to write new database file"));
       return EXIT_FAILURE;
     }
+
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_POP_NEEDS_COMMENT;
+#endif
 
   return EXIT_SUCCESS;
 }
@@ -841,6 +854,13 @@ print_database (int fd)
 
 
 #ifdef HAVE_SELINUX
+
+/* security_context_t and matchpathcon (along with several other symbols) were
+   marked as deprecated by the SELinux API starting from version 3.1.  We use
+   them here, but should eventually switch to the newer API.  */
+DIAG_PUSH_NEEDS_COMMENT
+DIAG_IGNORE_NEEDS_COMMENT (10, "-Wdeprecated-declarations");
+
 static void
 set_file_creation_context (const char *outname, mode_t mode)
 {
@@ -870,6 +890,7 @@ set_file_creation_context (const char *outname, mode_t mode)
       freecon (ctx);
     }
 }
+DIAG_POP_NEEDS_COMMENT
 
 static void
 reset_file_creation_context (void)

@@ -1,6 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  S390 Version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
-   Contributed by Carl Pederson & Martin Schwidefsky.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +26,8 @@
 #include <link.h>
 #include <sysdeps/s390/dl-procinfo.h>
 #include <dl-irel.h>
+#include <dl-static-tls.h>
+#include <dl-machine-rel.h>
 
 /* This is an older, now obsolete value.  */
 #define EM_S390_OLD	0xA390
@@ -85,7 +86,8 @@ elf_machine_load_address (void)
    entries will jump to the on-demand fixup code in dl-runtime.c.  */
 
 static inline int __attribute__ ((unused))
-elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+			   int lazy, int profile)
 {
   extern void _dl_runtime_resolve (Elf32_Word);
   extern void _dl_runtime_profile (Elf32_Word);
@@ -184,52 +186,6 @@ _dl_start_user:\n\
 	# Point %r12 at the GOT.\n\
 	l     %r12,.Ladr0-.Llit(%r13)\n\
 	ar    %r12,%r13\n\
-	# See if we were run as a command with the executable file\n\
-	# name as an extra leading argument.\n\
-	l     %r1,_dl_skip_args@GOT(%r12)\n\
-	l     %r1,0(%r1)	# load _dl_skip_args\n\
-	ltr   %r1,%r1\n\
-	je    4f		# Skip the arg adjustment if there were none.\n\
-	# Get the original argument count.\n\
-	l     %r0,96(%r15)\n\
-	# Subtract _dl_skip_args from it.\n\
-	sr    %r0,%r1\n\
-	# Store back the modified argument count.\n\
-	st    %r0,96(%r15)\n\
-	# Copy argv and envp forward to account for skipped argv entries.\n\
-	# We skipped at least one argument or we would not get here.\n\
-	la    %r6,100(%r15)	# Destination pointer i.e. &argv[0]\n\
-	lr    %r5,%r6\n\
-	lr    %r0,%r1\n\
-	sll   %r0,2\n		# Number of skipped bytes.\n\
-	ar    %r5,%r0		# Source pointer = Dest + Skipped args.\n\
-	# argv copy loop:\n\
-1:	l     %r7,0(%r5)	# Load a word from the source.\n\
-	st    %r7,0(%r6)	# Store the word in the destination.\n\
-	ahi   %r5,4\n\
-	ahi   %r6,4\n\
-	ltr   %r7,%r7\n\
-	jne   1b		# Stop after copying the NULL.\n\
-	# envp copy loop:\n\
-2:	l     %r7,0(%r5)	# Load a word from the source.\n\
-	st    %r7,0(%r6)	# Store the word in the destination.\n\
-	ahi   %r5,4\n\
-	ahi   %r6,4\n\
-	ltr   %r7,%r7\n\
-	jne   2b		# Stop after copying the NULL.\n\
-	# Now we have to zero out the envp entries after NULL to allow\n\
-	# start.S to properly find auxv by skipping zeroes.\n\
-	# zero out loop:\n\
-	lhi   %r7,0\n\
-3:	st    %r7,0(%r6)	# Store zero.\n\
-	ahi   %r6,4		# Advance dest pointer.\n\
-	ahi   %r1,-1		# Subtract one from the word count.\n\
-	ltr   %r1,%r1\n\
-	jne    3b		# Keep copying if the word count is non-zero.\n\
-	# Adjust _dl_argv\n\
-	la    %r6,100(%r15)\n\
-	l     %r1,_dl_argv@GOT(%r12)\n\
-	st    %r6,0(%r1)\n\
 	# The special initializer gets called with the stack just\n\
 	# as the application's entry point will see it; it can\n\
 	# switch stacks if it moves these contents over.\n\
@@ -276,10 +232,6 @@ _dl_start_user:\n\
 /* A reloc type used for ld.so cmdline arg lookups to reject PLT entries.  */
 #define ELF_MACHINE_JMP_SLOT    R_390_JMP_SLOT
 
-/* The S390 never uses Elf32_Rel relocations.  */
-#define ELF_MACHINE_NO_REL 1
-#define ELF_MACHINE_NO_RELA 0
-
 /* We define an initialization functions.  This is called very early in
    _dl_sysdep_start.  */
 #define DL_PLATFORM_INIT dl_platform_init ()
@@ -321,43 +273,31 @@ elf_machine_plt_value (struct link_map *map, const Elf32_Rela *reloc,
 /* Perform the relocation specified by RELOC and SYM (which is fully resolved).
    MAP is the object containing the reloc.  */
 
-auto inline void
+static inline void
 __attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
-		  const Elf32_Sym *sym, const struct r_found_version *version,
+elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
+		  const Elf32_Rela *reloc, const Elf32_Sym *sym,
+		  const struct r_found_version *version,
 		  void *const reloc_addr_arg, int skip_ifunc)
 {
   Elf32_Addr *const reloc_addr = reloc_addr_arg;
   const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
 
-#if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+#if !defined RTLD_BOOTSTRAP
   if (__glibc_unlikely (r_type == R_390_RELATIVE))
-    {
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      /* This is defined in rtld.c, but nowhere in the static libc.a;
-	 make the reference weak so static programs can still link.
-	 This declaration cannot be done when compiling rtld.c
-	 (i.e. #ifdef RTLD_BOOTSTRAP) because rtld.c contains the
-	 common defn for _dl_rtld_map, which is incompatible with a
-	 weak decl in the same file.  */
-#  ifndef SHARED
-      weak_extern (GL(dl_rtld_map));
-#  endif
-      if (map != &GL(dl_rtld_map)) /* Already done in rtld itself.  */
-# endif
-	*reloc_addr = map->l_addr + reloc->r_addend;
-    }
+    *reloc_addr = map->l_addr + reloc->r_addend;
   else
 #endif
   if (__glibc_unlikely (r_type == R_390_NONE))
     return;
   else
     {
-#if !defined RTLD_BOOTSTRAP && !defined RESOLVE_CONFLICT_FIND_MAP
+#if !defined RTLD_BOOTSTRAP
       /* Only needed for R_390_COPY below.  */
       const Elf32_Sym *const refsym = sym;
 #endif
-      struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
+      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version,
+					      r_type);
       Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
 
       if (sym != NULL
@@ -380,34 +320,33 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	  *reloc_addr = value + reloc->r_addend;
 	  break;
 
-#ifndef RESOLVE_CONFLICT_FIND_MAP
 	case R_390_TLS_DTPMOD:
-# ifdef RTLD_BOOTSTRAP
+#ifdef RTLD_BOOTSTRAP
 	  /* During startup the dynamic linker is always the module
 	     with index 1.
 	     XXX If this relocation is necessary move before RESOLVE
 	     call.  */
 	  *reloc_addr = 1;
-# else
+#else
 	  /* Get the information from the link map returned by the
 	     resolv function.  */
 	  if (sym_map != NULL)
 	    *reloc_addr = sym_map->l_tls_modid;
-# endif
+#endif
 	  break;
 	case R_390_TLS_DTPOFF:
-# ifndef RTLD_BOOTSTRAP
+#ifndef RTLD_BOOTSTRAP
 	  /* During relocation all TLS symbols are defined and used.
 	     Therefore the offset is already correct.  */
 	  if (sym != NULL)
 	    *reloc_addr = sym->st_value + reloc->r_addend;
-# endif
+#endif
 	  break;
 	case R_390_TLS_TPOFF:
 	  /* The offset is negative, forward from the thread pointer.  */
-# ifdef RTLD_BOOTSTRAP
+#ifdef RTLD_BOOTSTRAP
 	  *reloc_addr = sym->st_value + reloc->r_addend - map->l_tls_offset;
-# else
+#else
 	  /* We know the offset of the object the symbol is contained in.
 	     It is a negative value which will be added to the
 	     thread pointer.  */
@@ -419,10 +358,8 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	    }
 #endif
 	  break;
-#endif  /* use TLS */
 
 #ifndef RTLD_BOOTSTRAP
-# ifndef RESOLVE_CONFLICT_FIND_MAP
 	/* Not needed in dl-conflict.c.  */
 	case R_390_COPY:
 	  if (sym == NULL)
@@ -443,7 +380,6 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	  memcpy (reloc_addr_arg, (void *) value,
 		  MIN (sym->st_size, refsym->st_size));
 	  break;
-# endif
 	case R_390_32:
 	  *reloc_addr = value + reloc->r_addend;
 	  break;
@@ -453,7 +389,6 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	case R_390_8:
 	  *(char *) reloc_addr = value + reloc->r_addend;
 	  break;
-# ifndef RESOLVE_CONFLICT_FIND_MAP
 	case R_390_PC32:
 	  *reloc_addr = value + reloc->r_addend - (Elf32_Addr) reloc_addr;
 	  break;
@@ -471,7 +406,6 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
 	  break;
 	case R_390_NONE:
 	  break;
-# endif
 #endif
 #if !defined(RTLD_BOOTSTRAP) || defined(_NDEBUG)
 	default:
@@ -484,7 +418,7 @@ elf_machine_rela (struct link_map *map, const Elf32_Rela *reloc,
     }
 }
 
-auto inline void
+static inline void
 __attribute__ ((always_inline))
 elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela *reloc,
 			   void *const reloc_addr_arg)
@@ -493,9 +427,9 @@ elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela *reloc,
   *reloc_addr = l_addr + reloc->r_addend;
 }
 
-auto inline void
+static inline void
 __attribute__ ((always_inline))
-elf_machine_lazy_rel (struct link_map *map,
+elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
 		      Elf32_Addr l_addr, const Elf32_Rela *reloc,
 		      int skip_ifunc)
 {

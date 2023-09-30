@@ -1,6 +1,6 @@
 /* Common definition for libmathvec ifunc selections optimized with
    AVX512.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,10 +34,10 @@ IFUNC_SELECTOR (void)
 
   if (!CPU_FEATURES_ARCH_P (cpu_features, MathVec_Prefer_No_AVX512))
     {
-      if (CPU_FEATURES_ARCH_P (cpu_features, AVX512DQ_Usable))
+      if (CPU_FEATURE_USABLE_P (cpu_features, AVX512DQ))
 	return OPTIMIZE (skx);
 
-      if (CPU_FEATURES_ARCH_P (cpu_features, AVX512F_Usable))
+      if (CPU_FEATURE_USABLE_P (cpu_features, AVX512F))
 	return OPTIMIZE (knl);
     }
 

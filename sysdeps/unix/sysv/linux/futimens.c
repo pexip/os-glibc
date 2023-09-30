@@ -1,5 +1,5 @@
 /* Change access and modification times of open file.  Linux version.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,8 @@ __futimens64 (int fd, const struct __timespec64 tsp64[2])
 }
 
 #if __TIMESIZE != 64
+libc_hidden_def (__futimens64);
+
 int
 __futimens (int fd, const struct timespec tsp[2])
 {

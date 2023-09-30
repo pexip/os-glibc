@@ -1,6 +1,5 @@
-# Copyright (C) 1993-2020 Free Software Foundation, Inc.
+# Copyright (C) 1993-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
-# Contributed by Brendan Kehoe (brendan@zen.org).
 
 # The GNU C Library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -56,10 +55,6 @@ endif
 # there are a number of math routines that are defined to work with the
 # "current" rounding mode, and it's easiest to set this with all of them.
 sysdep-CFLAGS += -mieee -mfp-rounding-mode=d
-
-# libc.so requires about 16k for the small data area, which is well
-# below the 64k maximum.
-pic-ccflag = -fpic
 
 #  Software floating-point emulation.
 

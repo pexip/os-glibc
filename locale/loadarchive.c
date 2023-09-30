@@ -1,5 +1,5 @@
 /* Code to load locale data from the locale archive file.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ static struct archmapped *archmapped;
    ARCHMAPPED points to this; if mapping the archive header failed,
    then headmap.ptr is null.  */
 static struct archmapped headmap;
-static struct stat64 archive_stat; /* stat of archive when header mapped.  */
+static struct __stat64_t64 archive_stat; /* stat of archive when header mapped.  */
 
 /* Record of locales that we have already loaded from the archive.  */
 struct locale_in_archive
@@ -207,7 +207,7 @@ _nl_load_locale_from_archive (int category, const char **namep)
 	/* Cannot open the archive, for whatever reason.  */
 	return NULL;
 
-      if (__fxstat64 (_STAT_VER, fd, &archive_stat) == -1)
+      if (__fstat64_time64 (fd, &archive_stat) == -1)
 	{
 	  /* stat failed, very strange.  */
 	close_and_out:
@@ -396,7 +396,7 @@ _nl_load_locale_from_archive (int category, const char **namep)
 	  /* Open the file if it hasn't happened yet.  */
 	  if (fd == -1)
 	    {
-	      struct stat64 st;
+	      struct __stat64_t64 st;
 	      fd = __open_nocancel (archfname,
 				    O_RDONLY|O_LARGEFILE|O_CLOEXEC);
 	      if (fd == -1)
@@ -405,7 +405,7 @@ _nl_load_locale_from_archive (int category, const char **namep)
 	      /* Now verify we think this is really the same archive file
 		 we opened before.  If it has been changed we cannot trust
 		 the header we read previously.  */
-	      if (__fxstat64 (_STAT_VER, fd, &st) < 0
+	      if (__fstat64_time64 (fd, &st) < 0
 		  || st.st_size != archive_stat.st_size
 		  || st.st_mtime != archive_stat.st_mtime
 		  || st.st_dev != archive_stat.st_dev
@@ -515,13 +515,7 @@ _nl_archive_subfreeres (void)
       free (dead->name);
       for (category = 0; category < __LC_LAST; ++category)
 	if (category != LC_ALL && dead->data[category] != NULL)
-	  {
-	    /* _nl_unload_locale just does this free for the archive case.  */
-	    if (dead->data[category]->private.cleanup)
-	      (*dead->data[category]->private.cleanup) (dead->data[category]);
-
-	    free (dead->data[category]);
-	  }
+	  _nl_unload_locale (category, dead->data[category]);
       free (dead);
     }
   archloaded = NULL;

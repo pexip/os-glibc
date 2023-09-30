@@ -1,7 +1,6 @@
 /* Cache handling for iconv modules.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 2001.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,7 +47,7 @@ int
 __gconv_load_cache (void)
 {
   int fd;
-  struct stat64 st;
+  struct __stat64_t64 st;
   struct gconvcache_header *header;
 
   /* We cannot use the cache if the GCONV_PATH environment variable is
@@ -64,7 +63,7 @@ __gconv_load_cache (void)
     return -1;
 
   /* Get information about the file.  */
-  if (__builtin_expect (__fxstat64 (_STAT_VER, fd, &st), 0) < 0
+  if (__glibc_unlikely (__fstat64_time64 (fd, &st) < 0)
       /* We do not have to start looking at the file if it cannot contain
 	 at least the cache header.  */
       || (size_t) st.st_size < sizeof (struct gconvcache_header))

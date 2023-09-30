@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,7 +22,7 @@
 #include <shlib-compat.h>
 
 
-#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_3_2)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_3_2)
 int
 __pthread_cond_wait_2_0 (pthread_cond_2_0_t *cond, pthread_mutex_t *mutex)
 {

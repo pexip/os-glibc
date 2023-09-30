@@ -1,5 +1,5 @@
 /* Measure memcpy functions.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,7 +40,10 @@ do_one_test (json_ctx_t *json_ctx, impl_t *impl, char *dst, const char *src,
 {
   size_t i, iters = INNER_LOOP_ITERS;
   timing_t start, stop, cur;
-
+  for (i = 0; i < iters / 64; ++i)
+    {
+      CALL (impl, dst, src, len);
+    }
   TIMING_NOW (start);
   for (i = 0; i < iters; ++i)
     {
@@ -54,36 +57,44 @@ do_one_test (json_ctx_t *json_ctx, impl_t *impl, char *dst, const char *src,
 }
 
 static void
-do_test (json_ctx_t *json_ctx, size_t align1, size_t align2, size_t len)
+do_test (json_ctx_t *json_ctx, size_t align1, size_t align2, size_t len,
+         int both_ways)
 {
   size_t i, j;
   char *s1, *s2;
-
-  align1 &= 63;
+  size_t repeats;
+  align1 &= (getpagesize () - 1);
   if (align1 + len >= page_size)
     return;
 
-  align2 &= 63;
+  align2 &= (getpagesize () - 1);
   if (align2 + len >= page_size)
     return;
 
   s1 = (char *) (buf1 + align1);
   s2 = (char *) (buf2 + align2);
 
-  for (i = 0, j = 1; i < len; i++, j += 23)
-    s1[i] = j;
+  for (repeats = both_ways ? 2 : 1; repeats; --repeats)
+    {
+      for (i = 0, j = 1; i < len; i++, j += 23)
+        s1[i] = j;
 
-  json_element_object_begin (json_ctx);
-  json_attr_uint (json_ctx, "length", (double) len);
-  json_attr_uint (json_ctx, "align1", (double) align1);
-  json_attr_uint (json_ctx, "align2", (double) align2);
-  json_array_begin (json_ctx, "timings");
+      json_element_object_begin (json_ctx);
+      json_attr_uint (json_ctx, "length", (double) len);
+      json_attr_uint (json_ctx, "align1", (double) align1);
+      json_attr_uint (json_ctx, "align2", (double) align2);
+      json_attr_uint (json_ctx, "dst > src", (double) (s2 > s1));
+      json_array_begin (json_ctx, "timings");
 
-  FOR_EACH_IMPL (impl, 0)
-    do_one_test (json_ctx, impl, s2, s1, len);
+      FOR_EACH_IMPL (impl, 0)
+        do_one_test (json_ctx, impl, s2, s1, len);
 
-  json_array_end (json_ctx);
-  json_element_object_end (json_ctx);
+      json_array_end (json_ctx);
+      json_element_object_end (json_ctx);
+
+      s1 = (char *) (buf2 + align1);
+      s2 = (char *) (buf1 + align2);
+    }
 }
 
 int
@@ -91,7 +102,7 @@ test_main (void)
 {
   json_ctx_t json_ctx;
   size_t i;
-
+  size_t half_page = getpagesize () / 2;
   test_init ();
 
   json_init (&json_ctx, 0, stdout);
@@ -111,39 +122,81 @@ test_main (void)
   json_array_begin (&json_ctx, "results");
   for (i = 0; i < 18; ++i)
     {
-      do_test (&json_ctx, 0, 0, 1 << i);
-      do_test (&json_ctx, i, 0, 1 << i);
-      do_test (&json_ctx, 0, i, 1 << i);
-      do_test (&json_ctx, i, i, 1 << i);
+      do_test (&json_ctx, 0, 0, 1 << i, 1);
+      do_test (&json_ctx, i, 0, 1 << i, 1);
+      do_test (&json_ctx, i + 32, 0, 1 << i, 1);
+      do_test (&json_ctx, 0, i, 1 << i, 1);
+      do_test (&json_ctx, 0, i + 32, 1 << i, 1);
+      do_test (&json_ctx, i, i, 1 << i, 1);
+      do_test (&json_ctx, i + 32, i + 32, 1 << i, 1);
+      do_test (&json_ctx, half_page, 0, 1 << i, 1);
+      do_test (&json_ctx, half_page + i, 0, 1 << i, 1);
+      do_test (&json_ctx, half_page, i, 1 << i, 1);
+      do_test (&json_ctx, half_page + i, i, 1 << i, 1);
     }
 
   for (i = 0; i < 32; ++i)
     {
-      do_test (&json_ctx, 0, 0, i);
-      do_test (&json_ctx, i, 0, i);
-      do_test (&json_ctx, 0, i, i);
-      do_test (&json_ctx, i, i, i);
+      do_test (&json_ctx, 0, 0, i, 0);
+      do_test (&json_ctx, i, 0, i, 0);
+      do_test (&json_ctx, 0, i, i, 0);
+      do_test (&json_ctx, i, i, i, 0);
+      do_test (&json_ctx, half_page, 0, i, 0);
+      do_test (&json_ctx, half_page + i, 0, i, 0);
+      do_test (&json_ctx, half_page, i, i, 0);
+      do_test (&json_ctx, half_page + i, i, i, 0);
+      do_test (&json_ctx, getpagesize () - 1, 0, i, 0);
+      do_test (&json_ctx, 0, getpagesize () - 1, i, 0);
     }
 
   for (i = 3; i < 32; ++i)
     {
       if ((i & (i - 1)) == 0)
-	continue;
-      do_test (&json_ctx, 0, 0, 16 * i);
-      do_test (&json_ctx, i, 0, 16 * i);
-      do_test (&json_ctx, 0, i, 16 * i);
-      do_test (&json_ctx, i, i, 16 * i);
+        continue;
+      do_test (&json_ctx, 0, 0, 16 * i, 1);
+      do_test (&json_ctx, i, 0, 16 * i, 1);
+      do_test (&json_ctx, 0, i, 16 * i, 1);
+      do_test (&json_ctx, i, i, 16 * i, 1);
+      do_test (&json_ctx, half_page, 0, 16 * i, 1);
+      do_test (&json_ctx, half_page + i, 0, 16 * i, 1);
+      do_test (&json_ctx, half_page, i, 16 * i, 1);
+      do_test (&json_ctx, half_page + i, i, 16 * i, 1);
     }
 
   for (i = 32; i < 64; ++i)
     {
-      do_test (&json_ctx, 0, 0, 32 * i);
-      do_test (&json_ctx, i, 0, 32 * i);
-      do_test (&json_ctx, 0, i, 32 * i);
-      do_test (&json_ctx, i, i, 32 * i);
+      do_test (&json_ctx, 0, 0, 32 * i, 1);
+      do_test (&json_ctx, i, 0, 32 * i, 1);
+      do_test (&json_ctx, 0, i, 32 * i, 1);
+      do_test (&json_ctx, i, i, 32 * i, 1);
+      do_test (&json_ctx, half_page, 0, 32 * i, 1);
+      do_test (&json_ctx, half_page + i, 0, 32 * i, 1);
+      do_test (&json_ctx, half_page, i, 32 * i, 1);
+      do_test (&json_ctx, half_page + i, i, 32 * i, 1);
     }
 
-  do_test (&json_ctx, 0, 0, getpagesize ());
+  do_test (&json_ctx, 0, 0, getpagesize (), 1);
+
+  for (i = 0; i <= 48; ++i)
+    {
+      do_test (&json_ctx, 0, 0, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i, 0, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i + 32, 0, 2048 + 64 * i, 1);
+      do_test (&json_ctx, 0, i, 2048 + 64 * i, 1);
+      do_test (&json_ctx, 0, i + 32, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i, i, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i + 32, i + 32, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page, 0, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page + i, 0, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page, i, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page + i, i, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i, 1, 2048 + 64 * i, 1);
+      do_test (&json_ctx, 1, i, 2048 + 64 * i, 1);
+      do_test (&json_ctx, i + 32, 1, 2048 + 64 * i, 1);
+      do_test (&json_ctx, 1, i + 32, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page + i, 1, 2048 + 64 * i, 1);
+      do_test (&json_ctx, half_page + 1, i, 2048 + 64 * i, 1);
+    }
 
   json_array_end (&json_ctx);
   json_attr_object_end (&json_ctx);

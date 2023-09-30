@@ -1,5 +1,5 @@
 /* pthread_cond_init.  Generic version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,4 +44,4 @@ __pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t * attr)
   return 0;
 }
 
-strong_alias (__pthread_cond_init, pthread_cond_init);
+weak_alias (__pthread_cond_init, pthread_cond_init);

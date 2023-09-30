@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -35,3 +34,6 @@ __sendmmsg (int fd, struct mmsghdr *vmessages, unsigned int vlen, int flags)
 }
 libc_hidden_def (__sendmmsg)
 weak_alias (__sendmmsg, sendmmsg)
+#if __TIMESIZE != 64
+weak_alias (__sendmmsg, __sendmmsg64)
+#endif

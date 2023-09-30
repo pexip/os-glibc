@@ -1,5 +1,5 @@
 /* Wrapper for syslog.  IEEE128 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ ___ieee128_syslog (int pri, const char *fmt, ...)
   va_end (ap);
 }
 strong_alias (___ieee128_syslog, __syslogieee128)
+hidden_def (___ieee128_syslog)
 
 void
 ___ieee128_vsyslog (int pri, const char *fmt, va_list ap)

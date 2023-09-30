@@ -1,5 +1,5 @@
 # List of all known Linux system calls.
-# Copyright (C) 2017-2020 Free Software Foundation, Inc.
+# Copyright (C) 2017-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -21,8 +21,8 @@
 # This file can list all potential system calls.  The names are only
 # used if the installed kernel headers also provide them.
 
-# The list of system calls is current as of Linux 5.4.
-kernel 5.4
+# The list of system calls is current as of Linux 5.18.
+kernel 5.18
 
 FAST_atomic_update
 FAST_cmpxchg
@@ -41,6 +41,9 @@ adjtimex
 afs_syscall
 alarm
 alloc_hugepages
+arc_gettls
+arc_settls
+arc_usr_cmpxchg
 arch_prctl
 arm_fadvise64_64
 arm_sync_file_range
@@ -76,6 +79,7 @@ clone
 clone2
 clone3
 close
+close_range
 cmpxchg_badaddr
 connect
 copy_file_range
@@ -91,6 +95,7 @@ epoll_create1
 epoll_ctl
 epoll_ctl_old
 epoll_pwait
+epoll_pwait2
 epoll_wait
 epoll_wait_old
 eventfd
@@ -102,6 +107,7 @@ execveat
 exit
 exit_group
 faccessat
+faccessat2
 fadvise64
 fadvise64_64
 fallocate
@@ -140,6 +146,7 @@ ftruncate
 ftruncate64
 futex
 futex_time64
+futex_waitv
 futimesat
 get_kernel_syms
 get_mempolicy
@@ -218,6 +225,9 @@ kexec_file_load
 kexec_load
 keyctl
 kill
+landlock_add_rule
+landlock_create_ruleset
+landlock_restrict_self
 lchown
 lchown32
 lgetxattr
@@ -238,6 +248,7 @@ madvise
 mbind
 membarrier
 memfd_create
+memfd_secret
 memory_ordering
 migrate_pages
 mincore
@@ -252,6 +263,7 @@ mmap
 mmap2
 modify_ldt
 mount
+mount_setattr
 move_mount
 move_pages
 mprotect
@@ -292,6 +304,8 @@ open
 open_by_handle_at
 open_tree
 openat
+openat2
+or1k_atomic
 osf_adjtime
 osf_afs_syscall
 osf_alt_plock
@@ -410,6 +424,7 @@ perf_event_open
 perfctr
 perfmonctl
 personality
+pidfd_getfd
 pidfd_open
 pidfd_send_signal
 pipe
@@ -426,6 +441,8 @@ pread64
 preadv
 preadv2
 prlimit64
+process_madvise
+process_mrelease
 process_vm_readv
 process_vm_writev
 prof
@@ -439,6 +456,7 @@ pwritev
 pwritev2
 query_module
 quotactl
+quotactl_fd
 read
 readahead
 readdir
@@ -506,6 +524,7 @@ sendmmsg
 sendmsg
 sendto
 set_mempolicy
+set_mempolicy_home_node
 set_robust_list
 set_thread_area
 set_tid_address

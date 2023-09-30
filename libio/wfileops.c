@@ -1,7 +1,5 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Ulrich Drepper <drepper@cygnus.com>.
-   Based on the single byte version by Per Bothner <bothner@cygnus.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -414,7 +412,8 @@ _IO_wfile_overflow (FILE *f, wint_t wch)
       return WEOF;
     }
   /* If currently reading or no buffer allocated. */
-  if ((f->_flags & _IO_CURRENTLY_PUTTING) == 0)
+  if ((f->_flags & _IO_CURRENTLY_PUTTING) == 0
+      || f->_wide_data->_IO_write_base == NULL)
     {
       /* Allocate a buffer if needed. */
       if (f->_wide_data->_IO_write_base == 0)
@@ -840,7 +839,7 @@ _IO_wfile_seekoff (FILE *fp, off64_t offset, int dir, int mode)
       break;
     case _IO_seek_end:
       {
-	struct stat64 st;
+	struct __stat64_t64 st;
 	if (_IO_SYSSTAT (fp, &st) == 0 && S_ISREG (st.st_mode))
 	  {
 	    offset += st.st_size;

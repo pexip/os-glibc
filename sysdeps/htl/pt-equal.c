@@ -1,5 +1,5 @@
 /* Default attributes.  Generic version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,4 +27,4 @@ __pthread_equal (pthread_t __t1, pthread_t __t2)
   return __t1 == __t2;
 }
 
-strong_alias (__pthread_equal, pthread_equal);
+weak_alias (__pthread_equal, pthread_equal);

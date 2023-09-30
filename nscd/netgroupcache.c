@@ -1,7 +1,6 @@
 /* Cache handling for netgroup lookup.
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -124,7 +123,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
 	dbg_log (_("Reloading \"%s\" in netgroup cache!"), key);
     }
 
-  static service_user *netgroup_database;
+  static nss_action_list netgroup_database;
   time_t timeout;
   struct dataset *dataset;
   bool cacheable = false;
@@ -143,7 +142,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
   *tofreep = NULL;
 
   if (netgroup_database == NULL
-      && __nss_database_lookup2 ("netgroup", NULL, NULL, &netgroup_database))
+      && !__nss_database_get (nss_database_netgroup, &netgroup_database))
     {
       /* No such service.  */
       cacheable = do_notfound (db, fd, req, key, &dataset, &total, &timeout,
@@ -175,7 +174,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
 	void *ptr;
       } setfct;
 
-      service_user *nip = netgroup_database;
+      nss_action_list nip = netgroup_database;
       int no_more = __nss_lookup (&nip, "setnetgrent", NULL, &setfct.ptr);
       while (!no_more)
 	{
@@ -248,7 +247,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
 					     : NULL);
 				    ndomain = (ndomain ? newbuf + ndomaindiff
 					       : NULL);
-				    buffer = newbuf;
+				    *tofreep = buffer = newbuf;
 				  }
 
 				nhost = memcpy (buffer + bufused,
@@ -319,7 +318,7 @@ addgetnetgrentX (struct database_dyn *db, int fd, request_header *req,
 		    else if (status == NSS_STATUS_TRYAGAIN && e == ERANGE)
 		      {
 			buflen *= 2;
-			buffer = xrealloc (buffer, buflen);
+			*tofreep = buffer = xrealloc (buffer, buflen);
 		      }
 		    else if (status == NSS_STATUS_RETURN
 			     || status == NSS_STATUS_NOTFOUND

@@ -1,5 +1,5 @@
 /* hairy bits of Hurd file name lookup
-   Copyright (C) 1992-2020 Free Software Foundation, Inc.
+   Copyright (C) 1992-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -178,8 +178,17 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 	      /* We got a successful translation.  Now apply any open-time
 		 action flags we were passed.  */
 
-	      if (!err && (flags & O_TRUNC)) /* Asked to truncate the file.  */
-		err = __file_set_size (*result, 0);
+	      if (!err && (flags & O_TRUNC))
+		{
+		  /* Asked to truncate the file.  */
+		  err = __file_set_size (*result, 0);
+		  if (!err)
+		    {
+		      struct timespec atime = { 0, UTIME_OMIT };
+		      struct timespec mtime = { 0, UTIME_NOW };
+		      __file_utimens (*result, atime, mtime);
+		    }
+		}
 
 	      if (err)
 		__mach_port_deallocate (__mach_task_self (), *result);
@@ -283,7 +292,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 		  if (p < retryname)
 		    abort ();	/* XXX write this right if this ever happens */
 		  if (p > retryname)
-		    strcpy (retryname, p);
+		    memmove (retryname, p, strlen(p) + 1);
 		  startdir = *result;
 		}
 	      else
@@ -317,7 +326,7 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 		  case '/':
 		    if (err = opentty (&startdir))
 		      goto out;
-		    strcpy (retryname, &retryname[4]);
+		    memmove (retryname, &retryname[4], strlen(retryname + 4) + 1);
 		    break;
 		  default:
 		    goto bad_magic;
@@ -335,7 +344,8 @@ __hurd_file_name_lookup_retry (error_t (*use_init_port)
 		  p = _itoa (__getpid (), &buf[sizeof buf], 10, 0);
 		  len = &buf[sizeof buf] - p;
 		  memcpy (buf, p, len);
-		  strcpy (buf + len, &retryname[3]);
+		  strncpy (buf + len, &retryname[3], sizeof buf - len - 1);
+		  buf[sizeof buf - 1] = '\0';
 		  strcpy (retryname, buf);
 
 		  /* Do a normal retry on the remaining components.  */

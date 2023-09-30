@@ -1,7 +1,6 @@
 /* Get a thread-specific data pointer for a thread.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,7 +47,7 @@ td_thr_tsd (const td_thrhandle_t *th, const thread_key_t tk, void **data)
   if (err != TD_OK)
     return err;
 
-  /* Compute the indeces.  */
+  /* Compute the indices.  */
   pthread_key_2ndlevel_size
     = DB_DESC_NELEM (th->th_ta_p->ta_field_pthread_key_data_level2_data);
   idx1st = tk / pthread_key_2ndlevel_size;

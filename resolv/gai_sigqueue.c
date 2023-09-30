@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,5 +27,5 @@ __gai_sigqueue (int sig, const union sigval val, pid_t caller_pid)
   __set_errno (ENOSYS);
   return -1;
 }
-
+libc_hidden_def (__gai_sigqueue)
 stub_warning (__gai_sigqueue)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,17 +16,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
+#include <shlib-compat.h>
 
-/* Increase the size of the stack by INCREMENT,
-   and return the address of the bottom of the stack.  */
-
-void *sstk (int increment) __THROW;
-
-void *
+#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_32)
+void * attribute_compat_text_section
 sstk (int increment)
 {
   __set_errno (ENOSYS);
   return (void *) -1;
 }
-
-stub_warning (sstk)
+compat_symbol (libc, sstk, sstk, GLIBC_2_0);
+#endif

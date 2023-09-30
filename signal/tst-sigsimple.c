@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,7 +19,10 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <libc-diag.h>
 
+/* The sighold and sigrelse functions are deprecated.  */
+DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wdeprecated-declarations");
 
 static int
 do_test (void)

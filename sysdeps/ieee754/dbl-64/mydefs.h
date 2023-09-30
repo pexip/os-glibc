@@ -1,7 +1,6 @@
 /*
  * IBM Accurate Mathematical Library
- * Written by International Business Machines Corp.
- * Copyright (C) 2001-2020 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2022 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +27,7 @@
 #define MY_H
 
 typedef int int4;
-typedef union { int4 i[2]; double x; } mynumber;
+typedef union { int4 i[2]; double x; double d; } mynumber;
 
 #define max(x, y)  (((y) > (x)) ? (y) : (x))
 #define min(x, y)  (((y) < (x)) ? (y) : (x))

@@ -1,5 +1,5 @@
 /* Multiple versions of memcpy. AARCH64 version.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,18 +29,41 @@
 extern __typeof (__redirect_memcpy) __libc_memcpy;
 
 extern __typeof (__redirect_memcpy) __memcpy_generic attribute_hidden;
+extern __typeof (__redirect_memcpy) __memcpy_simd attribute_hidden;
 extern __typeof (__redirect_memcpy) __memcpy_thunderx attribute_hidden;
 extern __typeof (__redirect_memcpy) __memcpy_thunderx2 attribute_hidden;
 extern __typeof (__redirect_memcpy) __memcpy_falkor attribute_hidden;
+extern __typeof (__redirect_memcpy) __memcpy_a64fx attribute_hidden;
+extern __typeof (__redirect_memcpy) __memcpy_sve attribute_hidden;
 
-libc_ifunc (__libc_memcpy,
-            (IS_THUNDERX (midr)
-	     ? __memcpy_thunderx
-	     : (IS_FALKOR (midr) || IS_PHECDA (midr) || IS_ARES (midr) || IS_KUNPENG920 (midr)
-		? __memcpy_falkor
-		: (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr)
-		  ? __memcpy_thunderx2
-		  : __memcpy_generic))));
+static inline __typeof (__redirect_memcpy) *
+select_memcpy_ifunc (void)
+{
+  INIT_ARCH ();
+
+  if (IS_NEOVERSE_N1 (midr) || IS_NEOVERSE_N2 (midr))
+    return __memcpy_simd;
+
+  if (sve && HAVE_AARCH64_SVE_ASM)
+    {
+      if (IS_A64FX (midr))
+	return __memcpy_a64fx;
+      return __memcpy_sve;
+    }
+
+  if (IS_THUNDERX (midr))
+    return __memcpy_thunderx;
+
+  if (IS_THUNDERX2 (midr) || IS_THUNDERX2PA (midr))
+    return __memcpy_thunderx2;
+
+  if (IS_FALKOR (midr) || IS_PHECDA (midr))
+    return __memcpy_falkor;
+
+  return __memcpy_generic;
+}
+
+libc_ifunc (__libc_memcpy, select_memcpy_ifunc ());
 
 # undef memcpy
 strong_alias (__libc_memcpy, memcpy);

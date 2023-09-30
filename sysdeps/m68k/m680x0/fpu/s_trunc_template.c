@@ -1,5 +1,5 @@
 /* Implement trunc for m68k.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 #define NO_MATH_REDIRECT
 #include <math.h>
+#include "mathimpl.h"
 
 FLOAT
 M_DECL_FUNC (__trunc) (FLOAT x)

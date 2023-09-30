@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -66,6 +66,7 @@ __hurd_fail (error_t err)
       err = (error_t) ENOMEM;
       break;
 
+    case KERN_INVALID_ADDRESS:
     case KERN_INVALID_ARGUMENT:
       err = (error_t) EINVAL;
       break;
@@ -92,6 +93,7 @@ extern sigset_t _hurdsig_traced;
 
 /* Shorthand macro for internal library code referencing _hurd_ports (see
    <hurd/port.h>).  */
+/* Also see __USEPORT_CANCEL.  */
 
 #define	__USEPORT(which, expr) \
   HURD_PORT_USE (&_hurd_ports[INIT_PORT_##which], (expr))
@@ -102,7 +104,6 @@ extern error_t _hurd_ports_use (int which, error_t (*operate) (mach_port_t));
 
 
 /* Base address and size of the initial stack set up by the exec server.
-   If using cthreads, this stack is deallocated in startup.
    Not locked.  */
 
 extern vm_address_t _hurd_stack_base;
@@ -122,9 +123,6 @@ extern int _hurd_orphaned;
 
 /* This variable is incremented every time the process IDs change.  */
 extern unsigned int _hurd_pids_changed_stamp;
-
-/* This condition is broadcast every time the process IDs change.  */
-extern struct condition _hurd_pids_changed_sync;
 
 /* Unix `data break', for brk and sbrk.
    If brk and sbrk are not used, this info will not be initialized or used.  */
@@ -276,6 +274,9 @@ extern void _hurd_exit (int status) __attribute__ ((noreturn));
 extern void _hurd_init (int flags, char **argv,
 			mach_port_t *portarray, size_t portarraysize,
 			int *intarray, size_t intarraysize);
+
+/* Register the process to the proc server.  */
+extern void _hurd_libc_proc_init (char **argv);
 
 /* Do startup handshaking with the proc server, and initialize library data
    structures that require proc server interaction.  This includes

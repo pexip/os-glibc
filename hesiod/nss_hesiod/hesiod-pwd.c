@@ -1,6 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Mark Kettenis <kettenis@phys.uva.nl>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+NSS_DECLARE_MODULE_FUNCTIONS (hesiod)
 
 /* Get the declaration of the parser function.  */
 #define ENTNAME pwent

@@ -1,27 +1,42 @@
 https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 
+---
+ bits/auxv.h                |   91 +++++++++++++++++++++++++++++++++++++++++++++
+ elf/elf.h                  |   76 -------------------------------------
+ misc/Makefile              |    2 
+ misc/getauxval.c           |    7 ++-
+ misc/sys/auxv.h            |    1 
+ sysdeps/generic/ldsodefs.h |    1 
+ 6 files changed, 101 insertions(+), 77 deletions(-)
+
 --- a/misc/getauxval.c
 +++ b/misc/getauxval.c
-@@ -27,10 +27,15 @@
+@@ -27,16 +27,21 @@
    ElfW(auxv_t) *p;
  #endif
  
 +#ifdef AT_HWCAP
    if (type == AT_HWCAP)
-     return GLRO(dl_hwcap);
+     {
+       *result = GLRO(dl_hwcap);
+       return true;
+     }
 -  else if (type == AT_HWCAP2)
 +#endif
 +
 +#ifdef AT_HWCAP2
 +  if (type == AT_HWCAP2)
-     return GLRO(dl_hwcap2);
+     {
+       *result = GLRO(dl_hwcap2);
+       return true;
+     }
 +#endif
  
  #ifdef HAVE_AUX_VECTOR
    for (p = GLRO(dl_auxv); p->a_type != AT_NULL; p++)
 --- /dev/null
 +++ b/bits/auxv.h
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,90 @@
 +/* Copyright (C) 1995-2013 Free Software Foundation, Inc.
 +   This file is part of the GNU C Library.
 +
@@ -111,11 +126,10 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 +#define AT_L3_CACHESIZE		46
 +#define AT_L3_CACHEGEOMETRY	47
 +
-+#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery
-+				      (AArch64).  */
++#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery  */
 --- a/elf/elf.h
 +++ b/elf/elf.h
-@@ -1110,81 +1110,7 @@
+@@ -1154,80 +1154,7 @@
      } a_un;
  } Elf64_auxv_t;
  
@@ -191,8 +205,7 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
 -#define AT_L3_CACHESIZE		46
 -#define AT_L3_CACHEGEOMETRY	47
 -
--#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery
--				      (AArch64).  */
+-#define AT_MINSIGSTKSZ		51 /* Stack needed for signal delivery  */
 -
 +#include <bits/auxv.h>
  /* Note section contents.  Each entry in the note section begins with
@@ -200,15 +213,15 @@ https://sourceware.org/bugzilla/show_bug.cgi?id=15794
  
 --- a/misc/Makefile
 +++ b/misc/Makefile
-@@ -34,7 +34,7 @@
+@@ -35,7 +35,7 @@
  	   regexp.h bits/select.h bits/mman.h sys/xattr.h \
  	   syslog.h sys/syslog.h \
  	   bits/syslog.h bits/syslog-ldbl.h bits/syslog-path.h bits/error.h \
 -	   bits/select2.h bits/hwcap.h sys/auxv.h \
 +	   bits/select2.h bits/hwcap.h bits/auxv.h sys/auxv.h \
  	   sys/sysmacros.h bits/sysmacros.h bits/types/struct_iovec.h \
- 	   bits/err-ldbl.h bits/error-ldbl.h
- 
+ 	   bits/err-ldbl.h bits/error-ldbl.h \
+ 	   sys/single_threaded.h
 --- a/misc/sys/auxv.h
 +++ b/misc/sys/auxv.h
 @@ -20,6 +20,7 @@

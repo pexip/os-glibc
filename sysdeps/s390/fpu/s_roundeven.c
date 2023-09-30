@@ -1,5 +1,5 @@
 /* roundeven() - S390 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -18,6 +18,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_S390_MIN_Z196_ZARCH_ASM_SUPPORT
+# define NO_MATH_REDIRECT
 # include <math.h>
 # include <libm-alias-double.h>
 
@@ -31,7 +32,6 @@ __roundeven (double x)
   __asm__ ("fidbra %0,4,%1,4" : "=f" (y) : "f" (x));
   return y;
 }
-hidden_def (__roundeven)
 libm_alias_double (__roundeven, roundeven)
 
 #else

@@ -1,5 +1,5 @@
 /* Linux pread64() syscall implementation -- non-cancellable.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,10 +19,6 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 #include <not-cancel.h>
-
-#ifndef __NR_pread64
-# define __NR_pread64 __NR_pread
-#endif
 
 ssize_t
 __pread64_nocancel (int fd, void *buf, size_t count, off64_t offset)

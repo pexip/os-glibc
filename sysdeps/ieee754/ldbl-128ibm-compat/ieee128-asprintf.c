@@ -1,5 +1,5 @@
 /* Wrapper for asprintf.  IEEE128 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 #include <libio/libioP.h>
 
 extern int
-___ieee128_asprintf (char **string_ptr, const char *format, ...)
+___ieee128___asprintf (char **string_ptr, const char *format, ...)
 {
   va_list ap;
   int done;
@@ -32,4 +32,5 @@ ___ieee128_asprintf (char **string_ptr, const char *format, ...)
 
   return done;
 }
-strong_alias (___ieee128_asprintf, __asprintfieee128)
+hidden_def (___ieee128___asprintf)
+strong_alias (___ieee128___asprintf, __asprintfieee128)

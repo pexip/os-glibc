@@ -194,6 +194,17 @@ extern int ruserpass (const char *host, const char **aname,
 		      const char **apass);
 libc_hidden_proto (ruserpass)
 
+# if __TIMESIZE == 64
+#  define __gai_suspend_time64 __gai_suspend
+# else
+extern int __gai_suspend_time64 (const struct gaicb *const list[], int ent,
+                                 const struct __timespec64 *timeout);
+#  if PTHREAD_IN_LIBC
+libc_hidden_proto (__gai_suspend_time64)
+#  else
+libanl_hidden_proto (__gai_suspend_time64)
+#  endif
+# endif
 
 /* The following definition has been removed from the public header
    since we don't want people to use them.  */
@@ -202,24 +213,11 @@ libc_hidden_proto (ruserpass)
 
 #include <inet/netgroup.h>
 
-struct parser_data;
-extern int _nss_files_parse_protoent (char *line, struct protoent *result,
-				      struct parser_data *data,
-				      size_t datalen, int *errnop);
-extern int _nss_files_parse_servent (char *line, struct servent *result,
-				     struct parser_data *data,
-				     size_t datalen, int *errnop);
-extern int _nss_files_parse_netent (char *line, struct netent *result,
-				    struct parser_data *data,
-				    size_t datalen, int *errnop);
 extern enum nss_status _nss_netgroup_parseline (char **cursor,
 						struct __netgrent *result,
 						char *buffer, size_t buflen,
 						int *errnop);
-libnss_files_hidden_proto (_nss_files_parse_protoent)
-libnss_files_hidden_proto (_nss_files_parse_servent)
-libnss_files_hidden_proto (_nss_files_parse_netent)
-libnss_files_hidden_proto (_nss_netgroup_parseline)
+libc_hidden_proto (_nss_netgroup_parseline)
 
 #define DECLARE_NSS_PROTOTYPES(service)					      \
 extern enum nss_status _nss_ ## service ## _setprotoent (int);		      \
@@ -279,16 +277,16 @@ extern enum nss_status _nss_ ## service ## _getnetbyname_r		      \
 extern enum nss_status _nss_ ## service ## _getnetbyaddr_r		      \
 		       (uint32_t addr, int type, struct netent *net,	      \
 			char *buffer, size_t buflen, int *errnop,	      \
-			int *herrnop);
+			int *herrnop);					      \
+extern enum nss_status _nss_ ## service ## _endspent (void);
 
 DECLARE_NSS_PROTOTYPES (compat)
 DECLARE_NSS_PROTOTYPES (dns)
 DECLARE_NSS_PROTOTYPES (files)
 DECLARE_NSS_PROTOTYPES (hesiod)
-DECLARE_NSS_PROTOTYPES (nis)
-DECLARE_NSS_PROTOTYPES (nisplus)
 
 #undef DECLARE_NSS_PROTOTYPES
+
 #endif
 
 #endif /* !_NETDB_H */

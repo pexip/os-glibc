@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  */
 
-/* Copyright (C) 2013-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@
  * network numbers.
  */
 uint32_t
-inet_network (const char *cp)
+__inet_network (const char *cp)
 {
 	uint32_t val, base, n, i;
 	char c;
@@ -107,3 +107,5 @@ again:
 	}
 	return (val);
 }
+libc_hidden_def (__inet_network)
+weak_alias (__inet_network, inet_network)

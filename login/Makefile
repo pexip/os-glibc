@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2020 Free Software Foundation, Inc.
+# Copyright (C) 1996-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ headers	:= utmp.h bits/utmp.h lastlog.h pty.h
 routines := getlogin getlogin_r setlogin getlogin_r_chk \
 	    getutent getutent_r getutid getutline getutid_r getutline_r \
 	    utmp_file utmpname updwtmp getpt grantpt unlockpt ptsname \
-	    ptsname_r_chk
+	    ptsname_r_chk login login_tty logout logwtmp openpty forkpty
 
 CFLAGS-grantpt.c += -DLIBEXECDIR='"$(libexecdir)"'
 
@@ -46,11 +46,20 @@ vpath %.c programs
 tests := tst-utmp tst-utmpx tst-grantpt tst-ptsname tst-getlogin tst-updwtmpx \
   tst-pututxline-lockfail tst-pututxline-cache
 
-# Build the -lutil library with these extra functions.
+# Empty compatibility library for old binaries.
 extra-libs      := libutil
 extra-libs-others := $(extra-libs)
+ifeq ($(have-GLIBC_2.33),yes)
+libutil-routines := libutil-compat
+libutil-shared-only-routines := libutil-compat
 
-libutil-routines:= login login_tty logout logwtmp openpty forkpty
+# Pretend that libutil.so is a linker script, so that the symbolic
+# link is not installed.
+install-lib-ldscripts = libutil.so
+$(inst_libdir)/libutil.so:
+else  # not $(have-GLIBC_2.33)
+libutil-inhibit-o = $(filter-out .o,$(object-suffixes))
+endif # $(have-GLIBC_2.33)
 
 include ../Rules
 

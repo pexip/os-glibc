@@ -1,5 +1,5 @@
 /* Enable full ICMP errors on a socket.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,9 +27,9 @@ __res_enable_icmp (int family, int fd)
   switch (family)
     {
     case AF_INET:
-      return setsockopt (fd, SOL_IP, IP_RECVERR, &one, sizeof (one));
+      return __setsockopt (fd, SOL_IP, IP_RECVERR, &one, sizeof (one));
     case AF_INET6:
-      return setsockopt (fd, SOL_IPV6, IPV6_RECVERR, &one, sizeof (one));
+      return __setsockopt (fd, SOL_IPV6, IPV6_RECVERR, &one, sizeof (one));
     default:
       __set_errno (EAFNOSUPPORT);
       return -1;

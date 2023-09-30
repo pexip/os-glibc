@@ -1,7 +1,6 @@
 /* low level locking for pthread library.  Generic futex-using version.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,7 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#include <lowlevellock.h>
+#include <futex-internal.h>
 #include <atomic.h>
 #include <stap-probe.h>
 
@@ -32,13 +31,11 @@ __lll_lock_wait_private (int *futex)
     {
     futex:
       LIBC_PROBE (lll_lock_wait_private, 1, futex);
-      lll_futex_wait (futex, 2, LLL_PRIVATE); /* Wait if *futex == 2.  */
+      futex_wait ((unsigned int *) futex, 2, LLL_PRIVATE); /* Wait if *futex == 2.  */
     }
 }
+libc_hidden_def (__lll_lock_wait_private)
 
-
-/* This function doesn't get included in libc.  */
-#if IS_IN (libpthread)
 void
 __lll_lock_wait (int *futex, int private)
 {
@@ -49,7 +46,26 @@ __lll_lock_wait (int *futex, int private)
     {
     futex:
       LIBC_PROBE (lll_lock_wait, 1, futex);
-      lll_futex_wait (futex, 2, private); /* Wait if *futex == 2.  */
+      futex_wait ((unsigned int *) futex, 2, private); /* Wait if *futex == 2.  */
     }
 }
+libc_hidden_def (__lll_lock_wait)
+
+void
+__lll_lock_wake_private (int *futex)
+{
+  lll_futex_wake (futex, 1, LLL_PRIVATE);
+}
+libc_hidden_def (__lll_lock_wake_private)
+
+void
+__lll_lock_wake (int *futex, int private)
+{
+  lll_futex_wake (futex, 1, private);
+}
+libc_hidden_def (__lll_lock_wake)
+
+#if ENABLE_ELISION_SUPPORT
+int __pthread_force_elision;
+libc_hidden_data_def (__pthread_force_elision)
 #endif

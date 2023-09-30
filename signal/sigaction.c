@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,23 +17,20 @@
 
 #include <errno.h>
 #include <signal.h>
-
+#include <internal-signals.h>
 
 /* If ACT is not NULL, change the action for SIG to *ACT.
    If OACT is not NULL, put the old action for SIG in *OACT.  */
 int
 __sigaction (int sig, const struct sigaction *act, struct sigaction *oact)
 {
-  if (sig <= 0 || sig >= NSIG || __is_internal_signal (sig))
+  if (sig <= 0 || sig >= NSIG || is_internal_signal (sig))
     {
       __set_errno (EINVAL);
       return -1;
     }
 
-  __set_errno (ENOSYS);
-  return -1;
+  return __libc_sigaction (sig, act, oact);
 }
 libc_hidden_def (__sigaction)
-stub_warning (sigaction)
-
 weak_alias (__sigaction, sigaction)

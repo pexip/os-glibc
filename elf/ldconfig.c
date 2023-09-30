@@ -1,6 +1,5 @@
-/* Copyright (C) 1999-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Andreas Jaeger <aj@suse.de>, 1999.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -16,6 +15,7 @@
    along with this program; if not, see <https://www.gnu.org/licenses/>.  */
 
 #define PROCINFO_CLASS static
+#include <assert.h>
 #include <alloca.h>
 #include <argp.h>
 #include <dirent.h>
@@ -41,14 +41,20 @@
 
 #include <ldconfig.h>
 #include <dl-cache.h>
+#include <dl-hwcaps.h>
+#include <dl-is_dso.h>
 
 #include <dl-procinfo.h>
 
-#ifdef _DL_FIRST_PLATFORM
-# define _DL_FIRST_EXTRA (_DL_FIRST_PLATFORM + _DL_PLATFORMS_COUNT)
-#else
-# define _DL_FIRST_EXTRA _DL_HWCAP_COUNT
-#endif
+/* This subpath in search path entries is always supported and
+   included in the cache for backwards compatibility.  */
+#define TLS_SUBPATH "tls"
+
+/* The MSB of the hwcap field is set for objects in TLS_SUBPATH
+   directories.  There is always TLS support in glibc, so the dynamic
+   loader does not check the bit directly.  But more hwcap bits make a
+   an object more preferred, so the bit still has meaning.  */
+#define TLS_HWCAP_BIT 63
 
 #ifndef LD_SO_CONF
 # define LD_SO_CONF SYSCONFDIR "/ld.so.conf"
@@ -79,6 +85,12 @@ struct dir_entry
   int flag;
   ino64_t ino;
   dev_t dev;
+  const char *from_file;
+  int from_line;
+
+  /* Non-NULL for subdirectories under a glibc-hwcaps subdirectory.  */
+  struct glibc_hwcaps_subdirectory *hwcaps;
+
   struct dir_entry *next;
 };
 
@@ -94,8 +106,7 @@ static int opt_print_cache;
 int opt_verbose;
 
 /* Format to support.  */
-/* 0: only libc5/glibc2; 1: both; 2: only glibc 2.2.  */
-int opt_format = 1;
+enum opt_format opt_format = opt_format_new;
 
 /* Build cache.  */
 static int opt_build_cache = 1;
@@ -125,9 +136,6 @@ static const char *config_file;
 /* Mask to use for important hardware capabilities.  */
 static unsigned long int hwcap_mask = HWCAP_IMPORTANT;
 
-/* Configuration-defined capabilities defined in kernel vDSOs.  */
-static const char *hwcap_extra[64 - _DL_FIRST_EXTRA];
-
 /* Name and version of program.  */
 static void print_version (FILE *stream, struct argp_state *state);
 void (*argp_program_version_hook) (FILE *, struct argp_state *)
@@ -148,7 +156,7 @@ static const struct argp_option options[] =
   { NULL, 'f', N_("CONF"), 0, N_("Use CONF as configuration file"), 0},
   { NULL, 'n', NULL, 0, N_("Only process directories specified on the command line.  Don't build cache."), 0},
   { NULL, 'l', NULL, 0, N_("Manually link individual libraries."), 0},
-  { "format", 'c', N_("FORMAT"), 0, N_("Format to use: new, old or compat (default)"), 0},
+  { "format", 'c', N_("FORMAT"), 0, N_("Format to use: new (default), old, or compat"), 0},
   { "ignore-aux-cache", 'i', NULL, 0, N_("Ignore auxiliary cache file"), 0},
   { NULL, 0, NULL, 0, NULL, 0 }
 };
@@ -184,12 +192,9 @@ is_hwcap_platform (const char *name)
   if (hwcap_idx != -1)
     return 1;
 
-  /* Is this one of the extra pseudo-hwcaps that we map beyond
-     _DL_FIRST_EXTRA like "tls", or "nosegneg?"  */
-  for (hwcap_idx = _DL_FIRST_EXTRA; hwcap_idx < 64; ++hwcap_idx)
-    if (hwcap_extra[hwcap_idx - _DL_FIRST_EXTRA] != NULL
-	&& !strcmp (name, hwcap_extra[hwcap_idx - _DL_FIRST_EXTRA]))
-      return 1;
+  /* Backwards-compatibility for the "tls" subdirectory.  */
+  if (strcmp (name, TLS_SUBPATH) == 0)
+    return 1;
 
   return 0;
 }
@@ -224,11 +229,9 @@ path_hwcap (const char *path)
 	  h = _dl_string_platform (ptr + 1);
 	  if (h == (uint64_t) -1)
 	    {
-	      for (h = _DL_FIRST_EXTRA; h < 64; ++h)
-		if (hwcap_extra[h - _DL_FIRST_EXTRA] != NULL
-		    && !strcmp (ptr + 1, hwcap_extra[h - _DL_FIRST_EXTRA]))
-		  break;
-	      if (h == 64)
+	      if (strcmp (ptr + 1, TLS_SUBPATH) == 0)
+		h = TLS_HWCAP_BIT;
+	      else
 		break;
 	    }
 	}
@@ -283,11 +286,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'c':
       if (strcmp (arg, "old") == 0)
-	opt_format = 0;
+	opt_format = opt_format_old;
       else if (strcmp (arg, "compat") == 0)
-	opt_format = 1;
+	opt_format = opt_format_compat;
       else if (strcmp (arg, "new") == 0)
-	opt_format = 2;
+	opt_format = opt_format_new;
       break;
     default:
       return ARGP_ERR_UNKNOWN;
@@ -325,16 +328,36 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2020");
+"), "2022");
   fprintf (stream, gettext ("Written by %s.\n"),
 	   "Andreas Jaeger");
 }
 
-/* Add a single directory entry.  */
-static void
+/* Allocate a new subdirectory with full path PATH under ENTRY, using
+   inode data from *ST.  */
+static struct dir_entry *
+new_sub_entry (const struct dir_entry *entry, const char *path,
+	       const struct stat *st)
+{
+  struct dir_entry *new_entry = xmalloc (sizeof (struct dir_entry));
+  new_entry->from_file = entry->from_file;
+  new_entry->from_line = entry->from_line;
+  new_entry->path = xstrdup (path);
+  new_entry->flag = entry->flag;
+  new_entry->hwcaps = NULL;
+  new_entry->next = NULL;
+  new_entry->ino = st->st_ino;
+  new_entry->dev = st->st_dev;
+  return new_entry;
+}
+
+/* Add a single directory entry.  Return true if the directory is
+   actually added (because it is not a duplicate).  */
+static bool
 add_single_dir (struct dir_entry *entry, int verbose)
 {
   struct dir_entry *ptr, *prev;
+  bool added = true;
 
   ptr = dir_entries;
   prev = ptr;
@@ -344,11 +367,17 @@ add_single_dir (struct dir_entry *entry, int verbose)
       if (ptr->ino == entry->ino && ptr->dev == entry->dev)
 	{
 	  if (opt_verbose && verbose)
-	    error (0, 0, _("Path `%s' given more than once"), entry->path);
+	    {
+	      error (0, 0, _("Path `%s' given more than once"), entry->path);
+	      fprintf (stderr, _("(from %s:%d and %s:%d)\n"),
+		       entry->from_file, entry->from_line,
+		       ptr->from_file, ptr->from_line);
+	    }
 	  /* Use the newer information.  */
 	  ptr->flag = entry->flag;
 	  free (entry->path);
 	  free (entry);
+	  added = false;
 	  break;
 	}
       prev = ptr;
@@ -359,15 +388,86 @@ add_single_dir (struct dir_entry *entry, int verbose)
     dir_entries = entry;
   else if (ptr == NULL)
     prev->next = entry;
+  return added;
+}
+
+/* Check if PATH contains a "glibc-hwcaps" subdirectory.  If so, queue
+   its subdirectories for glibc-hwcaps processing.  */
+static void
+add_glibc_hwcaps_subdirectories (struct dir_entry *entry, const char *path)
+{
+  /* glibc-hwcaps subdirectories do not nest.  */
+  assert (entry->hwcaps == NULL);
+
+  char *glibc_hwcaps;
+  if (asprintf (&glibc_hwcaps, "%s/" GLIBC_HWCAPS_SUBDIRECTORY, path) < 0)
+    error (EXIT_FAILURE, errno, _("Could not form glibc-hwcaps path"));
+
+  DIR *dir = opendir (glibc_hwcaps);
+  if (dir != NULL)
+    {
+      while (true)
+	{
+	  errno = 0;
+	  struct dirent64 *e = readdir64 (dir);
+	  if (e == NULL)
+	    {
+	      if (errno == 0)
+		break;
+	      else
+		error (EXIT_FAILURE, errno, _("Listing directory %s"), path);
+	    }
+
+	  /* Ignore hidden subdirectories, including "." and "..", and
+	     regular files.  File names containing a ':' cannot be
+	     looked up by the dynamic loader, so skip those as
+	     well.  */
+	  if (e->d_name[0] == '.' || e->d_type == DT_REG
+	      || strchr (e->d_name, ':') != NULL)
+	    continue;
+
+	  /* See if this entry eventually resolves to a directory.  */
+	  struct stat st;
+	  if (fstatat (dirfd (dir), e->d_name, &st, 0) < 0)
+	    /* Ignore unreadable entries.  */
+	    continue;
+
+	  if (S_ISDIR (st.st_mode))
+	    {
+	      /* This is a directory, so it needs to be scanned for
+		 libraries, associated with the hwcaps implied by the
+		 subdirectory name.  */
+	      char *new_path;
+	      if (asprintf (&new_path, "%s/" GLIBC_HWCAPS_SUBDIRECTORY "/%s",
+			    /* Use non-canonicalized path here.  */
+			    entry->path, e->d_name) < 0)
+		error (EXIT_FAILURE, errno,
+		       _("Could not form glibc-hwcaps path"));
+	      struct dir_entry *new_entry = new_sub_entry (entry, new_path,
+							   &st);
+	      free (new_path);
+	      new_entry->hwcaps = new_glibc_hwcaps_subdirectory (e->d_name);
+	      add_single_dir (new_entry, 0);
+	    }
+	}
+
+      closedir (dir);
+    }
+
+  free (glibc_hwcaps);
 }
 
 /* Add one directory to the list of directories to process.  */
 static void
-add_dir (const char *line)
+add_dir_1 (const char *line, const char *from_file, int from_line)
 {
   unsigned int i;
   struct dir_entry *entry = xmalloc (sizeof (struct dir_entry));
+  entry->hwcaps = NULL;
   entry->next = NULL;
+
+  entry->from_file = strdup (from_file);
+  entry->from_line = from_line;
 
   /* Search for an '=' sign.  */
   entry->path = xstrdup (line);
@@ -402,14 +502,18 @@ add_dir (const char *line)
     entry->path[--i] = '\0';
 
   if (i == 0)
-    return;
+    {
+      free (entry->path);
+      free (entry);
+      return;
+    }
 
   char *path = entry->path;
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     path = chroot_canon (opt_chroot, path);
 
-  struct stat64 stat_buf;
-  if (path == NULL || stat64 (path, &stat_buf))
+  struct stat stat_buf;
+  if (path == NULL || stat (path, &stat_buf))
     {
       if (opt_verbose)
 	error (0, errno, _("Can't stat %s"), entry->path);
@@ -421,24 +525,31 @@ add_dir (const char *line)
       entry->ino = stat_buf.st_ino;
       entry->dev = stat_buf.st_dev;
 
-      add_single_dir (entry, 1);
+      if (add_single_dir (entry, 1))
+	/* Add glibc-hwcaps subdirectories if present.  */
+	add_glibc_hwcaps_subdirectories (entry, path);
     }
 
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     free (path);
 }
 
+static void
+add_dir (const char *line)
+{
+  add_dir_1 (line, "<builtin>", 0);
+}
 
 static int
-chroot_stat (const char *real_path, const char *path, struct stat64 *st)
+chroot_stat (const char *real_path, const char *path, struct stat *st)
 {
   int ret;
   char *canon_path;
 
   if (!opt_chroot)
-    return stat64 (real_path, st);
+    return stat (real_path, st);
 
-  ret = lstat64 (real_path, st);
+  ret = lstat (real_path, st);
   if (ret || !S_ISLNK (st->st_mode))
     return ret;
 
@@ -446,7 +557,7 @@ chroot_stat (const char *real_path, const char *path, struct stat64 *st)
   if (canon_path == NULL)
     return -1;
 
-  ret = stat64 (canon_path, st);
+  ret = stat (canon_path, st);
   free (canon_path);
   return ret;
 }
@@ -458,7 +569,7 @@ create_links (const char *real_path, const char *path, const char *libname,
 {
   char *full_libname, *full_soname;
   char *real_full_libname, *real_full_soname;
-  struct stat64 stat_lib, stat_so, lstat_so;
+  struct stat stat_lib, stat_so, lstat_so;
   int do_link = 1;
   int do_remove = 1;
   /* XXX: The logics in this function should be simplified.  */
@@ -468,7 +579,7 @@ create_links (const char *real_path, const char *path, const char *libname,
   full_soname = alloca (strlen (path) + strlen (soname) + 2);
   sprintf (full_libname, "%s/%s", path, libname);
   sprintf (full_soname, "%s/%s", path, soname);
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     {
       real_full_libname = alloca (strlen (real_path) + strlen (libname) + 2);
       real_full_soname = alloca (strlen (real_path) + strlen (soname) + 2);
@@ -493,7 +604,7 @@ create_links (const char *real_path, const char *path, const char *libname,
 	  && stat_lib.st_ino == stat_so.st_ino)
 	/* Link is already correct.  */
 	do_link = 0;
-      else if (lstat64 (full_soname, &lstat_so) == 0
+      else if (lstat (full_soname, &lstat_so) == 0
 	       && !S_ISLNK (lstat_so.st_mode))
 	{
 	  error (0, 0, _("%s is not a symbolic link\n"), full_soname);
@@ -501,7 +612,7 @@ create_links (const char *real_path, const char *path, const char *libname,
 	  do_remove = 0;
 	}
     }
-  else if (lstat64 (real_full_soname, &lstat_so) != 0
+  else if (lstat (real_full_soname, &lstat_so) != 0
 	   || !S_ISLNK (lstat_so.st_mode))
     /* Unless it is a stale symlink, there is no need to remove.  */
     do_remove = 0;
@@ -545,9 +656,9 @@ manual_link (char *library)
   char *real_library;
   char *libname;
   char *soname;
-  struct stat64 stat_buf;
+  struct stat stat_buf;
   int flag;
-  unsigned int osversion;
+  unsigned int isa_level;
 
   /* Prepare arguments for create_links call.  Split library name in
      directory and filename first.  Since path is allocated, we've got
@@ -579,7 +690,7 @@ manual_link (char *library)
       strcpy (path, ".");
     }
 
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     {
       real_path = chroot_canon (opt_chroot, path);
       if (real_path == NULL)
@@ -598,33 +709,33 @@ manual_link (char *library)
     }
 
   /* Do some sanity checks first.  */
-  if (lstat64 (real_library, &stat_buf))
+  if (lstat (real_library, &stat_buf))
     {
       error (0, errno, _("Cannot lstat %s"), library);
-      free (path);
-      return;
+      goto out;
     }
   /* We don't want links here!  */
   else if (!S_ISREG (stat_buf.st_mode))
     {
       error (0, 0, _("Ignored file %s since it is not a regular file."),
 	     library);
-      free (path);
-      return;
+      goto out;
     }
 
-  if (process_file (real_library, library, libname, &flag, &osversion,
-		    &soname, 0, &stat_buf))
+  if (process_file (real_library, library, libname, &flag, &isa_level, &soname,
+		    0, &stat_buf))
     {
       error (0, 0, _("No link created since soname could not be found for %s"),
 	     library);
-      free (path);
-      return;
+      goto out;
     }
   if (soname == NULL)
     soname = implicit_soname (libname, flag);
   create_links (real_path, path, libname, soname);
   free (soname);
+out:
+  if (path != real_path)
+    free (real_path);
   free (path);
 }
 
@@ -660,7 +771,7 @@ struct dlib_entry
   char *soname;
   int flag;
   int is_link;
-  unsigned int osversion;
+  unsigned int isa_level;
   struct dlib_entry *next;
 };
 
@@ -668,21 +779,34 @@ struct dlib_entry
 static void
 search_dir (const struct dir_entry *entry)
 {
-  uint64_t hwcap = path_hwcap (entry->path);
-  if (opt_verbose)
+  uint64_t hwcap;
+  if (entry->hwcaps == NULL)
     {
-      if (hwcap != 0)
-	printf ("%s: (hwcap: %#.16" PRIx64 ")\n", entry->path, hwcap);
-      else
-	printf ("%s:\n", entry->path);
+      hwcap = path_hwcap (entry->path);
+      if (opt_verbose)
+	{
+	  if (hwcap != 0)
+	    printf ("%s: (hwcap: %#.16" PRIx64 ")", entry->path, hwcap);
+	  else
+	    printf ("%s:", entry->path);
+	}
     }
+  else
+    {
+      hwcap = 0;
+      if (opt_verbose)
+	printf ("%s: (hwcap: \"%s\")", entry->path,
+		glibc_hwcaps_subdirectory_name (entry->hwcaps));
+    }
+  if (opt_verbose)
+    printf (_(" (from %s:%d)\n"), entry->from_file, entry->from_line);
 
   char *dir_name;
   char *real_file_name;
   size_t real_file_name_len;
   size_t file_name_len = PATH_MAX;
   char *file_name = alloca (file_name_len);
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     {
       dir_name = chroot_canon (opt_chroot, entry->path);
       real_file_name_len = PATH_MAX;
@@ -700,7 +824,7 @@ search_dir (const struct dir_entry *entry)
     {
       if (opt_verbose)
 	error (0, errno, _("Can't open directory %s"), entry->path);
-      if (opt_chroot && dir_name)
+      if (opt_chroot != NULL && dir_name != NULL)
 	free (dir_name);
       return;
     }
@@ -717,13 +841,13 @@ search_dir (const struct dir_entry *entry)
 	  && direntry->d_type != DT_DIR)
 	continue;
       /* Does this file look like a shared library or is it a hwcap
-	 subdirectory?  The dynamic linker is also considered as
+	 subdirectory (if not already processing a glibc-hwcaps
+	 subdirectory)?  The dynamic linker is also considered as
 	 shared library.  */
-      if (((strncmp (direntry->d_name, "lib", 3) != 0
-	    && strncmp (direntry->d_name, "ld-", 3) != 0)
-	   || strstr (direntry->d_name, ".so") == NULL)
+      if (!_dl_is_dso (direntry->d_name)
 	  && (direntry->d_type == DT_REG
-	      || !is_hwcap_platform (direntry->d_name)))
+	      || (entry->hwcaps == NULL
+		  && !is_hwcap_platform (direntry->d_name))))
 	continue;
 
       size_t len = strlen (direntry->d_name);
@@ -748,7 +872,7 @@ search_dir (const struct dir_entry *entry)
 	    real_file_name = file_name;
 	}
       sprintf (file_name, "%s/%s", entry->path, direntry->d_name);
-      if (opt_chroot)
+      if (opt_chroot != NULL)
 	{
 	  len = strlen (dir_name) + strlen (direntry->d_name) + 2;
 	  if (len > real_file_name_len)
@@ -759,26 +883,26 @@ search_dir (const struct dir_entry *entry)
 	  sprintf (real_file_name, "%s/%s", dir_name, direntry->d_name);
 	}
 
-      struct stat64 lstat_buf;
+      struct stat lstat_buf;
       /* We optimize and try to do the lstat call only if needed.  */
       if (direntry->d_type != DT_UNKNOWN)
 	lstat_buf.st_mode = DTTOIF (direntry->d_type);
       else
-	if (__glibc_unlikely (lstat64 (real_file_name, &lstat_buf)))
+	if (__glibc_unlikely (lstat (real_file_name, &lstat_buf)))
 	  {
 	    error (0, errno, _("Cannot lstat %s"), file_name);
 	    continue;
 	  }
 
-      struct stat64 stat_buf;
-      int is_dir;
+      struct stat stat_buf;
+      bool is_dir;
       int is_link = S_ISLNK (lstat_buf.st_mode);
       if (is_link)
 	{
 	  /* In case of symlink, we check if the symlink refers to
 	     a directory. */
 	  char *target_name = real_file_name;
-	  if (opt_chroot)
+	  if (opt_chroot != NULL)
 	    {
 	      target_name = chroot_canon (opt_chroot, file_name);
 	      if (target_name == NULL)
@@ -788,7 +912,7 @@ search_dir (const struct dir_entry *entry)
 		  continue;
 		}
 	    }
-	  if (__glibc_unlikely (stat64 (target_name, &stat_buf)))
+	  if (__glibc_unlikely (stat (target_name, &stat_buf)))
 	    {
 	      if (opt_verbose)
 		error (0, errno, _("Cannot stat %s"), file_name);
@@ -796,8 +920,16 @@ search_dir (const struct dir_entry *entry)
 	      /* Remove stale symlinks.  */
 	      if (opt_link && strstr (direntry->d_name, ".so."))
 		unlink (real_file_name);
+
+	      if (opt_chroot != NULL)
+		free (target_name);
+
 	      continue;
 	    }
+
+	  if (opt_chroot != NULL)
+	    free (target_name);
+
 	  is_dir = S_ISDIR (stat_buf.st_mode);
 
 	  /* lstat_buf is later stored, update contents.  */
@@ -809,26 +941,22 @@ search_dir (const struct dir_entry *entry)
       else
 	is_dir = S_ISDIR (lstat_buf.st_mode);
 
-      if (is_dir && is_hwcap_platform (direntry->d_name))
+      /* No descending into subdirectories if this directory is a
+	 glibc-hwcaps subdirectory (which are not recursive).  */
+      if (entry->hwcaps == NULL
+	  && is_dir && is_hwcap_platform (direntry->d_name))
 	{
-	  /* Handle subdirectory later.  */
-	  struct dir_entry *new_entry;
-
-	  new_entry = xmalloc (sizeof (struct dir_entry));
-	  new_entry->path = xstrdup (file_name);
-	  new_entry->flag = entry->flag;
-	  new_entry->next = NULL;
 	  if (!is_link
 	      && direntry->d_type != DT_UNKNOWN
-	      && __builtin_expect (lstat64 (real_file_name, &lstat_buf), 0))
+	      && __builtin_expect (lstat (real_file_name, &lstat_buf), 0))
 	    {
 	      error (0, errno, _("Cannot lstat %s"), file_name);
-	      free (new_entry->path);
-	      free (new_entry);
 	      continue;
 	    }
-	  new_entry->ino = lstat_buf.st_ino;
-	  new_entry->dev = lstat_buf.st_dev;
+
+	  /* Handle subdirectory later.  */
+	  struct dir_entry *new_entry = new_sub_entry (entry, file_name,
+						       &lstat_buf);
 	  add_single_dir (new_entry, 0);
 	  continue;
 	}
@@ -836,7 +964,7 @@ search_dir (const struct dir_entry *entry)
 	continue;
 
       char *real_name;
-      if (opt_chroot && is_link)
+      if (opt_chroot != NULL && is_link)
 	{
 	  real_name = chroot_canon (opt_chroot, file_name);
 	  if (real_name == NULL)
@@ -849,10 +977,10 @@ search_dir (const struct dir_entry *entry)
       else
 	real_name = real_file_name;
 
-      /* Call lstat64 if not done yet.  */
+      /* Call lstat if not done yet.  */
       if (!is_link
 	  && direntry->d_type != DT_UNKNOWN
-	  && __builtin_expect (lstat64 (real_file_name, &lstat_buf), 0))
+	  && __builtin_expect (lstat (real_file_name, &lstat_buf), 0))
 	{
 	  error (0, errno, _("Cannot lstat %s"), file_name);
 	  continue;
@@ -861,18 +989,18 @@ search_dir (const struct dir_entry *entry)
       /* First search whether the auxiliary cache contains this
 	 library already and it's not changed.  */
       char *soname;
-      unsigned int osversion;
-      if (!search_aux_cache (&lstat_buf, &flag, &osversion, &soname))
+      unsigned int isa_level;
+      if (!search_aux_cache (&lstat_buf, &flag, &isa_level, &soname))
 	{
 	  if (process_file (real_name, file_name, direntry->d_name, &flag,
-			    &osversion, &soname, is_link, &lstat_buf))
+			    &isa_level, &soname, is_link, &lstat_buf))
 	    {
 	      if (real_name != real_file_name)
 		free (real_name);
 	      continue;
 	    }
 	  else if (opt_build_cache)
-	    add_to_aux_cache (&lstat_buf, flag, osversion, soname);
+	    add_to_aux_cache (&lstat_buf, flag, isa_level, soname);
 	}
 
       if (soname == NULL)
@@ -977,7 +1105,7 @@ search_dir (const struct dir_entry *entry)
 		  free (dlib_ptr->name);
 		  dlib_ptr->name = xstrdup (direntry->d_name);
 		  dlib_ptr->is_link = is_link;
-		  dlib_ptr->osversion = osversion;
+		  dlib_ptr->isa_level = isa_level;
 		}
 	      /* Don't add this library, abort loop.  */
 	      /* Also free soname, since it's dynamically allocated.  */
@@ -993,7 +1121,7 @@ search_dir (const struct dir_entry *entry)
 	  dlib_ptr->soname = soname;
 	  dlib_ptr->flag = flag;
 	  dlib_ptr->is_link = is_link;
-	  dlib_ptr->osversion = osversion;
+	  dlib_ptr->isa_level = isa_level;
 	  /* Add at head of list.  */
 	  dlib_ptr->next = dlibs;
 	  dlibs = dlib_ptr;
@@ -1007,13 +1135,31 @@ search_dir (const struct dir_entry *entry)
   struct dlib_entry *dlib_ptr;
   for (dlib_ptr = dlibs; dlib_ptr != NULL; dlib_ptr = dlib_ptr->next)
     {
-      /* Don't create links to links.  */
-      if (dlib_ptr->is_link == 0)
-	create_links (dir_name, entry->path, dlib_ptr->name,
-		      dlib_ptr->soname);
+      /* The cached file name is the soname for non-glibc-hwcaps
+	 subdirectories (relying on symbolic links; this helps with
+	 library updates that change the file name), and the actual
+	 file for glibc-hwcaps subdirectories.  */
+      const char *filename;
+      if (entry->hwcaps == NULL)
+	{
+	  /* Don't create links to links.  */
+	  if (dlib_ptr->is_link == 0)
+	    create_links (dir_name, entry->path, dlib_ptr->name,
+			  dlib_ptr->soname);
+	  filename = dlib_ptr->soname;
+	}
+      else
+	{
+	  /* Do not create links in glibc-hwcaps subdirectories, but
+	     still log the cache addition.  */
+	  if (opt_verbose)
+	    printf ("\t%s -> %s\n", dlib_ptr->soname, dlib_ptr->name);
+	  filename = dlib_ptr->name;
+	}
       if (opt_build_cache)
-	add_to_cache (entry->path, dlib_ptr->soname, dlib_ptr->flag,
-		      dlib_ptr->osversion, hwcap);
+	add_to_cache (entry->path, filename, dlib_ptr->soname,
+		      dlib_ptr->flag, dlib_ptr->isa_level, hwcap,
+		      entry->hwcaps);
     }
 
   /* Free all resources.  */
@@ -1026,7 +1172,7 @@ search_dir (const struct dir_entry *entry)
       free (dlib_ptr);
     }
 
-  if (opt_chroot && dir_name)
+  if (opt_chroot != NULL && dir_name != NULL)
     free (dir_name);
 }
 
@@ -1128,54 +1274,9 @@ Warning: ignoring configuration file that cannot be opened: %s"),
 	      parse_conf_include (filename, lineno, do_chroot, dir);
 	}
       else if (!strncasecmp (cp, "hwcap", 5) && isblank (cp[5]))
-	{
-	  cp += 6;
-	  char *p, *name = NULL;
-	  unsigned long int n = strtoul (cp, &cp, 0);
-	  if (cp != NULL && isblank (*cp))
-	    while ((p = strsep (&cp, " \t")) != NULL)
-	      if (p[0] != '\0')
-		{
-		  if (name == NULL)
-		    name = p;
-		  else
-		    {
-		      name = NULL;
-		      break;
-		    }
-		}
-	  if (name == NULL)
-	    {
-	      error (EXIT_FAILURE, 0, _("%s:%u: bad syntax in hwcap line"),
-		     filename, lineno);
-	      break;
-	    }
-	  if (n >= (64 - _DL_FIRST_EXTRA))
-	    error (EXIT_FAILURE, 0,
-		   _("%s:%u: hwcap index %lu above maximum %u"),
-		   filename, lineno, n, 64 - _DL_FIRST_EXTRA - 1);
-	  if (hwcap_extra[n] == NULL)
-	    {
-	      for (unsigned long int h = 0; h < (64 - _DL_FIRST_EXTRA); ++h)
-		if (hwcap_extra[h] != NULL && !strcmp (name, hwcap_extra[h]))
-		  error (EXIT_FAILURE, 0,
-			 _("%s:%u: hwcap index %lu already defined as %s"),
-			 filename, lineno, h, name);
-	      hwcap_extra[n] = xstrdup (name);
-	    }
-	  else
-	    {
-	      if (strcmp (name, hwcap_extra[n]))
-		error (EXIT_FAILURE, 0,
-		       _("%s:%u: hwcap index %lu already defined as %s"),
-		       filename, lineno, n, hwcap_extra[n]);
-	      if (opt_verbose)
-		error (0, 0, _("%s:%u: duplicate hwcap %lu %s"),
-		       filename, lineno, n, name);
-	    }
-	}
+	error (0, 0, _("%s:%u: hwcap directive ignored"), filename, lineno);
       else
-	add_dir (cp);
+	add_dir_1 (cp, filename, lineno);
     }
   while (!feof_unlocked (file));
 
@@ -1190,7 +1291,7 @@ static void
 parse_conf_include (const char *config_file, unsigned int lineno,
 		    bool do_chroot, const char *pattern)
 {
-  if (opt_chroot && pattern[0] != '/')
+  if (opt_chroot != NULL && pattern[0] != '/')
     error (EXIT_FAILURE, 0,
 	   _("need absolute file name for configuration file when using -r"));
 
@@ -1283,18 +1384,12 @@ main (int argc, char **argv)
 		 _("relative path `%s' used to build cache"),
 		 argv[i]);
 	else
-	  add_dir (argv[i]);
+	  add_dir_1 (argv[i], "<cmdline>", 0);
     }
-
-  /* The last entry in hwcap_extra is reserved for the "tls" pseudo-hwcap which
-     indicates support for TLS.  This pseudo-hwcap is only used by old versions
-     under which TLS support was optional.  The entry is no longer needed, but
-     must remain for compatibility.  */
-  hwcap_extra[63 - _DL_FIRST_EXTRA] = "tls";
 
   set_hwcap ();
 
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     {
       /* Normalize the path a bit, we might need it for printing later.  */
       char *endp = rawmemchr (opt_chroot, '\0');
@@ -1304,7 +1399,7 @@ main (int argc, char **argv)
       if (endp == opt_chroot)
 	opt_chroot = NULL;
 
-      if (opt_chroot)
+      if (opt_chroot != NULL)
 	{
 	  /* It is faster to use chroot if we can.  */
 	  if (!chroot (opt_chroot))
@@ -1327,7 +1422,7 @@ main (int argc, char **argv)
 
   if (opt_print_cache)
     {
-      if (opt_chroot)
+      if (opt_chroot != NULL)
 	{
 	  char *p = chroot_canon (opt_chroot, cache_file);
 	  if (p == NULL)
@@ -1336,12 +1431,12 @@ main (int argc, char **argv)
 	  cache_file = p;
 	}
       print_cache (cache_file);
-      if (opt_chroot)
+      if (opt_chroot != NULL)
 	free (cache_file);
       exit (0);
     }
 
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     {
       /* Canonicalize the directory name of cache_file, not cache_file,
 	 because we'll rename a temporary cache file to it.  */
@@ -1390,7 +1485,7 @@ main (int argc, char **argv)
     }
 
   const char *aux_cache_file = _PATH_LDCONFIG_AUX_CACHE;
-  if (opt_chroot)
+  if (opt_chroot != NULL)
     aux_cache_file = chroot_canon (opt_chroot, aux_cache_file);
 
   if (! opt_ignore_aux_cache && aux_cache_file)

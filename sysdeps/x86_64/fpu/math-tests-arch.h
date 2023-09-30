@@ -1,5 +1,5 @@
 /* Runtime architecture check for math tests. x86_64 version.
-   Copyright (C) 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2014-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <cpu-features.h>
+#include <sys/platform/x86.h>
 
 #if defined REQUIRE_AVX
 
@@ -24,7 +24,7 @@
 # define CHECK_ARCH_EXT                                        \
   do                                                           \
     {                                                          \
-      if (!HAS_ARCH_FEATURE (AVX_Usable)) return;              \
+      if (!CPU_FEATURE_ACTIVE (AVX)) return;                   \
     }                                                          \
   while (0)
 
@@ -34,7 +34,7 @@
 # define CHECK_ARCH_EXT                                        \
   do                                                           \
     {                                                          \
-      if (!HAS_ARCH_FEATURE (AVX2_Usable)) return;             \
+      if (!CPU_FEATURE_ACTIVE (AVX2)) return;                  \
     }                                                          \
   while (0)
 
@@ -44,7 +44,7 @@
 # define CHECK_ARCH_EXT                                        \
   do                                                           \
     {                                                          \
-      if (!HAS_ARCH_FEATURE (AVX512F_Usable)) return;          \
+      if (!CPU_FEATURE_ACTIVE (AVX512F)) return;               \
     }                                                          \
   while (0)
 

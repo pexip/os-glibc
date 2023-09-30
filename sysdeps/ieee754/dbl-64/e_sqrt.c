@@ -1,7 +1,7 @@
 /*
  * IBM Accurate Mathematical Library
  * written by International Business Machines Corp.
- * Copyright (C) 2001-2020 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2022 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,12 +35,12 @@
 #include "endian.h"
 #include "mydefs.h"
 #include <dla.h>
-#include "MathLib.h"
 #include "root.tbl"
 #include <math-barriers.h>
 #include <math_private.h>
 #include <fenv_private.h>
 #include <libm-alias-finite.h>
+#include <math-use-builtins.h>
 
 /*********************************************************************/
 /* An ultimate sqrt routine. Given an IEEE double machine number x   */
@@ -50,13 +50,17 @@
 double
 __ieee754_sqrt (double x)
 {
+#if USE_SQRT_BUILTIN
+  return __builtin_sqrt (x);
+#else
+  /* Use generic implementation.  */
   static const double
     rt0 = 9.99999999859990725855365213134618E-01,
     rt1 = 4.99999999495955425917856814202739E-01,
     rt2 = 3.75017500867345182581453026130850E-01,
     rt3 = 3.12523626554518656309172508769531E-01;
   static const double big = 134217728.0;
-  double y, t, del, res, res1, hy, z, zz, p, hx, tx, ty, s;
+  double y, t, del, res, res1, hy, z, zz, s;
   mynumber a, c = { { 0, 0 } };
   int4 k;
 
@@ -84,7 +88,7 @@ __ieee754_sqrt (double x)
       else
 	{
 	  res1 = res + 1.5 * ((y - res) + del);
-	  EMULV (res, res1, z, zz, p, hx, tx, hy, ty); /* (z+zz)=res*res1 */
+	  EMULV (res, res1, z, zz); /* (z+zz)=res*res1 */
 	  res = ((((z - s) + zz) < 0) ? max (res, res1) :
 					min (res, res1));
 	  ret = res * c.x;
@@ -138,6 +142,7 @@ __ieee754_sqrt (double x)
 	return (x - x) / (x - x); /* sqrt(-ve)=sNaN */
       return 0x1p-256 * __ieee754_sqrt (x * 0x1p512);
     }
+#endif /* ! USE_SQRT_BUILTIN  */
 }
 #ifndef __ieee754_sqrt
 libm_alias_finite (__ieee754_sqrt, __sqrt)

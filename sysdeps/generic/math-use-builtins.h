@@ -1,5 +1,5 @@
 /* Using math gcc builtins instead of generic implementation.  Generic version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,41 +23,19 @@
 
 /* Define these macros to 1 to use __builtin_xyz instead of the
    generic implementation.  */
-#define USE_NEARBYINT_BUILTIN 0
-#define USE_NEARBYINTF_BUILTIN 0
-#define USE_NEARBYINTL_BUILTIN 0
-#define USE_NEARBYINTF128_BUILTIN 0
 
-#define USE_RINT_BUILTIN 0
-#define USE_RINTF_BUILTIN 0
-#define USE_RINTL_BUILTIN 0
-#define USE_RINTF128_BUILTIN 0
+#include <math-use-builtins-nearbyint.h>
+#include <math-use-builtins-rint.h>
+#include <math-use-builtins-floor.h>
+#include <math-use-builtins-ceil.h>
+#include <math-use-builtins-trunc.h>
+#include <math-use-builtins-round.h>
+#include <math-use-builtins-roundeven.h>
+#include <math-use-builtins-copysign.h>
+#include <math-use-builtins-sqrt.h>
+#include <math-use-builtins-fma.h>
+#include <math-use-builtins-fmax.h>
+#include <math-use-builtins-fmin.h>
+#include <math-use-builtins-fabs.h>
 
-#define USE_FLOOR_BUILTIN 0
-#define USE_FLOORF_BUILTIN 0
-#define USE_FLOORL_BUILTIN 0
-#define USE_FLOORF128_BUILTIN 0
-
-#define USE_CEIL_BUILTIN 0
-#define USE_CEILF_BUILTIN 0
-#define USE_CEILL_BUILTIN 0
-#define USE_CEILF128_BUILTIN 0
-
-#define USE_TRUNC_BUILTIN 0
-#define USE_TRUNCF_BUILTIN 0
-#define USE_TRUNCL_BUILTIN 0
-#define USE_TRUNCF128_BUILTIN 0
-
-#define USE_ROUND_BUILTIN 0
-#define USE_ROUNDF_BUILTIN 0
-#define USE_ROUNDL_BUILTIN 0
-#define USE_ROUNDF128_BUILTIN 0
-
-#define USE_COPYSIGNL_BUILTIN 1
-#if __GNUC_PREREQ (7, 0)
-# define USE_COPYSIGNF128_BUILTIN 1
-#else
-# define USE_COPYSIGNF128_BUILTIN 0
-#endif
-
-#endif /* math-use-builtins.h */
+#endif /* MATH_USE_BUILTINS_H  */

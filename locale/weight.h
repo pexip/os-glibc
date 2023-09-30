@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Ulrich Drepper, <drepper@cygnus.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +27,7 @@ findidx (const int32_t *table,
 	 const unsigned char *extra,
 	 const unsigned char **cpp, size_t len)
 {
-  int_fast32_t i = table[*(*cpp)++];
+  int32_t i = table[*(*cpp)++];
   const unsigned char *cp;
   const unsigned char *usrc;
 

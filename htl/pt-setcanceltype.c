@@ -1,5 +1,5 @@
 /* Set the cancel type for the calling thread.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,4 +43,4 @@ __pthread_setcanceltype (int type, int *oldtype)
   return 0;
 }
 
-strong_alias (__pthread_setcanceltype, pthread_setcanceltype);
+weak_alias (__pthread_setcanceltype, pthread_setcanceltype);

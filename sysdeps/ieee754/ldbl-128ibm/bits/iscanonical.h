@@ -1,5 +1,5 @@
 /* Define iscanonical macro.  ldbl-128ibm version.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 # error "Never use <bits/iscanonical.h> directly; include <math.h> instead."
 #endif
 
-#ifdef __NO_LONG_DOUBLE_MATH
+#if defined (__NO_LONG_DOUBLE_MATH) || __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI == 1
 # define iscanonical(x) ((void) (__typeof (x)) (x), 1)
 #else
 extern int __iscanonicall (long double __x)

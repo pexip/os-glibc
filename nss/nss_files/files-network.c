@@ -1,5 +1,5 @@
 /* Networks file parser in nss_files module.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdint.h>
+#include <nss.h>
 
 #define ENTNAME		netent
 #define DATABASE	"networks"
@@ -68,7 +69,7 @@ LINE_PARSER
        *cp = '\0';
        addr = newp;
      }
-   result->n_net = inet_network (addr);
+   result->n_net = __inet_network (addr);
    result->n_addrtype = AF_INET;
 
  })

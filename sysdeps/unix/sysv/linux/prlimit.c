@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,11 +15,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
 #include <sys/resource.h>
-#include <sys/syscall.h>
+#include <sysdep.h>
 
-
+/* For ports that support the 64-bit ABI we do not need to define prlimit
+   and instead prlimit aliases to prlimit64.  See the prlimit64
+   implementation.  */
+#if !__RLIM_T_MATCHES_RLIM64_T
 int
 prlimit (__pid_t pid, enum __rlimit_resource resource,
 	 const struct rlimit *new_rlimit, struct rlimit *old_rlimit)
@@ -75,3 +77,4 @@ prlimit (__pid_t pid, enum __rlimit_resource resource,
 
   return res;
 }
+#endif /* __RLIM_T_MATCHES_RLIM64_T  */

@@ -57,12 +57,13 @@ Fix it.
 
 --- a/hurd/Makefile
 +++ b/hurd/Makefile
-@@ -55,6 +55,7 @@
+@@ -56,6 +56,7 @@
  	   ports-get ports-set hurdports hurdmsg \
  	   errno-loc \
  	   hurdlock \
 +	   sysvshm \
- 	   $(sig) $(dtable) $(inlines) port-cleanup report-wait xattr
+ 	   $(sig) $(dtable) $(inlines) \
+ 	   fd-cleanup port-cleanup report-wait xattr
  sig	= hurdsig hurdfault siginfo hurd-raise preempt-sig \
  	  trampoline longjmp-ts catch-exc exc2signal hurdkill sigunwind \
 --- /dev/null
@@ -115,7 +116,7 @@ Fix it.
 +static struct sysvshm_attach *attach_list;
 +
 +/* A lock to protect the linked list of shared memory attachments.  */
-+static unsigned int sysvshm_lock = LLL_INITIALIZER;
++static unsigned int sysvshm_lock = LLL_LOCK_INITIALIZER;
 +
 +
 +/* Adds a segment attachment.  */
@@ -251,7 +252,7 @@ Fix it.
 +  struct stat64 st;
 +  key_t key;
 +
-+  if (__xstat64 (_STAT_VER, pathname, &st) < 0)
++  if (__stat64 (pathname, &st) < 0)
 +    return (key_t) -1;
 +
 +  key = ((st.st_dev & 0xff) | ((proj_id & 0xff) << 8)

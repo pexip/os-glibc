@@ -1,5 +1,5 @@
 /* Internal definitions for pthreads library.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,11 +32,12 @@
   mach_msg_header_t wakeupmsg;
 
 extern __thread struct __pthread *___pthread_self;
+#ifdef DEBUG
 #define _pthread_self()                                            \
 	({                                                         \
 	  struct __pthread *thread;                                \
 	                                                           \
-	  assert (__pthread_threads);                              \
+	  assert (GL (dl_pthread_threads));                        \
 	  thread = ___pthread_self;                                \
 	                                                           \
 	  assert (thread);                                         \
@@ -46,6 +47,9 @@ extern __thread struct __pthread *___pthread_self;
                      ok; }));                                      \
           thread;                                                  \
          })
+#else
+#define _pthread_self() ___pthread_self
+#endif
 
 extern inline void
 __attribute__ ((__always_inline__))

@@ -1,5 +1,5 @@
 /* wait4 -- wait for process to change state.  Linux/Alpha/tv32 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,13 +27,13 @@
 
 pid_t
 attribute_compat_text_section
-__wait4_tv32 (pid_t pid, int *status, int options, struct rusage32 *usage32)
+__wait4_tv32 (pid_t pid, int *status, int options, struct __rusage32 *usage32)
 {
-  struct rusage usage64;
-  pid_t child = __wait4 (pid, status, options, &usage64);
+  struct rusage usage;
+  pid_t child = __wait4 (pid, status, options, &usage);
 
   if (child >= 0 && usage32 != NULL)
-    rusage64_to_rusage32 (usage32, &usage64);
+    rusage64_to_rusage32 (&usage, usage32);
   return child;
 }
 

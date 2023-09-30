@@ -1,4 +1,13 @@
 #ifndef _WCHAR_H
+
+/* Workaround PR90731 with GCC 9 when using ldbl redirects in C++.  */
+# include <bits/floatn.h>
+# if defined __cplusplus && __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI == 1
+#  if __GNUC_PREREQ (9, 0) && !__GNUC_PREREQ (9, 3)
+#   pragma GCC system_header
+#  endif
+# endif
+
 # include <wcsmbs/wchar.h>
 # ifndef _ISOMAC
 
@@ -64,7 +73,7 @@ libc_hidden_proto (__wcstoul_internal)
 libc_hidden_proto (__wcstoull_internal)
 libc_hidden_proto (wcstof)
 libc_hidden_proto (wcstod)
-libc_hidden_proto (wcstold)
+libc_hidden_ldbl_proto (wcstold)
 libc_hidden_proto (wcstol)
 libc_hidden_proto (wcstoll)
 libc_hidden_proto (wcstoul)
@@ -163,6 +172,10 @@ libc_hidden_proto (__mbrtowc)
 libc_hidden_proto (__mbrlen)
 extern size_t __wcrtomb (char *__restrict __s, wchar_t __wc,
 			 __mbstate_t *__restrict __ps) attribute_hidden;
+extern size_t __wcrtomb_internal (char *__restrict __s, wchar_t __wc,
+				  __mbstate_t *__restrict __ps,
+				  size_t __s_size)
+     attribute_hidden;
 extern size_t __mbsrtowcs (wchar_t *__restrict __dst,
 			   const char **__restrict __src,
 			   size_t __len, __mbstate_t *__restrict __ps)

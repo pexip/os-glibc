@@ -1,6 +1,5 @@
-/* Copyright (C) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Zack Weinberg <zack@rabi.phys.columbia.edu>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,6 +37,7 @@ __ptsname_r (int fd __attribute__ ((unused)),
   __set_errno (ENOSYS);
   return ENOSYS;
 }
+libc_hidden_def (__ptsname_r)
 weak_alias (__ptsname_r, ptsname_r)
 
 stub_warning(ptsname)

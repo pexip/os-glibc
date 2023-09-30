@@ -1,5 +1,5 @@
 /* _hurd_socket_server - Find the server for a socket domain.
-   Copyright (C) 1991-2020 Free Software Foundation, Inc.
+   Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,8 +23,9 @@
 #include <hurd/paths.h>
 #include <stdio.h>
 #include <_itoa.h>
-#include <cthreads.h>		/* For `struct mutex'.  */
+#include <lock-intern.h>	/* For `struct mutex'.  */
 #include "hurdmalloc.h"		/* XXX */
+#include "set-hooks.h"
 
 static struct mutex lock;
 
@@ -52,6 +53,7 @@ _hurd_socket_server (int domain, int dead)
       return MACH_PORT_NULL;
     }
 
+retry:
   HURD_CRITICAL_BEGIN;
   __mutex_lock (&lock);
 
@@ -101,11 +103,14 @@ _hurd_socket_server (int domain, int dead)
 
   __mutex_unlock (&lock);
   HURD_CRITICAL_END;
+  if (server == MACH_PORT_NULL && errno == EINTR)
+    /* Got a signal while inside an RPC of the critical section, retry again */
+    goto retry;
 
   return server;
 }
 
-static void
+static void attribute_used_retain
 init (void)
 {
   int i;
@@ -114,7 +119,5 @@ init (void)
 
   for (i = 0; i < max_domain; ++i)
     servers[i] = MACH_PORT_NULL;
-
-  (void) &init;			/* Avoid "defined but not used" warning.  */
 }
-text_set_element (_hurd_preinit_hook, init);
+SET_RELHOOK (_hurd_preinit_hook, init);

@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,10 +17,10 @@
 
 #include <errno.h>
 #include <pthreadP.h>
-
+#include <shlib-compat.h>
 
 int
-__pthread_mutexattr_settype (pthread_mutexattr_t *attr, int kind)
+___pthread_mutexattr_settype (pthread_mutexattr_t *attr, int kind)
 {
   struct pthread_mutexattr *iattr;
 
@@ -39,6 +38,21 @@ __pthread_mutexattr_settype (pthread_mutexattr_t *attr, int kind)
 
   return 0;
 }
-weak_alias (__pthread_mutexattr_settype, pthread_mutexattr_setkind_np)
-weak_alias (__pthread_mutexattr_settype, pthread_mutexattr_settype)
-hidden_def (__pthread_mutexattr_settype)
+versioned_symbol (libc, ___pthread_mutexattr_settype,
+                  pthread_mutexattr_settype, GLIBC_2_34);
+libc_hidden_ver (___pthread_mutexattr_settype, __pthread_mutexattr_settype)
+#ifndef SHARED
+strong_alias (___pthread_mutexattr_settype, __pthread_mutexattr_settype)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_mutexattr_settype,
+               pthread_mutexattr_setkind_np, GLIBC_2_0);
+compat_symbol (libpthread, ___pthread_mutexattr_settype,
+               __pthread_mutexattr_settype, GLIBC_2_0);
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_mutexattr_settype,
+               pthread_mutexattr_settype, GLIBC_2_1);
+#endif

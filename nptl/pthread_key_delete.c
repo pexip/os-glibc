@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,10 +18,10 @@
 #include <errno.h>
 #include "pthreadP.h"
 #include <atomic.h>
-
+#include <shlib-compat.h>
 
 int
-__pthread_key_delete (pthread_key_t key)
+___pthread_key_delete (pthread_key_t key)
 {
   int result = EINVAL;
 
@@ -39,4 +38,14 @@ __pthread_key_delete (pthread_key_t key)
 
   return result;
 }
-weak_alias (__pthread_key_delete, pthread_key_delete)
+versioned_symbol (libc, ___pthread_key_delete, pthread_key_delete,
+		  GLIBC_2_34);
+libc_hidden_ver (___pthread_key_delete, __pthread_key_delete)
+#ifndef SHARED
+strong_alias (___pthread_key_delete, __pthread_key_delete)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_key_delete, pthread_key_delete,
+	       GLIBC_2_0);
+#endif

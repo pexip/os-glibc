@@ -1,6 +1,5 @@
-/* Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gnu.ai.mit.edu>, August 1995.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,10 +21,10 @@
 key_t
 ftok (const char *pathname, int proj_id)
 {
-  struct stat64 st;
+  struct __stat64_t64 st;
   key_t key;
 
-  if (__xstat64 (_STAT_VER, pathname, &st) < 0)
+  if (__stat64_time64 (pathname, &st) < 0)
     return (key_t) -1;
 
   key = ((st.st_ino & 0xffff) | ((st.st_dev & 0xff) << 16)

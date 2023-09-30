@@ -1,5 +1,5 @@
 /* Register destructors for C++ TLS variables declared with thread_local.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@
    is not very different from a case where __call_tls_dtors is called after
    _dl_close_worker on the DSO and hence is an accepted execution.  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <ldsodefs.h>
 
@@ -104,6 +105,9 @@ __cxa_thread_atexit_impl (dtor_func func, void *obj, void *dso_symbol)
 
   /* Prepend.  */
   struct dtor_list *new = calloc (1, sizeof (struct dtor_list));
+  if (__glibc_unlikely (new == NULL))
+    __libc_fatal ("Fatal glibc error: failed to register TLS destructor: "
+		  "out of memory\n");
   new->func = func;
   new->obj = obj;
   new->next = tls_dtor_list;

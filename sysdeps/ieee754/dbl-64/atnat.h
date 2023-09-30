@@ -1,7 +1,6 @@
 /*
  * IBM Accurate Mathematical Library
- * Written by International Business Machines Corp.
- * Copyright (C) 2001-2020 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2022 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +28,7 @@
 #define M 4
 
 #ifdef BIG_ENDI
-  static const number
+  static const mynumber
   /* polynomial I */
 /**/ d3             = {{0xbfd55555, 0x55555555} }, /* -0.333... */
 /**/ d5             = {{0x3fc99999, 0x999997fd} }, /*  0.199... */
@@ -79,7 +78,7 @@
 
 #else
 #ifdef LITTLE_ENDI
-  static const number
+  static const mynumber
   /* polynomial I */
 /**/ d3             = {{0x55555555, 0xbfd55555} }, /* -0.333... */
 /**/ d5             = {{0x999997fd, 0x3fc99999} }, /*  0.199... */

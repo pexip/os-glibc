@@ -1,5 +1,5 @@
 /* Test asinh.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 
 static const struct test_f_f_data asinh_test_data[] =
   {
-    TEST_f_f (asinh, plus_infty, plus_infty, ERRNO_UNCHANGED|NO_TEST_INLINE),
-    TEST_f_f (asinh, minus_infty, minus_infty, ERRNO_UNCHANGED|NO_TEST_INLINE),
+    TEST_f_f (asinh, plus_infty, plus_infty, ERRNO_UNCHANGED),
+    TEST_f_f (asinh, minus_infty, minus_infty, ERRNO_UNCHANGED),
     TEST_f_f (asinh, qnan_value, qnan_value, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_f (asinh, -qnan_value, qnan_value, NO_INEXACT_EXCEPTION|ERRNO_UNCHANGED),
     TEST_f_f (asinh, snan_value, qnan_value, INVALID_EXCEPTION),

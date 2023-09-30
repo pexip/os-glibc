@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,14 +17,24 @@
 
 #include "pthreadP.h"
 #include <stap-probe.h>
-
+#include <shlib-compat.h>
 
 int
-__pthread_rwlock_destroy (pthread_rwlock_t *rwlock)
+___pthread_rwlock_destroy (pthread_rwlock_t *rwlock)
 {
   LIBC_PROBE (rwlock_destroy, 1, rwlock);
 
   /* Nothing to be done.  For now.  */
   return 0;
 }
-strong_alias (__pthread_rwlock_destroy, pthread_rwlock_destroy)
+versioned_symbol (libc, ___pthread_rwlock_destroy, pthread_rwlock_destroy,
+                  GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_rwlock_destroy, pthread_rwlock_destroy,
+               GLIBC_2_1);
+#endif
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_rwlock_destroy, __pthread_rwlock_destroy,
+               GLIBC_2_2);
+#endif

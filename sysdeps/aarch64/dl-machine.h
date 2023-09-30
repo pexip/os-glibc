@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -24,7 +24,9 @@
 #include <sysdep.h>
 #include <tls.h>
 #include <dl-tlsdesc.h>
+#include <dl-static-tls.h>
 #include <dl-irel.h>
+#include <dl-machine-rel.h>
 #include <cpu-features.c>
 
 /* Translate a processor specific dynamic tag to the index in l_info array.  */
@@ -37,35 +39,30 @@ elf_machine_matches_host (const ElfW(Ehdr) *ehdr)
   return ehdr->e_machine == EM_AARCH64;
 }
 
-/* Return the link-time address of _DYNAMIC.  Conveniently, this is the
-   first element of the GOT. */
-static inline ElfW(Addr) __attribute__ ((unused))
-elf_machine_dynamic (void)
-{
-  extern const ElfW(Addr) _GLOBAL_OFFSET_TABLE_[] attribute_hidden;
-  return _GLOBAL_OFFSET_TABLE_[0];
-}
-
 /* Return the run-time load address of the shared object.  */
 
 static inline ElfW(Addr) __attribute__ ((unused))
 elf_machine_load_address (void)
 {
-  /* To figure out the load address we use the definition that for any symbol:
-     dynamic_addr(symbol) = static_addr(symbol) + load_addr
+  extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
+  return (ElfW(Addr)) &__ehdr_start;
+}
 
-    _DYNAMIC sysmbol is used here as its link-time address stored in
-    the special unrelocated first GOT entry.  */
+/* Return the link-time address of _DYNAMIC.  */
 
-    extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
-    return (ElfW(Addr)) &_DYNAMIC - elf_machine_dynamic ();
+static inline ElfW(Addr) __attribute__ ((unused))
+elf_machine_dynamic (void)
+{
+  extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
+  return (ElfW(Addr)) _DYNAMIC - elf_machine_load_address ();
 }
 
 /* Set up the loaded object described by L so its unrelocated PLT
    entries will jump to the on-demand fixup code in dl-runtime.c.  */
 
 static inline int __attribute__ ((unused))
-elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+			   int lazy, int profile)
 {
   if (l->l_info[DT_JMPREL] && lazy)
     {
@@ -108,93 +105,18 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
   return lazy;
 }
 
-/* Initial entry point for the dynamic linker. The C function
-   _dl_start is the real entry point, its return value is the user
-   program's entry point */
-#ifdef __LP64__
-# define RTLD_START RTLD_START_1 ("x", "3", "sp")
-#else
-# define RTLD_START RTLD_START_1 ("w", "2", "wsp")
-#endif
-
-
-#define RTLD_START_1(PTR, PTR_SIZE_LOG, PTR_SP) asm ("\
-.text									\n\
-.globl _start								\n\
-.type _start, %function							\n\
-.globl _dl_start_user							\n\
-.type _dl_start_user, %function						\n\
-_start:									\n\
-	mov	" PTR "0, " PTR_SP "					\n\
-	bl	_dl_start						\n\
-	// returns user entry point in x0				\n\
-	mov	x21, x0							\n\
-_dl_start_user:								\n\
-	// get the original arg count					\n\
-	ldr	" PTR "1, [sp]						\n\
-	// get the argv address						\n\
-	add	" PTR "2, " PTR_SP ", #(1<<"  PTR_SIZE_LOG ")		\n\
-	// get _dl_skip_args to see if we were				\n\
-	// invoked as an executable					\n\
-	adrp	x4, _dl_skip_args					\n\
-        ldr	w4, [x4, #:lo12:_dl_skip_args]				\n\
-	// do we need to adjust argc/argv				\n\
-        cmp	w4, 0							\n\
-	beq	.L_done_stack_adjust					\n\
-	// subtract _dl_skip_args from original arg count		\n\
-	sub	" PTR "1, " PTR "1, " PTR "4				\n\
-	// store adjusted argc back to stack				\n\
-	str	" PTR "1, [sp]						\n\
-	// find the first unskipped argument				\n\
-	mov	" PTR "3, " PTR "2					\n\
-	add	" PTR "4, " PTR "2, " PTR "4, lsl #" PTR_SIZE_LOG "	\n\
-	// shuffle argv down						\n\
-1:	ldr	" PTR "5, [x4], #(1<<"  PTR_SIZE_LOG ")			\n\
-	str	" PTR "5, [x3], #(1<<"  PTR_SIZE_LOG ")			\n\
-	cmp	" PTR "5, #0						\n\
-	bne	1b							\n\
-	// shuffle envp down						\n\
-1:	ldr	" PTR "5, [x4], #(1<<"  PTR_SIZE_LOG ")			\n\
-	str	" PTR "5, [x3], #(1<<"  PTR_SIZE_LOG ")			\n\
-	cmp	" PTR "5, #0						\n\
-	bne	1b							\n\
-	// shuffle auxv down						\n\
-1:	ldp	" PTR "0, " PTR "5, [x4, #(2<<"  PTR_SIZE_LOG ")]!	\n\
-	stp	" PTR "0, " PTR "5, [x3], #(2<<"  PTR_SIZE_LOG ")	\n\
-	cmp	" PTR "0, #0						\n\
-	bne	1b							\n\
-	// Update _dl_argv						\n\
-	adrp	x3, __GI__dl_argv					\n\
-	str	" PTR "2, [x3, #:lo12:__GI__dl_argv]			\n\
-.L_done_stack_adjust:							\n\
-	// compute envp							\n\
-	add	" PTR "3, " PTR "2, " PTR "1, lsl #" PTR_SIZE_LOG "	\n\
-	add	" PTR "3, " PTR "3, #(1<<"  PTR_SIZE_LOG ")		\n\
-	adrp	x16, _rtld_local					\n\
-        add	" PTR "16, " PTR "16, #:lo12:_rtld_local		\n\
-        ldr	" PTR "0, [x16]						\n\
-	bl	_dl_init						\n\
-	// load the finalizer function					\n\
-	adrp	x0, _dl_fini						\n\
-	add	" PTR "0, " PTR "0, #:lo12:_dl_fini			\n\
-	// jump to the user_s entry point				\n\
-	br      x21							\n\
-");
+/* In elf/rtld.c _dl_start should be global so dl-start.S can reference it.  */
+#define RTLD_START asm (".globl _dl_start");
 
 #define elf_machine_type_class(type)					\
-  ((((type) == AARCH64_R(JUMP_SLOT)					\
-     || (type) == AARCH64_R(TLS_DTPMOD)					\
-     || (type) == AARCH64_R(TLS_DTPREL)					\
-     || (type) == AARCH64_R(TLS_TPREL)					\
-     || (type) == AARCH64_R(TLSDESC)) * ELF_RTYPE_CLASS_PLT)		\
-   | (((type) == AARCH64_R(COPY)) * ELF_RTYPE_CLASS_COPY)		\
-   | (((type) == AARCH64_R(GLOB_DAT)) * ELF_RTYPE_CLASS_EXTERN_PROTECTED_DATA))
+  ((((type) == R_AARCH64_JUMP_SLOT ||					\
+     (type) == R_AARCH64_TLS_DTPMOD ||					\
+     (type) == R_AARCH64_TLS_DTPREL ||					\
+     (type) == R_AARCH64_TLS_TPREL ||					\
+     (type) == R_AARCH64_TLSDESC) * ELF_RTYPE_CLASS_PLT)		\
+   | (((type) == R_AARCH64_COPY) * ELF_RTYPE_CLASS_COPY))
 
 #define ELF_MACHINE_JMP_SLOT	AARCH64_R(JUMP_SLOT)
-
-/* AArch64 uses RELA not REL */
-#define ELF_MACHINE_NO_REL 1
-#define ELF_MACHINE_NO_RELA 0
 
 #define DL_PLATFORM_INIT dl_platform_init ()
 
@@ -240,10 +162,11 @@ elf_machine_plt_value (struct link_map *map,
 
 #ifdef RESOLVE_MAP
 
-auto inline void
+static inline void
 __attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
-		  const ElfW(Sym) *sym, const struct r_found_version *version,
+elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
+		  const ElfW(Rela) *reloc, const ElfW(Sym) *sym,
+		  const struct r_found_version *version,
 		  void *const reloc_addr_arg, int skip_ifunc)
 {
   ElfW(Addr) *const reloc_addr = reloc_addr_arg;
@@ -255,8 +178,11 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
       return;
   else
     {
+# ifndef RTLD_BOOTSTRAP
       const ElfW(Sym) *const refsym = sym;
-      struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
+# endif
+      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version,
+					      r_type);
       ElfW(Addr) value = SYMBOL_ADDRESS (sym_map, sym, true);
 
       if (sym != NULL
@@ -267,6 +193,18 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 
       switch (r_type)
 	{
+	case AARCH64_R(GLOB_DAT):
+	case AARCH64_R(JUMP_SLOT):
+	  *reloc_addr = value + reloc->r_addend;
+	  break;
+
+# ifndef RTLD_BOOTSTRAP
+	case AARCH64_R(ABS32):
+#  ifdef __LP64__
+	case AARCH64_R(ABS64):
+#  endif
+	  *reloc_addr = value + reloc->r_addend;
+	  break;
 	case AARCH64_R(COPY):
 	  if (sym == NULL)
 	      break;
@@ -286,30 +224,17 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 		  ? sym->st_size : refsym->st_size);
 	  break;
 
-	case AARCH64_R(RELATIVE):
-	case AARCH64_R(GLOB_DAT):
-	case AARCH64_R(JUMP_SLOT):
-	case AARCH64_R(ABS32):
-#ifdef __LP64__
-	case AARCH64_R(ABS64):
-#endif
-	  *reloc_addr = value + reloc->r_addend;
-	  break;
-
 	case AARCH64_R(TLSDESC):
 	  {
 	    struct tlsdesc volatile *td =
 	      (struct tlsdesc volatile *)reloc_addr;
-#ifndef RTLD_BOOTSTRAP
 	    if (! sym)
 	      {
 		td->arg = (void*)reloc->r_addend;
 		td->entry = _dl_tlsdesc_undefweak;
 	      }
 	    else
-#endif
 	      {
-#ifndef RTLD_BOOTSTRAP
 # ifndef SHARED
 		CHECK_STATIC_TLS (map, sym_map);
 # else
@@ -321,7 +246,6 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 		  }
 		else
 # endif
-#endif
 		  {
 		    td->arg = (void*)(sym->st_value + sym_map->l_tls_offset
 				      + reloc->r_addend);
@@ -332,14 +256,10 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 	  }
 
 	case AARCH64_R(TLS_DTPMOD):
-#ifdef RTLD_BOOTSTRAP
-	  *reloc_addr = 1;
-#else
 	  if (sym_map != NULL)
 	    {
 	      *reloc_addr = sym_map->l_tls_modid;
 	    }
-#endif
 	  break;
 
 	case AARCH64_R(TLS_DTPREL):
@@ -362,6 +282,7 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
 	    value = elf_ifunc_invoke (value);
 	  *reloc_addr = value;
 	  break;
+# endif /* !RTLD_BOOTSTRAP */
 
 	default:
 	  _dl_reloc_bad_type (map, r_type, 0);
@@ -370,7 +291,7 @@ elf_machine_rela (struct link_map *map, const ElfW(Rela) *reloc,
     }
 }
 
-inline void
+static inline void
 __attribute__ ((always_inline))
 elf_machine_rela_relative (ElfW(Addr) l_addr,
 			   const ElfW(Rela) *reloc,
@@ -380,9 +301,9 @@ elf_machine_rela_relative (ElfW(Addr) l_addr,
   *reloc_addr = l_addr + reloc->r_addend;
 }
 
-inline void
+static inline void
 __attribute__ ((always_inline))
-elf_machine_lazy_rel (struct link_map *map,
+elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
 		      ElfW(Addr) l_addr,
 		      const ElfW(Rela) *reloc,
 		      int skip_ifunc)
@@ -392,13 +313,6 @@ elf_machine_lazy_rel (struct link_map *map,
   /* Check for unexpected PLT reloc type.  */
   if (__builtin_expect (r_type == AARCH64_R(JUMP_SLOT), 1))
     {
-      if (map->l_mach.plt == 0)
-	{
-	  /* Prelinking.  */
-	  *reloc_addr += l_addr;
-	  return;
-	}
-
       if (__glibc_unlikely (map->l_info[DT_AARCH64 (VARIANT_PCS)] != NULL))
 	{
 	  /* Check the symbol table for variant PCS symbols.  */
@@ -416,13 +330,16 @@ elf_machine_lazy_rel (struct link_map *map,
 		    (const void *)D_PTR (map, l_info[VERSYMIDX (DT_VERSYM)]);
 		  version = &map->l_versions[vernum[symndx] & 0x7fff];
 		}
-	      elf_machine_rela (map, reloc, sym, version, reloc_addr,
+	      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
 				skip_ifunc);
 	      return;
 	    }
 	}
 
-      *reloc_addr = map->l_mach.plt;
+      if (map->l_mach.plt == 0)
+	*reloc_addr += l_addr;
+      else
+	*reloc_addr = map->l_mach.plt;
     }
   else if (__builtin_expect (r_type == AARCH64_R(TLSDESC), 1))
     {
@@ -440,7 +357,8 @@ elf_machine_lazy_rel (struct link_map *map,
 
       /* Always initialize TLS descriptors completely, because lazy
 	 initialization requires synchronization at every TLS access.  */
-      elf_machine_rela (map, reloc, sym, version, reloc_addr, skip_ifunc);
+      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
+			skip_ifunc);
     }
   else if (__glibc_unlikely (r_type == AARCH64_R(IRELATIVE)))
     {

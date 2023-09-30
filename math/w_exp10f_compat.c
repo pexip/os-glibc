@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,9 +27,9 @@
 
 #if LIBM_SVID_COMPAT
 float
-__exp10f (float x)
+__exp10f_compat (float x)
 {
-  float z = __ieee754_exp10f (x);
+  float z = __exp10f (x);
   if (__builtin_expect (!isfinite (z) || z == 0, 0)
       && isfinite (x) && _LIB_VERSION != _IEEE_)
     /* exp10f overflow (146) if x > 0, underflow (147) if x < 0.  */
@@ -38,9 +37,9 @@ __exp10f (float x)
 
   return z;
 }
-libm_alias_float (__exp10, exp10)
+compat_symbol (libm, __exp10f_compat, exp10f, GLIBC_2_1);
 # if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_27)
-strong_alias (__exp10f, __pow10f)
+strong_alias (__exp10f_compat, __pow10f)
 compat_symbol (libm, __pow10f, pow10f, GLIBC_2_1);
 # endif
 #endif

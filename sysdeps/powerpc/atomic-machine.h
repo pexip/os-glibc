@@ -1,7 +1,6 @@
 /* Atomic operations.  PowerPC Common version.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,23 +25,6 @@
  * as appropriate and which in turn include this file.
  */
 
-#include <stdint.h>
-
-typedef int32_t atomic32_t;
-typedef uint32_t uatomic32_t;
-typedef int_fast32_t atomic_fast32_t;
-typedef uint_fast32_t uatomic_fast32_t;
-
-typedef int64_t atomic64_t;
-typedef uint64_t uatomic64_t;
-typedef int_fast64_t atomic_fast64_t;
-typedef uint_fast64_t uatomic_fast64_t;
-
-typedef intptr_t atomicptr_t;
-typedef uintptr_t uatomicptr_t;
-typedef intmax_t atomic_max_t;
-typedef uintmax_t uatomic_max_t;
-
 /*
  * Powerpc does not have byte and halfword forms of load and reserve and
  * store conditional. So for powerpc we stub out the 8- and 16-bit forms.
@@ -53,14 +35,9 @@ typedef uintmax_t uatomic_max_t;
 #define __arch_compare_and_exchange_bool_16_acq(mem, newval, oldval) \
   (abort (), 0)
 
-#ifdef UP
-# define __ARCH_ACQ_INSTR	""
-# define __ARCH_REL_INSTR	""
-#else
-# define __ARCH_ACQ_INSTR	"isync"
-# ifndef __ARCH_REL_INSTR
-#  define __ARCH_REL_INSTR	"sync"
-# endif
+#define __ARCH_ACQ_INSTR	"isync"
+#ifndef __ARCH_REL_INSTR
+# define __ARCH_REL_INSTR	"sync"
 #endif
 
 #ifndef MUTEX_HINT_ACQ

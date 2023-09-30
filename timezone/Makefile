@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2020 Free Software Foundation, Inc.
+# Copyright (C) 1998-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ subdir	:= timezone
 include ../Makeconfig
 
 others	:= zdump zic
-tests	:= test-tz tst-timezone tst-tzset
+tests	:= test-tz tst-timezone tst-tzset tst-bz28707
 
 generated-dirs += testdata
 
@@ -32,7 +32,8 @@ generated += tzselect
 testdata = $(objpfx)testdata
 
 ifeq ($(enable-timezone-tools),yes)
-install-sbin := zic zdump
+install-sbin := zic
+install-bin := zdump
 install-bin-script = tzselect
 endif
 
@@ -84,10 +85,12 @@ $(objpfx)tst-timezone.out: $(addprefix $(testdata)/, \
 				       America/Sao_Paulo Asia/Tokyo \
 				       Europe/London)
 $(objpfx)tst-tzset.out: $(addprefix $(testdata)/XT, 1 2 3 4)
+$(objpfx)tst-bz28707.out: $(testdata)/XT5
 
 test-tz-ENV = TZDIR=$(testdata)
 tst-timezone-ENV = TZDIR=$(testdata)
 tst-tzset-ENV = TZDIR=$(testdata)
+tst-bz28707-ENV = TZDIR=$(testdata)
 
 # Note this must come second in the deps list for $(built-program-cmd) to work.
 zic-deps = $(objpfx)zic $(leapseconds) yearistype
@@ -121,9 +124,13 @@ $(testdata)/XT%: testdata/XT%
 	$(make-target-directory)
 	cp $< $@
 
+$(testdata)/XT5: testdata/gen-XT5.sh
+	$(make-target-directory)
+	$(SHELL) $< > $@.tmp
+	mv $@.tmp $@
+
 $(objpfx)tzselect: tzselect.ksh $(common-objpfx)config.make
-	sed -e 's|/bin/bash|$(BASH)|' \
-	    -e 's|TZDIR=[^}]*|TZDIR=$(zonedir)|' \
+	sed -e 's|TZDIR=[^}]*|TZDIR=$(zonedir)|' \
 	    -e '/TZVERSION=/s|see_Makefile|"$(version)"|' \
 	    -e '/PKGVERSION=/s|=.*|="$(PKGVERSION)"|' \
 	    -e '/REPORT_BUGS_TO=/s|=.*|="$(REPORT_BUGS_TO)"|' \

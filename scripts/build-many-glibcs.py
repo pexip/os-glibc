@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # Build many configurations of glibc.
-# Copyright (C) 2016-2020 Free Software Foundation, Inc.
+# Copyright (C) 2016-2022 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -31,6 +32,12 @@ testsuite.  Subsequent arguments name the versions of components to
 check out (<component>-<version), for 'checkout', or, for actions
 other than 'checkout' and 'bot-cycle', name configurations for which
 compilers or glibc are to be built.
+
+The 'list-compilers' command prints the name of each available
+compiler configuration, without building anything.  The 'list-glibcs'
+command prints the name of each glibc compiler configuration, followed
+by the space, followed by the name of the compiler configuration used
+for building this glibc variant.
 
 """
 
@@ -80,7 +87,7 @@ class Context(object):
     """The global state associated with builds in a given directory."""
 
     def __init__(self, topdir, parallelism, keep, replace_sources, strip,
-                 full_gcc, action):
+                 full_gcc, action, shallow=False):
         """Initialize the context."""
         self.topdir = topdir
         self.parallelism = parallelism
@@ -88,6 +95,7 @@ class Context(object):
         self.replace_sources = replace_sources
         self.strip = strip
         self.full_gcc = full_gcc
+        self.shallow = shallow
         self.srcdir = os.path.join(topdir, 'src')
         self.versions_json = os.path.join(self.srcdir, 'versions.json')
         self.build_state_json = os.path.join(topdir, 'build-state.json')
@@ -102,7 +110,7 @@ class Context(object):
         self.wrapper = os.path.join(self.builddir, 'wrapper')
         self.save_logs = os.path.join(self.builddir, 'save-logs')
         self.script_text = self.get_script_text()
-        if action != 'checkout':
+        if action not in ('checkout', 'list-compilers', 'list-glibcs'):
             self.build_triplet = self.get_build_triplet()
             self.glibc_version = self.get_glibc_version()
         self.configs = {}
@@ -155,6 +163,15 @@ class Context(object):
                                        'cfg': ['--disable-multi-arch']}])
         self.add_config(arch='aarch64_be',
                         os_name='linux-gnu')
+        self.add_config(arch='arc',
+                        os_name='linux-gnu',
+                        gcc_cfg=['--disable-multilib', '--with-cpu=hs38'])
+        self.add_config(arch='arc',
+                        os_name='linux-gnuhf',
+                        gcc_cfg=['--disable-multilib', '--with-cpu=hs38_linux'])
+        self.add_config(arch='arceb',
+                        os_name='linux-gnu',
+                        gcc_cfg=['--disable-multilib', '--with-cpu=hs38'])
         self.add_config(arch='alpha',
                         os_name='linux-gnu')
         self.add_config(arch='arm',
@@ -172,6 +189,9 @@ class Context(object):
                         gcc_cfg=['--with-float=hard', '--with-cpu=arm926ej-s'],
                         extra_glibcs=[{'variant': 'v7a',
                                        'ccopts': '-march=armv7-a -mfpu=vfpv3'},
+                                      {'variant': 'thumb',
+                                       'ccopts':
+                                       '-mthumb -march=armv7-a -mfpu=vfpv3'},
                                       {'variant': 'v7a-disable-multi-arch',
                                        'ccopts': '-march=armv7-a -mfpu=vfpv3',
                                        'cfg': ['--disable-multi-arch']}])
@@ -196,7 +216,12 @@ class Context(object):
                         os_name='gnu')
         self.add_config(arch='ia64',
                         os_name='linux-gnu',
-                        first_gcc_cfg=['--with-system-libunwind'])
+                        first_gcc_cfg=['--with-system-libunwind'],
+                        binutils_cfg=['--enable-obsolete'])
+        self.add_config(arch='loongarch64',
+                        os_name='linux-gnu',
+                        variant='lp64d',
+                        gcc_cfg=['--with-abi=lp64d','--disable-multilib'])
         self.add_config(arch='m68k',
                         os_name='linux-gnu',
                         gcc_cfg=['--disable-multilib'])
@@ -314,6 +339,10 @@ class Context(object):
                                  'ccopts': '-mabi=64'}])
         self.add_config(arch='nios2',
                         os_name='linux-gnu')
+        self.add_config(arch='or1k',
+                        os_name='linux-gnu',
+                        variant='soft',
+                        gcc_cfg=['--with-multilib-list=mcmov'])
         self.add_config(arch='powerpc',
                         os_name='linux-gnu',
                         gcc_cfg=['--disable-multilib', '--enable-secureplt'],
@@ -330,7 +359,24 @@ class Context(object):
                         gcc_cfg=['--disable-multilib', '--enable-secureplt'])
         self.add_config(arch='powerpc64le',
                         os_name='linux-gnu',
-                        gcc_cfg=['--disable-multilib', '--enable-secureplt'])
+                        gcc_cfg=['--disable-multilib', '--enable-secureplt'],
+                        extra_glibcs=[{'variant': 'disable-multi-arch',
+                                       'cfg': ['--disable-multi-arch']}])
+        self.add_config(arch='riscv32',
+                        os_name='linux-gnu',
+                        variant='rv32imac-ilp32',
+                        gcc_cfg=['--with-arch=rv32imac', '--with-abi=ilp32',
+                                 '--disable-multilib'])
+        self.add_config(arch='riscv32',
+                        os_name='linux-gnu',
+                        variant='rv32imafdc-ilp32',
+                        gcc_cfg=['--with-arch=rv32imafdc', '--with-abi=ilp32',
+                                 '--disable-multilib'])
+        self.add_config(arch='riscv32',
+                        os_name='linux-gnu',
+                        variant='rv32imafdc-ilp32d',
+                        gcc_cfg=['--with-arch=rv32imafdc', '--with-abi=ilp32d',
+                                 '--disable-multilib'])
         self.add_config(arch='riscv64',
                         os_name='linux-gnu',
                         variant='rv64imac-lp64',
@@ -349,7 +395,9 @@ class Context(object):
         self.add_config(arch='s390x',
                         os_name='linux-gnu',
                         glibcs=[{},
-                                {'arch': 's390', 'ccopts': '-m31'}])
+                                {'arch': 's390', 'ccopts': '-m31'}],
+                        extra_glibcs=[{'variant': 'O3',
+                                       'cflags': '-O3'}])
         self.add_config(arch='sh3',
                         os_name='linux-gnu')
         self.add_config(arch='sh3eb',
@@ -388,27 +436,29 @@ class Context(object):
                                 {'arch': 'i686', 'ccopts': '-m32 -march=i686'}],
                         extra_glibcs=[{'variant': 'disable-multi-arch',
                                        'cfg': ['--disable-multi-arch']},
-                                      {'variant': 'enable-obsolete',
-                                       'cfg': ['--enable-obsolete-rpc',
-                                               '--enable-obsolete-nsl']},
-                                      {'variant': 'static-pie',
-                                       'cfg': ['--enable-static-pie']},
-                                      {'variant': 'x32-static-pie',
+                                      {'variant': 'minimal',
+                                       'cfg': ['--disable-multi-arch',
+                                               '--disable-profile',
+                                               '--disable-timezone-tools',
+                                               '--disable-mathvec',
+                                               '--disable-tunables',
+                                               '--disable-crypt',
+                                               '--disable-experimental-malloc',
+                                               '--disable-build-nscd',
+                                               '--disable-nscd']},
+                                      {'variant': 'no-pie',
+                                       'cfg': ['--disable-default-pie']},
+                                      {'variant': 'x32-no-pie',
                                        'ccopts': '-mx32',
-                                       'cfg': ['--enable-static-pie']},
-                                      {'variant': 'static-pie',
+                                       'cfg': ['--disable-default-pie']},
+                                      {'variant': 'no-pie',
                                        'arch': 'i686',
                                        'ccopts': '-m32 -march=i686',
-                                       'cfg': ['--enable-static-pie']},
+                                       'cfg': ['--disable-default-pie']},
                                       {'variant': 'disable-multi-arch',
                                        'arch': 'i686',
                                        'ccopts': '-m32 -march=i686',
                                        'cfg': ['--disable-multi-arch']},
-                                      {'variant': 'enable-obsolete',
-                                       'arch': 'i686',
-                                       'ccopts': '-m32 -march=i686',
-                                       'cfg': ['--enable-obsolete-rpc',
-                                               '--enable-obsolete-nsl']},
                                       {'arch': 'i486',
                                        'ccopts': '-m32 -march=i486'},
                                       {'arch': 'i586',
@@ -477,9 +527,19 @@ class Context(object):
                 exit(1)
             self.bot()
             return
-        if action == 'host-libraries' and configs:
-            print('error: configurations specified for host-libraries')
+        if action in ('host-libraries', 'list-compilers',
+                      'list-glibcs') and configs:
+            print('error: configurations specified for ' + action)
             exit(1)
+        if action == 'list-compilers':
+            for name in sorted(self.configs.keys()):
+                print(name)
+            return
+        if action == 'list-glibcs':
+            for config in sorted(self.glibc_configs.values(),
+                                 key=lambda c: c.name):
+                print(config.name, config.compiler.name)
+            return
         self.clear_last_build_state(action)
         build_time = datetime.datetime.utcnow()
         if action == 'host-libraries':
@@ -634,7 +694,7 @@ class Context(object):
 
     def do_build(self):
         """Do the actual build."""
-        cmd = ['make', '-j%d' % self.parallelism]
+        cmd = ['make', '-O', '-j%d' % self.parallelism]
         subprocess.run(cmd, cwd=self.builddir, check=True)
 
     def build_host_libraries(self):
@@ -729,13 +789,13 @@ class Context(object):
 
     def checkout(self, versions):
         """Check out the desired component versions."""
-        default_versions = {'binutils': 'vcs-2.33',
-                            'gcc': 'vcs-9',
+        default_versions = {'binutils': 'vcs-2.38',
+                            'gcc': 'vcs-12',
                             'glibc': 'vcs-mainline',
-                            'gmp': '6.1.2',
-                            'linux': '5.4',
-                            'mpc': '1.1.0',
-                            'mpfr': '4.0.2',
+                            'gmp': '6.2.1',
+                            'linux': '5.18',
+                            'mpc': '1.2.1',
+                            'mpfr': '4.1.0',
                             'mig': 'vcs-mainline',
                             'gnumach': 'vcs-mainline',
                             'hurd': 'vcs-mainline'}
@@ -852,7 +912,12 @@ class Context(object):
             subprocess.run(['git', 'pull', '-q'],
                            cwd=self.component_srcdir(component), check=True)
         else:
-            subprocess.run(['git', 'clone', '-q', '-b', git_branch, git_url,
+            if self.shallow:
+                depth_arg = ('--depth', '1')
+            else:
+                depth_arg = ()
+            subprocess.run(['git', 'clone', '-q', '-b', git_branch,
+                            *depth_arg, git_url,
                             self.component_srcdir(component)], check=True)
         r = subprocess.run(['git', 'rev-parse', 'HEAD'],
                            cwd=self.component_srcdir(component),
@@ -870,8 +935,7 @@ class Context(object):
         # Some other files have such dependencies but do not need to
         # be touched because nothing in a build depends on the files
         # in question.
-        for f in ('sysdeps/gnu/errlist.c',
-                  'sysdeps/mach/hurd/bits/errno.h'):
+        for f in ('sysdeps/mach/hurd/bits/errno.h',):
             to_touch = os.path.join(srcdir, f)
             subprocess.run(['touch', '-c', to_touch], check=True)
         for dirpath, dirnames, filenames in os.walk(srcdir):
@@ -1202,6 +1266,7 @@ def install_linux_headers(policy, cmdlist):
     """Install Linux kernel headers."""
     arch_map = {'aarch64': 'arm64',
                 'alpha': 'alpha',
+                'arc': 'arc',
                 'arm': 'arm',
                 'csky': 'csky',
                 'hppa': 'parisc',
@@ -1210,10 +1275,12 @@ def install_linux_headers(policy, cmdlist):
                 'i686': 'x86',
                 'i786': 'x86',
                 'ia64': 'ia64',
+                'loongarch64': 'loongarch',
                 'm68k': 'm68k',
                 'microblaze': 'microblaze',
                 'mips': 'mips',
                 'nios2': 'nios2',
+                'or1k': 'openrisc',
                 'powerpc': 'powerpc',
                 's390': 's390',
                 'riscv32': 'riscv',
@@ -1241,7 +1308,8 @@ class Config(object):
     """A configuration for building a compiler and associated libraries."""
 
     def __init__(self, ctx, arch, os_name, variant=None, gcc_cfg=None,
-                 first_gcc_cfg=None, glibcs=None, extra_glibcs=None):
+                 first_gcc_cfg=None, binutils_cfg=None, glibcs=None,
+                 extra_glibcs=None):
         """Initialize a Config object."""
         self.ctx = ctx
         self.arch = arch
@@ -1260,6 +1328,10 @@ class Config(object):
             self.first_gcc_cfg = []
         else:
             self.first_gcc_cfg = first_gcc_cfg
+        if binutils_cfg is None:
+            self.binutils_cfg = []
+        else:
+            self.binutils_cfg = binutils_cfg
         if glibcs is None:
             glibcs = [{'variant': variant}]
         if extra_glibcs is None:
@@ -1290,9 +1362,10 @@ class Config(object):
         cmdlist.use_path(self.bindir)
         self.build_cross_tool(cmdlist, 'binutils', 'binutils',
                               ['--disable-gdb',
+                               '--disable-gdbserver',
                                '--disable-libdecnumber',
                                '--disable-readline',
-                               '--disable-sim'])
+                               '--disable-sim'] + self.binutils_cfg)
         if self.os.startswith('linux'):
             install_linux_headers(LinuxHeadersPolicyForBuild(self), cmdlist)
         self.build_gcc(cmdlist, True)
@@ -1383,8 +1456,11 @@ class Config(object):
         # checking support.  libcilkrts does not support GNU/Hurd (and
         # has been removed in GCC 8, so --disable-libcilkrts can be
         # removed once glibc no longer supports building with older
-        # GCC versions).
+        # GCC versions).  --enable-initfini-array is enabled by default
+        # in GCC 12, which can be removed when GCC 12 becomes the
+        # minimum requirement.
         cfg_opts = list(self.gcc_cfg)
+        cfg_opts += ['--enable-initfini-array']
         cfg_opts += ['--disable-libssp', '--disable-libcilkrts']
         host_libs = self.ctx.host_libraries_installdir
         cfg_opts += ['--with-gmp=%s' % host_libs,
@@ -1453,6 +1529,9 @@ class GlibcPolicyDefault(object):
         ]
         if glibc.os == 'gnu':
             self.configure_args.append('MIG=%s' % glibc.tool_name('mig'))
+        if glibc.cflags:
+            self.configure_args.append('CFLAGS=%s' % glibc.cflags)
+            self.configure_args.append('CXXFLAGS=%s' % glibc.cflags)
         self.configure_args += glibc.cfg
 
     def configure(self, cmdlist):
@@ -1490,15 +1569,13 @@ class GlibcPolicyForBuild(GlibcPolicyDefault):
 
     def extra_commands(self, cmdlist):
         if self.strip:
-            # Avoid picking up libc.so and libpthread.so, which are
-            # linker scripts stored in /lib on Hurd.  libc and
-            # libpthread are still stripped via their libc-X.YY.so
-            # implementation files.
-            find_command = (('find %s/lib* -name "*.so"'
-                             + r' \! -name libc.so \! -name libpthread.so')
-                            % self.installdir)
-            cmdlist.add_command('strip', ['sh', '-c', ('%s $(%s)' %
-                                  (self.strip, find_command))])
+            # Avoid stripping libc.so and libpthread.so, which are
+            # linker scripts stored in /lib on Hurd.
+            find_command = 'find %s/lib* -name "*.so*"' % self.installdir
+            cmdlist.add_command('strip', ['sh', '-c', (
+                'set -e; for f in $(%s); do '
+                'if ! head -c16 $f | grep -q "GNU ld script"; then %s $f; fi; '
+                'done' % (find_command, self.strip))])
         cmdlist.add_command('check', ['make', 'check'])
         cmdlist.add_command('save-logs', [self.save_logs], always_run=True)
 
@@ -1521,7 +1598,7 @@ class Glibc(object):
     """A configuration for building glibc."""
 
     def __init__(self, compiler, arch=None, os_name=None, variant=None,
-                 cfg=None, ccopts=None):
+                 cfg=None, ccopts=None, cflags=None):
         """Initialize a Glibc object."""
         self.ctx = compiler.ctx
         self.compiler = compiler
@@ -1543,7 +1620,11 @@ class Glibc(object):
             self.cfg = []
         else:
             self.cfg = cfg
+        # ccopts contain ABI options and are passed to configure as CC / CXX.
         self.ccopts = ccopts
+        # cflags contain non-ABI options like -g or -O and are passed to
+        # configure as CFLAGS / CXXFLAGS.
+        self.cflags = cflags
 
     def tool_name(self, tool):
         """Return the name of a cross-compilation tool."""
@@ -1770,13 +1851,16 @@ def get_parser():
                         help='Strip installed glibc libraries')
     parser.add_argument('--full-gcc', action='store_true',
                         help='Build GCC with all languages and libsanitizer')
+    parser.add_argument('--shallow', action='store_true',
+                        help='Do not download Git history during checkout')
     parser.add_argument('topdir',
                         help='Toplevel working directory')
     parser.add_argument('action',
                         help='What to do',
                         choices=('checkout', 'bot-cycle', 'bot',
                                  'host-libraries', 'compilers', 'glibcs',
-                                 'update-syscalls'))
+                                 'update-syscalls', 'list-compilers',
+                                 'list-glibcs'))
     parser.add_argument('configs',
                         help='Versions to check out or configurations to build',
                         nargs='*')
@@ -1789,7 +1873,8 @@ def main(argv):
     opts = parser.parse_args(argv)
     topdir = os.path.abspath(opts.topdir)
     ctx = Context(topdir, opts.parallelism, opts.keep, opts.replace_sources,
-                  opts.strip, opts.full_gcc, opts.action)
+                  opts.strip, opts.full_gcc, opts.action,
+                  shallow=opts.shallow)
     ctx.run_builds(opts.action, opts.configs)
 
 

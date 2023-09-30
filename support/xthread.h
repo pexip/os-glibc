@@ -1,5 +1,5 @@
 /* Support functionality for using threads.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 
 #include <pthread.h>
 #include <sys/cdefs.h>
+#include <stdbool.h>
 
 __BEGIN_DECLS
 
@@ -28,6 +29,9 @@ __BEGIN_DECLS
    elapsed, from a helper thread.  The process is terminated with the
    exit function, so atexit handlers are executed.  */
 void delayed_exit (int seconds);
+
+/* Returns true if Priority Inheritance support CLOCK_MONOTONIC.  */
+bool support_mutex_pi_monotonic (void);
 
 /* Terminate the process (with exit status 1) if VALUE is not zero.
    In that case, print a failure message to standard output mentioning
@@ -66,6 +70,11 @@ void *xpthread_join (pthread_t thr);
 void xpthread_once (pthread_once_t *guard, void (*func) (void));
 void xpthread_attr_destroy (pthread_attr_t *attr);
 void xpthread_attr_init (pthread_attr_t *attr);
+#ifdef __linux__
+void xpthread_attr_setaffinity_np (pthread_attr_t *attr,
+				   size_t cpusetsize,
+				   const cpu_set_t *cpuset);
+#endif
 void xpthread_attr_setdetachstate (pthread_attr_t *attr,
 				   int detachstate);
 void xpthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
@@ -75,6 +84,10 @@ void xpthread_attr_setstacksize (pthread_attr_t *attr,
 void xpthread_attr_setguardsize (pthread_attr_t *attr,
 				 size_t guardsize);
 
+void xpthread_kill (pthread_t thr, int signo);
+
+/* Return the stack size used on support_set_small_thread_stack_size.  */
+size_t support_small_thread_stack_size (void);
 /* Set the stack size in ATTR to a small value, but still large enough
    to cover most internal glibc stack usage.  */
 void support_set_small_thread_stack_size (pthread_attr_t *attr);
@@ -95,6 +108,8 @@ void xpthread_rwlock_wrlock (pthread_rwlock_t *rwlock);
 void xpthread_rwlock_rdlock (pthread_rwlock_t *rwlock);
 void xpthread_rwlock_unlock (pthread_rwlock_t *rwlock);
 void xpthread_rwlock_destroy (pthread_rwlock_t *rwlock);
+pthread_key_t xpthread_key_create (void (*destr_function) (void *));
+void xpthread_key_delete (pthread_key_t key);
 
 __END_DECLS
 

@@ -1,7 +1,5 @@
-/* Copyright (C) 1999-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Andreas Jaeger <aj@suse.de>, 1999 and
-		  Jakub Jelinek <jakub@redhat.com>, 1999.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -74,11 +72,11 @@ is_gdb_python_file (const char *name)
 /* Returns 0 if everything is ok, != 0 in case of error.  */
 int
 process_file (const char *real_file_name, const char *file_name,
-	      const char *lib, int *flag, unsigned int *osversion,
-	      char **soname, int is_link, struct stat64 *stat_buf)
+	      const char *lib, int *flag, unsigned int *isa_level,
+	      char **soname, int is_link, struct stat *stat_buf)
 {
   FILE *file;
-  struct stat64 statbuf;
+  struct stat statbuf;
   void *file_contents;
   int ret;
   ElfW(Ehdr) *elf_header;
@@ -98,7 +96,7 @@ process_file (const char *real_file_name, const char *file_name,
       return 1;
     }
 
-  if (fstat64 (fileno (file), &statbuf) < 0)
+  if (fstat (fileno (file), &statbuf) < 0)
     {
       error (0, 0, _("Cannot fstat file %s.\n"), file_name);
       fclose (file);
@@ -173,7 +171,7 @@ process_file (const char *real_file_name, const char *file_name,
   /* Libraries have to be shared object files.  */
   else if (elf_header->e_type != ET_DYN)
     ret = 1;
-  else if (process_elf_file (file_name, lib, flag, osversion, soname,
+  else if (process_elf_file (file_name, lib, flag, isa_level, soname,
 			     file_contents, statbuf.st_size))
     ret = 1;
 

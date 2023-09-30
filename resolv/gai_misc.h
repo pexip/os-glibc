@@ -1,6 +1,5 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2001.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -96,5 +95,6 @@ extern int __gai_notify_only (struct sigevent *sigev, pid_t caller_pid)
 
 /* Send the signal.  */
 extern int __gai_sigqueue (int sig, const union sigval val, pid_t caller_pid);
+libc_hidden_proto (__gai_sigqueue)
 
 #endif /* gai_misc.h */

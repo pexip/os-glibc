@@ -1,5 +1,5 @@
 /* system call interface.  Linux/RISC-V version.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,12 +23,11 @@ syscall (long int syscall_number, long int arg1, long int arg2, long int arg3,
 	 long int arg4, long int arg5, long int arg6, long int arg7)
 {
   long int ret;
-  INTERNAL_SYSCALL_DECL (err);
 
-  ret = INTERNAL_SYSCALL_NCS (syscall_number, err, 7, arg1, arg2, arg3, arg4,
-			      arg5, arg6, arg7);
+  ret = INTERNAL_SYSCALL_NCS_CALL (syscall_number, arg1, arg2, arg3, arg4,
+				   arg5, arg6, arg7);
 
-  if (INTERNAL_SYSCALL_ERROR_P (ret, err))
+  if (INTERNAL_SYSCALL_ERROR_P (ret))
     return __syscall_error (ret);
 
   return ret;

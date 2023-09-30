@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,9 +33,14 @@
 #include <unwind.h>
 #include <bits/types/res_state.h>
 #include <kernel-features.h>
+#include <tls-internal-struct.h>
+#include <sys/rseq.h>
+#include <internal-sigset.h>
 
 #ifndef TCB_ALIGNMENT
-# define TCB_ALIGNMENT	sizeof (double)
+# define TCB_ALIGNMENT 32
+#elif TCB_ALIGNMENT < 32
+# error TCB_ALIGNMENT must be at least 32
 #endif
 
 
@@ -94,7 +98,13 @@ struct pthread_unwind_buf
 struct xid_command
 {
   int syscall_no;
-  long int id[3];
+  /* Enforce zero-extension for the pointer argument in
+
+     int setgroups (size_t size, const gid_t *list);
+
+     The kernel XID arguments are unsigned and do not require sign
+     extension.  */
+  unsigned long int id[3];
   volatile int cntr;
   volatile int error; /* -1: no call yet, 0: success seen, >0: error seen.  */
 };
@@ -155,15 +165,13 @@ struct pthread
     void *__padding[24];
   };
 
-  /* This descriptor's link on the `stack_used' or `__stack_user' list.  */
+  /* This descriptor's link on the GL (dl_stack_used) or
+     GL (dl_stack_user) list.  */
   list_t list;
 
   /* Thread ID - which is also a 'is this thread descriptor (and
      therefore stack) used' flag.  */
   pid_t tid;
-
-  /* Ununsed.  */
-  pid_t pid_ununsed;
 
   /* List of robust mutexes the thread is holding.  */
 #if __PTHREAD_MUTEX_HAVE_PREV
@@ -271,35 +279,25 @@ struct pthread
   int cancelhandling;
   /* Bit set if cancellation is disabled.  */
 #define CANCELSTATE_BIT		0
-#define CANCELSTATE_BITMASK	(0x01 << CANCELSTATE_BIT)
+#define CANCELSTATE_BITMASK	(1 << CANCELSTATE_BIT)
   /* Bit set if asynchronous cancellation mode is selected.  */
 #define CANCELTYPE_BIT		1
-#define CANCELTYPE_BITMASK	(0x01 << CANCELTYPE_BIT)
+#define CANCELTYPE_BITMASK	(1 << CANCELTYPE_BIT)
   /* Bit set if canceling has been initiated.  */
 #define CANCELING_BIT		2
-#define CANCELING_BITMASK	(0x01 << CANCELING_BIT)
+#define CANCELING_BITMASK	(1 << CANCELING_BIT)
   /* Bit set if canceled.  */
 #define CANCELED_BIT		3
-#define CANCELED_BITMASK	(0x01 << CANCELED_BIT)
+#define CANCELED_BITMASK	(1 << CANCELED_BIT)
   /* Bit set if thread is exiting.  */
 #define EXITING_BIT		4
-#define EXITING_BITMASK		(0x01 << EXITING_BIT)
+#define EXITING_BITMASK		(1 << EXITING_BIT)
   /* Bit set if thread terminated and TCB is freed.  */
 #define TERMINATED_BIT		5
-#define TERMINATED_BITMASK	(0x01 << TERMINATED_BIT)
+#define TERMINATED_BITMASK	(1 << TERMINATED_BIT)
   /* Bit set if thread is supposed to change XID.  */
 #define SETXID_BIT		6
-#define SETXID_BITMASK		(0x01 << SETXID_BIT)
-  /* Mask for the rest.  Helps the compiler to optimize.  */
-#define CANCEL_RESTMASK		0xffffff80
-
-#define CANCEL_ENABLED_AND_CANCELED(value) \
-  (((value) & (CANCELSTATE_BITMASK | CANCELED_BITMASK | EXITING_BITMASK	      \
-	       | CANCEL_RESTMASK | TERMINATED_BITMASK)) == CANCELED_BITMASK)
-#define CANCEL_ENABLED_AND_CANCELED_AND_ASYNCHRONOUS(value) \
-  (((value) & (CANCELSTATE_BITMASK | CANCELTYPE_BITMASK | CANCELED_BITMASK    \
-	       | EXITING_BITMASK | CANCEL_RESTMASK | TERMINATED_BITMASK))     \
-   == (CANCELTYPE_BITMASK | CANCELED_BITMASK))
+#define SETXID_BITMASK		(1 << SETXID_BIT)
 
   /* Flags.  Including those copied from the thread attribute.  */
   int flags;
@@ -332,19 +330,15 @@ struct pthread
   /* True if thread must stop at startup time.  */
   bool stopped_start;
 
-  /* The parent's cancel handling at the time of the pthread_create
-     call.  This might be needed to undo the effects of a cancellation.  */
-  int parent_cancelhandling;
+  /* Indicate that a thread creation setup has failed (for instance the
+     scheduler or affinity).  */
+  int setup_failed;
 
   /* Lock to synchronize access to the descriptor.  */
   int lock;
 
   /* Lock for synchronizing setxid calls.  */
   unsigned int setxid_futex;
-
-#if HP_TIMING_INLINE
-  hp_timing_t cpuclock_offset_ununsed;
-#endif
 
   /* If the thread waits to join another one the ID of the latter is
      stored here.
@@ -391,8 +385,25 @@ struct pthread
   /* Resolver state.  */
   struct __res_state res;
 
+  /* Signal mask for the new thread.  Used during thread startup to
+     restore the signal mask.  (Threads are launched with all signals
+     masked.)  */
+  internal_sigset_t sigmask;
+
   /* Indicates whether is a C11 thread created by thrd_creat.  */
   bool c11;
+
+  /* Used in __pthread_kill_internal to detected a thread that has
+     exited or is about to exit.  exit_lock must only be acquired
+     after blocking signals.  */
+  bool exiting;
+  int exit_lock; /* A low-level lock (for use with __libc_lock_init etc).  */
+
+  /* Used on strsignal.  */
+  struct tls_internal_t tls_state;
+
+  /* rseq area registered with the kernel.  */
+  struct rseq rseq_area;
 
   /* This member must be last.  */
   char end_padding[];
@@ -401,5 +412,27 @@ struct pthread
   (sizeof (struct pthread) - offsetof (struct pthread, end_padding))
 } __attribute ((aligned (TCB_ALIGNMENT)));
 
+static inline bool
+cancel_enabled_and_canceled (int value)
+{
+  return (value & (CANCELSTATE_BITMASK | CANCELED_BITMASK | EXITING_BITMASK
+		   | TERMINATED_BITMASK))
+    == CANCELED_BITMASK;
+}
+
+static inline bool
+cancel_enabled_and_canceled_and_async (int value)
+{
+  return ((value) & (CANCELSTATE_BITMASK | CANCELTYPE_BITMASK | CANCELED_BITMASK
+		     | EXITING_BITMASK | TERMINATED_BITMASK))
+    == (CANCELTYPE_BITMASK | CANCELED_BITMASK);
+}
+
+/* This yields the pointer that TLS support code calls the thread pointer.  */
+#if TLS_TCB_AT_TP
+# define TLS_TPADJ(pd) (pd)
+#elif TLS_DTV_AT_TP
+# define TLS_TPADJ(pd) ((struct pthread *)((char *) (pd) + TLS_PRE_TCB_SIZE))
+#endif
 
 #endif	/* descr.h */

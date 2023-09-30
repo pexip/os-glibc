@@ -1,5 +1,5 @@
 /* Test timeout handling in the UDP client.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,6 +29,9 @@
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdlib.h>
+
+static pid_t server_pid;
 
 /* Test data serialization and deserialization.   */
 
@@ -177,6 +180,14 @@ server_dispatch (struct svc_req *request, SVCXPRT *transport)
     }
 }
 
+/* Function to be called before exit to make sure the
+   server process is properly killed.  */
+static void
+kill_server (void)
+{
+  kill (server_pid, SIGTERM);
+}
+
 /* Implementation of the test client.  */
 
 static struct test_response
@@ -283,10 +294,10 @@ test_udp_server (int port)
   double after = get_ticks ();
   if (test_verbose)
     printf ("info: 21 garbage packets took %f seconds\n", after - before);
-  /* Expected timeout is 0.5 seconds.  Add some slack in case process
-     scheduling delays processing the query or response, but do not
-     accept a retry (which would happen at 1.5 seconds).  */
-  TEST_VERIFY (0.5 <= after - before);
+  /* Expected timeout is 0.5 seconds.  Add some slack for rounding errors and
+     in case process scheduling delays processing the query or response, but
+     do not accept a retry (which would happen at 1.5 seconds).  */
+  TEST_VERIFY (0.45 <= after - before);
   TEST_VERIFY (after - before < 1.2);
   test_call_flush (clnt);
 
@@ -305,7 +316,7 @@ test_udp_server (int port)
             after - before);
   /* Expected timeout is 1.5 seconds.  Do not accept a second retry
      (which would happen at 3 seconds).  */
-  TEST_VERIFY (1.5 <= after - before);
+  TEST_VERIFY (1.45 <= after - before);
   TEST_VERIFY (after - before < 2.9);
   test_call_flush (clnt);
 
@@ -320,7 +331,7 @@ test_udp_server (int port)
   if (test_verbose)
     printf ("info: 0.75 second timeout took %f seconds\n",
             after - before);
-  TEST_VERIFY (0.75 <= after - before);
+  TEST_VERIFY (0.70 <= after - before);
   TEST_VERIFY (after - before < 1.4);
   test_call_flush (clnt);
 
@@ -340,7 +351,7 @@ test_udp_server (int port)
         printf ("info: test_udp_server: 0.75 second timeout took %f seconds"
                 " (garbage %d)\n",
                 after - before, with_garbage);
-      TEST_VERIFY (0.75 <= after - before);
+      TEST_VERIFY (0.70 <= after - before);
       TEST_VERIFY (after - before < 1.4);
       test_call_flush (clnt);
 
@@ -358,7 +369,7 @@ test_udp_server (int port)
         printf ("info: test_udp_server: 2.5 second timeout took %f seconds"
                 " (garbage %d)\n",
                 after - before, with_garbage);
-      TEST_VERIFY (2.5 <= after - before);
+      TEST_VERIFY (2.45 <= after - before);
       TEST_VERIFY (after - before < 3.0);
       test_call_flush (clnt);
     }
@@ -381,16 +392,17 @@ do_test (void)
   TEST_VERIFY_EXIT (transport != NULL);
   TEST_VERIFY (svc_register (transport, PROGNUM, VERSNUM, server_dispatch, 0));
 
-  pid_t pid = xfork ();
-  if (pid == 0)
+  server_pid = xfork ();
+  if (server_pid == 0)
     {
       svc_run ();
       FAIL_EXIT1 ("supposed to be unreachable");
     }
+  atexit (kill_server);
   test_udp_server (transport->xp_port);
 
   int status;
-  xwaitpid (pid, &status, 0);
+  xwaitpid (server_pid, &status, 0);
   TEST_VERIFY (WIFEXITED (status) && WEXITSTATUS (status) == EXIT_MARKER);
 
   SVC_DESTROY (transport);

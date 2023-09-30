@@ -1,5 +1,5 @@
 /* gettimeofday -- Get the current time of day.  Linux/Alpha/tv64 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,5 +18,9 @@
 
 /* We can use the generic implementation, but we have to override its
    default symbol version.  */
-#define VERSION_gettimeofday GLIBC_2.1
+#define SET_VERSION
 #include <time/gettimeofday.c>
+
+weak_alias (___gettimeofday, __wgettimeofday);
+default_symbol_version (___gettimeofday, __gettimeofday, GLIBC_2.1);
+default_symbol_version (__wgettimeofday,   gettimeofday, GLIBC_2.1);

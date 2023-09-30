@@ -1,4 +1,4 @@
-# Copyright (C) 1995-2020 Free Software Foundation, Inc.
+# Copyright (C) 1995-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,12 @@ routines := ftok \
 
 tests    := test-sysvmsg test-sysvsem test-sysvshm
 
+tests-time64 := test-sysvmsg-time64 test-sysvsem-time64 test-sysvshm-time64
+
 include ../Rules
 
 CFLAGS-msgrcv.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-msgsnd.c += -fexceptions -fasynchronous-unwind-tables
+
+$(objpfx)test-sysvsem: $(librt)
+$(objpfx)test-sysvsem-time64: $(librt)

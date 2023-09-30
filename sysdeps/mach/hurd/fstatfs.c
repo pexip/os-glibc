@@ -1,5 +1,5 @@
 /* fstatfs -- Return information about the filesystem on which FD resides.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,5 +27,5 @@ __fstatfs (int fd, struct statfs *buf)
   struct statfs64 buf64;
   return __fstatfs64 (fd, &buf64) ?: statfs64_conv (buf, &buf64);
 }
-
+libc_hidden_def (__fstatfs)
 weak_alias (__fstatfs, fstatfs)

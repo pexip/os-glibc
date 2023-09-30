@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "exit.h"
-#include <fork.h>
+#include <register-atfork.h>
 #include <sysdep.h>
 #include <stdint.h>
 
@@ -102,9 +102,7 @@ __cxa_finalize (void *d)
 
   /* Remove the registered fork handlers.  We do not have to
      unregister anything if the program is going to terminate anyway.  */
-#ifdef UNREGISTER_ATFORK
   if (d != NULL)
     UNREGISTER_ATFORK (d);
-#endif
   __libc_lock_unlock (__exit_funcs_lock);
 }

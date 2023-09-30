@@ -30,12 +30,6 @@ ifeq ($(subdir),math)
 libm-routines += multc3 divtc3
 endif   # math
 
-ifeq ($(subdir),nptl)
-# pull in __syscall_error routine, __sigprocmask, sigaction stubs.
-libpthread-routines += sysdep sigprocmask rt_sigaction
-libpthread-shared-only-routines += sysdep sigprocmask rt_sigaction
-endif
-
 ifeq ($(subdir),conform)
 # For bug 21260.
 conformtest-xfail-conds += alpha-linux

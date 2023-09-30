@@ -1,5 +1,5 @@
 /* Get the default attributes used by pthread_create in the process.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,20 +16,25 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stdlib.h>
 #include <pthreadP.h>
+#include <shlib-compat.h>
 
 int
-pthread_getattr_default_np (pthread_attr_t *out)
+___pthread_getattr_default_np (pthread_attr_t *out)
 {
-  struct pthread_attr *real_out;
-
-  real_out = (struct pthread_attr *) out;
-
   lll_lock (__default_pthread_attr_lock, LLL_PRIVATE);
-  *real_out = __default_pthread_attr;
+  int ret = __pthread_attr_copy (out, &__default_pthread_attr.external);
   lll_unlock (__default_pthread_attr_lock, LLL_PRIVATE);
-
-  return 0;
+  return ret;
 }
+versioned_symbol (libc, ___pthread_getattr_default_np,
+                  pthread_getattr_default_np, GLIBC_2_34);
+libc_hidden_ver (___pthread_getattr_default_np, __pthread_getattr_default_np)
+#ifndef SHARED
+strong_alias (___pthread_getattr_default_np, __pthread_getattr_default_np)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_18, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_getattr_default_np,
+               pthread_getattr_default_np, GLIBC_2_18);
+#endif

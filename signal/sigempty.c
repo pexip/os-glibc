@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +17,8 @@
 
 #include <errno.h>
 #include <signal.h>
-#include <string.h>
+#include <sigsetops.h>
+#include <stddef.h>
 
 /* Clear all signals from SET.  */
 int
@@ -29,8 +30,7 @@ sigemptyset (sigset_t *set)
       return -1;
     }
 
-  memset (set, 0, sizeof (sigset_t));
-
+  __sigemptyset (set);
   return 0;
 }
 libc_hidden_def (sigemptyset)

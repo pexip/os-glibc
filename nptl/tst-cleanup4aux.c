@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <pthread.h>
+#include <shlib-compat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -24,8 +24,12 @@
 extern void _pthread_cleanup_push (struct _pthread_cleanup_buffer *__buffer,
                                    void (*__routine) (void *),
                                    void *__arg);
+compat_symbol_reference (libpthread, _pthread_cleanup_push,
+                         _pthread_cleanup_push, GLIBC_2_0);
 extern void _pthread_cleanup_pop (struct _pthread_cleanup_buffer *__buffer,
                                   int __execute);
+compat_symbol_reference (libpthread, _pthread_cleanup_pop,
+                         _pthread_cleanup_pop, GLIBC_2_0);
 
 extern void clh (void *arg);
 extern void fn0 (void);

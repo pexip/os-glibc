@@ -1,5 +1,5 @@
 /* Wrapper for __sprintf_chk.  IEEE128 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,6 +29,10 @@ ___ieee128_sprintf_chk (char *s, int flag, size_t slen,
   unsigned int mode = PRINTF_LDBL_USES_FLOAT128;
   if (flag > 0)
     mode |= PRINTF_FORTIFY;
+
+  /* Regardless of the value of flag, let __vsprintf_internal know that
+     this is a call from *printf_chk.  */
+  mode |= PRINTF_CHK;
 
   if (slen == 0)
     __chk_fail ();

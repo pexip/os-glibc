@@ -1,5 +1,5 @@
 /* Test __p_secstodate compat symbol.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,8 +24,6 @@
 #include <string.h>
 
 #include <shlib-compat.h>
-
-#if TEST_COMPAT (libresolv, GLIBC_2_0, GLIBC_2_27)
 
 char *__p_secstodate (unsigned long int);
 compat_symbol_reference (libresolv, __p_secstodate, __p_secstodate, GLIBC_2_0);
@@ -70,15 +68,5 @@ do_test (void)
     }
   return ret;
 }
-
-#else
-
-static int
-do_test (void)
-{
-  return 77;
-}
-
-#endif
 
 #include <support/test-driver.c>

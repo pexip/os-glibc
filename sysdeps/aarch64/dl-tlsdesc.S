@@ -1,6 +1,6 @@
 /* Thread-local storage handling in the ELF dynamic linker.
    AArch64 version.
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -74,7 +74,8 @@
 	cfi_startproc
 	.align 2
 _dl_tlsdesc_return:
-	DELOUSE (0)
+	BTI_C
+	PTR_ARG (0)
 	ldr	PTR_REG (0), [x0, #PTR_SIZE]
 	RET
 	cfi_endproc
@@ -95,9 +96,10 @@ _dl_tlsdesc_return:
 	cfi_startproc
 	.align  2
 _dl_tlsdesc_undefweak:
+	BTI_C
 	str	x1, [sp, #-16]!
 	cfi_adjust_cfa_offset (16)
-	DELOUSE (0)
+	PTR_ARG (0)
 	ldr	PTR_REG (0), [x0, #PTR_SIZE]
 	mrs	x1, tpidr_el0
 	sub	PTR_REG (0), PTR_REG (0), PTR_REG (1)
@@ -142,13 +144,14 @@ _dl_tlsdesc_undefweak:
 	cfi_startproc
 	.align 2
 _dl_tlsdesc_dynamic:
-	DELOUSE (0)
+	BTI_C
+	PTR_ARG (0)
 
 	/* Save just enough registers to support fast path, if we fall
 	   into slow path we will save additional registers.  */
 	stp	x1,  x2, [sp, #-32]!
-	stp	x3,  x4, [sp, #16]
 	cfi_adjust_cfa_offset (32)
+	stp	x3,  x4, [sp, #16]
 	cfi_rel_offset (x1, 0)
 	cfi_rel_offset (x2, 8)
 	cfi_rel_offset (x3, 16)
@@ -167,6 +170,7 @@ _dl_tlsdesc_dynamic:
 	ldr	PTR_REG (0), [x0] /* Load val member of DTV entry.  */
 	cmp	PTR_REG (0), #TLS_DTV_UNALLOCATED
 	b.eq	2f
+	cfi_remember_state
 	sub	PTR_REG (3), PTR_REG (3), PTR_REG (4)
 	add	PTR_REG (0), PTR_REG (0), PTR_REG (3)
 1:
@@ -180,6 +184,11 @@ _dl_tlsdesc_dynamic:
 	   callee will trash.  */
 
 	/* Save the remaining registers that we must treat as caller save.  */
+	cfi_restore_state
+# if HAVE_AARCH64_PAC_RET
+	PACIASP
+	cfi_window_save
+# endif
 # define NSAVEXREGPAIRS 8
 	stp	x29, x30, [sp,#-16*NSAVEXREGPAIRS]!
 	cfi_adjust_cfa_offset (16*NSAVEXREGPAIRS)
@@ -230,6 +239,10 @@ _dl_tlsdesc_dynamic:
 	cfi_adjust_cfa_offset (-16*NSAVEXREGPAIRS)
 	cfi_restore (x29)
 	cfi_restore (x30)
+# if HAVE_AARCH64_PAC_RET
+	AUTIASP
+	cfi_window_save
+# endif
 	b	1b
 	cfi_endproc
 	.size	_dl_tlsdesc_dynamic, .-_dl_tlsdesc_dynamic

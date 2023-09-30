@@ -1,5 +1,5 @@
 /* Test lgamma functions do not set signgam for ISO C.
-   Copyright (C) 2015-2020 Free Software Foundation, Inc.
+   Copyright (C) 2015-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #undef _LIBC
-#undef __LIBC_INTERNAL_MATH_INLINES
 #undef _GNU_SOURCE
 
 #include <math.h>

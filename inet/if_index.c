@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ libc_hidden_weak (if_nametoindex)
 stub_warning (if_nametoindex)
 
 char *
-__if_indextoname (unsigned int ifindex, char *ifname)
+__if_indextoname (unsigned int ifindex, char ifname[IF_NAMESIZE])
 {
   __set_errno (ENOSYS);
   return NULL;

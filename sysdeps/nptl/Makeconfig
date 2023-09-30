@@ -1,6 +1,5 @@
-# Copyright (C) 2002-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
-# Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
 # The GNU C Library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -21,7 +20,12 @@
 
 have-thread-library = yes
 
-shared-thread-library = $(common-objpfx)nptl/libpthread.so
-static-thread-library = $(common-objpfx)nptl/libpthread.a
+# The thread library is integrated.
+shared-thread-library =
+static-thread-library =
+librt =
 
+# Some tests need this to load their own test objects, and system
+# libraries used by memusagestat need to link against the empty
+# libpthread.so.0, not the (potentially non-empty) system version.
 rpath-dirs += nptl

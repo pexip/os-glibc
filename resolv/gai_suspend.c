@@ -1,6 +1,5 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2001.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,10 +23,9 @@
 
 #include <gai_misc.h>
 
-
 int
-gai_suspend (const struct gaicb *const list[], int ent,
-	     const struct timespec *timeout)
+___gai_suspend_time64 (const struct gaicb *const list[], int ent,
+		       const struct __timespec64 *timeout)
 {
   struct waitlist waitlist[ent];
   struct requestlist *requestlist[ent];
@@ -40,7 +38,7 @@ gai_suspend (const struct gaicb *const list[], int ent,
   int result;
 
   /* Request the mutex.  */
-  pthread_mutex_lock (&__gai_requests_mutex);
+  __pthread_mutex_lock (&__gai_requests_mutex);
 
   /* There is not yet a finished request.  Signal the request that
      we are working for it.  */
@@ -63,6 +61,19 @@ gai_suspend (const struct gaicb *const list[], int ent,
 	  }
       }
 
+  struct __timespec64 ts;
+  if (timeout != NULL)
+    {
+      __clock_gettime64 (CLOCK_MONOTONIC, &ts);
+      ts.tv_sec += timeout->tv_sec;
+      ts.tv_nsec += timeout->tv_nsec;
+      if (ts.tv_nsec >= 1000000000)
+	{
+	  ts.tv_nsec -= 1000000000;
+	  ts.tv_sec++;
+	}
+    }
+
   if (none)
     {
       if (cnt < ent)
@@ -79,33 +90,15 @@ gai_suspend (const struct gaicb *const list[], int ent,
       /* Since `pthread_cond_wait'/`pthread_cond_timedwait' are cancelation
 	 points we must be careful.  We added entries to the waiting lists
 	 which we must remove.  So defer cancelation for now.  */
-      pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &oldstate);
+      __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &oldstate);
 
 #ifdef DONT_NEED_GAI_MISC_COND
       result = 0;
-      GAI_MISC_WAIT (result, cntr, timeout, 1);
+      GAI_MISC_WAIT (result, cntr, timeout == NULL ? NULL : &ts, 1);
 #else
-      if (timeout == NULL)
-	result = pthread_cond_wait (&cond, &__gai_requests_mutex);
-      else
-	{
-	  /* We have to convert the relative timeout value into an
-	     absolute time value with pthread_cond_timedwait expects.  */
-	  struct timespec now;
-	  struct timespec abstime;
-
-          __clock_gettime (CLOCK_REALTIME, &now);
-	  abstime.tv_nsec = timeout->tv_nsec + now.tv_nsec;
-	  abstime.tv_sec = timeout->tv_sec + now.tv_sec;
-	  if (abstime.tv_nsec >= 1000000000)
-	    {
-	      abstime.tv_nsec -= 1000000000;
-	      abstime.tv_sec += 1;
-	    }
-
-	  result = pthread_cond_timedwait (&cond, &__gai_requests_mutex,
-					   &abstime);
-	}
+      struct timespec ts32 = valid_timespec64_to_timespec (ts);
+      result = pthread_cond_timedwait (&cond, &__gai_requests_mutex,
+                                       timeout == NULL ? NULL : &ts32);
 #endif
 
       /* Now remove the entry in the waiting list for all requests
@@ -127,7 +120,7 @@ gai_suspend (const struct gaicb *const list[], int ent,
 	  }
 
       /* Now it's time to restore the cancelation state.  */
-      pthread_setcancelstate (oldstate, NULL);
+      __pthread_setcancelstate (oldstate, NULL);
 
 #ifndef DONT_NEED_GAI_MISC_COND
       /* Release the conditional variable.  */
@@ -151,7 +144,47 @@ gai_suspend (const struct gaicb *const list[], int ent,
     }
 
   /* Release the mutex.  */
-  pthread_mutex_unlock (&__gai_requests_mutex);
+  __pthread_mutex_unlock (&__gai_requests_mutex);
 
   return result;
 }
+
+#if __TIMESIZE == 64
+# if PTHREAD_IN_LIBC
+versioned_symbol (libc, ___gai_suspend_time64, gai_suspend, GLIBC_2_34);
+#  if OTHER_SHLIB_COMPAT (libanl, GLIBC_2_2_3, GLIBC_2_34)
+compat_symbol (libanl, ___gai_suspend_time64, gai_suspend, GLIBC_2_2_3);
+#  endif
+# endif /* PTHREAD_IN_LIBC */
+
+#else /* __TIMESIZE != 64 */
+# if PTHREAD_IN_LIBC
+libc_hidden_ver (___gai_suspend_time64, __gai_suspend_time64)
+versioned_symbol (libc, ___gai_suspend_time64, __gai_suspend_time64,
+		  GLIBC_2_34);
+# else /* !PTHREAD_IN_LIBC */
+# if IS_IN (libanl)
+hidden_ver (___gai_suspend_time64, __gai_suspend_time64)
+# endif
+#endif /* !PTHREAD_IN_LIBC */
+
+int
+___gai_suspend (const struct gaicb *const list[], int ent,
+		const struct timespec *timeout)
+{
+  struct __timespec64 ts64;
+
+  if (timeout != NULL)
+    ts64 = valid_timespec_to_timespec64 (*timeout);
+
+  return __gai_suspend_time64 (list, ent, timeout != NULL ? &ts64 : NULL);
+}
+#if PTHREAD_IN_LIBC
+versioned_symbol (libc, ___gai_suspend, gai_suspend, GLIBC_2_34);
+# if OTHER_SHLIB_COMPAT (libanl, GLIBC_2_2_3, GLIBC_2_34)
+compat_symbol (libanl, ___gai_suspend, gai_suspend, GLIBC_2_2_3);
+# endif
+# else
+weak_alias (___gai_suspend, gai_suspend)
+# endif /* !PTHREAD_IN_LIBC */
+#endif /* __TIMESIZE != 64 */

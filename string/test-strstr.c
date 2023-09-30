@@ -1,7 +1,6 @@
 /* Test and measure strstr functions.
-   Copyright (C) 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Ulrich Drepper <drepper@redhat.com>, 2010.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,14 +21,14 @@
 #include "test-string.h"
 
 
-#define STRSTR simple_strstr
+#define STRSTR c_strstr
 #define libc_hidden_builtin_def(arg) /* nothing */
 #define __strnlen strnlen
 #include "strstr.c"
 
-
+/* Naive implementation to verify results.  */
 static char *
-stupid_strstr (const char *s1, const char *s2)
+simple_strstr (const char *s1, const char *s2)
 {
   ssize_t s1len = strlen (s1);
   ssize_t s2len = strlen (s2);
@@ -53,8 +52,7 @@ stupid_strstr (const char *s1, const char *s2)
 
 typedef char *(*proto_t) (const char *, const char *);
 
-IMPL (stupid_strstr, 0)
-IMPL (simple_strstr, 0)
+IMPL (c_strstr, 0)
 IMPL (strstr, 1)
 
 
@@ -131,7 +129,7 @@ check1 (void)
   const char s2[] = "_EF_BF_BD_EF_BF_BD_EF_BF_BD_EF_BF_BD_EF_BF_BD";
   char *exp_result;
 
-  exp_result = stupid_strstr (s1, s2);
+  exp_result = simple_strstr (s1, s2);
   FOR_EACH_IMPL (impl, 0)
     check_result (impl, s1, s2, exp_result);
 }
@@ -164,7 +162,7 @@ check2 (void)
   char *s2_page_cross = (void *) buf2 + page_size_real - 8;
   strcpy (s2_page_cross, s2_stack);
 
-  exp_result = stupid_strstr (s1_stack, s2_stack);
+  exp_result = simple_strstr (s1_stack, s2_stack);
   FOR_EACH_IMPL (impl, 0)
     {
       check_result (impl, s1_stack, s2_stack, exp_result);
@@ -202,7 +200,7 @@ pr23637 (void)
   /* Ensure we don't match at the first 'x'.  */
   h[0] = 'x';
 
-  char *exp_result = stupid_strstr (h, n);
+  char *exp_result = simple_strstr (h, n);
   FOR_EACH_IMPL (impl, 0)
     check_result (impl, h, n, exp_result);
 }

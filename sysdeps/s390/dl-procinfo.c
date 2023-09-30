@@ -1,7 +1,6 @@
 /* Data for s390 version of processor capability information.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2006.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -46,12 +45,13 @@
 #if !defined PROCINFO_DECL && defined SHARED
   ._dl_s390_cap_flags
 #else
-PROCINFO_CLASS const char _dl_s390_cap_flags[19][9]
+PROCINFO_CLASS const char _dl_s390_cap_flags[23][9]
 #endif
 #ifndef PROCINFO_DECL
 = {
      "esan3", "zarch", "stfle", "msa", "ldisp", "eimm", "dfp", "edat", "etf3eh",
-     "highgprs", "te", "vx", "vxd", "vxe", "gs", "vxe2", "vxp", "sort", "dflt"
+     "highgprs", "te", "vx", "vxd", "vxe", "gs", "vxe2", "vxp", "sort", "dflt",
+     "vxp2", "nnpa", "pcimio", "sie"
   }
 #endif
 #if !defined SHARED || defined PROCINFO_DECL
@@ -63,11 +63,12 @@ PROCINFO_CLASS const char _dl_s390_cap_flags[19][9]
 #if !defined PROCINFO_DECL && defined SHARED
   ._dl_s390_platforms
 #else
-PROCINFO_CLASS const char _dl_s390_platforms[10][7]
+PROCINFO_CLASS const char _dl_s390_platforms[11][7]
 #endif
 #ifndef PROCINFO_DECL
 = {
-    "g5", "z900", "z990", "z9-109", "z10", "z196", "zEC12", "z13", "z14", "z15"
+    "g5", "z900", "z990", "z9-109", "z10", "z196", "zEC12", "z13", "z14", "z15",
+    "z16"
   }
 #endif
 #if !defined SHARED || defined PROCINFO_DECL

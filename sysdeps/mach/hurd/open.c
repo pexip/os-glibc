@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <hurd.h>
 #include <hurd/fd.h>
+#include <sysdep-cancel.h>
 
 /* Open FILE with access OFLAG.  If O_CREAT or O_TMPFILE is in OFLAG,
    a third argument is the file protection.  */
@@ -29,6 +30,7 @@ __libc_open (const char *file, int oflag, ...)
 {
   mode_t mode;
   io_t port;
+  int cancel_oldtype;
 
   if (__OPEN_NEEDS_MODE (oflag))
     {
@@ -40,7 +42,10 @@ __libc_open (const char *file, int oflag, ...)
   else
     mode = 0;
 
+  cancel_oldtype = LIBC_CANCEL_ASYNC();
   port = __file_name_lookup (file, oflag, mode);
+  LIBC_CANCEL_RESET (cancel_oldtype);
+
   if (port == MACH_PORT_NULL)
     return -1;
 

@@ -1,6 +1,6 @@
 /* Common definitions for libm tests for _Float64x.
 
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,11 +31,9 @@
 #if FLT64X_MANT_DIG == LDBL_MANT_DIG
 # define TYPE_STR "ldouble"
 # define ULP_IDX ULP_LDBL
-# define ULP_I_IDX ULP_I_LDBL
 #else
 # define TYPE_STR "float128"
 # define ULP_IDX ULP_FLT128
-# define ULP_I_IDX ULP_I_FLT128
 #endif
 #define LIT(x) __f64x (x)
 #define LITM(x) x ## f64x

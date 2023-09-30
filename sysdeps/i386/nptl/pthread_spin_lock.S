@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,12 +15,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <lowlevellock.h>
+#include <sysdep.h>
+#include <shlib-compat.h>
 
-	.globl	pthread_spin_lock
-	.type	pthread_spin_lock,@function
-	.align	16
-pthread_spin_lock:
+ENTRY (__pthread_spin_lock)
 	mov	4(%esp), %eax
 1:	LOCK
 	decl	0(%eax)
@@ -34,4 +32,9 @@ pthread_spin_lock:
 	cmpl	$0, 0(%eax)
 	jg	1b
 	jmp	2b
-	.size	pthread_spin_lock,.-pthread_spin_lock
+END (__pthread_spin_lock)
+versioned_symbol (libc, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_34)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_2)
+#endif

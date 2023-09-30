@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 /* Generate a unique filename in P_tmpdir.  If S is NULL return NULL.
    This makes this function thread safe.  */
 char *
-tmpnam_r (char *s)
+tmpnam_r (char s[L_tmpnam])
 {
   if (s == NULL)
     return NULL;

@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@ __setsid (void)
   error_t err;
   unsigned int stamp;
 
+retry:
   HURD_CRITICAL_BEGIN;
   __mutex_lock (&_hurd_dtable_lock);
 
@@ -56,10 +57,13 @@ __setsid (void)
 	 returned by `getpgrp ()' in other threads) has been updated before
 	 we return.  */
       while (_hurd_pids_changed_stamp == stamp)
-        lll_wait (&_hurd_pids_changed_stamp, stamp, 0);
+        lll_wait (_hurd_pids_changed_stamp, stamp, 0);
     }
 
   HURD_CRITICAL_END;
+  if (err == EINTR)
+    /* Got a signal while inside an RPC of the critical section, retry again */
+    goto retry;
 
   return err ? __hurd_fail (err) : _hurd_pgrp;
 }

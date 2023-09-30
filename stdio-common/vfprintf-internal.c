@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,6 +31,7 @@
 #include <locale/localeinfo.h>
 #include <stdio.h>
 #include <scratch_buffer.h>
+#include <intprops.h>
 
 /* This code is shared between the standard stdio implementation found
    in GNU C library and the libio implementation originally found in
@@ -45,10 +46,6 @@
 #include <wctype.h>
 #endif
 
-/* In some cases we need extra space for all the output which is not
-   counted in the width of the string. We assume 32 characters is
-   enough.  */
-#define EXTSIZ		32
 #define ARGCHECK(S, Format) \
   do									      \
     {									      \
@@ -119,22 +116,38 @@
   while (0)
 #endif
 
-#define done_add(val) \
-  do {									      \
-    unsigned int _val = val;						      \
-    assert ((unsigned int) done < (unsigned int) INT_MAX);		      \
-    if (__glibc_unlikely (INT_MAX - done < _val))			      \
-      {									      \
-	done = -1;							      \
-	 __set_errno (EOVERFLOW);					      \
-	goto all_done;							      \
-      }									      \
-    done += _val;							      \
-  } while (0)
+/* Add LENGTH to DONE.  Return the new value of DONE, or -1 on
+   overflow (and set errno accordingly).  */
+static inline int
+done_add_func (size_t length, int done)
+{
+  if (done < 0)
+    return done;
+  int ret;
+  if (INT_ADD_WRAPV (done, length, &ret))
+    {
+      __set_errno (EOVERFLOW);
+      return -1;
+    }
+  return ret;
+}
+
+#define done_add(val)							\
+  do									\
+    {									\
+      /* Ensure that VAL has a type similar to int.  */			\
+      _Static_assert (sizeof (val) == sizeof (int), "value int size");	\
+      _Static_assert ((__typeof__ (val)) -1 < 0, "value signed");	\
+      done = done_add_func ((val), done);				\
+      if (done < 0)							\
+	goto all_done;							\
+    }									\
+  while (0)
 
 #ifndef COMPILE_WPRINTF
 # define vfprintf	__vfprintf_internal
 # define CHAR_T		char
+# define OTHER_CHAR_T   wchar_t
 # define UCHAR_T	unsigned char
 # define INT_T		int
 typedef const char *THOUSANDS_SEP_T;
@@ -143,25 +156,14 @@ typedef const char *THOUSANDS_SEP_T;
 # define STR_LEN(Str)	strlen (Str)
 
 # define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
-# define PAD(Padchar) \
-  do {									      \
-    if (width > 0)							      \
-      {									      \
-	ssize_t written = _IO_padn (s, (Padchar), width);		      \
-	if (__glibc_unlikely (written != width))			      \
-	  {								      \
-	    done = -1;							      \
-	    goto all_done;						      \
-	  }								      \
-	done_add (written);						      \
-      }									      \
-  } while (0)
 # define PUTC(C, F)	_IO_putc_unlocked (C, F)
 # define ORIENT		if (_IO_vtable_offset (s) == 0 && _IO_fwide (s, -1) != -1)\
 			  return -1
+# define CONVERT_FROM_OTHER_STRING __wcsrtombs
 #else
 # define vfprintf	__vfwprintf_internal
 # define CHAR_T		wchar_t
+# define OTHER_CHAR_T   char
 /* This is a hack!!!  There should be a type uwchar_t.  */
 # define UCHAR_T	unsigned int /* uwchar_t */
 # define INT_T		wint_t
@@ -173,21 +175,9 @@ typedef wchar_t THOUSANDS_SEP_T;
 # include <_itowa.h>
 
 # define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
-# define PAD(Padchar) \
-  do {									      \
-    if (width > 0)							      \
-      {									      \
-	ssize_t written = _IO_wpadn (s, (Padchar), width);		      \
-	if (__glibc_unlikely (written != width))			      \
-	  {								      \
-	    done = -1;							      \
-	    goto all_done;						      \
-	  }								      \
-	done_add (written);						      \
-      }									      \
-  } while (0)
 # define PUTC(C, F)	_IO_putwc_unlocked (C, F)
 # define ORIENT		if (_IO_fwide (s, 1) != 1) return -1
+# define CONVERT_FROM_OTHER_STRING __mbsrtowcs
 
 # undef _itoa
 # define _itoa(Val, Buf, Base, Case) _itowa (Val, Buf, Base, Case)
@@ -195,6 +185,33 @@ typedef wchar_t THOUSANDS_SEP_T;
 # undef EOF
 # define EOF WEOF
 #endif
+
+static inline int
+pad_func (FILE *s, CHAR_T padchar, int width, int done)
+{
+  if (width > 0)
+    {
+      ssize_t written;
+#ifndef COMPILE_WPRINTF
+      written = _IO_padn (s, padchar, width);
+#else
+      written = _IO_wpadn (s, padchar, width);
+#endif
+      if (__glibc_unlikely (written != width))
+	return -1;
+      return done_add_func (width, done);
+    }
+  return done;
+}
+
+#define PAD(Padchar)							\
+  do									\
+    {									\
+      done = pad_func (s, (Padchar), width, done);			\
+      if (done < 0)							\
+	goto all_done;							\
+    }									\
+  while (0)
 
 #include "_i18n_number.h"
 
@@ -215,24 +232,127 @@ typedef wchar_t THOUSANDS_SEP_T;
     }									      \
   while (0)
 
-#define outstring(String, Len)						      \
-  do									      \
-    {									      \
-      assert ((size_t) done <= (size_t) INT_MAX);			      \
-      if ((size_t) PUT (s, (String), (Len)) != (size_t) (Len))		      \
-	{								      \
-	  done = -1;							      \
-	  goto all_done;						      \
-	}								      \
-      if (__glibc_unlikely (INT_MAX - done < (Len)))			      \
-      {									      \
-	done = -1;							      \
-	 __set_errno (EOVERFLOW);					      \
-	goto all_done;							      \
-      }									      \
-      done += (Len);							      \
-    }									      \
-  while (0)
+static inline int
+outstring_func (FILE *s, const UCHAR_T *string, size_t length, int done)
+{
+  assert ((size_t) done <= (size_t) INT_MAX);
+  if ((size_t) PUT (s, string, length) != (size_t) (length))
+    return -1;
+  return done_add_func (length, done);
+}
+
+#define outstring(String, Len)						\
+  do									\
+    {									\
+      const void *string_ = (String);					\
+      done = outstring_func (s, string_, (Len), done);			\
+      if (done < 0)							\
+	goto all_done;							\
+    }									\
+   while (0)
+
+/* Write the string SRC to S.  If PREC is non-negative, write at most
+   PREC bytes.  If LEFT is true, perform left justification.  */
+static int
+outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
+				 int width, bool left, int done)
+{
+  /* Use a small buffer to combine processing of multiple characters.
+     CONVERT_FROM_OTHER_STRING expects the buffer size in (wide)
+     characters, and buf_length counts that.  */
+  enum { buf_length = 256 / sizeof (CHAR_T) };
+  CHAR_T buf[buf_length];
+  _Static_assert (sizeof (buf) > MB_LEN_MAX,
+		  "buffer is large enough for a single multi-byte character");
+
+  /* Add the initial padding if needed.  */
+  if (width > 0 && !left)
+    {
+      /* Make a first pass to find the output width, so that we can
+	 add the required padding.  */
+      mbstate_t mbstate = { 0 };
+      const OTHER_CHAR_T *src_copy = src;
+      size_t total_written;
+      if (prec < 0)
+	total_written = CONVERT_FROM_OTHER_STRING
+	  (NULL, &src_copy, 0, &mbstate);
+      else
+	{
+	  /* The source might not be null-terminated.  Enforce the
+	     limit manually, based on the output length.  */
+	  total_written = 0;
+	  size_t limit = prec;
+	  while (limit > 0 && src_copy != NULL)
+	    {
+	      size_t write_limit = buf_length;
+	      if (write_limit > limit)
+		write_limit = limit;
+	      size_t written = CONVERT_FROM_OTHER_STRING
+		(buf, &src_copy, write_limit, &mbstate);
+	      if (written == (size_t) -1)
+		return -1;
+	      if (written == 0)
+		break;
+	      total_written += written;
+	      limit -= written;
+	    }
+	}
+
+      /* Output initial padding.  */
+      if (total_written < width)
+	{
+	  done = pad_func (s, L_(' '), width - total_written, done);
+	  if (done < 0)
+	    return done;
+	}
+    }
+
+  /* Convert the input string, piece by piece.  */
+  size_t total_written = 0;
+  {
+    mbstate_t mbstate = { 0 };
+    /* If prec is negative, remaining is not decremented, otherwise,
+      it serves as the write limit.  */
+    size_t remaining = -1;
+    if (prec >= 0)
+      remaining = prec;
+    while (remaining > 0 && src != NULL)
+      {
+	size_t write_limit = buf_length;
+	if (remaining < write_limit)
+	  write_limit = remaining;
+	size_t written = CONVERT_FROM_OTHER_STRING
+	  (buf, &src, write_limit, &mbstate);
+	if (written == (size_t) -1)
+	  return -1;
+	if (written == 0)
+	  break;
+	done = outstring_func (s, (const UCHAR_T *) buf, written, done);
+	if (done < 0)
+	  return done;
+	total_written += written;
+	if (prec >= 0)
+	  remaining -= written;
+      }
+  }
+
+  /* Add final padding.  */
+  if (width > 0 && left && total_written < width)
+    return pad_func (s, L_(' '), width - total_written, done);
+  return done;
+}
+
+/* Calls __printf_fp or __printf_fphex based on the value of the
+   format specifier INFO->spec.  */
+static inline int
+__printf_fp_spec (FILE *fp, const struct printf_info *info,
+		  const void *const *args)
+{
+  if (info->spec == 'a' || info->spec == 'A')
+    return __printf_fphex (fp, info, args);
+  else
+    return __printf_fp (fp, info, args);
+}
 
 /* For handling long_double and longlong we use the same flag.  If
    `long' and `long long' are effectively the same type define it to
@@ -270,7 +390,7 @@ static const uint8_t jump_table[] =
     /* '4' */  8, /* '5' */  8, /* '6' */  8, /* '7' */  8,
     /* '8' */  8, /* '9' */  8,            0,            0,
 	       0,            0,            0,            0,
-	       0, /* 'A' */ 26,            0, /* 'C' */ 25,
+	       0, /* 'A' */ 26, /* 'B' */ 30, /* 'C' */ 25,
 	       0, /* 'E' */ 19, /* F */   19, /* 'G' */ 19,
 	       0, /* 'I' */ 29,            0,            0,
     /* 'L' */ 12,            0,            0,            0,
@@ -278,7 +398,7 @@ static const uint8_t jump_table[] =
 	       0,            0,            0,            0,
     /* 'X' */ 18,            0, /* 'Z' */ 13,            0,
 	       0,            0,            0,            0,
-	       0, /* 'a' */ 26,            0, /* 'c' */ 20,
+	       0, /* 'a' */ 26, /* 'b' */ 30, /* 'c' */ 20,
     /* 'd' */ 15, /* 'e' */ 19, /* 'f' */ 19, /* 'g' */ 19,
     /* 'h' */ 10, /* 'i' */ 15, /* 'j' */ 28,            0,
     /* 'l' */ 11, /* 'm' */ 24, /* 'n' */ 23, /* 'o' */ 17,
@@ -324,7 +444,7 @@ static const uint8_t jump_table[] =
 
 #define STEP0_3_TABLE							      \
     /* Step 0: at the beginning.  */					      \
-    static JUMP_TABLE_TYPE step0_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step0_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (flag_space),		/* for ' ' */				      \
@@ -356,9 +476,10 @@ static const uint8_t jump_table[] =
       REF (mod_ptrdiff_t),      /* for 't' */				      \
       REF (mod_intmax_t),       /* for 'j' */				      \
       REF (flag_i18n),		/* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     };									      \
     /* Step 1: after processing width.  */				      \
-    static JUMP_TABLE_TYPE step1_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step1_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -389,10 +510,11 @@ static const uint8_t jump_table[] =
       REF (form_floathex),	/* for 'A', 'a' */			      \
       REF (mod_ptrdiff_t),      /* for 't' */				      \
       REF (mod_intmax_t),       /* for 'j' */				      \
-      REF (form_unknown)        /* for 'I' */				      \
+      REF (form_unknown),       /* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     };									      \
     /* Step 2: after processing precision.  */				      \
-    static JUMP_TABLE_TYPE step2_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step2_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -423,10 +545,11 @@ static const uint8_t jump_table[] =
       REF (form_floathex),	/* for 'A', 'a' */			      \
       REF (mod_ptrdiff_t),      /* for 't' */				      \
       REF (mod_intmax_t),       /* for 'j' */				      \
-      REF (form_unknown)        /* for 'I' */				      \
+      REF (form_unknown),       /* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     };									      \
     /* Step 3a: after processing first 'h' modifier.  */		      \
-    static JUMP_TABLE_TYPE step3a_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step3a_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -457,10 +580,11 @@ static const uint8_t jump_table[] =
       REF (form_unknown),	/* for 'A', 'a' */			      \
       REF (form_unknown),       /* for 't' */				      \
       REF (form_unknown),       /* for 'j' */				      \
-      REF (form_unknown)        /* for 'I' */				      \
+      REF (form_unknown),       /* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     };									      \
     /* Step 3b: after processing first 'l' modifier.  */		      \
-    static JUMP_TABLE_TYPE step3b_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step3b_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -491,12 +615,13 @@ static const uint8_t jump_table[] =
       REF (form_floathex),	/* for 'A', 'a' */			      \
       REF (form_unknown),       /* for 't' */				      \
       REF (form_unknown),       /* for 'j' */				      \
-      REF (form_unknown)        /* for 'I' */				      \
+      REF (form_unknown),       /* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     }
 
 #define STEP4_TABLE							      \
     /* Step 4: processing format specifier.  */				      \
-    static JUMP_TABLE_TYPE step4_jumps[30] =				      \
+    static JUMP_TABLE_TYPE step4_jumps[31] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -527,738 +652,9 @@ static const uint8_t jump_table[] =
       REF (form_floathex),	/* for 'A', 'a' */			      \
       REF (form_unknown),       /* for 't' */				      \
       REF (form_unknown),       /* for 'j' */				      \
-      REF (form_unknown)        /* for 'I' */				      \
+      REF (form_unknown),       /* for 'I' */				      \
+      REF (form_binary),	/* for 'B', 'b' */			      \
     }
-
-
-#define process_arg(fspec)						      \
-      /* Start real work.  We know about all flags and modifiers and	      \
-	 now process the wanted format specifier.  */			      \
-    LABEL (form_percent):						      \
-      /* Write a literal "%".  */					      \
-      outchar (L_('%'));						      \
-      break;								      \
-									      \
-    LABEL (form_integer):						      \
-      /* Signed decimal integer.  */					      \
-      base = 10;							      \
-									      \
-      if (is_longlong)							      \
-	{								      \
-	  long long int signed_number;					      \
-									      \
-	  if (fspec == NULL)						      \
-	    signed_number = va_arg (ap, long long int);			      \
-	  else								      \
-	    signed_number = args_value[fspec->data_arg].pa_long_long_int;     \
-									      \
-	  is_negative = signed_number < 0;				      \
-	  number.longlong = is_negative ? (- signed_number) : signed_number;  \
-									      \
-	  goto LABEL (longlong_number);					      \
-	}								      \
-      else								      \
-	{								      \
-	  long int signed_number;					      \
-									      \
-	  if (fspec == NULL)						      \
-	    {								      \
-	      if (is_long_num)						      \
-		signed_number = va_arg (ap, long int);			      \
-	      else if (is_char)						      \
-		signed_number = (signed char) va_arg (ap, unsigned int);      \
-	      else if (!is_short)					      \
-		signed_number = va_arg (ap, int);			      \
-	      else							      \
-		signed_number = (short int) va_arg (ap, unsigned int);	      \
-	    }								      \
-	  else								      \
-	    if (is_long_num)						      \
-	      signed_number = args_value[fspec->data_arg].pa_long_int;	      \
-	    else if (is_char)						      \
-	      signed_number = (signed char)				      \
-		args_value[fspec->data_arg].pa_u_int;			      \
-	    else if (!is_short)						      \
-	      signed_number = args_value[fspec->data_arg].pa_int;	      \
-	    else							      \
-	      signed_number = (short int)				      \
-		args_value[fspec->data_arg].pa_u_int;			      \
-									      \
-	  is_negative = signed_number < 0;				      \
-	  number.word = is_negative ? (- signed_number) : signed_number;      \
-									      \
-	  goto LABEL (number);						      \
-	}								      \
-      /* NOTREACHED */							      \
-									      \
-    LABEL (form_unsigned):						      \
-      /* Unsigned decimal integer.  */					      \
-      base = 10;							      \
-      goto LABEL (unsigned_number);					      \
-      /* NOTREACHED */							      \
-									      \
-    LABEL (form_octal):							      \
-      /* Unsigned octal integer.  */					      \
-      base = 8;								      \
-      goto LABEL (unsigned_number);					      \
-      /* NOTREACHED */							      \
-									      \
-    LABEL (form_hexa):							      \
-      /* Unsigned hexadecimal integer.  */				      \
-      base = 16;							      \
-									      \
-    LABEL (unsigned_number):	  /* Unsigned number of base BASE.  */	      \
-									      \
-      /* ISO specifies the `+' and ` ' flags only for signed		      \
-	 conversions.  */						      \
-      is_negative = 0;							      \
-      showsign = 0;							      \
-      space = 0;							      \
-									      \
-      if (is_longlong)							      \
-	{								      \
-	  if (fspec == NULL)						      \
-	    number.longlong = va_arg (ap, unsigned long long int);	      \
-	  else								      \
-	    number.longlong = args_value[fspec->data_arg].pa_u_long_long_int; \
-									      \
-	LABEL (longlong_number):					      \
-	  if (prec < 0)							      \
-	    /* Supply a default precision if none was given.  */	      \
-	    prec = 1;							      \
-	  else								      \
-	    /* We have to take care for the '0' flag.  If a precision	      \
-	       is given it must be ignored.  */				      \
-	    pad = L_(' ');						      \
-									      \
-	  /* If the precision is 0 and the number is 0 nothing has to	      \
-	     be written for the number, except for the 'o' format in	      \
-	     alternate form.  */					      \
-	  if (prec == 0 && number.longlong == 0)			      \
-	    {								      \
-	      string = workend;						      \
-	      if (base == 8 && alt)					      \
-		*--string = L_('0');					      \
-	    }								      \
-	  else								      \
-	    {								      \
-	      /* Put the number in WORK.  */				      \
-	      string = _itoa (number.longlong, workend, base,		      \
-			      spec == L_('X'));				      \
-	      if (group && grouping)					      \
-		string = group_number (work_buffer, string, workend,	      \
-				       grouping, thousands_sep);	      \
-	      if (use_outdigits && base == 10)				      \
-		string = _i18n_number_rewrite (string, workend, workend);     \
-	    }								      \
-	  /* Simplify further test for num != 0.  */			      \
-	  number.word = number.longlong != 0;				      \
-	}								      \
-      else								      \
-	{								      \
-	  if (fspec == NULL)						      \
-	    {								      \
-	      if (is_long_num)						      \
-		number.word = va_arg (ap, unsigned long int);		      \
-	      else if (is_char)						      \
-		number.word = (unsigned char) va_arg (ap, unsigned int);      \
-	      else if (!is_short)					      \
-		number.word = va_arg (ap, unsigned int);		      \
-	      else							      \
-		number.word = (unsigned short int) va_arg (ap, unsigned int); \
-	    }								      \
-	  else								      \
-	    if (is_long_num)						      \
-	      number.word = args_value[fspec->data_arg].pa_u_long_int;	      \
-	    else if (is_char)						      \
-	      number.word = (unsigned char)				      \
-		args_value[fspec->data_arg].pa_u_int;			      \
-	    else if (!is_short)						      \
-	      number.word = args_value[fspec->data_arg].pa_u_int;	      \
-	    else							      \
-	      number.word = (unsigned short int)			      \
-		args_value[fspec->data_arg].pa_u_int;			      \
-									      \
-	LABEL (number):							      \
-	  if (prec < 0)							      \
-	    /* Supply a default precision if none was given.  */	      \
-	    prec = 1;							      \
-	  else								      \
-	    /* We have to take care for the '0' flag.  If a precision	      \
-	       is given it must be ignored.  */				      \
-	    pad = L_(' ');						      \
-									      \
-	  /* If the precision is 0 and the number is 0 nothing has to	      \
-	     be written for the number, except for the 'o' format in	      \
-	     alternate form.  */					      \
-	  if (prec == 0 && number.word == 0)				      \
-	    {								      \
-	      string = workend;						      \
-	      if (base == 8 && alt)					      \
-		*--string = L_('0');					      \
-	    }								      \
-	  else								      \
-	    {								      \
-	      /* Put the number in WORK.  */				      \
-	      string = _itoa_word (number.word, workend, base,		      \
-				   spec == L_('X'));			      \
-	      if (group && grouping)					      \
-		string = group_number (work_buffer, string, workend,	      \
-				       grouping, thousands_sep);	      \
-	      if (use_outdigits && base == 10)				      \
-		string = _i18n_number_rewrite (string, workend, workend);     \
-	    }								      \
-	}								      \
-									      \
-      if (prec <= workend - string && number.word != 0 && alt && base == 8)   \
-	/* Add octal marker.  */					      \
-	*--string = L_('0');						      \
-									      \
-      prec = MAX (0, prec - (workend - string));			      \
-									      \
-      if (!left)							      \
-	{								      \
-	  width -= workend - string + prec;				      \
-									      \
-	  if (number.word != 0 && alt && base == 16)			      \
-	    /* Account for 0X hex marker.  */				      \
-	    width -= 2;							      \
-									      \
-	  if (is_negative || showsign || space)				      \
-	    --width;							      \
-									      \
-	  if (pad == L_(' '))						      \
-	    {								      \
-	      PAD (L_(' '));						      \
-	      width = 0;						      \
-	    }								      \
-									      \
-	  if (is_negative)						      \
-	    outchar (L_('-'));						      \
-	  else if (showsign)						      \
-	    outchar (L_('+'));						      \
-	  else if (space)						      \
-	    outchar (L_(' '));						      \
-									      \
-	  if (number.word != 0 && alt && base == 16)			      \
-	    {								      \
-	      outchar (L_('0'));					      \
-	      outchar (spec);						      \
-	    }								      \
-									      \
-	  width += prec;						      \
-	  PAD (L_('0'));						      \
-									      \
-	  outstring (string, workend - string);				      \
-									      \
-	  break;							      \
-	}								      \
-      else								      \
-	{								      \
-	  if (is_negative)						      \
-	    {								      \
-	      outchar (L_('-'));					      \
-	      --width;							      \
-	    }								      \
-	  else if (showsign)						      \
-	    {								      \
-	      outchar (L_('+'));					      \
-	      --width;							      \
-	    }								      \
-	  else if (space)						      \
-	    {								      \
-	      outchar (L_(' '));					      \
-	      --width;							      \
-	    }								      \
-									      \
-	  if (number.word != 0 && alt && base == 16)			      \
-	    {								      \
-	      outchar (L_('0'));					      \
-	      outchar (spec);						      \
-	      width -= 2;						      \
-	    }								      \
-									      \
-	  width -= workend - string + prec;				      \
-									      \
-	  if (prec > 0)							      \
-	    {								      \
-	      int temp = width;						      \
-	      width = prec;						      \
-	      PAD (L_('0'));						      \
-	      width = temp;						      \
-	    }								      \
-									      \
-	  outstring (string, workend - string);				      \
-									      \
-	  PAD (L_(' '));						      \
-	  break;							      \
-	}								      \
-									      \
-    LABEL (form_float):							      \
-      {									      \
-	/* Floating-point number.  This is handled by printf_fp.c.  */	      \
-	const void *ptr;						      \
-	int function_done;						      \
-									      \
-	if (fspec == NULL)						      \
-	  {								      \
-	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))    \
-	      is_long_double = 0;					      \
-									      \
-	    struct printf_info info = { .prec = prec,			      \
-					.width = width,			      \
-					.spec = spec,			      \
-					.is_long_double = is_long_double,     \
-					.is_short = is_short,		      \
-					.is_long = is_long,		      \
-					.alt = alt,			      \
-					.space = space,			      \
-					.left = left,			      \
-					.showsign = showsign,		      \
-					.group = group,			      \
-					.pad = pad,			      \
-					.extra = 0,			      \
-					.i18n = use_outdigits,		      \
-					.wide = sizeof (CHAR_T) != 1,	      \
-					.is_binary128 = 0};		      \
-									      \
-	    PARSE_FLOAT_VA_ARG_EXTENDED (info);				      \
-	    ptr = (const void *) &the_arg;				      \
-									      \
-	    function_done = __printf_fp (s, &info, &ptr);		      \
-	  }								      \
-	else								      \
-	  {								      \
-	    ptr = (const void *) &args_value[fspec->data_arg];		      \
-	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))    \
-	      {								      \
-		fspec->data_arg_type = PA_DOUBLE;			      \
-		fspec->info.is_long_double = 0;				      \
-	      }								      \
-	    SETUP_FLOAT128_INFO (fspec->info);				      \
-									      \
-	    function_done = __printf_fp (s, &fspec->info, &ptr);	      \
-	  }								      \
-									      \
-	if (function_done < 0)						      \
-	  {								      \
-	    /* Error in print handler; up to handler to set errno.  */	      \
-	    done = -1;							      \
-	    goto all_done;						      \
-	  }								      \
-									      \
-	done_add (function_done);					      \
-      }									      \
-      break;								      \
-									      \
-    LABEL (form_floathex):						      \
-      {									      \
-	/* Floating point number printed as hexadecimal number.  */	      \
-	const void *ptr;						      \
-	int function_done;						      \
-									      \
-	if (fspec == NULL)						      \
-	  {								      \
-	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))    \
-	      is_long_double = 0;					      \
-									      \
-	    struct printf_info info = { .prec = prec,			      \
-					.width = width,			      \
-					.spec = spec,			      \
-					.is_long_double = is_long_double,     \
-					.is_short = is_short,		      \
-					.is_long = is_long,		      \
-					.alt = alt,			      \
-					.space = space,			      \
-					.left = left,			      \
-					.showsign = showsign,		      \
-					.group = group,			      \
-					.pad = pad,			      \
-					.extra = 0,			      \
-					.wide = sizeof (CHAR_T) != 1,	      \
-					.is_binary128 = 0};		      \
-									      \
-	    PARSE_FLOAT_VA_ARG_EXTENDED (info);				      \
-	    ptr = (const void *) &the_arg;				      \
-									      \
-	    function_done = __printf_fphex (s, &info, &ptr);		      \
-	  }								      \
-	else								      \
-	  {								      \
-	    ptr = (const void *) &args_value[fspec->data_arg];		      \
-	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))    \
-	      fspec->info.is_long_double = 0;				      \
-	    SETUP_FLOAT128_INFO (fspec->info);				      \
-									      \
-	    function_done = __printf_fphex (s, &fspec->info, &ptr);	      \
-	  }								      \
-									      \
-	if (function_done < 0)						      \
-	  {								      \
-	    /* Error in print handler; up to handler to set errno.  */	      \
-	    done = -1;							      \
-	    goto all_done;						      \
-	  }								      \
-									      \
-	done_add (function_done);					      \
-      }									      \
-      break;								      \
-									      \
-    LABEL (form_pointer):						      \
-      /* Generic pointer.  */						      \
-      {									      \
-	const void *ptr;						      \
-	if (fspec == NULL)						      \
-	  ptr = va_arg (ap, void *);					      \
-	else								      \
-	  ptr = args_value[fspec->data_arg].pa_pointer;			      \
-	if (ptr != NULL)						      \
-	  {								      \
-	    /* If the pointer is not NULL, write it as a %#x spec.  */	      \
-	    base = 16;							      \
-	    number.word = (unsigned long int) ptr;			      \
-	    is_negative = 0;						      \
-	    alt = 1;							      \
-	    group = 0;							      \
-	    spec = L_('x');						      \
-	    goto LABEL (number);					      \
-	  }								      \
-	else								      \
-	  {								      \
-	    /* Write "(nil)" for a nil pointer.  */			      \
-	    string = (CHAR_T *) L_("(nil)");				      \
-	    /* Make sure the full string "(nil)" is printed.  */	      \
-	    if (prec < 5)						      \
-	      prec = 5;							      \
-	    /* This is a wide string iff compiling wprintf.  */		      \
-	    is_long = sizeof (CHAR_T) > 1;				      \
-	    goto LABEL (print_string);					      \
-	  }								      \
-      }									      \
-      /* NOTREACHED */							      \
-									      \
-    LABEL (form_number):						      \
-      if ((mode_flags & PRINTF_FORTIFY) != 0)				      \
-	{								      \
-	  if (! readonly_format)					      \
-	    {								      \
-	      extern int __readonly_area (const void *, size_t)		      \
-		attribute_hidden;					      \
-	      readonly_format						      \
-		= __readonly_area (format, ((STR_LEN (format) + 1)	      \
-					    * sizeof (CHAR_T)));	      \
-	    }								      \
-	  if (readonly_format < 0)					      \
-	    __libc_fatal ("*** %n in writable segment detected ***\n");	      \
-	}								      \
-      /* Answer the count of characters written.  */			      \
-      if (fspec == NULL)						      \
-	{								      \
-	  if (is_longlong)						      \
-	    *(long long int *) va_arg (ap, void *) = done;		      \
-	  else if (is_long_num)						      \
-	    *(long int *) va_arg (ap, void *) = done;			      \
-	  else if (is_char)						      \
-	    *(char *) va_arg (ap, void *) = done;			      \
-	  else if (!is_short)						      \
-	    *(int *) va_arg (ap, void *) = done;			      \
-	  else								      \
-	    *(short int *) va_arg (ap, void *) = done;			      \
-	}								      \
-      else								      \
-	if (is_longlong)						      \
-	  *(long long int *) args_value[fspec->data_arg].pa_pointer = done;   \
-	else if (is_long_num)						      \
-	  *(long int *) args_value[fspec->data_arg].pa_pointer = done;	      \
-	else if (is_char)						      \
-	  *(char *) args_value[fspec->data_arg].pa_pointer = done;	      \
-	else if (!is_short)						      \
-	  *(int *) args_value[fspec->data_arg].pa_pointer = done;	      \
-	else								      \
-	  *(short int *) args_value[fspec->data_arg].pa_pointer = done;	      \
-      break;								      \
-									      \
-    LABEL (form_strerror):						      \
-      /* Print description of error ERRNO.  */				      \
-      string =								      \
-	(CHAR_T *) __strerror_r (save_errno, (char *) work_buffer,	      \
-				 WORK_BUFFER_SIZE * sizeof (CHAR_T));	      \
-      is_long = 0;		/* This is no wide-char string.  */	      \
-      goto LABEL (print_string)
-
-#ifdef COMPILE_WPRINTF
-# define process_string_arg(fspec) \
-    LABEL (form_character):						      \
-      /* Character.  */							      \
-      if (is_long)							      \
-	goto LABEL (form_wcharacter);					      \
-      --width;	/* Account for the character itself.  */		      \
-      if (!left)							      \
-	PAD (L' ');							      \
-      if (fspec == NULL)						      \
-	outchar (__btowc ((unsigned char) va_arg (ap, int))); /* Promoted. */ \
-      else								      \
-	outchar (__btowc ((unsigned char)				      \
-			  args_value[fspec->data_arg].pa_int));		      \
-      if (left)								      \
-	PAD (L' ');							      \
-      break;								      \
-									      \
-    LABEL (form_wcharacter):						      \
-      {									      \
-	/* Wide character.  */						      \
-	--width;							      \
-	if (!left)							      \
-	  PAD (L' ');							      \
-	if (fspec == NULL)						      \
-	  outchar (va_arg (ap, wchar_t));				      \
-	else								      \
-	  outchar (args_value[fspec->data_arg].pa_wchar);		      \
-	if (left)							      \
-	  PAD (L' ');							      \
-      }									      \
-      break;								      \
-									      \
-    LABEL (form_string):						      \
-      {									      \
-	size_t len;							      \
-	int string_malloced;						      \
-									      \
-	/* The string argument could in fact be `char *' or `wchar_t *'.      \
-	   But this should not make a difference here.  */		      \
-	if (fspec == NULL)						      \
-	  string = (CHAR_T *) va_arg (ap, const wchar_t *);		      \
-	else								      \
-	  string = (CHAR_T *) args_value[fspec->data_arg].pa_wstring;	      \
-									      \
-	/* Entry point for printing other strings.  */			      \
-      LABEL (print_string):						      \
-									      \
-	string_malloced = 0;						      \
-	if (string == NULL)						      \
-	  {								      \
-	    /* Write "(null)" if there's space.  */			      \
-	    if (prec == -1 || prec >= (int) array_length (null) - 1)          \
-	      {								      \
-		string = (CHAR_T *) null;				      \
-		len = array_length (null) - 1;				      \
-	      }								      \
-	    else							      \
-	      {								      \
-		string = (CHAR_T *) L"";				      \
-		len = 0;						      \
-	      }								      \
-	  }								      \
-	else if (!is_long && spec != L_('S'))				      \
-	  {								      \
-	    /* This is complicated.  We have to transform the multibyte	      \
-	       string into a wide character string.  */			      \
-	    const char *mbs = (const char *) string;			      \
-	    mbstate_t mbstate;						      \
-									      \
-	    len = prec != -1 ? __strnlen (mbs, (size_t) prec) : strlen (mbs); \
-									      \
-	    /* Allocate dynamically an array which definitely is long	      \
-	       enough for the wide character version.  Each byte in the	      \
-	       multi-byte string can produce at most one wide character.  */  \
-	    if (__glibc_unlikely (len > SIZE_MAX / sizeof (wchar_t)))	      \
-	      {								      \
-		__set_errno (EOVERFLOW);				      \
-		done = -1;						      \
-		goto all_done;						      \
-	      }								      \
-	    else if (__libc_use_alloca (len * sizeof (wchar_t)))	      \
-	      string = (CHAR_T *) alloca (len * sizeof (wchar_t));	      \
-	    else if ((string = (CHAR_T *) malloc (len * sizeof (wchar_t)))    \
-		     == NULL)						      \
-	      {								      \
-		done = -1;						      \
-		goto all_done;						      \
-	      }								      \
-	    else							      \
-	      string_malloced = 1;					      \
-									      \
-	    memset (&mbstate, '\0', sizeof (mbstate_t));		      \
-	    len = __mbsrtowcs (string, &mbs, len, &mbstate);		      \
-	    if (len == (size_t) -1)					      \
-	      {								      \
-		/* Illegal multibyte character.  */			      \
-		done = -1;						      \
-		goto all_done;						      \
-	      }								      \
-	  }								      \
-	else								      \
-	  {								      \
-	    if (prec != -1)						      \
-	      /* Search for the end of the string, but don't search past      \
-		 the length specified by the precision.  */		      \
-	      len = __wcsnlen (string, prec);				      \
-	    else							      \
-	      len = __wcslen (string);					      \
-	  }								      \
-									      \
-	if ((width -= len) < 0)						      \
-	  {								      \
-	    outstring (string, len);					      \
-	    break;							      \
-	  }								      \
-									      \
-	if (!left)							      \
-	  PAD (L' ');							      \
-	outstring (string, len);					      \
-	if (left)							      \
-	  PAD (L' ');							      \
-	if (__glibc_unlikely (string_malloced))				      \
-	  free (string);						      \
-      }									      \
-      break;
-#else
-# define process_string_arg(fspec) \
-    LABEL (form_character):						      \
-      /* Character.  */							      \
-      if (is_long)							      \
-	goto LABEL (form_wcharacter);					      \
-      --width;	/* Account for the character itself.  */		      \
-      if (!left)							      \
-	PAD (' ');							      \
-      if (fspec == NULL)						      \
-	outchar ((unsigned char) va_arg (ap, int)); /* Promoted.  */	      \
-      else								      \
-	outchar ((unsigned char) args_value[fspec->data_arg].pa_int);	      \
-      if (left)								      \
-	PAD (' ');							      \
-      break;								      \
-									      \
-    LABEL (form_wcharacter):						      \
-      {									      \
-	/* Wide character.  */						      \
-	char buf[MB_LEN_MAX];						      \
-	mbstate_t mbstate;						      \
-	size_t len;							      \
-									      \
-	memset (&mbstate, '\0', sizeof (mbstate_t));			      \
-	len = __wcrtomb (buf, (fspec == NULL ? va_arg (ap, wchar_t)	      \
-			       : args_value[fspec->data_arg].pa_wchar),	      \
-			 &mbstate);					      \
-	if (len == (size_t) -1)						      \
-	  {								      \
-	    /* Something went wrong during the conversion.  Bail out.  */     \
-	    done = -1;							      \
-	    goto all_done;						      \
-	  }								      \
-	width -= len;							      \
-	if (!left)							      \
-	  PAD (' ');							      \
-	outstring (buf, len);						      \
-	if (left)							      \
-	  PAD (' ');							      \
-      }									      \
-      break;								      \
-									      \
-    LABEL (form_string):						      \
-      {									      \
-	size_t len;							      \
-	int string_malloced;						      \
-									      \
-	/* The string argument could in fact be `char *' or `wchar_t *'.      \
-	   But this should not make a difference here.  */		      \
-	if (fspec == NULL)						      \
-	  string = (char *) va_arg (ap, const char *);			      \
-	else								      \
-	  string = (char *) args_value[fspec->data_arg].pa_string;	      \
-									      \
-	/* Entry point for printing other strings.  */			      \
-      LABEL (print_string):						      \
-									      \
-	string_malloced = 0;						      \
-	if (string == NULL)						      \
-	  {								      \
-	    /* Write "(null)" if there's space.  */			      \
-	    if (prec == -1 || prec >= (int) sizeof (null) - 1)		      \
-	      {								      \
-		string = (char *) null;					      \
-		len = sizeof (null) - 1;				      \
-	      }								      \
-	    else							      \
-	      {								      \
-		string = (char *) "";					      \
-		len = 0;						      \
-	      }								      \
-	  }								      \
-	else if (!is_long && spec != L_('S'))				      \
-	  {								      \
-	    if (prec != -1)						      \
-	      /* Search for the end of the string, but don't search past      \
-		 the length (in bytes) specified by the precision.  */	      \
-	      len = __strnlen (string, prec);				      \
-	    else							      \
-	      len = strlen (string);					      \
-	  }								      \
-	else								      \
-	  {								      \
-	    const wchar_t *s2 = (const wchar_t *) string;		      \
-	    mbstate_t mbstate;						      \
-									      \
-	    memset (&mbstate, '\0', sizeof (mbstate_t));		      \
-									      \
-	    if (prec >= 0)						      \
-	      {								      \
-		/* The string `s2' might not be NUL terminated.  */	      \
-		if (__libc_use_alloca (prec))				      \
-		  string = (char *) alloca (prec);			      \
-		else if ((string = (char *) malloc (prec)) == NULL)	      \
-		  {							      \
-		    done = -1;						      \
-		    goto all_done;					      \
-		  }							      \
-		else							      \
-		  string_malloced = 1;					      \
-		len = __wcsrtombs (string, &s2, prec, &mbstate);	      \
-	      }								      \
-	    else							      \
-	      {								      \
-		len = __wcsrtombs (NULL, &s2, 0, &mbstate);		      \
-		if (len != (size_t) -1)					      \
-		  {							      \
-		    assert (__mbsinit (&mbstate));			      \
-		    s2 = (const wchar_t *) string;			      \
-		    if (__libc_use_alloca (len + 1))			      \
-		      string = (char *) alloca (len + 1);		      \
-		    else if ((string = (char *) malloc (len + 1)) == NULL)    \
-		      {							      \
-			done = -1;					      \
-			goto all_done;					      \
-		      }							      \
-		    else						      \
-		      string_malloced = 1;				      \
-		    (void) __wcsrtombs (string, &s2, len + 1, &mbstate);      \
-		  }							      \
-	      }								      \
-									      \
-	    if (len == (size_t) -1)					      \
-	      {								      \
-		/* Illegal wide-character string.  */			      \
-		done = -1;						      \
-		goto all_done;						      \
-	      }								      \
-	  }								      \
-									      \
-	if ((width -= len) < 0)						      \
-	  {								      \
-	    outstring (string, len);					      \
-	    break;							      \
-	  }								      \
-									      \
-	if (!left)							      \
-	  PAD (' ');							      \
-	outstring (string, len);					      \
-	if (left)							      \
-	  PAD (' ');							      \
-	if (__glibc_unlikely (string_malloced))			              \
-	  free (string);						      \
-      }									      \
-      break;
-#endif
 
 /* Helper function to provide temporary buffering for unbuffered streams.  */
 static int buffered_vfprintf (FILE *stream, const CHAR_T *fmt, va_list,
@@ -1276,8 +672,7 @@ static int printf_positional (FILE *s,
 			      unsigned int mode_flags);
 
 /* Handle unknown format specifier.  */
-static int printf_unknown (FILE *, const struct printf_info *,
-			   const void *const *) __THROW;
+static int printf_unknown (FILE *, const struct printf_info *) __THROW;
 
 /* Group digits of number string.  */
 static CHAR_T *group_number (CHAR_T *, CHAR_T *, CHAR_T *, const char *,
@@ -1307,7 +702,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 
   /* Buffer intermediate results.  */
   CHAR_T work_buffer[WORK_BUFFER_SIZE];
-  CHAR_T *workstart = NULL;
   CHAR_T *workend;
 
   /* We have to save the original argument pointer.  */
@@ -1389,7 +783,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       STEP0_3_TABLE;
       STEP4_TABLE;
 
-      union printf_arg *args_value;	/* This is not used here but ... */
       int is_negative;	/* Flag for negative number.  */
       union
       {
@@ -1404,7 +797,9 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       int left = 0;	/* Left-justify output.  */
       int showsign = 0;	/* Always begin with plus or minus sign.  */
       int group = 0;	/* Print numbers according grouping rules.  */
-      int is_long_double = 0; /* Argument is long double/ long long int.  */
+      /* Argument is long double/long long int.  Only used if
+	 double/long double or long int/long long int are distinct.  */
+      int is_long_double __attribute__ ((unused)) = 0;
       int is_short = 0;	/* Argument is short int.  */
       int is_long = 0;	/* Argument is long int.  */
       int is_char = 0;	/* Argument is promoted (unsigned) char.  */
@@ -1416,7 +811,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       UCHAR_T pad = L_(' ');/* Padding character.  */
       CHAR_T spec;
 
-      workstart = NULL;
       workend = work_buffer + WORK_BUFFER_SIZE;
 
       /* Get current character in format string.  */
@@ -1508,31 +902,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	    pad = L_(' ');
 	    left = 1;
 	  }
-
-	if (__glibc_unlikely (width >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
-	  {
-	    __set_errno (EOVERFLOW);
-	    done = -1;
-	    goto all_done;
-	  }
-
-	if (width >= WORK_BUFFER_SIZE - EXTSIZ)
-	  {
-	    /* We have to use a special buffer.  */
-	    size_t needed = ((size_t) width + EXTSIZ) * sizeof (CHAR_T);
-	    if (__libc_use_alloca (needed))
-	      workend = (CHAR_T *) alloca (needed) + width + EXTSIZ;
-	    else
-	      {
-		workstart = (CHAR_T *) malloc (needed);
-		if (workstart == NULL)
-		  {
-		    done = -1;
-		    goto all_done;
-		  }
-		workend = workstart + width + EXTSIZ;
-	      }
-	  }
       }
       JUMP (*f, step1_jumps);
 
@@ -1540,31 +909,13 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
     LABEL (width):
       width = read_int (&f);
 
-      if (__glibc_unlikely (width == -1
-			    || width >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
+      if (__glibc_unlikely (width == -1))
 	{
 	  __set_errno (EOVERFLOW);
 	  done = -1;
 	  goto all_done;
 	}
 
-      if (width >= WORK_BUFFER_SIZE - EXTSIZ)
-	{
-	  /* We have to use a special buffer.  */
-	  size_t needed = ((size_t) width + EXTSIZ) * sizeof (CHAR_T);
-	  if (__libc_use_alloca (needed))
-	    workend = (CHAR_T *) alloca (needed) + width + EXTSIZ;
-	  else
-	    {
-	      workstart = (CHAR_T *) malloc (needed);
-	      if (workstart == NULL)
-		{
-		  done = -1;
-		  goto all_done;
-		}
-	      workend = workstart + width + EXTSIZ;
-	    }
-	}
       if (*f == L_('$'))
 	/* Oh, oh.  The argument comes from a positional parameter.  */
 	goto do_positional;
@@ -1613,34 +964,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	}
       else
 	prec = 0;
-      if (prec > width && prec > WORK_BUFFER_SIZE - EXTSIZ)
-	{
-	  /* Deallocate any previously allocated buffer because it is
-	     too small.  */
-	  if (__glibc_unlikely (workstart != NULL))
-	    free (workstart);
-	  workstart = NULL;
-	  if (__glibc_unlikely (prec >= INT_MAX / sizeof (CHAR_T) - EXTSIZ))
-	    {
-	      __set_errno (EOVERFLOW);
-	      done = -1;
-	      goto all_done;
-	    }
-	  size_t needed = ((size_t) prec + EXTSIZ) * sizeof (CHAR_T);
-
-	  if (__libc_use_alloca (needed))
-	    workend = (CHAR_T *) alloca (needed) + prec + EXTSIZ;
-	  else
-	    {
-	      workstart = (CHAR_T *) malloc (needed);
-	      if (workstart == NULL)
-		{
-		  done = -1;
-		  goto all_done;
-		}
-	      workend = workstart + prec + EXTSIZ;
-	    }
-	}
       JUMP (*f, step2_jumps);
 
       /* Process 'h' modifier.  There might another 'h' following.  */
@@ -1684,8 +1007,66 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       /* Process current format.  */
       while (1)
 	{
-	  process_arg (((struct printf_spec *) NULL));
-	  process_string_arg (((struct printf_spec *) NULL));
+#define process_arg_int() va_arg (ap, int)
+#define process_arg_long_int() va_arg (ap, long int)
+#define process_arg_long_long_int() va_arg (ap, long long int)
+#define process_arg_pointer() va_arg (ap, void *)
+#define process_arg_string() va_arg (ap, const char *)
+#define process_arg_unsigned_int() va_arg (ap, unsigned int)
+#define process_arg_unsigned_long_int() va_arg (ap, unsigned long int)
+#define process_arg_unsigned_long_long_int() va_arg (ap, unsigned long long int)
+#define process_arg_wchar_t() va_arg (ap, wchar_t)
+#define process_arg_wstring() va_arg (ap, const wchar_t *)
+#include "vfprintf-process-arg.c"
+#undef process_arg_int
+#undef process_arg_long_int
+#undef process_arg_long_long_int
+#undef process_arg_pointer
+#undef process_arg_string
+#undef process_arg_unsigned_int
+#undef process_arg_unsigned_long_int
+#undef process_arg_unsigned_long_long_int
+#undef process_arg_wchar_t
+#undef process_arg_wstring
+
+	LABEL (form_float):
+	LABEL (form_floathex):
+	  {
+	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))
+	      is_long_double = 0;
+
+	    struct printf_info info =
+	      {
+		.prec = prec,
+		.width = width,
+		.spec = spec,
+		.is_long_double = is_long_double,
+		.is_short = is_short,
+		.is_long = is_long,
+		.alt = alt,
+		.space = space,
+		.left = left,
+		.showsign = showsign,
+		.group = group,
+		.pad = pad,
+		.extra = 0,
+		.i18n = use_outdigits,
+		.wide = sizeof (CHAR_T) != 1,
+		.is_binary128 = 0
+	      };
+
+	    PARSE_FLOAT_VA_ARG_EXTENDED (info);
+	    const void *ptr = &the_arg;
+
+	    int function_done = __printf_fp_spec (s, &info, &ptr);
+	    if (function_done < 0)
+	      {
+		done = -1;
+		goto all_done;
+	      }
+	    done_add (function_done);
+	  }
+	  break;
 
 	LABEL (form_unknown):
 	  if (spec == L_('\0'))
@@ -1704,10 +1085,6 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       /* The format is correctly handled.  */
       ++nspecs_done;
 
-      if (__glibc_unlikely (workstart != NULL))
-	free (workstart);
-      workstart = NULL;
-
       /* Look for next format specifier.  */
 #ifdef COMPILE_WPRINTF
       f = __find_specwc ((end_of_spec = ++f));
@@ -1725,18 +1102,11 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 
   /* Hand off processing for positional parameters.  */
 do_positional:
-  if (__glibc_unlikely (workstart != NULL))
-    {
-      free (workstart);
-      workstart = NULL;
-    }
   done = printf_positional (s, format, readonly_format, ap, &ap_save,
 			    done, nspecs_done, lead_str_end, work_buffer,
 			    save_errno, grouping, thousands_sep, mode_flags);
 
  all_done:
-  if (__glibc_unlikely (workstart != NULL))
-    free (workstart);
   /* Unlock the stream.  */
   _IO_funlockfile (s);
   _IO_cleanup_region_end (0);
@@ -1779,8 +1149,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 
   /* Just a counter.  */
   size_t cnt;
-
-  CHAR_T *workstart = NULL;
 
   if (grouping == (const char *) -1)
     {
@@ -1955,7 +1323,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	unsigned long int word;
       } number;
       int base;
-      union printf_arg the_arg;
       CHAR_T *string;		/* Pointer to argument string.  */
 
       /* Fill variables from values in struct.  */
@@ -1964,7 +1331,8 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
       int left = specs[nspecs_done].info.left;
       int showsign = specs[nspecs_done].info.showsign;
       int group = specs[nspecs_done].info.group;
-      int is_long_double = specs[nspecs_done].info.is_long_double;
+      int is_long_double __attribute__ ((unused))
+	= specs[nspecs_done].info.is_long_double;
       int is_short = specs[nspecs_done].info.is_short;
       int is_char = specs[nspecs_done].info.is_char;
       int is_long = specs[nspecs_done].info.is_long;
@@ -1974,7 +1342,6 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
       char pad = specs[nspecs_done].info.pad;
       CHAR_T spec = specs[nspecs_done].info.spec;
 
-      workstart = NULL;
       CHAR_T *workend = work_buffer + WORK_BUFFER_SIZE;
 
       /* Fill in last information.  */
@@ -2008,31 +1375,9 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	  prec = specs[nspecs_done].info.prec;
 	}
 
-      /* Maybe the buffer is too small.  */
-      if (MAX (prec, width) + EXTSIZ > WORK_BUFFER_SIZE)
-	{
-	  if (__libc_use_alloca ((MAX (prec, width) + EXTSIZ)
-				 * sizeof (CHAR_T)))
-	    workend = ((CHAR_T *) alloca ((MAX (prec, width) + EXTSIZ)
-					  * sizeof (CHAR_T))
-		       + (MAX (prec, width) + EXTSIZ));
-	  else
-	    {
-	      workstart = (CHAR_T *) malloc ((MAX (prec, width) + EXTSIZ)
-					     * sizeof (CHAR_T));
-	      if (workstart == NULL)
-		{
-		  done = -1;
-		  goto all_done;
-		}
-	      workend = workstart + (MAX (prec, width) + EXTSIZ);
-	    }
-	}
-
       /* Process format specifiers.  */
       while (1)
 	{
-	  extern printf_function **__printf_function_table;
 	  int function_done;
 
 	  if (spec <= UCHAR_MAX
@@ -2069,24 +1414,57 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 
 	  JUMP (spec, step4_jumps);
 
-	  process_arg ((&specs[nspecs_done]));
-	  process_string_arg ((&specs[nspecs_done]));
+#define process_arg_data args_value[specs[nspecs_done].data_arg]
+#define process_arg_int() process_arg_data.pa_int
+#define process_arg_long_int() process_arg_data.pa_long_int
+#define process_arg_long_long_int() process_arg_data.pa_long_long_int
+#define process_arg_pointer() process_arg_data.pa_pointer
+#define process_arg_string() process_arg_data.pa_string
+#define process_arg_unsigned_int() process_arg_data.pa_u_int
+#define process_arg_unsigned_long_int() process_arg_data.pa_u_long_int
+#define process_arg_unsigned_long_long_int() process_arg_data.pa_u_long_long_int
+#define process_arg_wchar_t() process_arg_data.pa_wchar
+#define process_arg_wstring() process_arg_data.pa_wstring
+#include "vfprintf-process-arg.c"
+#undef process_arg_data
+#undef process_arg_int
+#undef process_arg_long_int
+#undef process_arg_long_long_int
+#undef process_arg_pointer
+#undef process_arg_string
+#undef process_arg_unsigned_int
+#undef process_arg_unsigned_long_int
+#undef process_arg_unsigned_long_long_int
+#undef process_arg_wchar_t
+#undef process_arg_wstring
+
+	  LABEL (form_float):
+	  LABEL (form_floathex):
+	  {
+	    const void *ptr
+	      = (const void *) &args_value[specs[nspecs_done].data_arg];
+	    if (__glibc_unlikely ((mode_flags & PRINTF_LDBL_IS_DBL) != 0))
+	      {
+		specs[nspecs_done].data_arg_type = PA_DOUBLE;
+		specs[nspecs_done].info.is_long_double = 0;
+	      }
+	    SETUP_FLOAT128_INFO (specs[nspecs_done].info);
+
+	    int function_done
+	      = __printf_fp_spec (s, &specs[nspecs_done].info, &ptr);
+	    if (function_done < 0)
+	      {
+		/* Error in print handler; up to handler to set errno.  */
+		done = -1;
+		goto all_done;
+	      }
+	    done_add (function_done);
+	  }
+	  break;
 
 	  LABEL (form_unknown):
 	  {
-	    unsigned int i;
-	    const void **ptr;
-
-	    ptr = alloca (specs[nspecs_done].ndata_args
-			  * sizeof (const void *));
-
-	    /* Fill in an array of pointers to the argument values.  */
-	    for (i = 0; i < specs[nspecs_done].ndata_args; ++i)
-	      ptr[i] = &args_value[specs[nspecs_done].data_arg + i];
-
-	    /* Call the function.  */
-	    function_done = printf_unknown (s, &specs[nspecs_done].info,
-					    ptr);
+	    int function_done = printf_unknown (s, &specs[nspecs_done].info);
 
 	    /* If an error occurred we don't have information about #
 	       of chars.  */
@@ -2102,18 +1480,12 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	  break;
 	}
 
-      if (__glibc_unlikely (workstart != NULL))
-	free (workstart);
-      workstart = NULL;
-
       /* Write the following constant string.  */
       outstring (specs[nspecs_done].end_of_fmt,
 		 specs[nspecs_done].next_fmt
 		 - specs[nspecs_done].end_of_fmt);
     }
  all_done:
-  if (__glibc_unlikely (workstart != NULL))
-    free (workstart);
   scratch_buffer_free (&argsbuf);
   scratch_buffer_free (&specsbuf);
   return done;
@@ -2122,9 +1494,7 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 /* Handle an unknown format specifier.  This prints out a canonicalized
    representation of the format spec itself.  */
 static int
-printf_unknown (FILE *s, const struct printf_info *info,
-		const void *const *args)
-
+printf_unknown (FILE *s, const struct printf_info *info)
 {
   int done = 0;
   CHAR_T work_buffer[MAX (sizeof (info->width), sizeof (info->prec)) * 3];
@@ -2236,7 +1606,8 @@ group_number (CHAR_T *front_ptr, CHAR_T *w, CHAR_T *rear_ptr,
 	    copy_rest:
 	      /* No further grouping to be done.  Copy the rest of the
 		 number.  */
-	      memmove (w, s, (front_ptr -s) * sizeof (CHAR_T));
+	      w -= s - front_ptr;
+	      memmove (w, front_ptr, (s - front_ptr) * sizeof (CHAR_T));
 	      break;
 	    }
 	  else if (*grouping != '\0')

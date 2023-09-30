@@ -1,5 +1,5 @@
 /* Add two struct timespec values.
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -61,5 +61,5 @@ timespec_add (struct timespec a, struct timespec b)
         }
     }
 
-  return make_timespec (rs, rns);
+  return (struct timespec) { .tv_sec = rs, .tv_nsec = rns };
 }

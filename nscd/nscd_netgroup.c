@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -116,7 +115,7 @@ __nscd_setnetgrent (const char *group, struct __netgrent *datap)
       datap->data_size = datalen;
       datap->cursor = respdata;
       datap->first = 1;
-      datap->nip = (service_user *) -1l;
+      datap->nip = (nss_action_list) -1l;
       datap->known_groups = NULL;
       datap->needed_groups = NULL;
 

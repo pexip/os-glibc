@@ -1,5 +1,5 @@
 /* `group_member' -- test if process is in a given group.  Hurd version.
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ __group_member (gid_t gid)
   error_t err;
   void *crit;
 
+retry:
   crit = _hurd_critical_section_lock ();
   __mutex_lock (&_hurd_id.lock);
 
@@ -45,6 +46,9 @@ __group_member (gid_t gid)
 
   __mutex_unlock (&_hurd_id.lock);
   _hurd_critical_section_unlock (crit);
+  if (err == EINTR)
+    /* Got a signal while inside an RPC of the critical section, retry again */
+    goto retry;
 
   if (err)
     __hurd_fail (err);

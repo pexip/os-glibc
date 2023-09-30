@@ -1,5 +1,5 @@
 /* Linux implementation of preadv2.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,20 +21,15 @@
 
 #ifndef __OFF_T_MATCHES_OFF64_T
 
-# if !defined (__NR_preadv2) && defined (__NR_pread64v2)
-#  define __NR_preadv2 __NR_pread64v2
-# endif
-
 ssize_t
 preadv2 (int fd, const struct iovec *vector, int count, off_t offset,
 	 int flags)
 {
-# ifdef __NR_preadv2
   ssize_t result = SYSCALL_CANCEL (preadv2, fd, vector, count,
 				   LO_HI_LONG (offset), flags);
   if (result >= 0 || errno != ENOSYS)
     return result;
-# endif
+
   /* Trying to emulate the preadv2 syscall flags is troublesome:
 
      * We can not temporary change the file state of the O_DSYNC and O_SYNC

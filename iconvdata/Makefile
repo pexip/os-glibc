@@ -1,4 +1,5 @@
-# Copyright (C) 1997-2020 Free Software Foundation, Inc.
+# Copyright (C) 1997-2022 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -73,7 +74,8 @@ modules.so := $(addsuffix .so, $(modules))
 ifeq (yes,$(build-shared))
 tests = bug-iconv1 bug-iconv2 tst-loading tst-e2big tst-iconv4 bug-iconv4 \
 	tst-iconv6 bug-iconv5 bug-iconv6 tst-iconv7 bug-iconv8 bug-iconv9 \
-	bug-iconv10 bug-iconv11 bug-iconv12
+	bug-iconv10 bug-iconv11 bug-iconv12 tst-iconv-big5-hkscs-to-2ucs4 \
+	bug-iconv13 bug-iconv14 bug-iconv15
 ifeq ($(have-thread-library),yes)
 tests += bug-iconv3
 endif
@@ -136,10 +138,12 @@ charmaps = ../localedata/charmaps
 extra-modules-left := $(modules)
 include extra-module.mk
 
+gconv-modules = gconv-modules gconv-modules.d/gconv-modules-extra.conf
+modpfx = $(objpfx)gconv-modules.d/
 
 extra-objs	+= $(modules.so)
 install-others	= $(addprefix $(inst_gconvdir)/, $(modules.so))	\
-		  $(inst_gconvdir)/gconv-modules
+		  $(addprefix $(inst_gconvdir)/, $(gconv-modules))
 
 # We can build the conversion tables for numerous charsets automatically.
 
@@ -181,7 +185,7 @@ generated += $(generated-modules:=.h) $(generated-modules:=.stmp) \
 	     iconv-test.out iconv-rules tst-loading.mtrace	 \
 	     mtrace-tst-loading.out tst-tables.out iconv-test.xxx
 ifdef objpfx
-generated += gconv-modules
+generated += $(gconv-modules)
 endif
 
 # Rules to generate the headers.
@@ -249,7 +253,8 @@ headers: $(addprefix $(objpfx), $(generated-modules:=.h))
 $(addprefix $(inst_gconvdir)/, $(modules.so)): \
     $(inst_gconvdir)/%: $(objpfx)% $(+force)
 	$(do-install-program)
-$(inst_gconvdir)/gconv-modules: $(objpfx)gconv-modules $(+force)
+$(addprefix $(inst_gconvdir)/, $(gconv-modules)): \
+    $(inst_gconvdir)/%: $(objpfx)% $(+force)
 	$(do-install)
 ifeq (no,$(cross-compiling))
 # Update the $(prefix)/lib/gconv/gconv-modules.cache file. This is necessary
@@ -275,15 +280,20 @@ endif
 endif
 endif
 
-include ../Rules
-
 ifeq ($(run-built-tests),yes)
-LOCALES := de_DE.UTF-8
+LOCALES := \
+	de_DE.UTF-8 \
+	zh_HK.BIG5-HKSCS \
+	$(NULL)
+
 include ../gen-locales.mk
 
 $(objpfx)bug-iconv6.out: $(gen-locales)
 $(objpfx)tst-iconv7.out: $(gen-locales)
+$(objpfx)tst-iconv-big5-hkscs-to-2ucs4.out: $(gen-locales)
 endif
+
+include ../Rules
 
 # Set libof-* for each routine.
 cpp-srcs-left := $(modules) $(generated-modules) $(libJIS-routines) \
@@ -292,32 +302,37 @@ cpp-srcs-left := $(modules) $(generated-modules) $(libJIS-routines) \
 lib := iconvdata
 include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 
-tst-loading-ENV = MALLOC_TRACE=$(objpfx)tst-loading.mtrace
+tst-loading-ENV = MALLOC_TRACE=$(objpfx)tst-loading.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)mtrace-tst-loading.out: $(objpfx)tst-loading.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-loading.mtrace > $@; \
 	$(evaluate-test)
 
-$(objpfx)bug-iconv1.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv1.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)bug-iconv2.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv2.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)bug-iconv3: $(libdl)
-$(objpfx)bug-iconv3.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv3.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)bug-iconv5.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv5.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)tst-loading.out: $(objpfx)gconv-modules \
+$(objpfx)tst-loading.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			  $(addprefix $(objpfx),$(modules.so))
-$(objpfx)tst-iconv4.out: $(objpfx)gconv-modules \
+$(objpfx)tst-iconv4.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)tst-iconv7.out: $(objpfx)gconv-modules \
+$(objpfx)tst-iconv7.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so))
-$(objpfx)bug-iconv10.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv10.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			  $(addprefix $(objpfx),$(modules.so))
-$(objpfx)bug-iconv12.out: $(objpfx)gconv-modules \
+$(objpfx)bug-iconv12.out: $(addprefix $(objpfx), $(gconv-modules)) \
+			  $(addprefix $(objpfx),$(modules.so))
+$(objpfx)bug-iconv14.out: $(addprefix $(objpfx), $(gconv-modules)) \
+			  $(addprefix $(objpfx),$(modules.so))
+$(objpfx)bug-iconv15.out: $(addprefix $(objpfx), $(gconv-modules)) \
 			  $(addprefix $(objpfx),$(modules.so))
 
-$(objpfx)iconv-test.out: run-iconv-test.sh $(objpfx)gconv-modules \
+$(objpfx)iconv-test.out: run-iconv-test.sh \
+			 $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so)) \
 			 $(common-objdir)/iconv/iconv_prog TESTS
 	iconv_modules="$(modules)" \
@@ -325,7 +340,8 @@ $(objpfx)iconv-test.out: run-iconv-test.sh $(objpfx)gconv-modules \
 		 '$(run-program-env)' > $@; \
 	$(evaluate-test)
 
-$(objpfx)tst-tables.out: tst-tables.sh $(objpfx)gconv-modules \
+$(objpfx)tst-tables.out: tst-tables.sh \
+			 $(addprefix $(objpfx), $(gconv-modules)) \
 			 $(addprefix $(objpfx),$(modules.so)) \
 			 $(objpfx)tst-table-from $(objpfx)tst-table-to
 	$(SHELL) $< $(common-objpfx) $(common-objpfx)iconvdata/ \
@@ -338,5 +354,16 @@ do-tests-clean common-mostlyclean: tst-tables-clean
 tst-tables-clean:
 	-rm -f $(objpfx)tst-*.table $(objpfx)tst-EUC-TW.irreversible
 
+$(modpfx):
+	mkdir -p $@
+
+$(modpfx)%: % $(modpfx)
+	cp $< $@
+
 $(objpfx)gconv-modules: gconv-modules
-	cat $(sysdeps-gconv-modules) $^ > $@
+	cp $^ $@
+
+# Test requires BIG5HKSCS.
+$(objpfx)tst-iconv-big5-hkscs-to-2ucs4.out: \
+			 $(addprefix $(objpfx), $(gconv-modules)) \
+			 $(addprefix $(objpfx),$(modules.so))

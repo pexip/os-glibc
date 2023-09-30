@@ -11,6 +11,7 @@
 #define __gethostbyaddr_r gethostbyaddr_r
 #define __gethostbyname2_r gethostbyname2_r
 #define __qsort_r qsort_r
+#define __stat64 stat64
 
 void
 attribute_hidden
@@ -58,7 +59,7 @@ _res_hconf_init (void)
 #undef	USE_NSCD
 #include "../sysdeps/posix/getaddrinfo.c"
 
-service_user *__nss_hosts_database attribute_hidden;
+nss_action_list __nss_hosts_database attribute_hidden;
 
 /* This is the beginning of the real test code.  The above defines
    (among other things) the function rfc3484_sort.  */

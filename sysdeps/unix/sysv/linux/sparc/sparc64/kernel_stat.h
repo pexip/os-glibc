@@ -1,3 +1,6 @@
+#ifndef _KERNEL_STAT_H
+#define _KERNEL_STAT_H
+
 /* Definition of `struct stat' used in the kernel */
 struct kernel_stat
   {
@@ -44,5 +47,12 @@ struct kernel_stat64
     long int __glibc_reserved[3];
   };
 
+#define STAT_IS_KERNEL_STAT 0
+#define STAT64_IS_KERNEL_STAT64 0
 #define XSTAT_IS_XSTAT64 1
-#define STATFS_IS_STATFS64 0
+#ifdef __arch64__
+# define STATFS_IS_STATFS64 1
+#else
+# define STATFS_IS_STATFS64 0
+#endif
+#endif /* _KERNEL_STAT_H  */

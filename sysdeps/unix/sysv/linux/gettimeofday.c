@@ -1,5 +1,5 @@
 /* gettimeofday - set time.  Linux version.
-   Copyright (C) 2020 Free Software Foundation, Inc.
+   Copyright (C) 2020-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <time.h>
+#include <string.h>
+
 /* Optimize the function call by setting the PLT directly to vDSO symbol.  */
 #ifdef USE_IFUNC_GETTIMEOFDAY
-# include <time.h>
-# include <string.h>
 # include <sysdep.h>
 # include <sysdep-vdso.h>
 
 # ifdef SHARED
-#  include <dl-vdso.h>
+# include <dl-vdso.h>
 # include <libc-vdso.h>
 
 static int
@@ -54,5 +55,43 @@ __gettimeofday (struct timeval *restrict tv, void *restrict tz)
 # endif
 weak_alias (__gettimeofday, gettimeofday)
 #else /* USE_IFUNC_GETTIMEOFDAY  */
-# include <time/gettimeofday.c>
+/* Conversion of gettimeofday function to support 64 bit time on archs
+   with __WORDSIZE == 32 and __TIMESIZE == 32/64  */
+#include <errno.h>
+
+int
+__gettimeofday64 (struct __timeval64 *restrict tv, void *restrict tz)
+{
+  if (__glibc_unlikely (tz != 0))
+    memset (tz, 0, sizeof (struct timezone));
+
+  struct __timespec64 ts64;
+  if (__clock_gettime64 (CLOCK_REALTIME, &ts64))
+	  return -1;
+
+  *tv = timespec64_to_timeval64 (ts64);
+  return 0;
+}
+
+# if __TIMESIZE != 64
+libc_hidden_def (__gettimeofday64)
+
+int
+__gettimeofday (struct timeval *restrict tv, void *restrict tz)
+{
+  struct __timeval64 tv64;
+  if (__gettimeofday64 (&tv64, tz))
+	  return -1;
+
+  if (! in_time_t_range (tv64.tv_sec))
+    {
+      __set_errno (EOVERFLOW);
+      return -1;
+    }
+
+  *tv = valid_timeval64_to_timeval (tv64);
+  return 0;
+}
+# endif
+weak_alias (__gettimeofday, gettimeofday)
 #endif

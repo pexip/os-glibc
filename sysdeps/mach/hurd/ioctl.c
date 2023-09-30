@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <hurd/ioctl.h>
 #include <mach/mig_support.h>
+#include <sysdep-cancel.h>
 
 #include <hurd/ioctls.defs>
 
@@ -112,6 +113,10 @@ __ioctl (int fd, unsigned long int request, ...)
 	  /* We don't want to advance ARG since it will be used to copy out
 	     too if IOC_OUT is also set.  */
 	  void *argptr = arg;
+	  int zero = 0;
+
+	  if (request == TIOCFLUSH && !argptr)
+	    argptr = &zero;
 
 	  /* Pack an argument into the message buffer.  */
 	  void in (unsigned int count, enum __ioctl_datum type)
@@ -269,7 +274,15 @@ __ioctl (int fd, unsigned long int request, ...)
   /* Marshal the arguments into the request message and make the RPC.
      This wrapper function handles EBACKGROUND returns, turning them
      into either SIGTTOU or EIO.  */
-  err = HURD_DPORT_USE (fd, _hurd_ctty_output (port, ctty, send_rpc));
+  if (request == TIOCDRAIN)
+    {
+      /* This is a cancellation point.  */
+      int cancel_oldtype = LIBC_CANCEL_ASYNC();
+      err = HURD_DPORT_USE_CANCEL (fd, _hurd_ctty_output (port, ctty, send_rpc));
+      LIBC_CANCEL_RESET (cancel_oldtype);
+    }
+  else
+    err = HURD_DPORT_USE (fd, _hurd_ctty_output (port, ctty, send_rpc));
 
 #ifdef MACH_MSG_TYPE_BIT
   t = (mach_msg_type_t *) msg.data;

@@ -1,5 +1,5 @@
 /* Computing deadlines for timeouts.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,8 +28,8 @@ struct deadline_current_time
 __deadline_current_time (void)
 {
   struct deadline_current_time result;
-  if (__clock_gettime (CLOCK_MONOTONIC, &result.current) != 0)
-    __clock_gettime (CLOCK_REALTIME, &result.current);
+  if (__clock_gettime64 (CLOCK_MONOTONIC, &result.current) != 0)
+    __clock_gettime64 (CLOCK_REALTIME, &result.current);
   assert (result.current.tv_sec >= 0);
   return result;
 }

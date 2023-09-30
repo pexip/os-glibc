@@ -1,4 +1,4 @@
-glibc (2.31-13+deb11u4) bullseye; urgency=medium
+glibc (2.34-1) unstable; urgency=medium
 
   Starting with glibc 2.31, Sun RPC is removed from glibc. This includes the
   rpcgen program, librpcsvc, and the Sun RPC header files. However backward

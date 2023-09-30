@@ -1,4 +1,5 @@
-# Copyright (C) 1991-2020 Free Software Foundation, Inc.
+# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright The GNU Toolchain Authors.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +40,7 @@ objpfx := $(patsubst %//,%/,$(objdir)/$(subdir)/)
 common-objpfx = $(objdir)/
 common-objdir = $(objdir)
 else
-objdir must be defined by the build-directory Makefile.
+$(error objdir must be defined by the build-directory Makefile)
 endif
 
 # Root of the sysdeps tree.
@@ -357,38 +358,38 @@ else
 real-static-start-installed-name = $(static-start-installed-name)
 endif
 
-ifeq (yesyes,$(build-shared)$(have-z-combreloc))
-combreloc-LDFLAGS = -Wl,-z,combreloc
-LDFLAGS.so += $(combreloc-LDFLAGS)
-LDFLAGS-rtld += $(combreloc-LDFLAGS)
-endif
-
 relro-LDFLAGS = -Wl,-z,relro
 LDFLAGS.so += $(relro-LDFLAGS)
 LDFLAGS-rtld += $(relro-LDFLAGS)
 
-ifeq (yes,$(have-hash-style))
-# For the time being we unconditionally use 'both'.  At some time we
-# should declare statically linked code as 'out of luck' and compile
-# with --hash-style=gnu only.
-hashstyle-LDFLAGS = -Wl,--hash-style=both
-LDFLAGS.so += $(hashstyle-LDFLAGS)
-LDFLAGS-rtld += $(hashstyle-LDFLAGS)
+# Linker options to enable and disable DT_RELR.
+ifeq ($(have-dt-relr),yes)
+dt-relr-ldflag = -Wl,-z,pack-relative-relocs
+no-dt-relr-ldflag = -Wl,-z,nopack-relative-relocs
+else
+dt-relr-ldflag =
+no-dt-relr-ldflag =
 endif
 
-ifeq (yes,$(enable-static-pie))
+ifeq (no,$(build-pie-default))
+pie-default = $(no-pie-ccflag)
+else # build-pie-default
 pic-default = -DPIC
 # Compile libc.a and libc_p.a with -fPIE/-fpie for static PIE.
 pie-default = $(pie-ccflag)
+
+ifeq (yes,$(enable-static-pie))
+static-pie-dt-relr-ldflag = $(dt-relr-ldflag)
 ifeq (yes,$(have-static-pie))
-default-pie-ldflag = -static-pie
+static-pie-ldflag = -static-pie
 else
 # Static PIE can't have dynamic relocations in read-only segments since
 # static PIE is mapped into memory by kernel.  --eh-frame-hdr is needed
 # for PIE to support exception.
-default-pie-ldflag = -Wl,-pie,--no-dynamic-linker,--eh-frame-hdr,-z,text
-endif
-endif
+static-pie-ldflag = -Wl,-pie,--no-dynamic-linker,--eh-frame-hdr,-z,text
+endif # have-static-pie
+endif # enable-static-pie
+endif # build-pie-default
 
 # If lazy relocations are disabled, add the -z now flag.  Use
 # LDFLAGS-lib.so instead of LDFLAGS.so, to avoid adding the flag to
@@ -412,12 +413,14 @@ link-extra-libs-tests = $(libsupport)
 
 # Command for linking PIE programs with the C library.
 ifndef +link-pie
-+link-pie-before-libc = $(if $($(@F)-no-pie),$(no-pie-ldflag),-pie) \
-	     -Wl,-O1 -nostdlib -nostartfiles -o $@ \
++link-pie-before-inputs = $(if $($(@F)-no-pie),$(no-pie-ldflag),-pie) \
+	     $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
+	     -Wl,-O1 -nostdlib -nostartfiles \
 	     $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
-	     $(combreloc-LDFLAGS) $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+	     $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
 	     $(firstword $(CRT-$(@F)) $(csu-objpfx)S$(start-installed-name)) \
-	     $(+preinit) $(+prectorS) \
+	     $(+preinit) $(+prectorS)
++link-pie-before-libc = -o $@ $(+link-pie-before-inputs) \
 	     $(filter-out $(addprefix $(csu-objpfx),start.o \
 						    S$(start-installed-name))\
 			  $(+preinit) $(link-extra-libs) \
@@ -442,11 +445,13 @@ endef
 endif
 # Command for statically linking programs with the C library.
 ifndef +link-static
-+link-static-before-libc = -nostdlib -nostartfiles -static -o $@ \
-	      $(if $($(@F)-no-pie),$(no-pie-ldflag),$(default-pie-ldflag)) \
++link-static-before-inputs = -nostdlib -nostartfiles -static \
+	      $(if $($(@F)-no-pie),$(no-pie-ldflag),$(static-pie-ldflag)) \
+	      $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(static-pie-dt-relr-ldflag)) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F))  \
 	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(real-static-start-installed-name)) \
-	      $(+preinit) $(+prectorT) \
+	      $(+preinit) $(+prectorT)
++link-static-before-libc = -o $@ $(+link-static-before-inputs) \
 	      $(filter-out $(addprefix $(csu-objpfx),start.o \
 						     $(start-installed-name))\
 			   $(+preinit) $(link-extra-libs-static) \
@@ -473,13 +478,16 @@ endif
 ifeq (yes,$(build-pie-default))
 +link = $(+link-pie)
 +link-tests = $(+link-pie-tests)
++link-tests-before-inputs = $(+link-pie-before-inputs) $(rtld-tests-LDFLAGS)
++link-tests-after-inputs = $(link-libc-tests) $(+link-pie-after-libc)
 +link-printers-tests = $(+link-pie-printers-tests)
 else  # not build-pie-default
-+link-before-libc = -nostdlib -nostartfiles -o $@ \
++link-before-inputs = -nostdlib -nostartfiles $(no-pie-ldflag) \
 	      $(sysdep-LDFLAGS) $(LDFLAGS) $(LDFLAGS-$(@F)) \
-	      $(combreloc-LDFLAGS) $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
+	      $(relro-LDFLAGS) $(hashstyle-LDFLAGS) \
 	      $(firstword $(CRT-$(@F)) $(csu-objpfx)$(start-installed-name)) \
-	      $(+preinit) $(+prector) \
+	      $(+preinit) $(+prector)
++link-before-libc = -o $@ $(+link-before-inputs) \
 	      $(filter-out $(addprefix $(csu-objpfx),start.o \
 						     $(start-installed-name))\
 			   $(+preinit) $(link-extra-libs) \
@@ -491,6 +499,8 @@ $(CC) $(link-libc-rpath-link) $(+link-before-libc) $(rtld-LDFLAGS) \
   $(link-extra-flags) $(link-libc) $(+link-after-libc)
 $(call after-link,$@)
 endef
++link-tests-before-inputs = $(+link-before-inputs) $(rtld-tests-LDFLAGS)
++link-tests-after-inputs = $(link-libc-tests) $(+link-after-libc)
 define +link-tests
 $(CC) $(+link-before-libc) $(rtld-tests-LDFLAGS) $(link-libc-tests) \
 		     $(+link-after-libc)
@@ -505,6 +515,8 @@ endif  # build-pie-default
 else  # build-static
 +link = $(+link-static)
 +link-tests = $(+link-static-tests)
++link-tests-before-inputs = $(+link-static-before-inputs)
++link-tests-after-inputs = $(link-libc-static-tests) $(+link-static-after-libc)
 +link-printers-tests = $(+link-static-tests)
 endif  # build-shared
 endif  # +link
@@ -560,17 +572,19 @@ link-libc-rpath-link = -Wl,-rpath-link=$(rpath-link)
 # build-hardcoded-path-in-tests.
 ifeq (yes,$(build-hardcoded-path-in-tests))
 link-libc-tests-rpath-link = $(link-libc-rpath)
+link-test-modules-rpath-link = $(link-libc-rpath)
 else
 link-libc-tests-rpath-link = $(link-libc-rpath-link)
+link-test-modules-rpath-link =
 endif  # build-hardcoded-path-in-tests
 
-link-libc-before-gnulib = $(common-objpfx)libc.so$(libc.so-version) \
-			  $(common-objpfx)$(patsubst %,$(libtype.oS),c) \
-			  -Wl,--as-needed $(elf-objpfx)ld.so \
-			  -Wl,--no-as-needed
-link-libc = $(link-libc-before-gnulib) $(gnulib)
+link-libc-between-gnulib = $(common-objpfx)libc.so$(libc.so-version) \
+			   $(common-objpfx)$(patsubst %,$(libtype.oS),c) \
+			   -Wl,--as-needed $(elf-objpfx)ld.so \
+			   -Wl,--no-as-needed
+link-libc = $(link-libc-between-gnulib) $(gnulib)
 
-link-libc-tests-after-rpath-link = $(link-libc-before-gnulib) $(gnulib-tests)
+link-libc-tests-after-rpath-link = $(gnulib-tests) $(link-libc-between-gnulib) $(gnulib-tests)
 link-libc-tests = $(link-libc-tests-rpath-link) \
 		  $(link-libc-tests-after-rpath-link)
 # Pretty printer test programs always require rpath instead of rpath-link.
@@ -769,6 +783,9 @@ built-program-cmd = $(built-program-cmd-before-env) $(run-program-env) \
 # the second dependency of the makefile target in which
 # $(host-built-program-cmd) is used.
 host-built-program-cmd = $(run-via-rtld-prefix) $(built-program-file)
+# $(ld-library-path) is the common content to be set in LD_LIBRARY_PATH
+# for running static binaries that may load dynamic objects.
+ld-library-path = $(objpfx):$(common-objpfx)$(addprefix :,$(sysdep-ld-library-path))
 
 ifndef LD
 LD := ld -X
@@ -848,17 +865,25 @@ endif
 # -fno-math-errno.
 +extra-math-flags = $(if $(filter libm,$(in-module)),-fno-math-errno,-fmath-errno)
 
+# Use 64 bit time_t support for installed programs
+installed-modules = nonlib nscd lddlibc4 ldconfig locale_programs \
+		    iconvprogs libnss_files libnss_compat libnss_db libnss_hesiod \
+		    libutil libpcprofile libSegFault
++extra-time-flags = $(if $(filter $(installed-modules),\
+                           $(in-module)),-D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64)
+
 # We might want to compile with some stack-protection flag.
 ifneq ($(stack-protector),)
 +stack-protector=$(stack-protector)
 endif
 
-# This is the program that generates makefile dependencies from C source files.
-# The -MP flag tells GCC >= 3.2 (which we now require) to produce dummy
-# targets for headers so that removed headers don't break the build.
-ifndef +mkdep
-+mkdep = $(CC) -M -MP
-endif
+# Some routines are unsafe to build with stack-protection since they're called
+# before the stack check guard is set up.  Provide a way to disable stack
+# protector.  The first argument is the extension (.o, .os, .oS) and the second
+# is a list of routines that this path should be applied to.
+define elide-stack-protector
+$(if $(filter $(@F),$(patsubst %,%$(1),$(2))), $(no-stack-protector))
+endef
 
 # The program that makes Emacs-style TAGS files.
 ETAGS	:= etags
@@ -912,8 +937,12 @@ ifeq	"$(strip $(+cflags))" ""
 +cflags	:= $(default_cflags)
 endif	# $(+cflags) == ""
 
+# Force building with -fno-common because hidden_def, compat_symbol
+# and other constructs do not work for common symbols (and would
+# otherwise require specifying __attribute__ ((nocommon)) on a
+# case-by-case basis).
 +cflags += $(cflags-cpu) $(+gccwarn) $(+merge-constants) $(+math-flags) \
-	   $(+stack-protector)
+	   $(+stack-protector) -fno-common
 +gcc-nowarn := -w
 
 # Each sysdeps directory can contain header files that both will be
@@ -940,7 +969,7 @@ libio-include = -I$(..)libio
 built-modules = iconvprogs iconvdata ldconfig lddlibc4 libmemusage \
 		libSegFault libpcprofile librpcsvc locale-programs \
 		memusagestat nonlib nscd extramodules libnldbl libsupport \
-		testsuite
+		testsuite testsuite-internal
 
 in-module = $(subst -,_,$(firstword $(libof-$(basename $(@F))) \
 				    $(libof-$(<F)) \
@@ -959,7 +988,7 @@ module-cppflags-real = -include $(common-objpfx)libc-modules.h \
 # facility.  In fact, shlib-versions should not use it because that will
 # create a circular dependency as libc-modules.h is generated from
 # shlib-versions.
-module-cppflags = $(if $(filter %.v.i,$(@F)),,$(module-cppflags-real))
+module-cppflags = $(if $(filter %.mk.i %.v.i,$(@F)),,$(module-cppflags-real))
 
 # These are the variables that the implicit compilation rules use.
 # Note that we can't use -std=* in CPPFLAGS, because it overrides
@@ -980,7 +1009,7 @@ endif
 
 override CFLAGS	= -std=gnu11 -fgnu89-inline $(config-extra-cflags) \
 		  $(filter-out %frame-pointer,$(+cflags)) $(+gccwarn-c) \
-		  $(+extra-math-flags) \
+		  $(+extra-math-flags) $(+extra-time-flags) \
 		  $(sysdep-CFLAGS) $(CFLAGS-$(suffix $@)) $(CFLAGS-$(<F)) \
 		  $(CFLAGS-$(@F)) $(tls-model) \
 		  $(foreach lib,$(libof-$(basename $(@F))) \
@@ -1013,7 +1042,8 @@ ifeq (yes,$(build-shared))
 # Under --enable-shared, we will build a shared library of PIC objects.
 # The PIC object files are named foo.os.
 object-suffixes += .os
-CPPFLAGS-.os = -DPIC -DSHARED
+pic-cppflags = -DPIC -DSHARED
+CPPFLAGS-.os = $(pic-cppflags)
 CFLAGS-.os = $(filter %frame-pointer,$(+cflags)) $(pic-ccflag)
 libtype.os := lib%_pic.a
 # This can be changed by a sysdep makefile
@@ -1023,6 +1053,7 @@ PIC-ccflag = -fPIC
 endif
 # This can be changed by a sysdep makefile
 pie-ccflag = -fpie
+no-pie-ccflag = -fno-pie
 # This one should always stay like this unless there is a very good reason.
 PIE-ccflag = -fPIE
 ifeq (yes,$(build-profile))
@@ -1171,6 +1202,15 @@ $(common-objpfx)dl-tunable-list.stmp: \
 	touch $@
 endif
 
+# Dump the GCC macros used by the default compiler flags to a header
+# file, so that they can be inspected when using different compiler
+# flags.  Add the GCCMACRO prefix to make these macro names unique.
+$(common-objpfx)gcc-macros.h.in: $(common-objpfx)config.status
+	$(CC) $(CFLAGS) $(CPPFLAGS) -E -dM -x c -o $@ /dev/null
+$(common-objpfx)gcc-macros.h: $(common-objpfx)gcc-macros.h.in
+	sed 's/^#define /#define GCCMACRO/' < $< > $@
+before-compile += $(common-objpfx)gcc-macros.h
+
 # Generate version maps, but wait until sysdep-subdirs is known
 ifeq ($(sysd-sorted-done),t)
 ifeq ($(build-shared),yes)
@@ -1224,6 +1264,20 @@ $(common-objpfx)versions.stmp: $(common-objpfx)Versions.all \
 	touch $@
 endif # avoid-generated
 endif # $(build-shared) = yes
+
+-include $(common-objpfx)time64-compat.mk
+postclean-generated += time64-compat.mk
+
+$(common-objpfx)time64-compat.mk: $(common-objpfx)time64-compat.mk.i \
+				  $(sysd-versions-force)
+	sed '/^[        ]*#/d;/^[       ]*$$/d' $< > $@T
+	mv -f $@T $@
+$(common-objpfx)time64-compat.mk.i: $(..)Makeconfig
+	printf "#include <time64-compat.h>\n#ifdef TIME64_NON_DEFAULT\nhave-time64-compat = yes\n#endif" \
+	| $(CC) -E -undef $(CPPFLAGS) -x assembler-with-cpp - > $@T
+	mv -f $@T $@
+
+
 endif # sysd-sorted-done
 
 # The name under which the run-time dynamic linker is installed.
@@ -1243,12 +1297,6 @@ endif
 
 endif # build-shared
 
-
-ifeq ($(build-shared),yes)
-libdl = $(common-objpfx)dlfcn/libdl.so$(libdl.so-version)
-else
-libdl = $(common-objpfx)dlfcn/libdl.a
-endif
 
 ifeq ($(build-shared),yes)
 libm = $(common-objpfx)math/libm.so$(libm.so-version)
@@ -1316,6 +1364,19 @@ endif
 # Compute just the target patterns.  Makeconfig has set sysd-rules-patterns.
 sysd-rules-targets := $(sort $(foreach p,$(sysd-rules-patterns),\
 					 $(firstword $(subst :, ,$p))))
+
+# $(libpthread-routines-var) and $(librt-routines-var) are the make
+# variable to which pthread routines need to be added to land in the
+# right library.
+ifeq ($(pthread-in-libc),yes)
+libpthread-routines-var = routines
+librt-routines-var = routines
+libanl-routines-var = routines
+else
+libpthread-routines-var = libpthread-routines
+librt-routines-var = librt-routines
+libanl-routines-var = libanl-routines
+endif
 
 # A sysdeps Makeconfig fragment may set libc-reentrant to yes.
 ifeq (yes,$(libc-reentrant))
