@@ -1,3 +1,11 @@
+glibc (2.31-13+deb11u7) bullseye-security; urgency=medium
+
+  * debian/patches/any/local-CVE-2023-4911.patch: Fix a buffer overflow in the
+    dynamic loader's processing of the GLIBC_TUNABLES environment variable
+    (CVE-2023-4911).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 02 Oct 2023 22:22:57 +0200
+
 glibc (2.31-13+deb11u6) bullseye; urgency=medium
 
   [ Aurelien Jarno ]
