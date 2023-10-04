@@ -1,8 +1,22 @@
+glibc (2.31-13+deb11u7pexip1) pexip; urgency=medium
+
+  * New upstream release with security fixes
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Wed, 04 Oct 2023 11:45:58 +0100
+
+glibc (2.31-13+deb11u7) bullseye-security; urgency=medium
+
+  * debian/patches/any/local-CVE-2023-4911.patch: Fix a buffer overflow in the
+    dynamic loader's processing of the GLIBC_TUNABLES environment variable
+    (CVE-2023-4911).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 02 Oct 2023 22:22:57 +0200
+
 glibc (2.31-13+deb11u6pexip1) pexip; urgency=medium
 
   * New upstream release.
 
- -- Steve McIntyre <steve.mcintyre@pexip.com>  Fri, 05 Dec 2023 15:40:36 +0100
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Fri, 05 May 2023 15:40:36 +0100
 
 glibc (2.31-13+deb11u6) bullseye; urgency=medium
 
