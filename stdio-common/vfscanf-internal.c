@@ -1,5 +1,5 @@
 /* Internal functions for the *scanf* implementation.
-   Copyright (C) 1991-2020 Free Software Foundation, Inc.
+   Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -277,7 +277,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 {
   va_list arg;
-  const CHAR_T *f = format;
+  const UCHAR_T *f = (const UCHAR_T *) format;
   UCHAR_T fc;	/* Current character of the format.  */
   WINT_T done = 0;	/* Assignments done.  */
   size_t read_in = 0;	/* Chars read in.  */
@@ -415,10 +415,11 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 #endif
 
 #ifndef COMPILE_WSCANF
-      if (!isascii ((unsigned char) *f))
+      if (!isascii (*f))
 	{
 	  /* Non-ASCII, may be a multibyte.  */
-	  int len = __mbrlen (f, strlen (f), &state);
+	  int len = __mbrlen ((const char *) f, strlen ((const char *) f),
+			      &state);
 	  if (len > 0)
 	    {
 	      do
@@ -426,7 +427,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		  c = inchar ();
 		  if (__glibc_unlikely (c == EOF))
 		    input_error ();
-		  else if (c != (unsigned char) *f++)
+		  else if (c != *f++)
 		    {
 		      ungetc_not_eof (c, s);
 		      conv_error ();
@@ -484,9 +485,9 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
       char_buffer_rewind (&charbuf);
 
       /* Check for a positional parameter specification.  */
-      if (ISDIGIT ((UCHAR_T) *f))
+      if (ISDIGIT (*f))
 	{
-	  argpos = read_int ((const UCHAR_T **) &f);
+	  argpos = read_int (&f);
 	  if (*f == L_('$'))
 	    ++f;
 	  else
@@ -521,8 +522,8 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 
       /* Find the maximum field width.  */
       width = 0;
-      if (ISDIGIT ((UCHAR_T) *f))
-	width = read_int ((const UCHAR_T **) &f);
+      if (ISDIGIT (*f))
+	width = read_int (&f);
     got_width:
       if (width == 0)
 	width = -1;
@@ -2478,11 +2479,6 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	  else
 	    not_in = 0;
 
-	  if (width < 0)
-	    /* There is no width given so there is also no limit on the
-	       number of characters we read.  Therefore we set width to
-	       a very high value to make the algorithm easier.  */
-	    width = INT_MAX;
 
 #ifdef COMPILE_WSCANF
 	  /* Find the beginning and the end of the scanlist.  We are not
@@ -2522,12 +2518,11 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 	    }
 
 	  while ((fc = *f++) != '\0' && fc != ']')
-	    if (fc == '-' && *f != '\0' && *f != ']'
-		&& (unsigned char) f[-2] <= (unsigned char) *f)
+	    if (fc == '-' && *f != '\0' && *f != ']' && f[-2] <= *f)
 	      {
 		/* Add all characters from the one before the '-'
 		   up to (but not including) the next format char.  */
-		for (fc = (unsigned char) f[-2]; fc < (unsigned char) *f; ++fc)
+		for (fc = f[-2]; fc < *f; ++fc)
 		  ((char *)charbuf.scratch.data)[fc] = 1;
 	      }
 	    else
@@ -2647,7 +2642,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 			}
 		    }
 		}
-	      while (--width > 0 && inchar () != WEOF);
+	      while ((width < 0 || --width > 0) && inchar () != WEOF);
 	    out:
 #else
 	      char buf[MB_LEN_MAX];
@@ -2732,7 +2727,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 			}
 		    }
 
-		  if (--width <= 0)
+		  if (width >= 0 && --width <= 0)
 		    break;
 		}
 	      while (inchar () != EOF);
@@ -2884,7 +2879,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 		  assert (n <= MB_LEN_MAX);
 		  str += n;
 		}
-	      while (--width > 0 && inchar () != WEOF);
+	      while ((width < 0 || --width > 0) && inchar () != WEOF);
 	    out2:
 #else
 	      do
@@ -2938,7 +2933,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
 			}
 		    }
 		}
-	      while (--width > 0 && inchar () != EOF);
+	      while ((width < 0 || --width > 0) && inchar () != EOF);
 #endif
 
 	      if (__glibc_unlikely (now == read_in))

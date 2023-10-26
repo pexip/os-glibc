@@ -1,6 +1,6 @@
 /* Compat glob which does not use gl_lstat for GLOB_ALTDIRFUNC.
    GNU version
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,7 +29,8 @@
 #define GLOB_ATTRIBUTE attribute_compat_text_section
 
 /* Avoid calling gl_lstat with GLOB_ALTDIRFUNC.  */
-#define GLOB_NO_LSTAT
+#define GLOB_LSTAT   gl_stat
+#define GLOB_LSTAT64 __stat64
 
 #include <posix/glob.c>
 

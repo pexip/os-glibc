@@ -1,5 +1,5 @@
 /* Elided pthread mutex lock.
-   Copyright (C) 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2014-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,12 +22,6 @@
 #include <htm.h>
 #include <elision-conf.h>
 #include <stdint.h>
-
-#if !defined(LLL_LOCK) && !defined(EXTRAARG)
-/* Make sure the configuration code is always linked in for static
-   libraries.  */
-#include "elision-conf.c"
-#endif
 
 #ifndef EXTRAARG
 #define EXTRAARG
@@ -123,3 +117,4 @@ __lll_lock_elision (int *futex, short *adapt_count, EXTRAARG int private)
      succeed.  */
   return LLL_LOCK ((*futex), private);
 }
+libc_hidden_def (__lll_lock_elision)

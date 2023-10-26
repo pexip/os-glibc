@@ -1,5 +1,5 @@
 /* ld.so error exception allocation and deallocation.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,6 +29,17 @@
    variable since we have to avoid freeing it and so have to enable
    a pointer comparison.  See below and in dlfcn/dlerror.c.  */
 static const char _dl_out_of_memory[] = "out of memory";
+
+/* Call free in the main libc.so.  This allows other namespaces to
+   free pointers on the main libc heap, via GLRO (dl_error_free).  It
+   also avoids calling free on the special, pre-allocated
+   out-of-memory error message.  */
+void
+_dl_error_free (void *ptr)
+{
+  if (ptr != _dl_out_of_memory)
+    free (ptr);
+}
 
 /* Dummy allocation object used if allocating the message buffer
    fails.  */
@@ -229,6 +240,7 @@ _dl_exception_create_format (struct dl_exception *exception, const char *objname
     if (len_objname != end - wptr)
       length_mismatch ();
     exception->objname = memcpy (wptr, objname, len_objname);
+    va_end (ap);
   }
 }
 rtld_hidden_def (_dl_exception_create_format)

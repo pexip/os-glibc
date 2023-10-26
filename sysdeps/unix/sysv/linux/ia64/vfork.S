@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
 
 #include <sysdep.h>
 #define _SIGNAL_H
-#include <bits/signum.h>
+#include <bits/signum-arch.h>
 #include <tcb-offsets.h>
 
 /* The following are defined in linux/sched.h, which unfortunately	*/

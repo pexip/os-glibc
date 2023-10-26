@@ -1,7 +1,6 @@
 /* Compute x * y + z as ternary operation.
-   Copyright (C) 2010-2020 Free Software Foundation, Inc.
+   Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2010.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,14 +16,21 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define NO_MATH_REDIRECT
 #include <float.h>
+#define dfmal __hide_dfmal
+#define f32xfmaf64 __hide_f32xfmaf64
 #include <math.h>
+#undef dfmal
+#undef f32xfmaf64
 #include <fenv.h>
 #include <ieee754.h>
 #include <math-barriers.h>
 #include <fenv_private.h>
 #include <libm-alias-double.h>
+#include <math-narrow-alias.h>
 #include <tininess.h>
+#include <math-use-builtins.h>
 
 /* This implementation uses rounding to odd to avoid problems with
    double rounding.  See a paper by Boldo and Melquiond:
@@ -33,6 +39,10 @@
 double
 __fma (double x, double y, double z)
 {
+#if USE_FMA_BUILTIN
+  return __builtin_fma (x, y, z);
+#else
+  /* Use generic implementation.  */
   union ieee754_double u, v, w;
   int adjust = 0;
   u.d = x;
@@ -292,7 +302,9 @@ __fma (double x, double y, double z)
       v.ieee.mantissa1 |= j;
       return v.d * 0x1p-108;
     }
+#endif /* ! USE_FMA_BUILTIN  */
 }
 #ifndef __fma
 libm_alias_double (__fma, fma)
+libm_alias_double_narrow (__fma, fma)
 #endif

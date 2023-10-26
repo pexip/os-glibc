@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Pat Beirne <patb@corelcomputer.com>
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +30,8 @@
 ENTRY(__clone)
 	@ sanity check args
 	cmp	r0, #0
+	@ align sp
+	and	r1, r1, #-8
 	ite	ne
 	cmpne	r1, #0
 	moveq	r0, #-EINVAL

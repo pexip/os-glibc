@@ -1,6 +1,6 @@
 #!/bin/sh
 # Test of gettext functions.
-# Copyright (C) 2000-2020 Free Software Foundation, Inc.
+# Copyright (C) 2000-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -50,6 +50,7 @@ msgfmt -o ${objpfx}domaindir/existing-locale/LC_TIME/existing-time-domain.mo \
 ${test_program_prefix_before_env} \
 ${run_program_env} \
 MALLOC_TRACE=$malloc_trace \
+LD_PRELOAD=${common_objpfx}malloc/libc_malloc_debug.so \
 LOCPATH=${objpfx}localedir:${common_objpfx}localedata \
 ${test_program_prefix_after_env} \
 ${objpfx}tst-gettext > ${objpfx}tst-gettext.out ${objpfx}domaindir

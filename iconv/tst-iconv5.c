@@ -1,6 +1,5 @@
-/* Copyright (C) 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by GOTO Masanori <gotom@debian.or.jp>, 2004
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -72,6 +71,7 @@ convert (const char *tocode, const char *fromcode, char *inbufp,
 	{
 	  printf ("iconv failed: from: %s, to: %s: %s",
 		  fromcode, tocode, strerror (errno));
+	  iconv_close (ic);
 	  return -1;
 	}
     }

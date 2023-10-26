@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,6 +19,7 @@
 #include <sysdep.h>
 #include <futex-internal.h>
 #include <pthreadP.h>
+#include <shlib-compat.h>
 
 
 /* Wait on the barrier.
@@ -92,7 +92,7 @@
    If we do not spin, it is quite likely that at least some other threads will
    have called futex_wait already.  */
 int
-__pthread_barrier_wait (pthread_barrier_t *barrier)
+___pthread_barrier_wait (pthread_barrier_t *barrier)
 {
   struct pthread_barrier *bar = (struct pthread_barrier *) barrier;
 
@@ -220,4 +220,14 @@ __pthread_barrier_wait (pthread_barrier_t *barrier)
   /* Return a special value for exactly one thread per round.  */
   return i % count == 0 ?  PTHREAD_BARRIER_SERIAL_THREAD : 0;
 }
-weak_alias (__pthread_barrier_wait, pthread_barrier_wait)
+versioned_symbol (libc, ___pthread_barrier_wait, pthread_barrier_wait,
+                  GLIBC_2_34);
+libc_hidden_ver (___pthread_barrier_wait, __pthread_barrier_wait)
+#ifndef SHARED
+strong_alias (___pthread_barrier_wait, __pthread_barrier_wait)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_barrier_wait, pthread_barrier_wait,
+               GLIBC_2_2);
+#endif

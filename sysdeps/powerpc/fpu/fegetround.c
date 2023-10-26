@@ -1,5 +1,5 @@
 /* Return current rounding direction.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,10 +21,12 @@
 int
 (__fegetround) (void)
 {
-  return __fegetround();
+  fenv_union_t fe;
+
+  fe.fenv = fegetenv_control ();
+
+  return fe.l & 0x3;
 }
-#undef fegetround
-#undef __fegetround
 libm_hidden_def (__fegetround)
 weak_alias (__fegetround, fegetround)
 libm_hidden_weak (fegetround)

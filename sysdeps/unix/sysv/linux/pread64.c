@@ -1,6 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,10 +17,7 @@
 
 #include <unistd.h>
 #include <sysdep-cancel.h>
-
-#ifndef __NR_pread64
-# define __NR_pread64 __NR_pread
-#endif
+#include <shlib-compat.h>
 
 ssize_t
 __libc_pread64 (int fd, void *buf, size_t count, off64_t offset)
@@ -37,4 +33,13 @@ weak_alias (__libc_pread64, pread64)
 strong_alias (__libc_pread64, __libc_pread)
 weak_alias (__libc_pread64, __pread)
 weak_alias (__libc_pread64, pread)
+
+# if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_2)
+compat_symbol (libc, __libc_pread64, pread, GLIBC_2_2);
+# endif
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_2)
+compat_symbol (libc, __libc_pread64, pread64, GLIBC_2_2);
+compat_symbol (libc, __libc_pread64, __pread64, GLIBC_2_2);
 #endif

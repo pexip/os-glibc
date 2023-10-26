@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2020 Free Software Foundation, Inc.
+# Copyright (C) 1996-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ test-input := \
 	bg_BG.UTF-8 \
 	br_FR.UTF-8 \
 	bs_BA.UTF-8 \
+	C.UTF-8 \
+	ckb_IQ.UTF-8 \
 	cmn_TW.UTF-8 \
 	crh_UA.UTF-8 \
 	cs_CZ.UTF-8 \
@@ -91,9 +93,11 @@ test-input := \
 	nan_TW.UTF-8@latin \
 	nb_NO.UTF-8 \
 	om_KE.UTF-8 \
+	or_IN.UTF-8 \
 	os_RU.UTF-8 \
 	pl_PL.UTF-8 \
 	ps_AF.UTF-8 \
+	rif_MA.UTF-8 \
 	ro_RO.UTF-8 \
 	ru_RU.UTF-8 \
 	sah_RU.UTF-8 \
@@ -104,6 +108,7 @@ test-input := \
 	sr_RS.UTF-8 \
 	sv_SE.ISO-8859-1 \
 	sv_SE.UTF-8 \
+	syr.UTF-8 \
 	szl_PL.UTF-8 \
 	tg_TJ.UTF-8 \
 	tk_TM.UTF-8 \
@@ -152,11 +157,31 @@ locale_test_suite := tst_iswalnum tst_iswalpha tst_iswcntrl            \
 		     tst_wcsxfrm tst_wctob tst_wctomb tst_wctrans      \
 		     tst_wctype tst_wcwidth
 
-tests = $(locale_test_suite) tst-digits tst-setlocale bug-iconv-trans \
-	tst-leaks tst-mbswcs1 tst-mbswcs2 tst-mbswcs3 tst-mbswcs4 tst-mbswcs5 \
-	tst-mbswcs6 tst-xlocale1 tst-xlocale2 bug-usesetlocale \
-	tst-strfmon1 tst-sscanf bug-setlocale1 tst-setlocale2 tst-setlocale3 \
-	tst-wctype tst-iconv-math-trans
+tests = \
+  $(locale_test_suite) \
+  bug-iconv-trans \
+  bug-setlocale1 \
+  bug-usesetlocale \
+  tst-c-utf8-consistency \
+  tst-digits \
+  tst-iconv-math-trans \
+  tst-leaks \
+  tst-mbswcs1 \
+  tst-mbswcs2 \
+  tst-mbswcs3 \
+  tst-mbswcs4 \
+  tst-mbswcs5 \
+  tst-mbswcs6 \
+  tst-setlocale \
+  tst-setlocale2 \
+  tst-setlocale3 \
+  tst-sscanf \
+  tst-strfmon1 \
+  tst-wctype \
+  tst-xlocale1 \
+  tst-xlocale2 \
+  # tests
+
 tests-static = bug-setlocale1-static
 tests += $(tests-static)
 ifeq (yes,$(build-shared))
@@ -165,6 +190,8 @@ tests-special += $(objpfx)mtrace-tst-leaks.out
 endif
 endif
 endif
+tests-container = \
+			tst-localedef-hardlinks
 
 # Files to install.
 ifeq ($(INSTALL_UNCOMPRESSED),yes)
@@ -202,6 +229,8 @@ LOCALES := \
 	bg_BG.UTF-8 \
 	br_FR.UTF-8 \
 	bs_BA.UTF-8 \
+	C.UTF-8 \
+	ckb_IQ.UTF-8 \
 	cmn_TW.UTF-8 \
 	crh_UA.UTF-8 \
 	cs_CZ.UTF-8 \
@@ -256,9 +285,11 @@ LOCALES := \
 	nl_NL.UTF-8 \
 	nn_NO.ISO-8859-1 \
 	om_KE.UTF-8 \
+	or_IN.UTF-8 \
 	os_RU.UTF-8 \
 	pl_PL.UTF-8 \
 	ps_AF.UTF-8 \
+	rif_MA.UTF-8 \
 	ro_RO.UTF-8 \
 	ru_RU.UTF-8 \
 	sah_RU.UTF-8 \
@@ -269,6 +300,7 @@ LOCALES := \
 	sr_RS.UTF-8 \
 	sv_SE.ISO-8859-1 \
 	sv_SE.UTF-8 \
+	syr.UTF-8 \
 	szl_PL.UTF-8 \
 	tg_TJ.UTF-8 \
 	tk_TM.UTF-8 \
@@ -355,13 +387,13 @@ $(objpfx)tst-trans.out: tst-trans.sh $(objpfx)tst-trans \
 	$(SHELL) $< $(common-objpfx) '$(run-program-prefix-before-env)' \
 		 '$(run-program-env)' '$(run-program-prefix-after-env)' \
 		 '$(test-program-prefix-before-env)' \
-		 '$(test-program-prefix-after-env)' > $@; \
+		 '$(test-program-prefix-after-env)'; \
 	$(evaluate-test)
 $(objpfx)tst-ctype.out: tst-ctype.sh $(objpfx)tst-ctype \
 			$(objpfx)sort-test.out \
 			$(addprefix $(objpfx),$(CTYPE_FILES))
 	$(SHELL) $< $(common-objpfx) '$(test-program-cmd-before-env)' \
-		 '$(run-program-env)' '$(test-program-cmd-after-env)' > $@; \
+		 '$(run-program-env)' '$(test-program-cmd-after-env)'; \
 	$(evaluate-test)
 $(objpfx)tst-langinfo-newlocale.out: tst-langinfo.sh \
 			$(objpfx)tst-langinfo-newlocale \
@@ -440,17 +472,18 @@ define build-one-locale
 endef
 
 $(INSTALL-SUPPORTED-LOCALE-ARCHIVE): install-locales-dir
-	@flags="-c"; \
+	@flags=""; \
 	$(build-one-locale)
 
 $(INSTALL-SUPPORTED-LOCALE-FILES): install-locales-dir
-	@flags="-c --no-archive --no-hard-links"; \
+	@flags="--no-archive --no-hard-links"; \
 	$(build-one-locale)
 
 tst-setlocale-ENV = LC_ALL=ja_JP.EUC-JP
 tst-wctype-ENV = LC_ALL=ja_JP.EUC-JP
 
-tst-leaks-ENV = MALLOC_TRACE=$(objpfx)tst-leaks.mtrace
+tst-leaks-ENV = MALLOC_TRACE=$(objpfx)tst-leaks.mtrace \
+		LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)mtrace-tst-leaks.out: $(objpfx)tst-leaks.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-leaks.mtrace > $@; \
 	$(evaluate-test)

@@ -13,12 +13,10 @@ gen-as-const-headers += ucontext_i.sym
 endif
 
 ifeq ($(subdir),elf)
-ifeq ($(build-shared),yes)
-# This is needed for DSO loading from static binaries.
-sysdep-dl-routines += dl-static
-endif
 # Otherwise tst-tls-dlinfo fails due to tst-tlsmod2.so using static tls.
+ifeq ($(have-tls-get-addr-optimize),yes)
 LDFLAGS-tst-tlsmod2.so += -Wl,--no-tls-get-addr-optimize
+endif
 endif
 
 ifeq ($(subdir),misc)
@@ -30,9 +28,8 @@ tests += test-gettimebasefreq
 tests += test-powerpc-linux-sysconf
 endif
 
-ifeq ($(subdir),nptl)
-libpthread-routines += sysdep
-libpthread-sysdep_routines += elision-lock elision-unlock elision-timed \
-			      elision-trylock
-libpthread-shared-only-routines += sysdep
+ifeq ($(subdir),csu)
+# to relocate stinfo->main
+CPPFLAGS-libc-start.o += -I../elf
+CPPFLAGS-libc-start.op += -I../elf
 endif

@@ -1,5 +1,5 @@
 /* Thread creation.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 
 #include <atomic.h>
 #include <hurd/resource.h>
+#include <sys/single_threaded.h>
 
 #include <pt-internal.h>
 #include <pthreadP.h>
@@ -45,6 +46,8 @@ unsigned int __pthread_total;
 static void
 entry_point (struct __pthread *self, void *(*start_routine) (void *), void *arg)
 {
+  int err;
+
   ___pthread_self = self;
   __resp = &self->res_state;
 
@@ -59,7 +62,21 @@ entry_point (struct __pthread *self, void *(*start_routine) (void *), void *arg)
 
   __pthread_startup ();
 
-  __pthread_exit (start_routine (arg));
+  /* We can now unleash signals.  */
+  err = __pthread_sigstate (self, SIG_SETMASK, &self->init_sigset, 0, 0);
+  assert_perror (err);
+
+  if (self->c11)
+    {
+      /* The function pointer of the c11 thread start is cast to an incorrect
+         type on __pthread_create call, however it is casted back to correct
+         one so the call behavior is well-defined (it is assumed that pointers
+         to void are able to represent all values of int).  */
+      int (*start)(void*) = (int (*) (void*)) start_routine;
+      __pthread_exit ((void*) (uintptr_t) start (arg));
+    }
+  else
+    __pthread_exit (start_routine (arg));
 }
 
 /* Create a thread with attributes given by ATTR, executing
@@ -79,7 +96,8 @@ __pthread_create (pthread_t * thread, const pthread_attr_t * attr,
 
   return err;
 }
-strong_alias (__pthread_create, pthread_create)
+weak_alias (__pthread_create, pthread_create)
+hidden_def (__pthread_create)
 
 /* Internal version of pthread_create.  See comment in
    pt-internal.h.  */
@@ -94,10 +112,22 @@ __pthread_create_internal (struct __pthread **thread,
   sigset_t sigset;
   size_t stacksize;
 
+  /* Avoid a data race in the multi-threaded case.  */
+  if (__libc_single_threaded)
+    __libc_single_threaded = 0;
+
   /* Allocate a new thread structure.  */
   err = __pthread_alloc (&pthread);
   if (err)
     goto failed;
+
+  if (attr == ATTR_C11_THREAD)
+    {
+      attr = NULL;
+      pthread->c11 = true;
+    }
+  else
+    pthread->c11 = false;
 
   /* Use the default attributes if ATTR is NULL.  */
   setup = attr ? attr : &__pthread_default_attr;
@@ -177,12 +207,17 @@ __pthread_create_internal (struct __pthread **thread,
      creating thread.  The set of signals pending for the new thread
      shall be empty."  If the currnet thread is not a pthread then we
      just inherit the process' sigmask.  */
-  if (__pthread_num_threads == 1)
-    err = __sigprocmask (0, 0, &sigset);
+  if (GL (dl_pthread_num_threads) == 1)
+    err = __sigprocmask (0, 0, &pthread->init_sigset);
   else
-    err = __pthread_sigstate (_pthread_self (), 0, 0, &sigset, 0);
+    err = __pthread_sigstate (_pthread_self (), 0, 0, &pthread->init_sigset, 0);
   assert_perror (err);
 
+  if (start_routine)
+    /* But block the signals for now, until the thread is fully initialized.  */
+    __sigfillset (&sigset);
+  else
+    sigset = pthread->init_sigset;
   err = __pthread_sigstate (pthread, SIG_SETMASK, &sigset, 0, 1);
   assert_perror (err);
 
@@ -199,9 +234,9 @@ __pthread_create_internal (struct __pthread **thread,
      could use __thread_setid, however, we only lock for reading as no
      other thread should be using this entry (we also assume that the
      store is atomic).  */
-  __pthread_rwlock_rdlock (&__pthread_threads_lock);
-  __pthread_threads[pthread->thread - 1] = pthread;
-  __pthread_rwlock_unlock (&__pthread_threads_lock);
+  __libc_rwlock_rdlock (GL (dl_pthread_threads_lock));
+  GL (dl_pthread_threads)[pthread->thread - 1] = pthread;
+  __libc_rwlock_unlock (GL (dl_pthread_threads_lock));
 
   /* At this point it is possible to guess our pthread ID.  We have to
      make sure that all functions taking a pthread_t argument can
@@ -221,7 +256,10 @@ __pthread_create_internal (struct __pthread **thread,
 failed_starting:
   /* If joinable, a reference was added for the caller.  */
   if (pthread->state == PTHREAD_JOINABLE)
-    __pthread_dealloc (pthread);
+    {
+      __pthread_dealloc (pthread);
+      __pthread_dealloc_finish (pthread);
+    }
 
   __pthread_setid (pthread->thread, NULL);
   atomic_decrement (&__pthread_total);
@@ -243,6 +281,7 @@ failed_thread_alloc:
 			      / __vm_page_size) * __vm_page_size + stacksize);
 failed_stack_alloc:
   __pthread_dealloc (pthread);
+  __pthread_dealloc_finish (pthread);
 failed:
   return err;
 }

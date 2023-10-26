@@ -1,6 +1,5 @@
 /* Multiple versions of fmaf.
-   Copyright (C) 2010-2020 Free Software Foundation, Inc.
-   Contributed by Intel Corporation.
+   Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define NO_MATH_REDIRECT
 #include <config.h>
 
 #include <math.h>
@@ -27,7 +27,7 @@ extern float __fmaf_ia32 (float x, float y, float z) attribute_hidden;
 extern float __fmaf_fma (float x, float y, float z) attribute_hidden;
 
 libm_ifunc (__fmaf,
-	    HAS_ARCH_FEATURE (FMA_Usable) ? __fmaf_fma : __fmaf_ia32);
+	    CPU_FEATURE_USABLE (FMA) ? __fmaf_fma : __fmaf_ia32);
 libm_alias_float (__fma, fma)
 
 #define __fmaf __fmaf_ia32

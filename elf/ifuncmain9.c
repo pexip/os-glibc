@@ -1,5 +1,5 @@
 /* Test for IFUNC handling with local definitions.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,6 @@
 /* This test is based on gcc.dg/attr-ifunc-4.c.  */
 
 #include <config.h>
-
-#ifdef HAVE_GCC_IFUNC
 
 # include <stdbool.h>
 # include <stdio.h>
@@ -43,6 +41,7 @@ implementation (void)
 }
 
 static __typeof__ (implementation) *
+inhibit_stack_protector
 resolver (void)
 {
   ++resolver_called;
@@ -91,17 +90,3 @@ main (void)
 
   return errors;
 }
-
-#else  /* !HAVE_GCC_IFUNC */
-
-# include <support/check.h>
-
-static int
-do_test (void)
-{
-  FAIL_UNSUPPORTED ("GCC does not support the ifunc attribute");
-  return 1;                     /* Not reachable.  */
-}
-
-# include <support/test-driver.c>
-#endif

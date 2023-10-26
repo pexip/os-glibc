@@ -1,5 +1,5 @@
 /* Multiple versions of sincosf
-   Copyright (C) 2012-2020 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ extern void __sincosf_sse2 (float, float *, float *);
 extern void __sincosf_ia32 (float, float *, float *);
 
 libm_ifunc (__sincosf,
-	    HAS_CPU_FEATURE (SSE2) ? __sincosf_sse2 : __sincosf_ia32);
+	    CPU_FEATURE_USABLE (SSE2) ? __sincosf_sse2 : __sincosf_ia32);
 libm_alias_float (__sincos, sincos);
 
 #define SINCOSF __sincosf_ia32

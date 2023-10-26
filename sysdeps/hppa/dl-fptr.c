@@ -1,5 +1,5 @@
 /* Manage function descriptors.  Generic version.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,7 @@
 #include <ldsodefs.h>
 #include <elf/dynamic-link.h>
 #include <dl-fptr.h>
+#include <dl-runtime.h>
 #include <dl-unmap-segments.h>
 #include <atomic.h>
 #include <libc-pointer-arith.h>
@@ -172,8 +173,8 @@ make_fdesc (ElfW(Addr) ip, ElfW(Addr) gp)
     }
 
  install:
-  fdesc->ip = ip;
   fdesc->gp = gp;
+  fdesc->ip = ip;
 
   return (ElfW(Addr)) fdesc;
 }
@@ -350,35 +351,40 @@ ElfW(Addr)
 _dl_lookup_address (const void *address)
 {
   ElfW(Addr) addr = (ElfW(Addr)) address;
+  ElfW(Word) reloc_arg;
   unsigned int *desc, *gptr;
 
   /* Return ADDR if the least-significant two bits of ADDR are not consistent
      with ADDR being a linker defined function pointer.  The normal value for
      a code address in a backtrace is 3.  */
-  if (((unsigned int) addr & 3) != 2)
+  if (((uintptr_t) addr & 3) != 2)
     return addr;
 
   /* Handle special case where ADDR points to page 0.  */
-  if ((unsigned int) addr < 4096)
+  if ((uintptr_t) addr < 4096)
     return addr;
 
   /* Clear least-significant two bits from descriptor address.  */
-  desc = (unsigned int *) ((unsigned int) addr & ~3);
+  desc = (unsigned int *) ((uintptr_t) addr & ~3);
   if (!_dl_read_access_allowed (desc))
     return addr;
 
-  /* Load first word of candidate descriptor.  It should be a pointer
+  /* First load the relocation offset.  */
+  reloc_arg = (ElfW(Word)) desc[1];
+  atomic_full_barrier();
+
+  /* Then load first word of candidate descriptor.  It should be a pointer
      with word alignment and point to memory that can be read.  */
   gptr = (unsigned int *) desc[0];
-  if (((unsigned int) gptr & 3) != 0
+  if (((uintptr_t) gptr & 3) != 0
       || !_dl_read_access_allowed (gptr))
     return addr;
 
   /* See if descriptor requires resolution.  The following trampoline is
      used in each global offset table for function resolution:
 
-		ldw 0(r20),r22
-		bv r0(r22)
+		ldw 0(r20),r21
+		bv r0(r21)
 		ldw 4(r20),r21
      tramp:	b,l .-12,r20
 		depwi 0,31,2,r20
@@ -389,7 +395,16 @@ _dl_lookup_address (const void *address)
   if (gptr[0] == 0xea9f1fdd			/* b,l .-12,r20     */
       && gptr[1] == 0xd6801c1e			/* depwi 0,31,2,r20 */
       && (ElfW(Addr)) gptr[2] == elf_machine_resolve ())
-    _dl_fixup ((struct link_map *) gptr[5], (ElfW(Word)) desc[1]);
+    {
+      struct link_map *l = (struct link_map *) gptr[5];
+
+      /* If gp has been resolved, we need to hunt for relocation offset.  */
+      if (!(reloc_arg & PA_GP_RELOC))
+	reloc_arg = _dl_fix_reloc_arg ((struct fdesc *) addr, l);
+
+      _dl_fixup (l, reloc_arg);
+    }
 
   return (ElfW(Addr)) desc[0];
 }
+rtld_hidden_def (_dl_lookup_address)

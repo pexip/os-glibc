@@ -1,5 +1,5 @@
 /* Implementation of getentropy based on the getrandom system call.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,8 @@
 #include <assert.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sysdep.h>
 
-#ifdef __NR_getrandom
 /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on
    success and -1 on failure.  */
 int
@@ -63,11 +63,3 @@ getentropy (void *buffer, size_t length)
     }
   return 0;
 }
-#else
-int
-getentropy (void *buffer, size_t length)
-{
-  __set_errno (ENOSYS);
-  return -1;
-}
-#endif

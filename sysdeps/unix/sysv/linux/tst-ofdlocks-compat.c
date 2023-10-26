@@ -1,6 +1,6 @@
 /* Check non representable OFD locks regions in non-LFS mode for compat
    mode (BZ #20251)
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -25,7 +25,6 @@
 #include <support/check.h>
 
 #include <shlib-compat.h>
-#if TEST_COMPAT (libc, GLIBC_2_0, GLIBC_2_28)
 compat_symbol_reference (libc, fcntl, fcntl, GLIBC_2_0);
 
 static char *temp_filename;
@@ -86,12 +85,5 @@ do_test (void)
 
   return 0;
 }
-#else
-static int
-do_test (void)
-{
-  return 77;
-}
-#endif
 
 #include <support/test-driver.c>

@@ -1,7 +1,6 @@
 /* File tree walker functions.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -135,15 +134,15 @@ int rpl_lstat (const char *, struct stat *);
 # define NFTW_OLD_NAME __old_nftw
 # define NFTW_NEW_NAME __new_nftw
 # define INO_T ino_t
-# define STAT stat
+# define STRUCT_STAT stat
 # ifdef _LIBC
-#  define LXSTAT __lxstat
-#  define XSTAT __xstat
-#  define FXSTATAT __fxstatat
+#  define LSTAT __lstat
+#  define STAT __stat
+#  define FSTATAT __fstatat
 # else
-#  define LXSTAT(V,f,sb) lstat (f,sb)
-#  define XSTAT(V,f,sb) stat (f,sb)
-#  define FXSTATAT(V,d,f,sb,m) fstatat (d, f, sb, m)
+#  define LSTAT lstat
+#  define XTAT stat
+#  define FSTATAT fstatat
 # endif
 # define FTW_FUNC_T __ftw_func_t
 # define NFTW_FUNC_T __nftw_func_t
@@ -204,6 +203,20 @@ struct ftw_data
   void *known_objects;
 };
 
+static bool
+ftw_allocate (struct ftw_data *data, size_t newsize)
+{
+  void *newp = realloc (data->dirstreams, data->maxdir
+					  * sizeof (struct dir_data *)
+					  + newsize);
+  if (newp == NULL)
+    return false;
+  data->dirstreams = newp;
+  data->dirbufsize = newsize;
+  data->dirbuf = (char *) data->dirstreams
+		 + data->maxdir * sizeof (struct dir_data *);
+  return true;
+}
 
 /* Internally we use the FTW_* constants used for `nftw'.  When invoked
    as `ftw', map each flag to the subset of values used by `ftw'.  */
@@ -219,7 +232,7 @@ static const int ftw_arr[] =
 
 
 /* Forward declarations of local functions.  */
-static int ftw_dir (struct ftw_data *data, struct STAT *st,
+static int ftw_dir (struct ftw_data *data, struct STRUCT_STAT *st,
 		    struct dir_data *old_dir);
 
 
@@ -239,7 +252,7 @@ object_compare (const void *p1, const void *p2)
 
 
 static int
-add_object (struct ftw_data *data, struct STAT *st)
+add_object (struct ftw_data *data, struct STRUCT_STAT *st)
 {
   struct known_object *newp = malloc (sizeof (struct known_object));
   if (newp == NULL)
@@ -251,7 +264,7 @@ add_object (struct ftw_data *data, struct STAT *st)
 
 
 static inline int
-find_object (struct ftw_data *data, struct STAT *st)
+find_object (struct ftw_data *data, struct STRUCT_STAT *st)
 {
   struct known_object obj;
   obj.dev = st->st_dev;
@@ -310,8 +323,9 @@ open_dir_stream (int *dfdp, struct ftw_data *data, struct dir_data *dirp)
 	  buf[actsize++] = '\0';
 
 	  /* Shrink the buffer to what we actually need.  */
-	  data->dirstreams[data->actdir]->content = realloc (buf, actsize);
-	  if (data->dirstreams[data->actdir]->content == NULL)
+	  void *content = realloc (buf, actsize);
+	  data->dirstreams[data->actdir]->content = content;
+	  if (content == NULL)
 	    {
 	      int save_err = errno;
 	      free (buf);
@@ -378,7 +392,7 @@ static int
 process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
 	       size_t namlen, int d_type)
 {
-  struct STAT st;
+  struct STRUCT_STAT st;
   int result = 0;
   int flag = 0;
   size_t new_buflen;
@@ -389,32 +403,24 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
     return 0;
 
   new_buflen = data->ftw.base + namlen + 2;
-  if (data->dirbufsize < new_buflen)
-    {
-      /* Enlarge the buffer.  */
-      char *newp;
-
-      data->dirbufsize = 2 * new_buflen;
-      newp = (char *) realloc (data->dirbuf, data->dirbufsize);
-      if (newp == NULL)
-	return -1;
-      data->dirbuf = newp;
-    }
+  if (data->dirbufsize < new_buflen
+      && !ftw_allocate (data, 2 * new_buflen))
+    return -1;
 
   *((char *) __mempcpy (data->dirbuf + data->ftw.base, name, namlen)) = '\0';
 
   int statres;
   if (dir->streamfd != -1)
-    statres = FXSTATAT (_STAT_VER, dir->streamfd, name, &st,
-			(data->flags & FTW_PHYS) ? AT_SYMLINK_NOFOLLOW : 0);
+    statres = FSTATAT (dir->streamfd, name, &st,
+		       (data->flags & FTW_PHYS) ? AT_SYMLINK_NOFOLLOW : 0);
   else
     {
       if ((data->flags & FTW_CHDIR) == 0)
 	name = data->dirbuf;
 
       statres = ((data->flags & FTW_PHYS)
-		 ? LXSTAT (_STAT_VER, name, &st)
-		 : XSTAT (_STAT_VER, name, &st));
+		 ? LSTAT (name, &st)
+		 : STAT (name, &st));
     }
 
   if (statres < 0)
@@ -430,10 +436,10 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
 	     it should contain information about the link (ala lstat).
 	     We do our best to fill in what data we can.  */
 	  if (dir->streamfd != -1)
-	    statres = FXSTATAT (_STAT_VER, dir->streamfd, name, &st,
-				AT_SYMLINK_NOFOLLOW);
+	    statres = FSTATAT (dir->streamfd, name, &st,
+			       AT_SYMLINK_NOFOLLOW);
 	  else
-	    statres = LXSTAT (_STAT_VER, name, &st);
+	    statres = LSTAT (name, &st);
 	  if (statres == 0 && S_ISLNK (st.st_mode))
 	    flag = FTW_SLN;
 	  else
@@ -476,7 +482,7 @@ process_entry (struct ftw_data *data, struct dir_data *dir, const char *name,
 
 static int
 __attribute ((noinline))
-ftw_dir (struct ftw_data *data, struct STAT *st, struct dir_data *old_dir)
+ftw_dir (struct ftw_data *data, struct STRUCT_STAT *st, struct dir_data *old_dir)
 {
   struct dir_data dir;
   struct dirent64 *d;
@@ -629,8 +635,8 @@ __attribute ((noinline))
 ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
 	     int flags)
 {
-  struct ftw_data data;
-  struct STAT st;
+  struct ftw_data data = { .dirstreams = NULL };
+  struct STRUCT_STAT st;
   int result = 0;
   int save_err;
   int cwdfd = -1;
@@ -646,15 +652,10 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
 
   data.maxdir = descriptors < 1 ? 1 : descriptors;
   data.actdir = 0;
-  data.dirstreams = (struct dir_data **) alloca (data.maxdir
-						 * sizeof (struct dir_data *));
-  memset (data.dirstreams, '\0', data.maxdir * sizeof (struct dir_data *));
-
   /* PATH_MAX is always defined when we get here.  */
-  data.dirbufsize = MAX (2 * strlen (dir), PATH_MAX);
-  data.dirbuf = (char *) malloc (data.dirbufsize);
-  if (data.dirbuf == NULL)
+  if (!ftw_allocate (&data, MAX (2 * strlen (dir), PATH_MAX)))
     return -1;
+  memset (data.dirstreams, '\0', data.maxdir * sizeof (struct dir_data *));
   cp = __stpcpy (data.dirbuf, dir);
   /* Strip trailing slashes.  */
   while (cp > data.dirbuf + 1 && cp[-1] == '/')
@@ -740,12 +741,12 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
 	name = data.dirbuf;
 
       if (((flags & FTW_PHYS)
-	   ? LXSTAT (_STAT_VER, name, &st)
-	   : XSTAT (_STAT_VER, name, &st)) < 0)
+	   ? LSTAT (name, &st)
+	   : STAT (name, &st)) < 0)
 	{
 	  if (!(flags & FTW_PHYS)
 	      && errno == ENOENT
-	      && LXSTAT (_STAT_VER, name, &st) == 0
+	      && LSTAT (name, &st) == 0
 	      && S_ISLNK (st.st_mode))
 	    result = (*data.func) (data.dirbuf, &st, data.cvt_arr[FTW_SLN],
 				   &data.ftw);
@@ -803,7 +804,7 @@ ftw_startup (const char *dir, int is_nftw, void *func, int descriptors,
  out_fail:
   save_err = errno;
   __tdestroy (data.known_objects, free);
-  free (data.dirbuf);
+  free (data.dirstreams);
   __set_errno (save_err);
 
   return result;
@@ -819,7 +820,7 @@ FTW_NAME (const char *path, FTW_FUNC_T func, int descriptors)
   return ftw_startup (path, 0, func, descriptors, 0);
 }
 
-#ifndef _LIBC
+#ifndef NFTW_OLD_NAME
 int
 NFTW_NAME (const char *path, NFTW_FUNC_T func, int descriptors, int flags)
 {
@@ -842,7 +843,6 @@ NFTW_NEW_NAME (const char *path, NFTW_FUNC_T func, int descriptors, int flags)
     }
   return ftw_startup (path, 1, func, descriptors, flags);
 }
-
 versioned_symbol (libc, NFTW_NEW_NAME, NFTW_NAME, GLIBC_2_3_3);
 
 # if SHLIB_COMPAT(libc, GLIBC_2_1, GLIBC_2_3_3)
@@ -861,4 +861,4 @@ NFTW_OLD_NAME (const char *path, NFTW_FUNC_T func, int descriptors, int flags)
 
 compat_symbol (libc, NFTW_OLD_NAME, NFTW_NAME, GLIBC_2_1);
 # endif
-#endif
+#endif /* NFTW_OLD_NAME  */

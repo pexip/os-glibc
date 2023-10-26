@@ -1,7 +1,6 @@
 /* Set current priority ceiling of pthread_mutex_t.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2006.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,11 +20,12 @@
 #include <errno.h>
 #include <pthreadP.h>
 #include <atomic.h>
-
+#include <futex-internal.h>
+#include <shlib-compat.h>
 
 int
-pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int prioceiling,
-			      int *old_ceiling)
+__pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int prioceiling,
+				int *old_ceiling)
 {
   /* See concurrency notes regarding __kind in struct __pthread_mutex_s
      in sysdeps/nptl/bits/thread-shared-types.h.  */
@@ -84,8 +84,8 @@ pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int prioceiling,
 	      break;
 
 	    if (oldval != ceilval)
-	      lll_futex_wait (&mutex->__data.__lock, ceilval | 2,
-			      PTHREAD_MUTEX_PSHARED (mutex));
+	      futex_wait ((unsigned int *) &mutex->__data.__lock, ceilval | 2,
+			  PTHREAD_MUTEX_PSHARED (mutex));
 	  }
 	while (atomic_compare_and_exchange_val_acq (&mutex->__data.__lock,
 						    ceilval | 2, ceilval)
@@ -115,8 +115,15 @@ pthread_mutex_setprioceiling (pthread_mutex_t *mutex, int prioceiling,
 			 | (prioceiling << PTHREAD_MUTEX_PRIO_CEILING_SHIFT);
   atomic_full_barrier ();
 
-  lll_futex_wake (&mutex->__data.__lock, INT_MAX,
-		  PTHREAD_MUTEX_PSHARED (mutex));
+  futex_wake ((unsigned int *)&mutex->__data.__lock, INT_MAX,
+	      PTHREAD_MUTEX_PSHARED (mutex));
 
   return 0;
 }
+versioned_symbol (libc, __pthread_mutex_setprioceiling,
+		  pthread_mutex_setprioceiling, GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_4, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_mutex_setprioceiling,
+               pthread_mutex_setprioceiling, GLIBC_2_4);
+#endif

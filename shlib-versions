@@ -43,16 +43,9 @@ libresolv=2
 libnss_files=2
 libnss_dns=2
 libnss_compat=2
-libnss_nis=2
-libnss_nisplus=2
 libnss_ldap=2
 libnss_hesiod=2
 libnss_db=2
-
-# Tests for NSS.  They must have the same NSS_SHLIB_REVISION number as
-# the rest.
-libnss_test1=2
-libnss_test2=2
 
 # Version for libnsl with YP and NIS+ functions.
 libnsl=1
@@ -75,3 +68,6 @@ libgcc_s=1
 
 # The vector math library
 libmvec=1
+
+# The malloc debug library
+libc_malloc_debug=0

@@ -1,7 +1,6 @@
 /* Change priority protocol setting in pthread_mutexattr_t.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2006.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,10 +18,10 @@
 
 #include <errno.h>
 #include <pthreadP.h>
-
+#include <shlib-compat.h>
 
 int
-pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr, int protocol)
+__pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr, int protocol)
 {
   if (protocol != PTHREAD_PRIO_NONE
       && protocol != PTHREAD_PRIO_INHERIT
@@ -36,3 +35,10 @@ pthread_mutexattr_setprotocol (pthread_mutexattr_t *attr, int protocol)
 
   return 0;
 }
+versioned_symbol (libc, __pthread_mutexattr_setprotocol,
+		  pthread_mutexattr_setprotocol, GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_4, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_mutexattr_setprotocol,
+               pthread_mutexattr_setprotocol, GLIBC_2_4);
+#endif

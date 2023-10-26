@@ -1,7 +1,6 @@
 /* Handle real-time signal allocation.  Generic version.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,11 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
-
-/* Another sysdeps file can #define this and then #include this file.  */
-#ifndef RESERVED_SIGRT
-# define RESERVED_SIGRT 0
-#endif
+#include <internal-signals.h>
 
 /* In these variables we keep track of the used variables.  If the
    platform does not support any real-time signals we will define the
@@ -44,7 +39,6 @@ __libc_current_sigrtmin (void)
 #endif
 }
 libc_hidden_def (__libc_current_sigrtmin)
-strong_alias (__libc_current_sigrtmin, __libc_current_sigrtmin_private)
 
 /* Return number of available real-time signal with lowest priority.  */
 int
@@ -57,7 +51,6 @@ __libc_current_sigrtmax (void)
 #endif
 }
 libc_hidden_def (__libc_current_sigrtmax)
-strong_alias (__libc_current_sigrtmax, __libc_current_sigrtmax_private)
 
 /* Allocate real-time signal with highest/lowest available
    priority.  Please note that we don't use a lock since we assume
@@ -75,4 +68,3 @@ __libc_allocate_rtsig (int high)
   return high ? current_rtmin++ : current_rtmax--;
 #endif
 }
-strong_alias (__libc_allocate_rtsig, __libc_allocate_rtsig_private)

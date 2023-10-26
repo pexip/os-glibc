@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -653,6 +652,13 @@ open_archive (struct locarhandle *ah, bool readonly)
     {
       (void) lockf64 (fd, F_ULOCK, sizeof (struct locarhead));
       error (EXIT_FAILURE, errno, _("cannot read archive header"));
+    }
+
+  /* Check the magic value */
+  if (GET (head.magic) != AR_MAGIC)
+    {
+      (void) lockf64 (fd, F_ULOCK, sizeof (struct locarhead));
+      error (EXIT_FAILURE, 0, _("bad magic value in archive header"));
     }
 
   ah->fd = fd;
@@ -1391,7 +1397,7 @@ add_locales_to_archive (size_t nlist, char *list[], bool replace)
 		    {
 		      char fullname[fnamelen + 2 * strlen (d->d_name) + 7];
 
-		      if (d_type == DT_UNKNOWN)
+		      if (d_type == DT_UNKNOWN || d_type == DT_LNK)
 			{
 			  strcpy (stpcpy (stpcpy (fullname, fname), "/"),
 				  d->d_name);
@@ -1742,6 +1748,7 @@ show_archive_content (const char *fname, int verbose)
 			: locnames[idx]);
 	      }
 	}
+      free (files);
     }
   else
     for (cnt = 0; cnt < used; ++cnt)

@@ -1,7 +1,7 @@
 /* Common definition for ifunc selections optimized with SSSE3 and
    SSE4_2.
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,10 +29,10 @@ IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();
 
-  if (CPU_FEATURES_CPU_P (cpu_features, SSE4_2))
+  if (CPU_FEATURE_USABLE_P (cpu_features, SSE4_2))
     return OPTIMIZE (sse4_2);
 
-  if (CPU_FEATURES_CPU_P (cpu_features, SSSE3))
+  if (CPU_FEATURE_USABLE_P (cpu_features, SSSE3))
     return OPTIMIZE (ssse3);
 
   return OPTIMIZE (ia32);

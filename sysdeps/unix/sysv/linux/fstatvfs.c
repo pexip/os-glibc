@@ -1,6 +1,5 @@
-/* Copyright (C) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,11 +15,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stddef.h>
-#include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <sys/statfs.h>
-#include "internal_statvfs.h"
+#include <internal_statvfs.h>
+#include <time.h>
+#include <kernel_stat.h>
 
+#if !STATFS_IS_STATFS64
 int
 __fstatvfs (int fd, struct statvfs *buf)
 {
@@ -31,10 +32,11 @@ __fstatvfs (int fd, struct statvfs *buf)
     return -1;
 
   /* Convert the result.  */
-  __internal_statvfs (NULL, buf, &fsbuf, fd);
+  __internal_statvfs (buf, &fsbuf);
 
   /* We signal success if the statfs call succeeded.  */
   return 0;
 }
 weak_alias (__fstatvfs, fstatvfs)
 libc_hidden_weak (fstatvfs)
+#endif

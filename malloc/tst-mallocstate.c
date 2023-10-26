@@ -1,7 +1,6 @@
 /* Emulate Emacs heap dumping to test malloc_set_state.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Wolfram Gloger <wg@malloc.de>, 2001.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,8 +27,6 @@
 #include <support/test-driver.h>
 
 #include "malloc.h"
-
-#if TEST_COMPAT (libc, GLIBC_2_0, GLIBC_2_25)
 
 /* Make the compatibility symbols availabile to this test case.  */
 void *malloc_get_state (void);
@@ -310,6 +307,8 @@ init_heap (void)
 
 /* Interpose the initialization callback.  */
 void (*volatile __malloc_initialize_hook) (void) = init_heap;
+compat_symbol_reference (libc, __malloc_initialize_hook,
+                         __malloc_initialize_hook, GLIBC_2_0);
 
 /* Simulate occasional unrelated heap activity in the non-dumped
    heap.  */
@@ -490,12 +489,5 @@ do_test (void)
 
   return errors;
 }
-#else
-static int
-do_test (void)
-{
-  return 77;
-}
-#endif
 
 #include <support/test-driver.c>

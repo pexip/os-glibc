@@ -1,6 +1,5 @@
-/* Copyright (C) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Zack Weinberg <zack@rabi.phys.columbia.edu>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,22 +26,12 @@
 int
 unlockpt (int fd)
 {
-#ifdef TIOCSPTLCK
-  int save_errno = errno;
   int unlock = 0;
 
-  if (__ioctl (fd, TIOCSPTLCK, &unlock))
-    {
-      if (errno == EINVAL)
-	{
-	  __set_errno (save_errno);
-	  return 0;
-	}
-      else
-	return -1;
-    }
-#endif
-  /* If we have no TIOCSPTLCK ioctl, all slave pseudo terminals are
-     unlocked by default.  */
-  return 0;
+  int ret = __ioctl (fd, TIOCSPTLCK, &unlock);
+  if (ret != 0 && errno == ENOTTY)
+    /* POSIX mandates EINVAL for non-ptmx descriptors.  */
+    __set_errno (EINVAL);
+  return ret;
 }
+libc_hidden_def (unlockpt)

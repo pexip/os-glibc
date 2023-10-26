@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,9 +30,7 @@ typedef int (*lookup_function) (const struct ether_addr *, struct etherent *,
 int
 ether_ntohost (char *hostname, const struct ether_addr *addr)
 {
-  static service_user *startp;
-  static lookup_function start_fct;
-  service_user *nip;
+  nss_action_list nip;
   union
   {
     lookup_function f;
@@ -43,22 +40,7 @@ ether_ntohost (char *hostname, const struct ether_addr *addr)
   enum nss_status status = NSS_STATUS_UNAVAIL;
   struct etherent etherent;
 
-  if (startp == NULL)
-    {
-      no_more = __nss_ethers_lookup2 (&nip, "getntohost_r", NULL, &fct.ptr);
-      if (no_more)
-	startp = (service_user *) -1;
-      else
-	{
-	  startp = nip;
-	  start_fct = fct.f;
-	}
-    }
-  else
-    {
-      fct.f = start_fct;
-      no_more = (nip = startp) == (service_user *) -1;
-    }
+  no_more = __nss_ethers_lookup2 (&nip, "getntohost_r", NULL, &fct.ptr);
 
   while (no_more == 0)
     {

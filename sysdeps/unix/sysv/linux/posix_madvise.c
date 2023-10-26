@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@ posix_madvise (void *addr, size_t len, int advice)
   if (advice == POSIX_MADV_DONTNEED)
     return 0;
 
-  INTERNAL_SYSCALL_DECL (err);
-  int result = INTERNAL_SYSCALL (madvise, err, 3, addr, len, advice);
-  return INTERNAL_SYSCALL_ERRNO (result, err);
+  int result = INTERNAL_SYSCALL_CALL (madvise, addr, len, advice);
+  return INTERNAL_SYSCALL_ERRNO (result);
 }

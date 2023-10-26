@@ -1,5 +1,5 @@
 /* Test unrelated dlopen after dlopen failure involving NODELETE.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,10 +28,7 @@
 static int
 do_test (void)
 {
-  /* This test uses libpthread as the canonical NODELETE module.  If
-     libpthread is no longer NODELETE because it has been merged into
-     libc, the test needs to be updated.  */
-  TEST_VERIFY (dlsym (NULL, "pthread_create") == NULL);
+  TEST_VERIFY (dlsym (NULL, "no_delete_mod_function") == NULL);
 
   /* This is expected to fail because of the missing dependency.  */
   puts ("info: attempting to load tst-dlopenfailmod1.so");

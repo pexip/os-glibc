@@ -1,6 +1,6 @@
 /* BZ #24024 strerror and errno test.
 
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,6 +52,11 @@ do_test (void)
 
   errno = 0;
   msg = strerror (-3);
+  (void) msg;
+  TEST_COMPARE (errno, 0);
+
+  locale_t l = xnewlocale (LC_ALL_MASK, "C", NULL);
+  msg = strerror_l (-3, l);
   (void) msg;
   TEST_COMPARE (errno, 0);
 

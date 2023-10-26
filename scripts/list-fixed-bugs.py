@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (C) 2015-2020 Free Software Foundation, Inc.
+# Copyright (C) 2015-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ def list_fixed_bugs(version):
     data = json.loads(json_data)
     for bug in data['bugs']:
         desc = '[%d] %s: %s' % (bug['id'], bug['component'], bug['summary'])
-        desc = textwrap.fill(desc, width=76, initial_indent='  ',
+        desc = textwrap.fill(desc, width=72, initial_indent='  ',
                              subsequent_indent='    ') + '\n'
         sys.stdout.buffer.write(desc.encode('utf-8'))
 

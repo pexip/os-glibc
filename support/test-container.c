@@ -1,5 +1,5 @@
 /* Run a test case in an isolated namespace.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 #define _FILE_OFFSET_BITS 64
 
+#include <array_length.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,7 @@
 
 #include <support/support.h>
 #include <support/xunistd.h>
+#include <support/capture_subprocess.h>
 #include "check.h"
 #include "test-driver.h"
 
@@ -72,6 +74,10 @@ int verbose = 0;
 
    * mkdir $buildroot/testroot.pristine/
    * install into it
+     * default glibc install
+     * create /bin for /bin/sh
+     * create $(complocaledir) so localedef tests work with default paths.
+     * install /bin/sh, /bin/echo, and /bin/true.
    * rsync to $buildroot/testroot.root/
 
    "Per-test" actions:
@@ -79,6 +85,7 @@ int verbose = 0;
    * copy support files and test binary
    * chroot/unshare
    * set up any mounts (like /proc)
+   * run ldconfig
 
    Magic files:
 
@@ -91,21 +98,47 @@ int verbose = 0;
    * mytest.root/mytest.script has a list of "commands" to run:
        syntax:
          # comment
+	 pidns <comment>
          su
          mv FILE FILE
 	 cp FILE FILE
 	 rm FILE
-	 FILE must start with $B/, $S/, $I/, $L/, or /
-	  (expands to build dir, source dir, install dir, library dir
-	   (in container), or container's root)
+	 cwd PATH
+	 exec FILE
+	 mkdirp MODE DIR
+
+       variables:
+	 $B/ build dir, equivalent to $(common-objpfx)
+	 $S/ source dir, equivalent to $(srcdir)
+	 $I/ install dir, equivalent to $(prefix)
+	 $L/ library dir (in container), equivalent to $(libdir)
+	 $complocaledir/ compiled locale dir, equivalent to $(complocaledir)
+	 / container's root
+
+	 If FILE begins with any of these variables then they will be
+	 substituted for the described value.
+
+	 The goal is to expose as many of the runtime's configured paths
+	 via variables so they can be used to setup the container environment
+	 before execution reaches the test.
+
        details:
          - '#': A comment.
+	 - 'pidns': Require a separate PID namespace, prints comment if it can't
+	    (default is a shared pid namespace)
          - 'su': Enables running test as root in the container.
          - 'mv': A minimal move files command.
          - 'cp': A minimal copy files command.
          - 'rm': A minimal remove files command.
+	 - 'cwd': set test working directory
+	 - 'exec': change test binary location (may end in /)
+	 - 'mkdirp': A minimal "mkdir -p FILE" command.
+
    * mytest.root/postclean.req causes fresh rsync (with delete) after
      test if present
+
+   * mytest.root/ldconfig.run causes ldconfig to be issued prior
+     test execution (to setup the initial ld.so.cache).
 
    Note that $srcdir/foo/mytest.script may be used instead of a
    $srcdir/foo/mytest.root/mytest.script in the sysroot template, if
@@ -119,7 +152,7 @@ int verbose = 0;
    * Simple, easy to review code (i.e. prefer simple naive code over
      complex efficient code)
 
-   * The current implementation ist parallel-make-safe, but only in
+   * The current implementation is parallel-make-safe, but only in
      that it uses a lock to prevent parallel access to the testroot.  */
 
 
@@ -147,7 +180,7 @@ maybe_xmkdir (const char *path, mode_t mode)
 }
 
 /* Temporarily concatenate multiple strings into one.  Allows up to 10
-   temporary results; use strdup () if you need them to be
+   temporary results; use xstrdup () if you need them to be
    permanent.  */
 static char *
 concat (const char *str, ...)
@@ -198,11 +231,39 @@ concat (const char *str, ...)
   return bufs[n];
 }
 
+#ifdef CLONE_NEWNS
+/* Like the above, but put spaces between words.  Caller frees.  */
+static char *
+concat_words (char **words, int num_words)
+{
+  int len = 0;
+  int i;
+  char *rv, *p;
+
+  for (i = 0; i < num_words; i ++)
+    {
+      len += strlen (words[i]);
+      len ++;
+    }
+
+  p = rv = (char *) xmalloc (len);
+
+  for (i = 0; i < num_words; i ++)
+    {
+      if (i > 0)
+	p = stpcpy (p, " ");
+      p = stpcpy (p, words[i]);
+    }
+
+  return rv;
+}
+#endif
+
 /* Try to mount SRC onto DEST.  */
 static void
 trymount (const char *src, const char *dest)
 {
-  if (mount (src, dest, "", MS_BIND, NULL) < 0)
+  if (mount (src, dest, "", MS_BIND | MS_REC, NULL) < 0)
     FAIL_EXIT1 ("can't mount %s onto %s\n", src, dest);
 }
 
@@ -368,7 +429,7 @@ recursive_remove (char *path)
     /* "rm" would have already printed a suitable error message.  */
     if (! WIFEXITED (status)
 	|| WEXITSTATUS (status) != 0)
-      exit (1);
+      FAIL_EXIT1 ("exec child returned status: %d", status);
 
     break;
   }
@@ -452,7 +513,7 @@ need_sync (char *ap, char *bp, struct stat *a, struct stat *b)
 }
 
 static void
-rsync_1 (path_buf * src, path_buf * dest, int and_delete)
+rsync_1 (path_buf * src, path_buf * dest, int and_delete, int force_copies)
 {
   DIR *dir;
   struct dirent *de;
@@ -462,8 +523,9 @@ rsync_1 (path_buf * src, path_buf * dest, int and_delete)
   r_append ("/", dest);
 
   if (verbose)
-    printf ("sync %s to %s %s\n", src->buf, dest->buf,
-	    and_delete ? "and delete" : "");
+    printf ("sync %s to %s%s%s\n", src->buf, dest->buf,
+	    and_delete ? " and delete" : "",
+	    force_copies ? " (forced)" : "");
 
   size_t staillen = src->len;
 
@@ -492,10 +554,10 @@ rsync_1 (path_buf * src, path_buf * dest, int and_delete)
 	 missing.  */
       lstat (dest->buf, &d);
 
-      if (! need_sync (src->buf, dest->buf, &s, &d))
+      if (! force_copies && ! need_sync (src->buf, dest->buf, &s, &d))
 	{
 	  if (S_ISDIR (s.st_mode))
-	    rsync_1 (src, dest, and_delete);
+	    rsync_1 (src, dest, and_delete, force_copies);
 	  continue;
 	}
 
@@ -530,7 +592,7 @@ rsync_1 (path_buf * src, path_buf * dest, int and_delete)
 	  if (verbose)
 	    printf ("+D %s\n", dest->buf);
 	  maybe_xmkdir (dest->buf, (s.st_mode & 0777) | 0700);
-	  rsync_1 (src, dest, and_delete);
+	  rsync_1 (src, dest, and_delete, force_copies);
 	  break;
 
 	case S_IFLNK:
@@ -610,12 +672,12 @@ rsync_1 (path_buf * src, path_buf * dest, int and_delete)
 }
 
 static void
-rsync (char *src, char *dest, int and_delete)
+rsync (char *src, char *dest, int and_delete, int force_copies)
 {
   r_setup (src, &spath);
   r_setup (dest, &dpath);
 
-  rsync_1 (&spath, &dpath, and_delete);
+  rsync_1 (&spath, &dpath, and_delete, force_copies);
 }
 
 
@@ -623,41 +685,55 @@ rsync (char *src, char *dest, int and_delete)
 /* See if we can detect what the user needs to do to get unshare
    support working for us.  */
 void
-check_for_unshare_hints (void)
+check_for_unshare_hints (int require_pidns)
 {
+  static struct {
+    const char *path;
+    int bad_value, good_value, for_pidns;
+  } files[] = {
+    /* Default Debian Linux disables user namespaces, but allows a way
+       to enable them.  */
+    { "/proc/sys/kernel/unprivileged_userns_clone", 0, 1, 0 },
+    /* ALT Linux has an alternate way of doing the same.  */
+    { "/proc/sys/kernel/userns_restrict", 1, 0, 0 },
+    /* Linux kernel >= 4.9 has a configurable limit on the number of
+       each namespace.  Some distros set the limit to zero to disable the
+       corresponding namespace as a "security policy".  */
+    { "/proc/sys/user/max_user_namespaces", 0, 1024, 0 },
+    { "/proc/sys/user/max_mnt_namespaces", 0, 1024, 0 },
+    { "/proc/sys/user/max_pid_namespaces", 0, 1024, 1 },
+  };
   FILE *f;
-  int i;
+  int i, val;
 
-  /* Default Debian Linux disables user namespaces, but allows a way
-     to enable them.  */
-  f = fopen ("/proc/sys/kernel/unprivileged_userns_clone", "r");
-  if (f != NULL)
+  for (i = 0; i < array_length (files); i++)
     {
-      i = 99; /* Sentinel.  */
-      fscanf (f, "%d", &i);
-      if (i == 0)
-	{
-	  printf ("To enable test-container, please run this as root:\n");
-	  printf ("  echo 1 > /proc/sys/kernel/unprivileged_userns_clone\n");
-	}
-      fclose (f);
+      if (!require_pidns && files[i].for_pidns)
+        continue;
+
+      f = fopen (files[i].path, "r");
+      if (f == NULL)
+        continue;
+
+      val = -1; /* Sentinel.  */
+      fscanf (f, "%d", &val);
+      if (val != files[i].bad_value)
+	continue;
+
+      printf ("To enable test-container, please run this as root:\n");
+      printf ("  echo %d > %s\n", files[i].good_value, files[i].path);
       return;
     }
+}
 
-  /* ALT Linux has an alternate way of doing the same.  */
-  f = fopen ("/proc/sys/kernel/userns_restrict", "r");
-  if (f != NULL)
-    {
-      i = 99; /* Sentinel.  */
-      fscanf (f, "%d", &i);
-      if (i == 1)
-	{
-	  printf ("To enable test-container, please run this as root:\n");
-	  printf ("  echo 0 > /proc/sys/kernel/userns_restrict\n");
-	}
-      fclose (f);
-      return;
-    }
+static void
+run_ldconfig (void *x __attribute__((unused)))
+{
+  char *prog = xasprintf ("%s/ldconfig", support_install_rootsbindir);
+  char *args[] = { prog, NULL };
+
+  execv (args[0], args);
+  FAIL_EXIT1 ("execv: %m");
 }
 
 int
@@ -670,11 +746,14 @@ main (int argc, char **argv)
   char *new_objdir_path;
   char *new_srcdir_path;
   char **new_child_proc;
+  char *new_child_exec;
   char *command_root;
   char *command_base;
   char *command_basename;
   char *so_base;
   int do_postclean = 0;
+  bool do_ldconfig = false;
+  char *change_cwd = NULL;
 
   int pipes[2];
   char pid_buf[20];
@@ -683,6 +762,11 @@ main (int argc, char **argv)
   gid_t original_gid;
   /* If set, the test runs as root instead of the user running the testsuite.  */
   int be_su = 0;
+  int require_pidns = 0;
+#ifdef CLONE_NEWNS
+  const char *pidns_comment = NULL;
+#endif
+  int do_proc_mounts = 0;
   int UMAP;
   int GMAP;
   /* Used for "%lld %lld 1" so need not be large.  */
@@ -701,7 +785,7 @@ main (int argc, char **argv)
 
   if (argc < 2)
     {
-      fprintf (stderr, "Usage: containerize <program to run> <args...>\n");
+      fprintf (stderr, "Usage: test-container <program to run> <args...>\n");
       exit (1);
     }
 
@@ -746,12 +830,13 @@ main (int argc, char **argv)
 	}
     }
 
-  pristine_root_path = strdup (concat (support_objdir_root,
+  pristine_root_path = xstrdup (concat (support_objdir_root,
 				       "/testroot.pristine", NULL));
-  new_root_path = strdup (concat (support_objdir_root,
+  new_root_path = xstrdup (concat (support_objdir_root,
 				  "/testroot.root", NULL));
   new_cwd_path = get_current_dir_name ();
   new_child_proc = argv + 1;
+  new_child_exec = argv[1];
 
   lock_fd = open (concat (pristine_root_path, "/lock.fd", NULL),
 		 O_CREAT | O_TRUNC | O_RDWR, 0666);
@@ -778,10 +863,10 @@ main (int argc, char **argv)
     command_root = concat (support_srcdir_root,
 			   argv[1] + strlen (support_objdir_root),
 			   ".root", NULL);
-  command_root = strdup (command_root);
+  command_root = xstrdup (command_root);
 
   /* This cuts off the ".root" we appended above.  */
-  command_base = strdup (command_root);
+  command_base = xstrdup (command_root);
   command_base[strlen (command_base) - 5] = 0;
 
   /* This is the basename of the test we're running.  */
@@ -792,23 +877,26 @@ main (int argc, char **argv)
     ++command_basename;
 
   /* Shared object base directory.  */
-  so_base = strdup (argv[1]);
+  so_base = xstrdup (argv[1]);
   if (strrchr (so_base, '/') != NULL)
     strrchr (so_base, '/')[1] = 0;
 
   if (file_exists (concat (command_root, "/postclean.req", NULL)))
     do_postclean = 1;
 
+  if (file_exists (concat (command_root, "/ldconfig.run", NULL)))
+    do_ldconfig = true;
+
   rsync (pristine_root_path, new_root_path,
-	 file_exists (concat (command_root, "/preclean.req", NULL)));
+	 file_exists (concat (command_root, "/preclean.req", NULL)), 0);
 
   if (stat (command_root, &st) >= 0
       && S_ISDIR (st.st_mode))
-    rsync (command_root, new_root_path, 0);
+    rsync (command_root, new_root_path, 0, 1);
 
-  new_objdir_path = strdup (concat (new_root_path,
+  new_objdir_path = xstrdup (concat (new_root_path,
 				    support_objdir_root, NULL));
-  new_srcdir_path = strdup (concat (new_root_path,
+  new_srcdir_path = xstrdup (concat (new_root_path,
 				    support_srcdir_root, NULL));
 
   /* new_cwd_path starts with '/' so no "/" needed between the two.  */
@@ -852,6 +940,7 @@ main (int argc, char **argv)
 	    int nt = tokenize (the_line, the_words, 3);
 	    int i;
 
+	    /* Expand variables.  */
 	    for (i = 1; i < nt; ++i)
 	      {
 		if (memcmp (the_words[i], "$B/", 3) == 0)
@@ -868,7 +957,14 @@ main (int argc, char **argv)
 		  the_words[i] = concat (new_root_path,
 					 support_libdir_prefix,
 					 the_words[i] + 2, NULL);
-		else if (the_words[i][0] == '/')
+		else if (memcmp (the_words[i], "$complocaledir/", 15) == 0)
+		  the_words[i] = concat (new_root_path,
+					 support_complocaledir_prefix,
+					 the_words[i] + 14, NULL);
+		/* "exec" and "cwd" use inside-root paths.  */
+		else if (strcmp (the_words[0], "exec") != 0
+			 && strcmp (the_words[0], "cwd") != 0
+			 && the_words[i][0] == '/')
 		  the_words[i] = concat (new_root_path,
 					 the_words[i], NULL);
 	      }
@@ -881,6 +977,9 @@ main (int argc, char **argv)
 		else
 		  the_words[2] = concat (the_words[2], the_words[1], NULL);
 	      }
+
+	    /* Run the following commands in the_words[0] with NT number of
+	       arguments (including the command).  */
 
 	    if (nt == 2 && strcmp (the_words[0], "so") == 0)
 	      {
@@ -902,7 +1001,9 @@ main (int argc, char **argv)
 	    else if (nt == 3 && strcmp (the_words[0], "chmod") == 0)
 	      {
 		long int m;
+		errno = 0;
 		m = strtol (the_words[1], NULL, 0);
+		TEST_COMPARE (errno, 0);
 		if (chmod (the_words[2], m) < 0)
 		    FAIL_EXIT1 ("chmod %s: %s\n",
 				the_words[2], strerror (errno));
@@ -912,13 +1013,65 @@ main (int argc, char **argv)
 	      {
 		maybe_xunlink (the_words[1]);
 	      }
+	    else if (nt >= 2 && strcmp (the_words[0], "exec") == 0)
+	      {
+		/* The first argument is the desired location and name
+		   of the test binary as we wish to exec it; we will
+		   copy the binary there.  The second (optional)
+		   argument is the value to pass as argv[0], it
+		   defaults to the same as the first argument.  */
+		char *new_exec_path = the_words[1];
+
+		/* If the new exec path ends with a slash, that's the
+		 * directory, and use the old test base name.  */
+		if (new_exec_path [strlen(new_exec_path) - 1] == '/')
+		    new_exec_path = concat (new_exec_path,
+					    basename (new_child_proc[0]),
+					    NULL);
+
+
+		/* new_child_proc is in the build tree, so has the
+		   same path inside the chroot as outside.  The new
+		   exec path is, by definition, relative to the
+		   chroot.  */
+		copy_one_file (new_child_proc[0],  concat (new_root_path,
+							   new_exec_path,
+							   NULL));
+
+		new_child_exec =  xstrdup (new_exec_path);
+		if (the_words[2])
+		  new_child_proc[0] = xstrdup (the_words[2]);
+		else
+		  new_child_proc[0] = new_child_exec;
+	      }
+	    else if (nt == 2 && strcmp (the_words[0], "cwd") == 0)
+	      {
+		change_cwd = xstrdup (the_words[1]);
+	      }
 	    else if (nt == 1 && strcmp (the_words[0], "su") == 0)
 	      {
 		be_su = 1;
 	      }
+	    else if (nt >= 1 && strcmp (the_words[0], "pidns") == 0)
+	      {
+		require_pidns = 1;
+#ifdef CLONE_NEWNS
+		if (nt > 1)
+		  pidns_comment = concat_words (the_words + 1, nt - 1);
+#endif
+	      }
+	    else if (nt == 3 && strcmp (the_words[0], "mkdirp") == 0)
+	      {
+		long int m;
+		errno = 0;
+		m = strtol (the_words[1], NULL, 0);
+		TEST_COMPARE (errno, 0);
+		xmkdirp (the_words[2], m);
+	      }
 	    else if (nt > 0 && the_words[0][0] != '#')
 	      {
-		printf ("\033[31minvalid [%s]\033[0m\n", the_words[0]);
+		fprintf (stderr, "\033[31minvalid [%s]\033[0m\n", the_words[0]);
+		exit (1);
 	      }
 	  }
 	fclose (f);
@@ -941,7 +1094,7 @@ main (int argc, char **argv)
 
 	  /* Child has exited, we can post-clean the test root.  */
 	  printf("running post-clean rsync\n");
-	  rsync (pristine_root_path, new_root_path, 1);
+	  rsync (pristine_root_path, new_root_path, 1, 0);
 
 	  if (WIFEXITED (status))
 	    exit (WEXITSTATUS (status));
@@ -964,17 +1117,23 @@ main (int argc, char **argv)
 
 #ifdef CLONE_NEWNS
   /* The unshare here gives us our own spaces and capabilities.  */
-  if (unshare (CLONE_NEWUSER | CLONE_NEWPID | CLONE_NEWNS) < 0)
+  if (unshare (CLONE_NEWUSER | CLONE_NEWNS
+	       | (require_pidns ? CLONE_NEWPID : 0)) < 0)
     {
       /* Older kernels may not support all the options, or security
 	 policy may block this call.  */
-      if (errno == EINVAL || errno == EPERM)
+      if (errno == EINVAL || errno == EPERM || errno == ENOSPC)
 	{
 	  int saved_errno = errno;
-	  if (errno == EPERM)
-	    check_for_unshare_hints ();
+	  if (errno == EPERM || errno == ENOSPC)
+	    check_for_unshare_hints (require_pidns);
 	  FAIL_UNSUPPORTED ("unable to unshare user/fs: %s", strerror (saved_errno));
 	}
+      /* We're about to exit anyway, it's "safe" to call unshare again
+	 just to see if the CLONE_NEWPID caused the error.  */
+      else if (require_pidns && unshare (CLONE_NEWUSER | CLONE_NEWNS) >= 0)
+	FAIL_EXIT1 ("unable to unshare pid ns: %s : %s", strerror (errno),
+		    pidns_comment ? pidns_comment : "required by test");
       else
 	FAIL_EXIT1 ("unable to unshare user/fs: %s", strerror (errno));
     }
@@ -989,6 +1148,15 @@ main (int argc, char **argv)
 
   trymount (support_srcdir_root, new_srcdir_path);
   trymount (support_objdir_root, new_objdir_path);
+
+  /* It may not be possible to mount /proc directly.  */
+  if (! require_pidns)
+  {
+    char *new_proc = concat (new_root_path, "/proc", NULL);
+    xmkdirp (new_proc, 0755);
+    trymount ("/proc", new_proc);
+    do_proc_mounts = 1;
+  }
 
   xmkdirp (concat (new_root_path, "/dev", NULL), 0755);
   devmount (new_root_path, "null");
@@ -1042,6 +1210,13 @@ main (int argc, char **argv)
   /* The rest is the child process, which is now PID 1 and "in" the
      new root.  */
 
+  if (do_ldconfig)
+    {
+      struct support_capture_subprocess result =
+        support_capture_subprocess (run_ldconfig, NULL);
+      support_capture_subprocess_check (&result, "execv", 0, sc_allow_none);
+    }
+
   /* Get our "outside" pid from our parent.  We use this to help with
      debugging from outside the container.  */
   read (pipes[0], &child, sizeof(child));
@@ -1052,48 +1227,72 @@ main (int argc, char **argv)
 
   maybe_xmkdir ("/tmp", 0755);
 
-  /* Now that we're pid 1 (effectively "root") we can mount /proc  */
-  maybe_xmkdir ("/proc", 0777);
-  if (mount ("proc", "/proc", "proc", 0, NULL) < 0)
-    FAIL_EXIT1 ("Unable to mount /proc: ");
-
-  /* We map our original UID to the same UID in the container so we
-     can own our own files normally.  */
-  UMAP = open ("/proc/self/uid_map", O_WRONLY);
-  if (UMAP < 0)
-    FAIL_EXIT1 ("can't write to /proc/self/uid_map\n");
-
-  sprintf (tmp, "%lld %lld 1\n",
-	   (long long) (be_su ? 0 : original_uid), (long long) original_uid);
-  write (UMAP, tmp, strlen (tmp));
-  xclose (UMAP);
-
-  /* We must disable setgroups () before we can map our groups, else we
-     get EPERM.  */
-  GMAP = open ("/proc/self/setgroups", O_WRONLY);
-  if (GMAP >= 0)
+  if (require_pidns)
     {
-      /* We support kernels old enough to not have this.  */
-      write (GMAP, "deny\n", 5);
+      /* Now that we're pid 1 (effectively "root") we can mount /proc  */
+      maybe_xmkdir ("/proc", 0777);
+      if (mount ("proc", "/proc", "proc", 0, NULL) != 0)
+	{
+	  /* This happens if we're trying to create a nested container,
+	     like if the build is running under podman, and we lack
+	     priviledges.
+
+	     Ideally we would WARN here, but that would just add noise to
+	     *every* test-container test, and the ones that care should
+	     have their own relevent diagnostics.
+
+	     FAIL_EXIT1 ("Unable to mount /proc: ");  */
+	}
+      else
+	do_proc_mounts = 1;
+    }
+
+  if (do_proc_mounts)
+    {
+      /* We map our original UID to the same UID in the container so we
+	 can own our own files normally.  */
+      UMAP = open ("/proc/self/uid_map", O_WRONLY);
+      if (UMAP < 0)
+	FAIL_EXIT1 ("can't write to /proc/self/uid_map\n");
+
+      sprintf (tmp, "%lld %lld 1\n",
+	       (long long) (be_su ? 0 : original_uid), (long long) original_uid);
+      write (UMAP, tmp, strlen (tmp));
+      xclose (UMAP);
+
+      /* We must disable setgroups () before we can map our groups, else we
+	 get EPERM.  */
+      GMAP = open ("/proc/self/setgroups", O_WRONLY);
+      if (GMAP >= 0)
+	{
+	  /* We support kernels old enough to not have this.  */
+	  write (GMAP, "deny\n", 5);
+	  xclose (GMAP);
+	}
+
+      /* We map our original GID to the same GID in the container so we
+	 can own our own files normally.  */
+      GMAP = open ("/proc/self/gid_map", O_WRONLY);
+      if (GMAP < 0)
+	FAIL_EXIT1 ("can't write to /proc/self/gid_map\n");
+
+      sprintf (tmp, "%lld %lld 1\n",
+	       (long long) (be_su ? 0 : original_gid), (long long) original_gid);
+      write (GMAP, tmp, strlen (tmp));
       xclose (GMAP);
     }
 
-  /* We map our original GID to the same GID in the container so we
-     can own our own files normally.  */
-  GMAP = open ("/proc/self/gid_map", O_WRONLY);
-  if (GMAP < 0)
-    FAIL_EXIT1 ("can't write to /proc/self/gid_map\n");
-
-  sprintf (tmp, "%lld %lld 1\n",
-	   (long long) (be_su ? 0 : original_gid), (long long) original_gid);
-  write (GMAP, tmp, strlen (tmp));
-  xclose (GMAP);
+  if (change_cwd)
+    {
+      if (chdir (change_cwd) < 0)
+	FAIL_EXIT1 ("Can't cd to %s inside container - ", change_cwd);
+    }
 
   /* Now run the child.  */
-  execvp (new_child_proc[0], new_child_proc);
+  execvp (new_child_exec, new_child_proc);
 
   /* Or don't run the child?  */
-  FAIL_EXIT1 ("Unable to exec %s\n", new_child_proc[0]);
+  FAIL_EXIT1 ("Unable to exec %s: %s\n", new_child_exec, strerror (errno));
 
   /* Because gcc won't know error () never returns...  */
   exit (EXIT_UNSUPPORTED);

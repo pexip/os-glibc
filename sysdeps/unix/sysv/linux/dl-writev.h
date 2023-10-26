@@ -1,5 +1,5 @@
 /* Message-writing for the dynamic linker.  Linux version.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,5 @@
 static inline void
 _dl_writev (int fd, const struct iovec *iov, size_t niov)
 {
-  INTERNAL_SYSCALL_DECL (err);
-  INTERNAL_SYSCALL (writev, err, 3, fd, iov, niov);
+  INTERNAL_SYSCALL_CALL (writev, fd, iov, niov);
 }

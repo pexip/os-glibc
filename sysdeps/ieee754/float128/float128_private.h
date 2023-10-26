@@ -1,5 +1,5 @@
 /* _Float128 overrides for building ldbl-128 as _Float128.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -138,6 +138,9 @@
 #define libm_alias_float_ldouble(func) libm_alias_float32_float128 (func)
 #undef libm_alias_double_ldouble
 #define libm_alias_double_ldouble(func) libm_alias_float64_float128 (func)
+#undef libm_alias_ldouble_narrow
+#define libm_alias_ldouble_narrow(from, to)	\
+  libm_alias_float128_narrow (from, to)
 
 #include <math-use-builtins.h>
 #undef USE_NEARBYINTL_BUILTIN
@@ -152,8 +155,12 @@
 #define USE_TRUNCL_BUILTIN USE_TRUNCF128_BUILTIN
 #undef USE_ROUNDL_BUILTIN
 #define USE_ROUNDL_BUILTIN USE_ROUNDF128_BUILTIN
+#undef USE_ROUNDEVENL_BUILTIN
+#define USE_ROUNDEVENL_BUILTIN USE_ROUNDEVENF128_BUILTIN
 #undef USE_COPYSIGNL_BUILTIN
 #define USE_COPYSIGNL_BUILTIN USE_COPYSIGNF128_BUILTIN
+#undef USE_FMAL_BUILTIN
+#define USE_FMAL_BUILTIN USE_FMAF128_BUILTIN
 
 /* IEEE function renames.  */
 #define __ieee754_acoshl __ieee754_acoshf128
@@ -278,8 +285,12 @@
 #define __daddl __f64addf128
 #define __fdivl __f32divf128
 #define __ddivl __f64divf128
+#define __ffmal __f32fmaf128
+#define __dfmal __f64fmaf128
 #define __fmull __f32mulf128
 #define __dmull __f64mulf128
+#define __fsqrtl __f32sqrtf128
+#define __dsqrtl __f64sqrtf128
 #define __fsubl __f32subf128
 #define __dsubl __f64subf128
 

@@ -1,7 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>
-   and Paul Janzen <pcj@primenet.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,6 +34,7 @@ __setutent (void)
 
   __libc_lock_unlock (__libc_utmp_lock);
 }
+libc_hidden_def (__setutent)
 weak_alias (__setutent, setutent)
 
 
@@ -82,4 +81,5 @@ __endutent (void)
 
   __libc_lock_unlock (__libc_utmp_lock);
 }
+libc_hidden_def (__endutent)
 weak_alias (__endutent, endutent)

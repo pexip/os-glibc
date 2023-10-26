@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  IA-64 version.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@
 #include <errno.h>
 #include <dl-fptr.h>
 #include <tls.h>
+#include <dl-static-tls.h>
+#include <dl-machine-rel.h>
 
 /* Translate a processor specific dynamic tag to the index
    in l_info array.  */
@@ -44,8 +46,8 @@ __ia64_init_bootstrap_fdesc_table (struct link_map *map)
   map->l_mach.fptr_table = boot_table;
 }
 
-#define ELF_MACHINE_BEFORE_RTLD_RELOC(dynamic_info)		\
-	__ia64_init_bootstrap_fdesc_table (BOOTSTRAP_MAP);
+#define ELF_MACHINE_BEFORE_RTLD_RELOC(map, dynamic_info)		\
+	__ia64_init_bootstrap_fdesc_table (map);
 
 /* Return nonzero iff ELF header is compatible with the running host.  */
 static inline int __attribute__ ((unused))
@@ -98,7 +100,8 @@ elf_machine_load_address (void)
    entries will jump to the on-demand fixup code in dl-runtime.c.  */
 
 static inline int __attribute__ ((unused, always_inline))
-elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
+elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
+			   int lazy, int profile)
 {
   extern void _dl_runtime_resolve (void);
   extern void _dl_runtime_profile (void);
@@ -198,81 +201,39 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 "	 .save ar.pfs, r32\n"						      \
 "	 .body\n"							      \
 "	{ .mii\n"							      \
-"	  addl r3 = @gprel(_dl_skip_args), gp\n"			      \
-"	  adds r11 = 24, sp	/* Load the address of argv. */\n"	      \
 "	  /* Save the pointer to the user entry point fptr in loc2.  */\n"    \
 "	  mov loc2 = ret0\n"						      \
+"	  addl r2 = @ltoff(_dl_argc), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mii\n"							      \
-"	  ld4 r3 = [r3]\n"						      \
-"	  adds r10 = 16, sp	/* Load the address of argc. */\n"	      \
-"	  mov out2 = r11\n"						      \
-"	  ;;\n"								      \
-"	  /* See if we were run as a command with the executable file\n"      \
-"	     name as an extra leading argument.  If so, adjust the argv\n"    \
-"	     pointer to skip _dl_skip_args words.\n"			      \
-"	     Note that _dl_skip_args is an integer, not a long - Jes\n"	      \
-"\n"									      \
-"	     The stack pointer has to be 16 byte aligned. We cannot simply\n" \
-"	     addjust the stack pointer. We have to move the whole argv and\n" \
-"	     envp and adjust _dl_argv by _dl_skip_args.  H.J.  */\n"	      \
-"	}\n"								      \
-"	{ .mib\n"							      \
-"	  ld8 out1 = [r10]	/* is argc actually stored as a long\n"	      \
-"				   or as an int? */\n"			      \
-"	  addl r2 = @ltoff(_dl_argv), gp\n"				      \
+"	  ld8 out1 = [r2]	/* Get the _dl_argc address.  */\n"	      \
+"	  addl r3 = @ltoff(_dl_argv), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmi\n"							      \
-"	  ld8 r2 = [r2]		/* Get the address of _dl_argv. */\n"	      \
-"	  sub out1 = out1, r3	/* Get the new argc. */\n"		      \
-"	  shladd r3 = r3, 3, r0\n"					      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	{\n"								      \
-"	  .mib\n"							      \
-"	  ld8 r17 = [r2]	/* Get _dl_argv. */\n"			      \
-"	  add r15 = r11, r3	/* The address of the argv we move */\n"      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	/* ??? Could probably merge these two loops into 3 bundles.\n"	      \
-"	   using predication to control which set of copies we're on.  */\n"  \
-"1:	/* Copy argv. */\n"						      \
-"	{ .mfi\n"							      \
-"	  ld8 r16 = [r15], 8	/* Load the value in the old argv. */\n"      \
-"	  ;;\n"								      \
-"	}\n"								      \
-"	{ .mib\n"							      \
-"	  st8 [r11] = r16, 8	/* Store it in the new argv. */\n"	      \
-"	  cmp.ne p6, p7 = 0, r16\n"					      \
-"(p6)	  br.cond.dptk.few 1b\n"					      \
+"	  ld8 out2 = [r3]	/* Get the _dl_argv address.  */\n"	      \
+"	  ld8 out1 = [out1]	/* Get the adjusted _dl_argc.  */\n"	      \
+"	  addl r2 = @gprel(_rtld_local), gp\n"				      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmi\n"							      \
-"	  mov out3 = r11\n"						      \
-"	  sub r17 = r17, r3	/* Substract _dl_skip_args. */\n"	      \
-"	  addl out0 = @gprel(_rtld_local), gp\n"			      \
-"	}\n"								      \
-"1:	/* Copy env. */\n"						      \
-"	{ .mfi\n"							      \
-"	  ld8 r16 = [r15], 8	/* Load the value in the old env. */\n"	      \
+"	  sxt4 out3 = out1	/* envp = argv + argc + 1  */\n" 	      \
 "	  ;;\n"								      \
 "	}\n"								      \
-"	{ .mib\n"							      \
-"	  st8 [r11] = r16, 8	/* Store it in the new env. */\n"	      \
-"	  cmp.ne p6, p7 = 0, r16\n"					      \
-"(p6)	  br.cond.dptk.few 1b\n"					      \
+"	{ .mmi\n"							      \
+"	  adds out3 = 1, out3\n"					      \
+"	  ;;\n"								      \
+"	}\n"								      \
+"	{ .mmi\n"							      \
+"	  ld8 out2 = [out2]	/* Get the adjusted _dl_argv.  */\n"	      \
+"	  shladd out3 = out3, 3, r0\n"					      \
 "	  ;;\n"								      \
 "	}\n"								      \
 "	{ .mmb\n"							      \
-"	  st8 [r10] = out1		/* Record the new argc. */\n"	      \
-"	  ld8 out0 = [out0]		/* get the linkmap */\n"	      \
-"	}\n"								      \
-"	{ .mmb\n"							      \
-"	  st8 [r2] = r17		/* Load the new _dl_argv. */\n"	      \
+"	  add out3 = out3, out2\n"					      \
+"	  ld8 out0 = [r2]	/* Get the linkmap. */\n"		      \
 "	  br.call.sptk.many b0 = _dl_init#\n"				      \
-"	  ;;\n"								      \
 "	}\n"								      \
 "	/* Pass our finalizer function to the user,\n"			      \
 "	   and jump to the user's entry point.  */\n"			      \
@@ -317,10 +278,6 @@ elf_machine_runtime_setup (struct link_map *l, int lazy, int profile)
 
 /* A reloc type used for ld.so cmdline arg lookups to reject PLT entries.  */
 #define ELF_MACHINE_JMP_SLOT	 R_IA64_IPLTLSB
-
-/* According to the IA-64 specific documentation, Rela is always used.  */
-#define ELF_MACHINE_NO_REL 1
-#define ELF_MACHINE_NO_RELA 0
 
 /* Return the address of the entry point. */
 #define ELF_MACHINE_START_ADDRESS(map, start)			\
@@ -371,9 +328,9 @@ elf_machine_plt_value (struct link_map *map, const Elf64_Rela *reloc,
 
 /* Perform the relocation specified by RELOC and SYM (which is fully
    resolved).  MAP is the object containing the reloc.  */
-auto inline void
+static inline void
 __attribute ((always_inline))
-elf_machine_rela (struct link_map *map,
+elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 		  const Elf64_Rela *reloc,
 		  const Elf64_Sym *sym,
 		  const struct r_found_version *version,
@@ -384,29 +341,15 @@ elf_machine_rela (struct link_map *map,
   const unsigned long int r_type = ELF64_R_TYPE (reloc->r_info);
   Elf64_Addr value;
 
-#if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC && !defined SHARED
-  /* This is defined in rtld.c, but nowhere in the static libc.a; make the
-     reference weak so static programs can still link.  This declaration
-     cannot be done when compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP)
-     because rtld.c contains the common defn for _dl_rtld_map, which is
-     incompatible with a weak decl in the same file.  */
-  weak_extern (_dl_rtld_map);
-#endif
-
   /* We cannot use a switch here because we cannot locate the switch
      jump table until we've self-relocated.  */
 
-#if !defined RTLD_BOOTSTRAP || !defined HAVE_Z_COMBRELOC
+#if !defined RTLD_BOOTSTRAP
   if (__builtin_expect (R_IA64_TYPE (r_type) == R_IA64_TYPE (R_IA64_REL64LSB),
 			0))
     {
       assert (ELF64_R_TYPE (reloc->r_info) == R_IA64_REL64LSB);
-      value = *reloc_addr;
-# if !defined RTLD_BOOTSTRAP && !defined HAVE_Z_COMBRELOC
-      /* Already done in dynamic linker.  */
-      if (map != &GL(dl_rtld_map))
-# endif
-	value += map->l_addr;
+      value = *reloc_addr + map->l_addr;
     }
   else
 #endif
@@ -414,10 +357,11 @@ elf_machine_rela (struct link_map *map,
       return;
   else
     {
-      struct link_map *sym_map;
+      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version,
+					      r_type);
 
       /* RESOLVE_MAP() will return NULL if it fail to locate the symbol.  */
-      if ((sym_map = RESOLVE_MAP (&sym, version, r_type)))
+      if (sym_map != NULL)
 	{
 	  value = SYMBOL_ADDRESS (sym_map, sym, true) + reloc->r_addend;
 
@@ -476,7 +420,7 @@ elf_machine_rela (struct link_map *map,
    can be skipped.  */
 #define ELF_MACHINE_REL_RELATIVE 1
 
-auto inline void
+static inline void
 __attribute ((always_inline))
 elf_machine_rela_relative (Elf64_Addr l_addr, const Elf64_Rela *reloc,
 			   void *const reloc_addr_arg)
@@ -489,9 +433,9 @@ elf_machine_rela_relative (Elf64_Addr l_addr, const Elf64_Rela *reloc,
 }
 
 /* Perform a RELATIVE reloc on the .got entry that transfers to the .plt.  */
-auto inline void
+static inline void
 __attribute ((always_inline))
-elf_machine_lazy_rel (struct link_map *map,
+elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
 		      Elf64_Addr l_addr, const Elf64_Rela *reloc,
 		      int skip_ifunc)
 {

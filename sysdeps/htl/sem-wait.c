@@ -1,5 +1,5 @@
 /* Wait on a semaphore.  Generic version.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,12 +20,13 @@
 #include <pt-internal.h>
 
 extern int __sem_timedwait_internal (sem_t *restrict sem,
+				     clockid_t clockid,
 				     const struct timespec *restrict timeout);
 
 int
 __sem_wait (sem_t *sem)
 {
-  return __sem_timedwait_internal (sem, 0);
+  return __sem_timedwait_internal (sem, CLOCK_REALTIME, 0);
 }
 
 strong_alias (__sem_wait, sem_wait);

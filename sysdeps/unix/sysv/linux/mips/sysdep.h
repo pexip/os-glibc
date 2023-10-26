@@ -1,5 +1,5 @@
 /* Syscall definitions, Linux MIPS generic version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,19 +28,3 @@
 #endif
 #define HAVE_GETTIMEOFDAY_VSYSCALL      "__vdso_gettimeofday"
 #define HAVE_CLOCK_GETRES_VSYSCALL      "__vdso_clock_getres"
-
-#ifndef __ASSEMBLER__
-
-/* Standard MIPS syscalls have an error flag, and return a positive errno
-   when the error flag is set. Emulate this behaviour for vsyscalls so that
-   the INTERNAL_SYSCALL_{ERROR_P,ERRNO} macros work correctly.  */
-#define INTERNAL_VSYSCALL_CALL(funcptr, err, nr, args...)		\
-  ({									\
-    long _ret = funcptr (args);						\
-    err = ((unsigned long) (_ret) >= (unsigned long) -4095L);		\
-    if (err)								\
-      _ret = -_ret;							\
-    _ret;								\
-  })
-
-#endif /* __ASSEMBLER__  */

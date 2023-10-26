@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -82,10 +82,9 @@ cancel_handler (void *arg)
   __kill_noerrno (args->pid, SIGKILL);
 
   int state;
-  __libc_ptf_call (__pthread_setcancelstate,
-                   (PTHREAD_CANCEL_DISABLE, &state), 0);
+  __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
   TEMP_FAILURE_RETRY (__waitpid (args->pid, NULL, 0));
-  __libc_ptf_call (__pthread_setcancelstate, (state, NULL), 0);
+  __pthread_setcancelstate (state, NULL);
 
   DO_LOCK ();
   if (SUB_REF () == 0)
@@ -101,7 +100,8 @@ cancel_handler (void *arg)
 static int
 do_system (const char *line)
 {
-  int status;
+  int status = -1;
+  int ret;
   pid_t pid;
   struct sigaction sa;
 #ifndef _LIBC_REENTRANT
@@ -144,14 +144,14 @@ do_system (const char *line)
   __posix_spawnattr_setflags (&spawn_attr,
 			      POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK);
 
-  status = __posix_spawn (&pid, SHELL_PATH, 0, &spawn_attr,
-			  (char *const[]){ (char*) SHELL_NAME,
-					   (char*) "-c",
-					   (char *) line, NULL },
-			  __environ);
+  ret = __posix_spawn (&pid, SHELL_PATH, 0, &spawn_attr,
+		       (char *const[]){ (char *) SHELL_NAME,
+					(char *) "-c",
+					(char *) line, NULL },
+		       __environ);
   __posix_spawnattr_destroy (&spawn_attr);
 
-  if (status == 0)
+  if (ret == 0)
     {
       /* Cancellation results in cleanup handlers running as exceptions in
 	 the block where they were installed, so it is safe to reference
@@ -174,6 +174,10 @@ do_system (const char *line)
       __libc_cleanup_region_end (0);
 #endif
     }
+  else
+   /* POSIX states that failure to execute the shell should return
+      as if the shell had terminated using _exit(127).  */
+   status = W_EXITCODE (127, 0);
 
   DO_LOCK ();
   if (SUB_REF () == 0)
@@ -185,6 +189,9 @@ do_system (const char *line)
       __sigprocmask (SIG_SETMASK, &omask, NULL);
     }
   DO_UNLOCK ();
+
+  if (ret != 0)
+    __set_errno (ret);
 
   return status;
 }

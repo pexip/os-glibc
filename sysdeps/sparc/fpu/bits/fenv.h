@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -81,15 +81,6 @@ typedef unsigned long int fenv_t;
 #ifdef __USE_GNU
 /* Floating-point environment where none of the exception is masked.  */
 # define FE_NOMASK_ENV	((const fenv_t *) -2)
-#endif
-
-/* For internal use only: access the fp state register.  */
-#if __WORDSIZE == 64
-# define __fenv_stfsr(X)   __asm__ __volatile__ ("stx %%fsr,%0" : "=m" (X))
-# define __fenv_ldfsr(X)   __asm__ __volatile__ ("ldx %0,%%fsr" : : "m" (X))
-#else
-# define __fenv_stfsr(X)   __asm__ __volatile__ ("st %%fsr,%0" : "=m" (X))
-# define __fenv_ldfsr(X)   __asm__ __volatile__ ("ld %0,%%fsr" : : "m" (X))
 #endif
 
 #if __GLIBC_USE (IEC_60559_BFP_EXT_C2X)

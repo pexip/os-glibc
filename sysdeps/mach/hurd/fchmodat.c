@@ -1,5 +1,5 @@
 /* Change the protections of file relative to open directory.  Hurd version.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,3 +37,4 @@ fchmodat (int fd, const char *file, mode_t mode, int flag)
     return __hurd_fail (err);
   return 0;
 }
+libc_hidden_def (fchmodat)

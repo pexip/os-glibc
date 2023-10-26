@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,7 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "pthreadP.h"
-
+#include <shlib-compat.h>
 
 int
 __pthread_attr_getstacksize (const pthread_attr_t *attr, size_t *stacksize)
@@ -33,11 +32,16 @@ __pthread_attr_getstacksize (const pthread_attr_t *attr, size_t *stacksize)
   if (size == 0)
     {
       lll_lock (__default_pthread_attr_lock, LLL_PRIVATE);
-      size = __default_pthread_attr.stacksize;
+      size = __default_pthread_attr.internal.stacksize;
       lll_unlock (__default_pthread_attr_lock, LLL_PRIVATE);
     }
   *stacksize = size;
 
   return 0;
 }
-strong_alias (__pthread_attr_getstacksize, pthread_attr_getstacksize)
+versioned_symbol (libc, __pthread_attr_getstacksize,
+                  pthread_attr_getstacksize, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_attr_getstacksize,
+               pthread_attr_getstacksize, GLIBC_2_1);
+#endif

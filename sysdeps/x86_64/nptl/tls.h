@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  nptl/x86_64 version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ typedef struct
   uintptr_t sysinfo;
   uintptr_t stack_guard;
   uintptr_t pointer_guard;
-  unsigned long int vgetcpu_cache[2];
+  unsigned long int unused_vgetcpu_cache[2];
   /* Bit 0: X86_FEATURE_1_IBT.
      Bit 1: X86_FEATURE_1_SHSTK.
    */
@@ -99,27 +99,15 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 /* Get system call information.  */
 # include <sysdep.h>
 
-#ifndef LOCK_PREFIX
-# ifdef UP
-#  define LOCK_PREFIX	/* nothing */
-# else
-#  define LOCK_PREFIX	"lock;"
-# endif
-#endif
+#define LOCK_PREFIX "lock;"
 
 /* This is the size of the initial TCB.  Can't be just sizeof (tcbhead_t),
    because NPTL getpid, __libc_alloca_cutoff etc. need (almost) the whole
    struct pthread even when not linked with -lpthread.  */
 # define TLS_INIT_TCB_SIZE sizeof (struct pthread)
 
-/* Alignment requirements for the initial TCB.  */
-# define TLS_INIT_TCB_ALIGN __alignof__ (struct pthread)
-
 /* This is the size of the TCB.  */
 # define TLS_TCB_SIZE sizeof (struct pthread)
-
-/* Alignment requirements for the TCB.  */
-# define TLS_TCB_ALIGN __alignof__ (struct pthread)
 
 /* The TCB can have any size and the memory following the address the
    thread pointer points to is unspecified.  Allocate the TCB there.  */
@@ -186,125 +174,22 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
    assignments like
 	pthread_descr self = thread_self();
    do not get optimized away.  */
-# define THREAD_SELF \
+# if __GNUC_PREREQ (6, 0)
+#  define THREAD_SELF \
+  (*(struct pthread *__seg_fs *) offsetof (struct pthread, header.self))
+# else
+#  define THREAD_SELF \
   ({ struct pthread *__self;						      \
      asm ("mov %%fs:%c1,%0" : "=r" (__self)				      \
 	  : "i" (offsetof (struct pthread, header.self)));	 	      \
      __self;})
+# endif
 
 /* Magic for libthread_db to know how to do THREAD_SELF.  */
 # define DB_THREAD_SELF_INCLUDE  <sys/reg.h> /* For the FS constant.  */
 # define DB_THREAD_SELF CONST_THREAD_AREA (64, FS)
 
-/* Read member of the thread descriptor directly.  */
-# define THREAD_GETMEM(descr, member) \
-  ({ __typeof (descr->member) __value;					      \
-     if (sizeof (__value) == 1)						      \
-       asm volatile ("movb %%fs:%P2,%b0"				      \
-		     : "=q" (__value)					      \
-		     : "0" (0), "i" (offsetof (struct pthread, member)));     \
-     else if (sizeof (__value) == 4)					      \
-       asm volatile ("movl %%fs:%P1,%0"					      \
-		     : "=r" (__value)					      \
-		     : "i" (offsetof (struct pthread, member)));	      \
-     else								      \
-       {								      \
-	 if (sizeof (__value) != 8)					      \
-	   /* There should not be any value with a size other than 1,	      \
-	      4 or 8.  */						      \
-	   abort ();							      \
-									      \
-	 asm volatile ("movq %%fs:%P1,%q0"				      \
-		       : "=r" (__value)					      \
-		       : "i" (offsetof (struct pthread, member)));	      \
-       }								      \
-     __value; })
-
-
-/* Same as THREAD_GETMEM, but the member offset can be non-constant.  */
-# define THREAD_GETMEM_NC(descr, member, idx) \
-  ({ __typeof (descr->member[0]) __value;				      \
-     if (sizeof (__value) == 1)						      \
-       asm volatile ("movb %%fs:%P2(%q3),%b0"				      \
-		     : "=q" (__value)					      \
-		     : "0" (0), "i" (offsetof (struct pthread, member[0])),   \
-		       "r" (idx));					      \
-     else if (sizeof (__value) == 4)					      \
-       asm volatile ("movl %%fs:%P1(,%q2,4),%0"				      \
-		     : "=r" (__value)					      \
-		     : "i" (offsetof (struct pthread, member[0])), "r" (idx));\
-     else								      \
-       {								      \
-	 if (sizeof (__value) != 8)					      \
-	   /* There should not be any value with a size other than 1,	      \
-	      4 or 8.  */						      \
-	   abort ();							      \
-									      \
-	 asm volatile ("movq %%fs:%P1(,%q2,8),%q0"			      \
-		       : "=r" (__value)					      \
-		       : "i" (offsetof (struct pthread, member[0])),	      \
-			 "r" (idx));					      \
-       }								      \
-     __value; })
-
-
-/* Loading addresses of objects on x86-64 needs to be treated special
-   when generating PIC code.  */
-#ifdef __pic__
-# define IMM_MODE "nr"
-#else
-# define IMM_MODE "ir"
-#endif
-
-
-/* Set member of the thread descriptor directly.  */
-# define THREAD_SETMEM(descr, member, value) \
-  ({ if (sizeof (descr->member) == 1)					      \
-       asm volatile ("movb %b0,%%fs:%P1" :				      \
-		     : "iq" (value),					      \
-		       "i" (offsetof (struct pthread, member)));	      \
-     else if (sizeof (descr->member) == 4)				      \
-       asm volatile ("movl %0,%%fs:%P1" :				      \
-		     : IMM_MODE (value),				      \
-		       "i" (offsetof (struct pthread, member)));	      \
-     else								      \
-       {								      \
-	 if (sizeof (descr->member) != 8)				      \
-	   /* There should not be any value with a size other than 1,	      \
-	      4 or 8.  */						      \
-	   abort ();							      \
-									      \
-	 asm volatile ("movq %q0,%%fs:%P1" :				      \
-		       : IMM_MODE ((uint64_t) cast_to_integer (value)),	      \
-			 "i" (offsetof (struct pthread, member)));	      \
-       }})
-
-
-/* Same as THREAD_SETMEM, but the member offset can be non-constant.  */
-# define THREAD_SETMEM_NC(descr, member, idx, value) \
-  ({ if (sizeof (descr->member[0]) == 1)				      \
-       asm volatile ("movb %b0,%%fs:%P1(%q2)" :				      \
-		     : "iq" (value),					      \
-		       "i" (offsetof (struct pthread, member[0])),	      \
-		       "r" (idx));					      \
-     else if (sizeof (descr->member[0]) == 4)				      \
-       asm volatile ("movl %0,%%fs:%P1(,%q2,4)" :			      \
-		     : IMM_MODE (value),				      \
-		       "i" (offsetof (struct pthread, member[0])),	      \
-		       "r" (idx));					      \
-     else								      \
-       {								      \
-	 if (sizeof (descr->member[0]) != 8)				      \
-	   /* There should not be any value with a size other than 1,	      \
-	      4 or 8.  */						      \
-	   abort ();							      \
-									      \
-	 asm volatile ("movq %q0,%%fs:%P1(,%q2,8)" :			      \
-		       : IMM_MODE ((uint64_t) cast_to_integer (value)),	      \
-			 "i" (offsetof (struct pthread, member[0])),	      \
-			 "r" (idx));					      \
-       }})
-
+# include <tcb-access.h>
 
 /* Set the stack guard field in TCB head.  */
 # define THREAD_SET_STACK_GUARD(value) \
@@ -323,7 +208,6 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 
 
 /* Get and set the global scope generation counter in the TCB head.  */
-# define THREAD_GSCOPE_IN_TCB      1
 # define THREAD_GSCOPE_FLAG_UNUSED 0
 # define THREAD_GSCOPE_FLAG_USED   1
 # define THREAD_GSCOPE_FLAG_WAIT   2
@@ -340,8 +224,6 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
   while (0)
 # define THREAD_GSCOPE_SET_FLAG() \
   THREAD_SETMEM (THREAD_SELF, header.gscope_flag, THREAD_GSCOPE_FLAG_USED)
-# define THREAD_GSCOPE_WAIT() \
-  GL(dl_wait_lookup_done) ()
 
 #endif /* __ASSEMBLER__ */
 

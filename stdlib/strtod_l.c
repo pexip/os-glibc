@@ -1,7 +1,6 @@
 /* Convert string representing a number to float value, using given locale.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1648,8 +1647,8 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	  d1 = den[densize - 2];
 
 	  /* The division does not work if the upper limb of the two-limb
-	     numerator is greater than the denominator.  */
-	  if (__mpn_cmp (num, &den[densize - numsize], numsize) > 0)
+	     numerator is greater than or equal to the denominator.  */
+	  if (__mpn_cmp (num, &den[densize - numsize], numsize) >= 0)
 	    num[numsize++] = 0;
 
 	  if (numsize < densize)

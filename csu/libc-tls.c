@@ -1,5 +1,5 @@
 /* Initialization code for TLS in statically linked application.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <sys/param.h>
 #include <array_length.h>
+#include <pthreadP.h>
 
 #ifdef SHARED
  #error makefile bug, this file is for static only
@@ -46,13 +47,19 @@ bool _dl_tls_dtv_gaps;
 struct dtv_slotinfo_list *_dl_tls_dtv_slotinfo_list;
 /* Number of modules in the static TLS block.  */
 size_t _dl_tls_static_nelem;
-/* Size of the static TLS block.  Giving this initialized value
-   preallocates some surplus bytes in the static TLS area.  */
-size_t _dl_tls_static_size = 2048;
+/* Size of the static TLS block.  */
+size_t _dl_tls_static_size;
 /* Size actually allocated in the static TLS block.  */
 size_t _dl_tls_static_used;
 /* Alignment requirement of the static TLS block.  */
 size_t _dl_tls_static_align;
+/* Size of surplus space in the static TLS area for dynamically
+   loaded modules with IE-model TLS or for TLSDESC optimization.
+   See comments in elf/dl-tls.c where it is initialized.  */
+size_t _dl_tls_static_surplus;
+/* Remaining amount of static TLS that may be used for optimizing
+   dynamic TLS access (e.g. with TLSDESC).  */
+size_t _dl_tls_static_optional;
 
 /* Generation counter for the dtv.  */
 size_t _dl_tls_generation;
@@ -81,11 +88,9 @@ init_slotinfo (void)
 static void
 init_static_tls (size_t memsz, size_t align)
 {
-  /* That is the size of the TLS memory for this object.  The initialized
-     value of _dl_tls_static_size is provided by dl-open.c to request some
-     surplus that permits dynamic loading of modules with IE-model TLS.  */
-  GL(dl_tls_static_size) = roundup (memsz + GL(dl_tls_static_size),
-				    TLS_TCB_ALIGN);
+  /* That is the size of the TLS memory for this object.  */
+  GL(dl_tls_static_size) = roundup (memsz + GLRO(dl_tls_static_surplus),
+				    TCB_ALIGNMENT);
 #if TLS_TCB_AT_TP
   GL(dl_tls_static_size) += TLS_TCB_SIZE;
 #endif
@@ -110,6 +115,8 @@ __libc_setup_tls (void)
 
   struct link_map *main_map = GL(dl_ns)[LM_ID_BASE]._ns_loaded;
 
+  __tls_pre_init_tp ();
+
   /* Look through the TLS segment if there is any.  */
   if (_dl_phdr != NULL)
     for (phdr = _dl_phdr; phdr < &_dl_phdr[_dl_phnum]; ++phdr)
@@ -125,25 +132,29 @@ __libc_setup_tls (void)
 	  break;
 	}
 
+  /* Calculate the size of the static TLS surplus, with 0 auditors.  */
+  _dl_tls_static_surplus_init (0);
+
   /* We have to set up the TCB block which also (possibly) contains
      'errno'.  Therefore we avoid 'malloc' which might touch 'errno'.
      Instead we use 'sbrk' which would only uses 'errno' if it fails.
      In this case we are right away out of memory and the user gets
-     what she/he deserves.
-
-     The initialized value of _dl_tls_static_size is provided by dl-open.c
-     to request some surplus that permits dynamic loading of modules with
-     IE-model TLS.  */
+     what she/he deserves.  */
 #if TLS_TCB_AT_TP
   /* Align the TCB offset to the maximum alignment, as
      _dl_allocate_tls_storage (in elf/dl-tls.c) does using __libc_memalign
      and dl_tls_static_align.  */
-  tcb_offset = roundup (memsz + GL(dl_tls_static_size), max_align);
-  tlsblock = __sbrk (tcb_offset + TLS_INIT_TCB_SIZE + max_align);
+  tcb_offset = roundup (memsz + GLRO(dl_tls_static_surplus), max_align);
+  tlsblock = _dl_early_allocate (tcb_offset + TLS_INIT_TCB_SIZE + max_align);
+  if (tlsblock == NULL)
+    _startup_fatal ("Fatal glibc error: Cannot allocate TLS block\n");
 #elif TLS_DTV_AT_TP
   tcb_offset = roundup (TLS_INIT_TCB_SIZE, align ?: 1);
-  tlsblock = __sbrk (tcb_offset + memsz + max_align
-		     + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
+  tlsblock = _dl_early_allocate (tcb_offset + memsz + max_align
+				 + TLS_PRE_TCB_SIZE
+				 + GLRO(dl_tls_static_surplus));
+  if (tlsblock == NULL)
+    _startup_fatal ("Fatal glibc error: Cannot allocate TLS block\n");
   tlsblock += TLS_PRE_TCB_SIZE;
 #else
   /* In case a model with a different layout for the TCB and DTV
@@ -189,6 +200,7 @@ __libc_setup_tls (void)
 #endif
   if (__builtin_expect (lossage != NULL, 0))
     _startup_fatal (lossage);
+  __tls_init_tp ();
 
   /* Update the executable's link map with enough information to make
      the TLS routines happy.  */
@@ -208,5 +220,5 @@ __libc_setup_tls (void)
   memsz += tcb_offset;
 #endif
 
-  init_static_tls (memsz, MAX (TLS_TCB_ALIGN, max_align));
+  init_static_tls (memsz, MAX (TCB_ALIGNMENT, max_align));
 }

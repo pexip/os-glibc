@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Richard Henderson (rth@tamu.edu)
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -106,12 +105,6 @@ L(thread_start):
 	/* Note: %esi is zero.  */
 	movl	%esi,%ebp	/* terminate the stack frame */
 	call	*%ebx
-#ifdef PIC
-	call	L(here)
-L(here):
-	popl	%ebx
-	addl	$_GLOBAL_OFFSET_TABLE_+[.-L(here)], %ebx
-#endif
 	movl	%eax, %ebx
 	movl	$SYS_ify(exit), %eax
 	ENTER_KERNEL

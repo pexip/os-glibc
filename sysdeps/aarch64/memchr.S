@@ -1,6 +1,6 @@
 /* memchr - find a character in a memory zone
 
-   Copyright (C) 2015-2020 Free Software Foundation, Inc.
+   Copyright (C) 2015-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -22,8 +22,8 @@
 
 /* Assumptions:
  *
- * ARMv8-a, AArch64
- * Neon Available.
+ * ARMv8-a, AArch64, Advanced SIMD.
+ * MTE compatible.
  */
 
 #ifndef MEMCHR
@@ -34,128 +34,94 @@
 #define srcin		x0
 #define chrin		w1
 #define cntin		x2
-
 #define result		x0
 
 #define src		x3
-#define	tmp		x4
-#define wtmp2		w5
-#define synd		x6
-#define soff		x9
-#define cntrem		x10
+#define cntrem		x4
+#define synd		x5
+#define shift		x6
+#define	tmp		x7
 
 #define vrepchr		v0
-#define vdata1		v1
-#define vdata2		v2
-#define vhas_chr1	v3
-#define vhas_chr2	v4
-#define vrepmask	v5
-#define vend		v6
+#define qdata		q1
+#define vdata		v1
+#define vhas_chr	v2
+#define vend		v3
+#define dend		d3
 
 /*
- * Core algorithm:
- *
- * For each 32-byte chunk we calculate a 64-bit syndrome value, with two bits
- * per byte. For each tuple, bit 0 is set if the relevant byte matched the
- * requested character and bit 1 is not used (faster than using a 32bit
- * syndrome). Since the bits in the syndrome reflect exactly the order in which
- * things occur in the original string, counting trailing zeros allows to
- * identify exactly which byte has matched.
- */
+   Core algorithm:
+   For each 16-byte chunk we calculate a 64-bit nibble mask value with four bits
+   per byte. We take 4 bits of every comparison byte with shift right and narrow
+   by 4 instruction. Since the bits in the nibble mask reflect the order in
+   which things occur in the original string, counting leading zeros identifies
+   exactly which byte matched.  */
 
 ENTRY (MEMCHR)
-	/* Do not dereference srcin if no bytes to compare.  */
-	cbz	cntin, L(zero_length)
-	/*
-	 * Magic constant 0x40100401 allows us to identify which lane matches
-	 * the requested byte.
-	 */
-	mov	wtmp2, #0x0401
-	movk	wtmp2, #0x4010, lsl #16
+	PTR_ARG (0)
+	SIZE_ARG (2)
+	bic	src, srcin, 15
+	cbz	cntin, L(nomatch)
+	ld1	{vdata.16b}, [src]
 	dup	vrepchr.16b, chrin
-	/* Work with aligned 32-byte chunks */
-	bic	src, srcin, #31
-	dup	vrepmask.4s, wtmp2
-	ands	soff, srcin, #31
-	and	cntrem, cntin, #31
-	b.eq	L(loop)
+	cmeq	vhas_chr.16b, vdata.16b, vrepchr.16b
+	lsl	shift, srcin, 2
+	shrn	vend.8b, vhas_chr.8h, 4		/* 128->64 */
+	fmov	synd, dend
+	lsr	synd, synd, shift
+	cbz	synd, L(start_loop)
 
-	/*
-	 * Input string is not 32-byte aligned. We calculate the syndrome
-	 * value for the aligned 32 bytes block containing the first bytes
-	 * and mask the irrelevant part.
-	 */
-
-	ld1	{vdata1.16b, vdata2.16b}, [src], #32
-	sub	tmp, soff, #32
-	adds	cntin, cntin, tmp
-	cmeq	vhas_chr1.16b, vdata1.16b, vrepchr.16b
-	cmeq	vhas_chr2.16b, vdata2.16b, vrepchr.16b
-	and	vhas_chr1.16b, vhas_chr1.16b, vrepmask.16b
-	and	vhas_chr2.16b, vhas_chr2.16b, vrepmask.16b
-	addp	vend.16b, vhas_chr1.16b, vhas_chr2.16b		/* 256->128 */
-	addp	vend.16b, vend.16b, vend.16b			/* 128->64 */
-	mov	synd, vend.2d[0]
-	/* Clear the soff*2 lower bits */
-	lsl	tmp, soff, #1
-	lsr	synd, synd, tmp
-	lsl	synd, synd, tmp
-	/* The first block can also be the last */
-	b.ls	L(masklast)
-	/* Have we found something already? */
-	cbnz	synd, L(tail)
-
-L(loop):
-	ld1	{vdata1.16b, vdata2.16b}, [src], #32
-	subs	cntin, cntin, #32
-	cmeq	vhas_chr1.16b, vdata1.16b, vrepchr.16b
-	cmeq	vhas_chr2.16b, vdata2.16b, vrepchr.16b
-	/* If we're out of data we finish regardless of the result */
-	b.ls	L(end)
-	/* Use a fast check for the termination condition */
-	orr	vend.16b, vhas_chr1.16b, vhas_chr2.16b
-	addp	vend.2d, vend.2d, vend.2d
-	mov	synd, vend.2d[0]
-	/* We're not out of data, loop if we haven't found the character */
-	cbz	synd, L(loop)
-
-L(end):
-	/* Termination condition found, let's calculate the syndrome value */
-	and	vhas_chr1.16b, vhas_chr1.16b, vrepmask.16b
-	and	vhas_chr2.16b, vhas_chr2.16b, vrepmask.16b
-	addp	vend.16b, vhas_chr1.16b, vhas_chr2.16b		/* 256->128 */
-	addp	vend.16b, vend.16b, vend.16b			/* 128->64 */
-	mov	synd, vend.2d[0]
-	/* Only do the clear for the last possible block */
-	b.hi	L(tail)
-
-L(masklast):
-	/* Clear the (32 - ((cntrem + soff) % 32)) * 2 upper bits */
-	add	tmp, cntrem, soff
-	and	tmp, tmp, #31
-	sub	tmp, tmp, #32
-	neg	tmp, tmp, lsl #1
-	lsl	synd, synd, tmp
-	lsr	synd, synd, tmp
-
-L(tail):
-	/* Count the trailing zeros using bit reversing */
 	rbit	synd, synd
-	/* Compensate the last post-increment */
-	sub	src, src, #32
-	/* Check that we have found a character */
-	cmp	synd, #0
-	/* And count the leading zeros */
 	clz	synd, synd
-	/* Compute the potential result */
-	add	result, src, synd, lsr #1
-	/* Select result or NULL */
-	csel	result, xzr, result, eq
+	add	result, srcin, synd, lsr 2
+	cmp	cntin, synd, lsr 2
+	csel	result, result, xzr, hi
 	ret
 
-L(zero_length):
-	mov	result, #0
+L(start_loop):
+	sub	tmp, src, srcin
+	add	tmp, tmp, 16
+	subs	cntrem, cntin, tmp
+	b.ls	L(nomatch)
+
+	/* Make sure that it won't overread by a 16-byte chunk */
+	add	tmp, cntrem, 15
+	tbnz	tmp, 4, L(loop32_2)
+
+	.p2align 4
+L(loop32):
+	ldr	qdata, [src, 16]!
+	cmeq	vhas_chr.16b, vdata.16b, vrepchr.16b
+	umaxp	vend.16b, vhas_chr.16b, vhas_chr.16b		/* 128->64 */
+	fmov	synd, dend
+	cbnz	synd, L(end)
+
+L(loop32_2):
+	ldr	qdata, [src, 16]!
+	subs	cntrem, cntrem, 32
+	cmeq	vhas_chr.16b, vdata.16b, vrepchr.16b
+	b.ls	L(end)
+	umaxp	vend.16b, vhas_chr.16b, vhas_chr.16b		/* 128->64 */
+	fmov	synd, dend
+	cbz	synd, L(loop32)
+L(end):
+	shrn	vend.8b, vhas_chr.8h, 4		/* 128->64 */
+	fmov	synd, dend
+	add	tmp, srcin, cntin
+	sub	cntrem, tmp, src
+#ifndef __AARCH64EB__
+	rbit	synd, synd
+#endif
+	clz	synd, synd
+	cmp	cntrem, synd, lsr 2
+	add	result, src, synd, lsr 2
+	csel	result, result, xzr, hi
 	ret
+
+L(nomatch):
+	mov	result, 0
+	ret
+
 END (MEMCHR)
 weak_alias (MEMCHR, memchr)
 libc_hidden_builtin_def (memchr)

@@ -1,5 +1,5 @@
 /* Definitions for thread-local data handling.  NPTL/C-SKY version.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@
      __result; })
 
 #else
-# include <tcb-offsets.h>
 /* Define r31 as thread pointer register.  */
 # define READ_THREAD_POINTER() \
 	mov r0, r31;
@@ -61,14 +60,8 @@ typedef struct
 /* This is the size of the initial TCB.  */
 # define TLS_INIT_TCB_SIZE	sizeof (tcbhead_t)
 
-/* Alignment requirements for the initial TCB.  */
-# define TLS_INIT_TCB_ALIGN	8
-
 /* This is the size of the TCB.  */
 # define TLS_TCB_SIZE		sizeof (tcbhead_t)
-
-/* Alignment requirements for the TCB.  */
-# define TLS_TCB_ALIGN		8
 
 /* This is the size we need before TCB.  */
 # define TLS_PRE_TCB_SIZE	sizeof (struct pthread)
@@ -96,11 +89,10 @@ typedef struct
    special attention since 'errno' is not yet available and if the
    operation can cause a failure 'errno' must not be touched.  */
 # define TLS_INIT_TP(tcbp) \
-  ({ INTERNAL_SYSCALL_DECL (err);					\
-     long result_var;							\
-     result_var = INTERNAL_SYSCALL (set_thread_area, err, 1,		\
+  ({ long int result_var;						\
+     result_var = INTERNAL_SYSCALL_CALL (set_thread_area, 		\
                     (char *) (tcbp) + TLS_TCB_OFFSET);			\
-     INTERNAL_SYSCALL_ERROR_P (result_var, err)				\
+     INTERNAL_SYSCALL_ERROR_P (result_var)				\
        ? "unknown error" : NULL; })
 
 /* Return the address of the dtv for the current thread.  */
@@ -117,18 +109,9 @@ typedef struct
 # define DB_THREAD_SELF \
   CONST_THREAD_AREA (32, sizeof (struct pthread))
 
-/* Access to data in the thread descriptor is easy.  */
-# define THREAD_GETMEM(descr, member) \
-  descr->member
-# define THREAD_GETMEM_NC(descr, member, idx) \
-  descr->member[idx]
-# define THREAD_SETMEM(descr, member, value) \
-  descr->member = (value)
-# define THREAD_SETMEM_NC(descr, member, idx, value) \
-  descr->member[idx] = (value)
+# include <tcb-access.h>
 
 /* Get and set the global scope generation counter in struct pthread.  */
-# define THREAD_GSCOPE_IN_TCB      1
 # define THREAD_GSCOPE_FLAG_UNUSED 0
 # define THREAD_GSCOPE_FLAG_USED   1
 # define THREAD_GSCOPE_FLAG_WAIT   2
@@ -148,8 +131,6 @@ typedef struct
       atomic_write_barrier ();						      \
     }									      \
   while (0)
-# define THREAD_GSCOPE_WAIT() \
-  GL(dl_wait_lookup_done) ()
 
 #endif /* __ASSEMBLER__ */
 

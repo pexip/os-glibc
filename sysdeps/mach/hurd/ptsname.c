@@ -1,5 +1,5 @@
 /* ptsname -- return the name of a pty slave given an FD to the pty master
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -46,9 +46,21 @@ __ptsname_internal (int fd, char *buf, size_t buflen, struct stat64 *stp)
   string_t peername;
   size_t len;
   error_t err;
+  int ttype;
+
+  if (HURD_DPORT_USE (fd, __term_get_bottom_type (port, &ttype)) == 0)
+    {
+      /* get_bottom_type suceeded, this is the slave side.  */
+      errno = ENOTTY;
+      return ENOTTY;
+    }
 
   if (err = HURD_DPORT_USE (fd, __term_get_peername (port, peername)))
-    return __hurd_dfail (fd, err), errno;
+    {
+      if (err == EMIG_BAD_ID || err == EOPNOTSUPP)
+	err = ENOTTY;
+      return __hurd_dfail (fd, err), errno;
+    }
 
   len = __strnlen (peername, sizeof peername - 1) + 1;
   if (len > buflen)
@@ -59,7 +71,7 @@ __ptsname_internal (int fd, char *buf, size_t buflen, struct stat64 *stp)
 
   if (stp)
     {
-      if (__xstat64 (_STAT_VER, peername, stp) < 0)
+      if (__stat64 (peername, stp) < 0)
 	return errno;
     }
 
@@ -76,4 +88,5 @@ __ptsname_r (int fd, char *buf, size_t buflen)
 {
   return __ptsname_internal (fd, buf, buflen, NULL);
 }
+libc_hidden_def (__ptsname_r)
 weak_alias (__ptsname_r, ptsname_r)

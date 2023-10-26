@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2020 Free Software Foundation, Inc.
+# Copyright (C) 1991-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -424,6 +424,12 @@ $(objpfx)%$o: $(objpfx)%.c $(before-compile); $$(compile-command.c)
 endef
 object-suffixes-left := $(all-object-suffixes)
 include $(o-iterator)
+
+define o-iterator-doit
+$(objpfx)%$o: $(objpfx)%.cc $(before-compile); $$(compile-command.cc)
+endef
+object-suffixes-left := $(all-object-suffixes)
+include $(o-iterator)
 endif
 
 # Generate .dT files as we compile.
@@ -458,15 +464,6 @@ compile-stdin.c = $(COMPILE.c) -o $@ -x c - $(compile-mkdep-flags)
 # the dependency run for C sources.  But having it for assembly sources can
 # get the wrong predefines.
 S-CPPFLAGS = -DASSEMBLER $(asm-CPPFLAGS)
-
-define +make-deps
-$(make-target-directory)
-$(+mkdep) $< $(if $(filter %.c,$<),$(CFLAGS)) \
-	     $(CPPFLAGS) $($(patsubst .%,%,$(suffix $(<F)))-CPPFLAGS) | sed -e\
-'s,$(subst .,\.,$(@F:.d=.o)),$(foreach o,$(all-object-suffixes),$(@:.d=$o)) $@,' \
-$(sed-remove-objpfx) $(sed-remove-dotdot) > $(@:.d=.T)
-mv -f $(@:.d=.T) $@ $(generate-md5)
-endef
 
 ifneq (,$(objpfx))
 # Continuation lines here are dangerous because they introduce spaces!
@@ -539,6 +536,7 @@ lib%.so: lib%_pic.a $(+preinit) $(+postinit) $(link-libc-deps)
 define build-shlib-helper
 $(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) $(rtld-LDFLAGS) \
+	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  $(extra-B-$(@F:lib%.so=%).so) -B$(csu-objpfx) \
 	  $(extra-B-$(@F:lib%.so=%).so) $(load-map-file) \
 	  -Wl,-soname=lib$(libprefix)$(@F:lib%.so=%).so$($(@F)-version) \
@@ -557,16 +555,9 @@ $(common-objpfx)shlib.lds: $(common-objpfx)config.make $(..)Makerules
 	$(LINK.o) -shared -Wl,-O1 \
 		  -nostdlib -nostartfiles \
 		  $(sysdep-LDFLAGS) $(rtld-LDFLAGS) $(LDFLAGS.so) \
-		  -Wl,--verbose 2>&1 | \
+		  -Wl,--verbose 2>/dev/null | \
 	  sed > $@T \
 	      -e '/^=========/,/^=========/!d;/^=========/d' \
-	      $(if $(filter yes,$(have-hash-style)), \
-		   -e 's/^.*\.gnu\.hash[ 	]*:.*$$/  .note.ABI-tag : { *(.note.ABI-tag) } &/' \
-		   -e '/^[ 	]*\.hash[ 	]*:.*$$/{h;d;}' \
-		   -e '/DATA_SEGMENT_ALIGN/{H;g}' \
-		, \
-		   -e 's/^.*\.hash[ 	]*:.*$$/  .note.ABI-tag : { *(.note.ABI-tag) } &/' \
-	       ) \
 	      -e 's/^.*\*(\.dynbss).*$$/& \
 		 PROVIDE(__start___libc_freeres_ptrs = .); \
 		 *(__libc_freeres_ptrs) \
@@ -598,8 +589,10 @@ endef
 define build-module-helper
 $(LINK.o) -shared -static-libgcc $(sysdep-LDFLAGS) $(rtld-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) \
+	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  -B$(csu-objpfx) $(load-map-file) \
 	  $(LDFLAGS.so) $(LDFLAGS-$(@F:%.so=%).so) \
+	  $(link-test-modules-rpath-link) \
 	  -L$(subst :, -L,$(rpath-link)) -Wl,-rpath-link=$(rpath-link)
 endef
 
@@ -640,14 +633,10 @@ LDFLAGS-c.so = -nostdlib -nostartfiles
 LDLIBS-c.so += $(libc.so-gnulib)
 # Give libc.so an entry point and make it directly runnable itself.
 LDFLAGS-c.so += -e __libc_main
-# Pre-link the objects of libc_pic.a so that we can locally resolve
-# COMMON symbols before we link against ld.so.  This is because ld.so
-# contains some of libc_pic.a already, which will prevent the COMMONs
-# from being allocated in libc.so, which introduces evil dependencies
-# between libc.so and ld.so, which can make it impossible to upgrade.
+# Pre-link the objects of libc_pic.a for .gnu.glibc-stub.* processing.
 $(common-objpfx)libc_pic.os: $(common-objpfx)libc_pic.a
 	$(LINK.o) -nostdlib -nostartfiles -r -o $@ \
-	$(LDFLAGS-c_pic.os) -Wl,-d $(whole-archive) $^ -o $@
+	$(LDFLAGS-c_pic.os) $(whole-archive) $^ -o $@
 
 ifeq (,$(strip $(shlib-lds-flags)))
 # Generate a list of -R options to excise .gnu.glibc-stub.* sections.
@@ -690,8 +679,7 @@ $(common-objpfx)linkobj/libc.so: link-libc-deps = # empty
 
 # Use our own special initializer and finalizer files for the libc.so
 # libraries.
-$(common-objpfx)libc.so: $(elf-objpfx)soinit.os \
-			 $(common-objpfx)libc_pic.os$(libc_pic_clean) \
+$(common-objpfx)libc.so: $(common-objpfx)libc_pic.os$(libc_pic_clean) \
 			 $(elf-objpfx)sofini.os \
 			 $(elf-objpfx)interp.os \
 			 $(elf-objpfx)ld.so \
@@ -699,8 +687,7 @@ $(common-objpfx)libc.so: $(elf-objpfx)soinit.os \
 	$(build-shlib)
 	$(call after-link,$@)
 
-$(common-objpfx)linkobj/libc.so: $(elf-objpfx)soinit.os \
-			 $(common-objpfx)linkobj/libc_pic.a \
+$(common-objpfx)linkobj/libc.so: $(common-objpfx)linkobj/libc_pic.a \
 			 $(elf-objpfx)sofini.os \
 			 $(elf-objpfx)interp.os \
 			 $(elf-objpfx)ld.so \
@@ -773,7 +760,9 @@ endif
 	     $(patsubst %.o,%.d,$(filter %.o,$(extra-objs:.os=.o))) \
 	     $(patsubst %.oS,%.d,$(filter %.oS,$(extra-objs))) \
 	     $(patsubst %.o,%.d,$(filter %.o,$(extra-test-objs:.os=.o))) \
-	     $(addsuffix .d,$(tests) $(tests-internal) $(xtests) $(test-srcs))
+	     $(addsuffix .d,$(tests) $(tests-internal) $(xtests) \
+		$(tests-container) $(tests-printers) \
+		$(test-srcs) $(tests-time64) $(xtests-time64))
 ifeq ($(build-programs),yes)
 +depfiles += $(addsuffix .d,$(others) $(sysdep-others))
 endif
@@ -984,22 +973,19 @@ install-lib.so := $(filter %.so,$(install-lib:%_pic.a=%.so))
 install-lib := $(filter-out %.so %_pic.a,$(install-lib))
 
 ifeq (yes,$(build-shared))
-# Find which .so's have versions.
+# Find which .so's have a version number in their soname.
 versioned := $(strip $(foreach so,$(install-lib.so),\
 			       $(patsubst %,$(so),$($(so)-version))))
 
 install-lib.so-versioned := $(filter $(versioned), $(install-lib.so))
 install-lib.so-unversioned := $(filter-out $(versioned), $(install-lib.so))
 
-# For versioned libraries, we install three files:
+# For libraries whose soname have version numbers, we install two files:
 #	$(inst_libdir)/libfoo.so	-- for linking, symlink or ld script
-#	$(inst_slibdir)/libfoo.so.NN	-- for loading by SONAME, symlink
-#	$(inst_slibdir)/libfoo-X.Y.Z.so -- the real shared object file
-lib-version := $(firstword $($(subdir)-version) $(version))
+#	$(inst_slibdir)/libfoo.so.NN	-- for loading by SONAME
 install-lib-nosubdir: $(install-lib.so-unversioned:%=$(inst_slibdir)/%) \
 		      $(foreach L,$(install-lib.so-versioned),\
 				$(inst_libdir)/$L \
-				$(inst_slibdir)/$(L:.so=)-$(lib-version).so \
 				$(inst_slibdir)/$L$($L-version))
 
 # Install all the unversioned shared libraries.
@@ -1032,55 +1018,22 @@ ln -f $(objpfx)/$(@F) $@
 endef
 endif
 
-ifeq (yes,$(build-shared))
-ifeq (no,$(cross-compiling))
-symbolic-link-prog := $(elf-objpfx)sln
-symbolic-link-list := $(elf-objpfx)symlink.list
-define make-shlib-link
-echo `$(..)scripts/rellns-sh -p $< $@` $@ >> $(symbolic-link-list)
-endef
-else # cross-compiling
-# We need a definition that can be used by elf/Makefile's install rules.
-symbolic-link-prog = $(LN_S)
-endif
-endif
-ifndef make-shlib-link
-define make-shlib-link
-rm -f $@
-$(LN_S) `$(..)scripts/rellns-sh -p $< $@` $@
-endef
-endif
-
 ifdef libc.so-version
-# For a library specified to be version N, install three files:
-# libc.so	->	libc.so.N	(e.g. libc.so.6)
-# libc.so.6	->	libc-VERSION.so	(e.g. libc-1.10.so)
-
-$(inst_slibdir)/libc.so$(libc.so-version): $(inst_slibdir)/libc-$(version).so \
-					   $(+force)
-	$(make-shlib-link)
-$(inst_slibdir)/libc-$(version).so: $(common-objpfx)libc.so $(+force)
+$(inst_slibdir)/libc.so$(libc.so-version): $(common-objpfx)libc.so $(+force)
 	$(do-install-program)
+
 install: $(inst_slibdir)/libc.so$(libc.so-version)
 
 # This fragment of linker script gives the OUTPUT_FORMAT statement
 # for the configuration we are building.  We put this statement into
 # the linker scripts we install for -lc et al so that they will not be
 # used by a link for a different format on a multi-architecture system.
-$(common-objpfx)format.lds: $(..)scripts/output-format.sed \
-			    $(common-objpfx)config.make \
+$(common-objpfx)format.lds: $(common-objpfx)config.make \
 			    $(common-objpfx)config.h $(..)Makerules
-ifneq (unknown,$(output-format))
-	echo > $@.new 'OUTPUT_FORMAT($(output-format))'
-else
-	$(LINK.o) -shared $(sysdep-LDFLAGS) $(rtld-LDFLAGS) \
-		  $(LDFLAGS.so) $(LDFLAGS-lib.so) \
-		  -x c /dev/null -o $@.so -Wl,--verbose -v 2>&1 \
-	| sed -n -f $< > $@.new
-	test -s $@.new
+	$(LINK.o) -shared -nostdlib -nostartfiles \
+		  -x assembler /dev/null -o $@.so
+	$(OBJDUMP) -f $@.so | sed -n 's/.*file format \(.*\)/OUTPUT_FORMAT(\1)/;T;p' > $@
 	rm -f $@.so
-endif
-	mv -f $@.new $@
 common-generated += format.lds
 
 ifndef subdir
@@ -1135,38 +1088,13 @@ include $(o-iterator)
 
 generated += $(foreach o,$(versioned),$o$($o-version))
 
-ifeq (,$($(subdir)-version))
 define o-iterator-doit
-$(inst_slibdir)/$o$($o-version): $(inst_slibdir)/$(o:.so=)-$(version).so \
-				 $(+force);
-	$$(make-shlib-link)
-endef
-object-suffixes-left := $(versioned)
-include $(o-iterator)
-
-define o-iterator-doit
-$(inst_slibdir)/$(o:.so=)-$(version).so: $(objpfx)$o $(+force);
+$(inst_slibdir)/$o$($o-version): $(objpfx)$o $(+force);
 	$$(do-install-program)
 endef
 object-suffixes-left := $(versioned)
 include $(o-iterator)
-else
-define o-iterator-doit
-$(inst_slibdir)/$o$($o-version): \
-  $(inst_slibdir)/$(o:.so=)-$($(subdir)-version).so $(+force);
-	$$(make-shlib-link)
-endef
-object-suffixes-left := $(versioned)
-include $(o-iterator)
-
-define o-iterator-doit
-$(inst_slibdir)/$(o:.so=)-$($(subdir)-version).so: $(objpfx)$o $(+force);
-	$$(do-install-program)
-endef
-object-suffixes-left := $(versioned)
-include $(o-iterator)
-endif
-endif
+endif # ifneq (,$(versioned))
 
 define do-install-so
 $(do-install-program)
@@ -1296,6 +1224,21 @@ check: tests
 .PHONY: xcheck
 xcheck: xtests
 
+# Handle tests-time64 and xtests-time64 that should built with LFS
+# and 64-bit time support.
+include $(o-iterator)
+define o-iterator-doit
+$(foreach f,$(tests-time64) $(xtests-time64),\
+	    $(objpfx)$(f)$(o)): CFLAGS += -D_TIME_BITS=64 -D_FILE_OFFSET_BITS=64
+endef
+object-suffixes-left := $(all-object-suffixes)
+include $(o-iterator)
+
+ifeq ($(have-time64-compat),yes)
+tests += $(foreach t,$(tests-time64),$(t))
+xtests += $(foreach t,$(xtests-time64),$(t))
+endif
+
 # The only difference between MODULE_NAME=testsuite and MODULE_NAME=nonlib is
 # that almost all internal declarations from config.h, libc-symbols.h, and
 # include/*.h are not available to 'testsuite' code, but are to 'nonlib' code.
@@ -1307,14 +1250,22 @@ lib := testsuite
 include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 endif
 
-all-nonlib := $(strip $(tests-internal) $(test-internal-extras) \
-		      $(others) $(others-extras))
+all-nonlib := $(strip $(others) $(others-extras))
 ifneq (,$(all-nonlib))
 cpp-srcs-left = $(all-nonlib)
 lib := nonlib
 include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
 endif
 
+# All internal tests use testsuite-internal module since for 64 bit time
+# support is set as default for MODULE_NAME=nonlib (which include some
+# installed programs).
+all-testsuite-internal := $(strip $(tests-internal) $(test-internal-extras))
+ifneq (,$(all-testsuite-internal))
+cpp-srcs-left = $(all-testsuite-internal)
+lib := testsuite-internal
+include $(patsubst %,$(..)libof-iterator.mk,$(cpp-srcs-left))
+endif
 
 ifeq ($(build-shared),yes)
 # Generate normalized lists of symbols, versions, and data sizes.

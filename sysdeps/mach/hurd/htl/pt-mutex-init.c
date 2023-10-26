@@ -1,5 +1,5 @@
 /* pthread_mutex_init.  Hurd version.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ static const pthread_mutexattr_t dfl_attr = {
 };
 
 int
-_pthread_mutex_init (pthread_mutex_t *mtxp, const pthread_mutexattr_t *attrp)
+__pthread_mutex_init (pthread_mutex_t *mtxp, const pthread_mutexattr_t *attrp)
 {
   ASSERT_TYPE_SIZE (pthread_mutex_t, __SIZEOF_PTHREAD_MUTEX_T);
 
@@ -55,5 +55,5 @@ _pthread_mutex_init (pthread_mutex_t *mtxp, const pthread_mutexattr_t *attrp)
   return 0;
 }
 
-strong_alias (_pthread_mutex_init, pthread_mutex_init)
-hidden_def (_pthread_mutex_init)
+weak_alias (__pthread_mutex_init, pthread_mutex_init)
+hidden_def (__pthread_mutex_init)

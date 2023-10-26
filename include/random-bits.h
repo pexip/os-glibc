@@ -1,5 +1,5 @@
 /* Fast pseudo-random bits based on clock_gettime.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,8 +30,8 @@
 static inline uint32_t
 random_bits (void)
 {
-  struct timespec tv;
-  __clock_gettime (CLOCK_MONOTONIC, &tv);
+  struct __timespec64 tv;
+  __clock_gettime64 (CLOCK_MONOTONIC, &tv);
   /* Shuffle the lower bits to minimize the clock bias.  */
   uint32_t ret = tv.tv_nsec ^ tv.tv_sec;
   ret ^= (ret << 24) | (ret >> 8);

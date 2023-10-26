@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License as
@@ -22,36 +21,43 @@
 #include <sysdep.h>
 #include <kernel-features.h>
 #include "kernel-posix-timers.h"
+#include <shlib-compat.h>
 
+#if !TIMER_T_WAS_INT_COMPAT
 int
-__timer_gettime64 (timer_t timerid, struct __itimerspec64 *value)
+___timer_gettime64 (timer_t timerid, struct __itimerspec64 *value)
 {
-  struct timer *kt = (struct timer *) timerid;
+  kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
 
-#ifdef __ASSUME_TIME64_SYSCALLS
 # ifndef __NR_timer_gettime64
 #  define __NR_timer_gettime64 __NR_timer_gettime
 # endif
-  return INLINE_SYSCALL_CALL (timer_gettime64, kt->ktimerid, value);
-#else
-# ifdef __NR_timer_gettime64
-  int ret = INLINE_SYSCALL_CALL (timer_gettime64, kt->ktimerid, value);
+  int ret = INLINE_SYSCALL_CALL (timer_gettime64, ktimerid, value);
+# ifndef __ASSUME_TIME64_SYSCALLS
   if (ret == 0 || errno != ENOSYS)
     return ret;
-# endif
+
   struct itimerspec its32;
-  int retval = INLINE_SYSCALL_CALL (timer_gettime, kt->ktimerid, &its32);
-  if (retval == 0)
+  ret = INLINE_SYSCALL_CALL (timer_gettime, ktimerid, &its32);
+  if (ret == 0)
     {
       value->it_interval = valid_timespec_to_timespec64 (its32.it_interval);
       value->it_value = valid_timespec_to_timespec64 (its32.it_value);
     }
-
-  return retval;
-#endif
+# endif
+  return ret;
 }
 
-#if __TIMESIZE != 64
+# if __TIMESIZE == 64
+versioned_symbol (libc, ___timer_gettime64, timer_gettime, GLIBC_2_34);
+#  if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (librt, ___timer_gettime64, timer_gettime, GLIBC_2_2);
+#  endif
+
+# else /* __TIMESIZE != 64 */
+libc_hidden_ver (___timer_gettime64, __timer_gettime64)
+versioned_symbol (libc, ___timer_gettime64, __timer_gettime64, GLIBC_2_34);
+
 int
 __timer_gettime (timer_t timerid, struct itimerspec *value)
 {
@@ -65,6 +71,39 @@ __timer_gettime (timer_t timerid, struct itimerspec *value)
 
   return retval;
 }
-#endif
-weak_alias (__timer_gettime, timer_gettime)
-libc_hidden_def (timer_gettime)
+versioned_symbol (libc, __timer_gettime, timer_gettime, GLIBC_2_34);
+
+#  if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (librt, __timer_gettime, timer_gettime, GLIBC_2_2);
+#  endif
+# endif /* __TIMESIZE != 64 */
+
+#else /* TIMER_T_WAS_INT_COMPAT */
+
+extern __typeof (timer_gettime) __timer_gettime_new;
+libc_hidden_proto (__timer_gettime_new)
+
+int
+___timer_gettime_new (timer_t timerid, struct itimerspec *value)
+{
+  kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
+
+  return INLINE_SYSCALL_CALL (timer_gettime, ktimerid, value);
+}
+versioned_symbol (libc, ___timer_gettime_new, timer_gettime, GLIBC_2_34);
+libc_hidden_ver (___timer_gettime_new, __timer_gettime_new)
+
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_3_3, GLIBC_2_34)
+compat_symbol (librt, ___timer_gettime_new, timer_gettime, GLIBC_2_3_3);
+# endif
+
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_3_3)
+int
+__timer_gettime_old (int timerid, struct itimerspec *value)
+{
+  return __timer_gettime_new (__timer_compat_list[timerid], value);
+}
+compat_symbol (librt, __timer_gettime_old, timer_gettime, GLIBC_2_2);
+# endif
+
+#endif /* TIMER_T_WAS_INT_COMPAT */

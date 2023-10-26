@@ -1,5 +1,5 @@
 /* Lock I/O stream.  Hurd version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
-#include <libc-lock.h>
+#include <libc-lockP.h>
 
 
 void

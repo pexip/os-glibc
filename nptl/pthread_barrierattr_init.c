@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,10 +16,10 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "pthreadP.h"
-
+#include <shlib-compat.h>
 
 int
-pthread_barrierattr_init (pthread_barrierattr_t *attr)
+__pthread_barrierattr_init (pthread_barrierattr_t *attr)
 {
   ASSERT_TYPE_SIZE (pthread_barrierattr_t, __SIZEOF_PTHREAD_BARRIERATTR_T);
   ASSERT_PTHREAD_INTERNAL_SIZE (pthread_barrierattr_t,
@@ -30,3 +29,10 @@ pthread_barrierattr_init (pthread_barrierattr_t *attr)
 
   return 0;
 }
+versioned_symbol (libc, __pthread_barrierattr_init,
+                  pthread_barrierattr_init, GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_barrierattr_init,
+               pthread_barrierattr_init, GLIBC_2_2);
+#endif

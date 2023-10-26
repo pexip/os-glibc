@@ -1,5 +1,5 @@
 /* Obtain handle for an open file via a handle.  Linux implementation.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,14 +24,5 @@
 int
 open_by_handle_at (int mount_fd, struct file_handle *handle, int flags)
 {
-#ifdef __NR_open_by_handle_at
   return SYSCALL_CANCEL (open_by_handle_at, mount_fd, handle, flags);
-#else
-  __set_errno (ENOSYS);
-  return -1;
-#endif
 }
-
-#ifndef __NR_open_by_handle_at
-stub_warning (open_by_handle_at)
-#endif

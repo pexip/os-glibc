@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,16 +22,8 @@
 #include <lowlevellock.h>
 #include <futex-internal.h>
 
-#ifndef lll_trylock_elision
-#define lll_trylock_elision(a,t) lll_trylock(a)
-#endif
-
-#ifndef FORCE_ELISION
-#define FORCE_ELISION(m, s)
-#endif
-
 int
-__pthread_mutex_trylock (pthread_mutex_t *mutex)
+___pthread_mutex_trylock (pthread_mutex_t *mutex)
 {
   int oldval;
   pid_t id = THREAD_GETMEM (THREAD_SELF, tid);
@@ -297,13 +288,12 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
 	    int private = (robust
 			   ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
 			   : PTHREAD_MUTEX_PSHARED (mutex));
-	    INTERNAL_SYSCALL_DECL (__err);
-	    int e = INTERNAL_SYSCALL (futex, __err, 4, &mutex->__data.__lock,
-				      __lll_private_flag (FUTEX_TRYLOCK_PI,
-							  private), 0, 0);
+	    int e = INTERNAL_SYSCALL_CALL (futex, &mutex->__data.__lock,
+					   __lll_private_flag (FUTEX_TRYLOCK_PI,
+							       private), 0, 0);
 
-	    if (INTERNAL_SYSCALL_ERROR_P (e, __err)
-		&& INTERNAL_SYSCALL_ERRNO (e, __err) == EWOULDBLOCK)
+	    if (INTERNAL_SYSCALL_ERROR_P (e)
+		&& INTERNAL_SYSCALL_ERRNO (e) == EWOULDBLOCK)
 	      {
 		/* The kernel has not yet finished the mutex owner death.
 		   We do not need to ensure ordering wrt another memory
@@ -458,10 +448,16 @@ __pthread_mutex_trylock (pthread_mutex_t *mutex)
 
   return EBUSY;
 }
-
-#ifndef __pthread_mutex_trylock
-#ifndef pthread_mutex_trylock
-weak_alias (__pthread_mutex_trylock, pthread_mutex_trylock)
-hidden_def (__pthread_mutex_trylock)
+versioned_symbol (libc, ___pthread_mutex_trylock,
+		  pthread_mutex_trylock, GLIBC_2_34);
+libc_hidden_ver (___pthread_mutex_trylock, __pthread_mutex_trylock)
+#ifndef SHARED
+strong_alias (___pthread_mutex_trylock, __pthread_mutex_trylock)
 #endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_mutex_trylock,
+	       pthread_mutex_trylock, GLIBC_2_0);
+compat_symbol (libpthread, ___pthread_mutex_trylock,
+	       __pthread_mutex_trylock, GLIBC_2_0);
 #endif

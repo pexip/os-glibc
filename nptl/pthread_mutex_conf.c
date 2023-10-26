@@ -1,5 +1,5 @@
 /* Pthread mutex tunable parameters.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,7 @@
 #include <stdbool.h>
 #include <unistd.h>  /* Get STDOUT_FILENO for _dl_printf.  */
 #include <elf/dl-tunables.h>
+#include <nptl-stack.h>
 
 struct mutex_config __mutex_aconf =
 {
@@ -30,6 +31,7 @@ struct mutex_config __mutex_aconf =
   calling into kernel to block.  */
   .spin_count = DEFAULT_ADAPTIVE_COUNT,
 };
+libc_hidden_data_def (__mutex_aconf)
 
 static void
 TUNABLE_CALLBACK (set_mutex_spin_count) (tunable_val_t *valp)
@@ -37,10 +39,18 @@ TUNABLE_CALLBACK (set_mutex_spin_count) (tunable_val_t *valp)
   __mutex_aconf.spin_count = (int32_t) (valp)->numval;
 }
 
+static void
+TUNABLE_CALLBACK (set_stack_cache_size) (tunable_val_t *valp)
+{
+  __nptl_stack_cache_maxsize = valp->numval;
+}
+
 void
 __pthread_tunables_init (void)
 {
   TUNABLE_GET (mutex_spin_count, int32_t,
                TUNABLE_CALLBACK (set_mutex_spin_count));
+  TUNABLE_GET (stack_cache_size, size_t,
+               TUNABLE_CALLBACK (set_stack_cache_size));
 }
 #endif

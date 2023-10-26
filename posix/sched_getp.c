@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ __sched_getparam (pid_t pid, struct sched_param *param)
   __set_errno (ENOSYS);
   return -1;
 }
+libc_hidden_def (__sched_getparam)
 stub_warning (sched_getparam)
 
 weak_alias (__sched_getparam, sched_getparam)

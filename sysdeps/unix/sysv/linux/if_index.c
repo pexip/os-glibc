@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -215,7 +215,7 @@ libc_hidden_weak (if_nameindex)
 
 
 char *
-__if_indextoname (unsigned int ifindex, char *ifname)
+__if_indextoname (unsigned int ifindex, char ifname[IF_NAMESIZE])
 {
   /* We may be able to do the conversion directly, rather than searching a
      list.  This ioctl is not present in kernels before version 2.1.50.  */

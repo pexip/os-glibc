@@ -1,4 +1,3 @@
-/* Contributed by Owen Taylor <otaylor@redhat.com>.  */
 
 #include <iconv.h>
 #include <errno.h>
@@ -48,6 +47,8 @@ do_test (void)
     }
   else
     printf ("Succeeded\n");
+
+  iconv_close (cd);
 
   return result;
 }

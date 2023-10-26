@@ -1,5 +1,5 @@
 /* Signal a condition.  Generic version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ __pthread_cond_signal (pthread_cond_t *cond)
 {
   struct __pthread *wakeup;
 
-  __pthread_spin_lock (&cond->__lock);
+  __pthread_spin_wait (&cond->__lock);
   wakeup = cond->__queue;
   if (wakeup != NULL)
     __pthread_dequeue (wakeup);
@@ -39,4 +39,4 @@ __pthread_cond_signal (pthread_cond_t *cond)
   return 0;
 }
 
-strong_alias (__pthread_cond_signal, pthread_cond_signal);
+weak_alias (__pthread_cond_signal, pthread_cond_signal);

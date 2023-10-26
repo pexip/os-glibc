@@ -1,5 +1,5 @@
 /* Old SysV permission definition for Linux.  Default version.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,5 +52,15 @@ struct __old_ipc_perm
    arguments in a different order than default.  */
 #define SEMTIMEDOP_IPC_ARGS(__nsops, __sops, __timeout) \
   (__nsops), 0, (__sops), (__timeout)
+
+/* Linux SysV ipc does not provide new syscalls for 64-bit time support on
+   32-bit architectures, but rather split the timestamp into high and low;
+   storing the high value in previously unused fields.  */
+#if (__WORDSIZE == 32 \
+     && (!defined __SYSCALL_WORDSIZE || __SYSCALL_WORDSIZE == 32))
+# define __IPC_TIME64 1
+#else
+# define __IPC_TIME64 0
+#endif
 
 #include <ipc_ops.h>

@@ -1,5 +1,5 @@
 /* Test for dynamic arrays.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 
 #include <errno.h>
 #include <stdint.h>
+#include <libc-diag.h>
 
 #define DYNARRAY_STRUCT dynarray_long
 #define DYNARRAY_ELEMENT long
@@ -110,10 +111,10 @@ test_int (void)
                   TEST_VERIFY_EXIT (!dynarray_int_has_failed (&dyn));
                   TEST_VERIFY_EXIT (dynarray_int_size (&dyn) == i + 1);
                   TEST_VERIFY_EXIT (dynarray_int_size (&dyn)
-                                    <= dyn.dynarray_header.allocated);
+                                    <= dyn.u.dynarray_header.allocated);
                 }
               TEST_VERIFY_EXIT (dynarray_int_size (&dyn) == count);
-              TEST_VERIFY_EXIT (count <= dyn.dynarray_header.allocated);
+              TEST_VERIFY_EXIT (count <= dyn.u.dynarray_header.allocated);
               if (count > 0)
                 {
                   TEST_VERIFY (dynarray_int_begin (&dyn)
@@ -122,7 +123,7 @@ test_int (void)
                                == dynarray_int_at (&dyn, count - 1) + 1);
                 }
               unsigned final_count;
-              bool heap_array = dyn.dynarray_header.array != dyn.scratch;
+              bool heap_array = dyn.u.dynarray_header.array != dyn.scratch;
               if (do_remove_last)
                 {
                   dynarray_int_remove_last (&dyn);
@@ -146,10 +147,11 @@ test_int (void)
                   final_count = 0;
                 }
               TEST_VERIFY_EXIT (!dynarray_int_has_failed (&dyn));
-              TEST_VERIFY_EXIT ((dyn.dynarray_header.array != dyn.scratch)
+              TEST_VERIFY_EXIT ((dyn.u.dynarray_header.array != dyn.scratch)
                                 == heap_array);
               TEST_VERIFY_EXIT (dynarray_int_size (&dyn) == final_count);
-              TEST_VERIFY_EXIT (dyn.dynarray_header.allocated >= final_count);
+              TEST_VERIFY_EXIT (dyn.u.dynarray_header.allocated
+				>= final_count);
               if (!do_clear)
                 for (unsigned int i = 0; i < final_count; ++i)
                   TEST_VERIFY_EXIT (*dynarray_int_at (&dyn, i) == base + i);
@@ -238,10 +240,10 @@ test_str (void)
                   TEST_VERIFY_EXIT (!dynarray_str_has_failed (&dyn));
                   TEST_VERIFY_EXIT (dynarray_str_size (&dyn) == i + 1);
                   TEST_VERIFY_EXIT (dynarray_str_size (&dyn)
-                                    <= dyn.dynarray_header.allocated);
+                                    <= dyn.u.dynarray_header.allocated);
                 }
               TEST_VERIFY_EXIT (dynarray_str_size (&dyn) == count);
-              TEST_VERIFY_EXIT (count <= dyn.dynarray_header.allocated);
+              TEST_VERIFY_EXIT (count <= dyn.u.dynarray_header.allocated);
               if (count > 0)
                 {
                   TEST_VERIFY (dynarray_str_begin (&dyn)
@@ -250,7 +252,7 @@ test_str (void)
                                == dynarray_str_at (&dyn, count - 1) + 1);
                 }
               unsigned final_count;
-              bool heap_array = dyn.dynarray_header.array != dyn.scratch;
+              bool heap_array = dyn.u.dynarray_header.array != dyn.scratch;
               if (do_remove_last)
                 {
                   dynarray_str_remove_last (&dyn);
@@ -274,10 +276,11 @@ test_str (void)
                   final_count = 0;
                 }
               TEST_VERIFY_EXIT (!dynarray_str_has_failed (&dyn));
-              TEST_VERIFY_EXIT ((dyn.dynarray_header.array != dyn.scratch)
+              TEST_VERIFY_EXIT ((dyn.u.dynarray_header.array != dyn.scratch)
                                 == heap_array);
               TEST_VERIFY_EXIT (dynarray_str_size (&dyn) == final_count);
-              TEST_VERIFY_EXIT (dyn.dynarray_header.allocated >= final_count);
+              TEST_VERIFY_EXIT (dyn.u.dynarray_header.allocated
+				>= final_count);
               if (!do_clear)
                 for (unsigned int i = 0; i < count - do_remove_last; ++i)
                   {
@@ -474,8 +477,15 @@ test_long_overflow (void)
     struct dynarray_long dyn;
     dynarray_long_init (&dyn);
     errno = EINVAL;
+    DIAG_PUSH_NEEDS_COMMENT;
+    /* GCC 12 (on 32-bit platforms) warns that after inlining, a loop
+       iteration would invoke undefined behavior.  That loop iteration
+       can never be executed because an allocation of this size must
+       fail.  */
+    DIAG_IGNORE_NEEDS_COMMENT (12, "-Waggressive-loop-optimizations");
     TEST_VERIFY (!dynarray_long_resize
                  (&dyn, (SIZE_MAX / sizeof (long)) + 1));
+    DIAG_POP_NEEDS_COMMENT;
     TEST_VERIFY (errno == ENOMEM);
     TEST_VERIFY (dynarray_long_has_failed (&dyn));
   }
@@ -484,8 +494,15 @@ test_long_overflow (void)
     struct dynarray_long_noscratch dyn;
     dynarray_long_noscratch_init (&dyn);
     errno = EINVAL;
+    DIAG_PUSH_NEEDS_COMMENT;
+    /* GCC 12 (on 32-bit platforms) warns that after inlining, a loop
+       iteration would invoke undefined behavior.  That loop iteration
+       can never be executed because an allocation of this size must
+       fail.  */
+    DIAG_IGNORE_NEEDS_COMMENT (12, "-Waggressive-loop-optimizations");
     TEST_VERIFY (!dynarray_long_noscratch_resize
                  (&dyn, (SIZE_MAX / sizeof (long)) + 1));
+    DIAG_POP_NEEDS_COMMENT;
     TEST_VERIFY (errno == ENOMEM);
     TEST_VERIFY (dynarray_long_noscratch_has_failed (&dyn));
   }

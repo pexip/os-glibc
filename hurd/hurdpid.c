@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,11 +17,12 @@
 
 #include <hurd.h>
 #include <lowlevellock.h>
+#include "set-hooks.h"
 
 pid_t _hurd_pid, _hurd_ppid, _hurd_pgrp;
 int _hurd_orphaned;
 
-static void
+static void attribute_used_retain
 init_pids (void)
 {
   __USEPORT (PROC,
@@ -29,21 +30,17 @@ init_pids (void)
 	       __proc_getpids (port, &_hurd_pid, &_hurd_ppid, &_hurd_orphaned);
 	       __proc_getpgrp (port, _hurd_pid, &_hurd_pgrp);
 	     }));
-
-  (void) &init_pids;		/* Avoid "defined but not used" warning.  */
 }
 
-text_set_element (_hurd_proc_subinit, init_pids);
+SET_RELHOOK (_hurd_proc_subinit, init_pids);
 
 #include <hurd/msg_server.h>
 #include "set-hooks.h"
-#include <cthreads.h>
 
 DEFINE_HOOK (_hurd_pgrp_changed_hook, (pid_t));
 
 /* These let user threads synchronize with an operation which changes ids.  */
 unsigned int _hurd_pids_changed_stamp;
-struct condition _hurd_pids_changed_sync;
 
 kern_return_t
 _S_msg_proc_newids (mach_port_t me,
@@ -68,7 +65,7 @@ _S_msg_proc_newids (mach_port_t me,
 
   /* Notify any waiting user threads that the id change as been completed.  */
   ++_hurd_pids_changed_stamp;
-  lll_wake (&_hurd_pids_changed_stamp, GSYNC_BROADCAST);
+  lll_wake (_hurd_pids_changed_stamp, GSYNC_BROADCAST);
 
   return 0;
 }

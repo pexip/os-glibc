@@ -1,7 +1,6 @@
 /* Convert using charmaps and possibly iconv().
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2001.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -51,6 +50,12 @@ static inline struct convtable *
 allocate_table (void)
 {
   return (struct convtable *) xcalloc (1, sizeof (struct convtable));
+}
+
+static inline void
+free_table (struct convtable *tbl)
+{
+  free (tbl);
 }
 
 
@@ -228,6 +233,9 @@ charmap_conversion (const char *from_code, struct charmap_t *from_charmap,
     while (++remaining < argc);
 
   /* All done.  */
+  if (output != stdout)
+    fclose (output);
+  free_table (cvtbl);
   return status;
 }
 

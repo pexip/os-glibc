@@ -1,6 +1,5 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2001.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,18 +17,18 @@
 
 #include <netdb.h>
 #include <pthread.h>
-
+#include <shlib-compat.h>
 #include <gai_misc.h>
 
 
 int
-gai_cancel (struct gaicb *gaicbp)
+__gai_cancel (struct gaicb *gaicbp)
 {
   int result = 0;
   int status;
 
   /* Request the mutex.  */
-  pthread_mutex_lock (&__gai_requests_mutex);
+  __pthread_mutex_lock (&__gai_requests_mutex);
 
   /* Find the request among those queued but not yet running.  */
   status = __gai_remove_request (gaicbp);
@@ -41,7 +40,16 @@ gai_cancel (struct gaicb *gaicbp)
     result = EAI_ALLDONE;
 
   /* Release the mutex.  */
-  pthread_mutex_unlock (&__gai_requests_mutex);
+  __pthread_mutex_unlock (&__gai_requests_mutex);
 
   return result;
 }
+#if PTHREAD_IN_LIBC
+versioned_symbol (libc, __gai_cancel, gai_cancel, GLIBC_2_34);
+
+# if OTHER_SHLIB_COMPAT (libanl, GLIBC_2_2_3, GLIBC_2_34)
+compat_symbol (libanl, __gai_cancel, gai_cancel, GLIBC_2_2_3);
+# endif
+#else /* !PTHREAD_IN_LIBC */
+strong_alias (__gai_cancel, gai_cancel)
+#endif /* !PTHREAD_IN_LIBC */

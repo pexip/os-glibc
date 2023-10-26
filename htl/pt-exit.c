@@ -1,5 +1,5 @@
 /* Thread termination.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@ __pthread_exit (void *status)
      disabled.  */
   __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &oldstate);
 
-  for (handlers = ___pthread_get_cleanup_stack ();
+  for (handlers = __pthread_get_cleanup_stack ();
        *handlers != NULL;
        *handlers = (*handlers)->__next)
     (*handlers)->__handler ((*handlers)->__arg);
@@ -53,6 +53,9 @@ __pthread_exit (void *status)
   if (atomic_decrement_and_test (&__pthread_total))
     /* We are the last thread.  */
     exit (0);
+
+  /* Destroy any thread specific data.  */
+  __pthread_destroy_specific (self);
 
   /* Note that after this point the process can be terminated at any
      point if another thread calls `pthread_exit' and happens to be
@@ -92,9 +95,6 @@ __pthread_exit (void *status)
       break;
     }
 
-  /* Destroy any thread specific data.  */
-  __pthread_destroy_specific (self);
-
   /* Destroy any signal state.  */
   __pthread_sigstate_destroy (self);
 
@@ -109,4 +109,4 @@ __pthread_exit (void *status)
   abort ();
 }
 
-strong_alias (__pthread_exit, pthread_exit);
+weak_alias (__pthread_exit, pthread_exit);

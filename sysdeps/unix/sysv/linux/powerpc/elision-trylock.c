@@ -1,5 +1,5 @@
 /* elision-trylock.c: Lock eliding trylock for pthreads.
-   Copyright (C) 2015-2020 Free Software Foundation, Inc.
+   Copyright (C) 2015-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -67,3 +67,4 @@ __lll_trylock_elision (int *futex, short *adapt_count)
 use_lock:
   return lll_trylock (*futex);
 }
+libc_hidden_def (__lll_trylock_elision)

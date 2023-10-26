@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <hurd/fd.h>
 #include <hurd/ifsock.h>
 #include <hurd/socket.h>
+#include <sysdep-cancel.h>
 #include "hurd/hurdsocket.h"
 
 /* Send a message described MESSAGE on socket FD.
@@ -173,7 +174,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 	err = EIEIO;
     }
 
-  err = HURD_DPORT_USE (fd,
+  err = HURD_DPORT_USE_CANCEL (fd,
 			({
 			  if (err)
 			    err = __socket_create_address (port,
@@ -184,6 +185,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 			  if (! err)
 			    {
 			      /* Send the data.  */
+			      int cancel_oldtype = LIBC_CANCEL_ASYNC();
 			      err = __socket_send (port, aport,
 						   flags, data.ptr, len,
 						   ports,
@@ -192,6 +194,7 @@ __libc_sendmsg (int fd, const struct msghdr *message, int flags)
 						   message->msg_control,
 						   message->msg_controllen,
 						   &amount);
+			      LIBC_CANCEL_RESET (cancel_oldtype);
 			      __mach_port_deallocate (__mach_task_self (),
 						      aport);
 			    }

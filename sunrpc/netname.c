@@ -1,6 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Thorsten Kukuk <kukuk@vt.uni-paderborn.de>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -142,12 +141,10 @@ typedef int (*netname2user_function) (const char netname[MAXNETNAMELEN + 1],
 				      uid_t *, gid_t *, int *, gid_t *);
 
 int
-netname2user (const char netname[MAXNETNAMELEN + 1], uid_t * uidp, gid_t * gidp,
+netname2user (const char *netname, uid_t * uidp, gid_t * gidp,
 	      int *gidlenp, gid_t * gidlist)
 {
-  static service_user *startp;
-  static netname2user_function start_fct;
-  service_user *nip;
+  nss_action_list nip;
   union
   {
     netname2user_function f;
@@ -156,22 +153,7 @@ netname2user (const char netname[MAXNETNAMELEN + 1], uid_t * uidp, gid_t * gidp,
   enum nss_status status = NSS_STATUS_UNAVAIL;
   int no_more;
 
-  if (startp == NULL)
-    {
-      no_more = __nss_publickey_lookup2 (&nip, "netname2user", NULL, &fct.ptr);
-      if (no_more)
-	startp = (service_user *) - 1;
-      else
-	{
-	  startp = nip;
-	  start_fct = fct.f;
-	}
-    }
-  else
-    {
-      fct.f = start_fct;
-      no_more = (nip = startp) == (service_user *) - 1;
-    }
+  no_more = __nss_publickey_lookup2 (&nip, "netname2user", NULL, &fct.ptr);
 
   while (!no_more)
     {
@@ -189,8 +171,7 @@ libc_hidden_nolink_sunrpc (netname2user, GLIBC_2_1)
 #endif
 
 int
-netname2host (const char netname[MAXNETNAMELEN + 1], char *hostname,
-	      const int hostlen)
+netname2host (const char *netname, char *hostname, const int hostlen)
 {
   char *p1, *p2;
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,9 @@
 /* Default stack size.  */
 #define ARCH_STACK_DEFAULT_SIZE	(32 * 1024 * 1024)
 
+/* Minimum guard size.  */
+#define ARCH_MIN_GUARD_SIZE 0
+
 /* IA-64 uses a normal stack and a register stack.  */
 #define NEED_SEPARATE_REGISTER_STACK
 
@@ -26,9 +29,6 @@
 
 /* Minimal stack size after allocating thread descriptor and guard size.  */
 #define MINIMAL_REST_STACK	16384
-
-/* Alignment requirement for TCB.  */
-#define TCB_ALIGNMENT		16
 
 
 /* Location of current stack frame.  */

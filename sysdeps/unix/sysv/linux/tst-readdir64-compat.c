@@ -1,5 +1,5 @@
 /* Test readdir64 compatibility symbol.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -46,7 +46,6 @@ static int
 do_test (void)
 {
 #if TEST_COMPAT (libc, GLIBC_2_1, GLIBC_2_2)
-
   /* Directory stream using the non-compat readdir64 symbol.  The test
      checks against this.  */
   DIR *dir_reference = opendir (".");

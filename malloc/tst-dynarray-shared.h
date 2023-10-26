@@ -1,5 +1,5 @@
 /* Shared definitions for dynarray tests.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,9 +48,9 @@ struct str_array
   ({                                                            \
     TEST_VERIFY_EXIT (!dynarray_##type##_has_failed (dyn));     \
     TEST_VERIFY_EXIT (dynarray_##type##_size (dyn) == 0);       \
-    TEST_VERIFY_EXIT ((dyn)->dynarray_header.array              \
+    TEST_VERIFY_EXIT ((dyn)->u.dynarray_header.array            \
                       == (dyn)->scratch);                       \
-    TEST_VERIFY_EXIT ((dyn)->dynarray_header.allocated > 0);    \
+    TEST_VERIFY_EXIT ((dyn)->u.dynarray_header.allocated > 0);  \
     (void) 0;                                                   \
   })
 

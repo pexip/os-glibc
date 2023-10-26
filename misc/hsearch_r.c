@@ -1,6 +1,5 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1993.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -181,7 +180,7 @@ __hsearch_r (ENTRY item, ACTION action, ENTRY **retval,
       do
 	{
 	  /* Because SIZE is prime this guarantees to step through all
-             available indeces.  */
+             available indices.  */
           if (idx <= hval2)
 	    idx = htab->size + idx - hval2;
 	  else

@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Chris Metcalf <cmetcalf@tilera.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,11 +15,8 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stddef.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/inotify.h>
+#include <sysdep.h>
 
 libc_hidden_proto (inotify_init)
 

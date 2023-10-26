@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ psignal (int sig, const char *s)
   else
     colon = ": ";
 
-  if (sig >= 0 && sig < NSIG && (desc = _sys_siglist[sig]) != NULL)
+  if (sig >= 0 && sig < NSIG && (desc = __sys_siglist[sig]) != NULL)
     (void) __fxprintf (NULL, "%s%s%s\n", s, colon, _(desc));
   else
     {

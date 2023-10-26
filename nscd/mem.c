@@ -1,7 +1,6 @@
 /* Cache memory handling.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -219,12 +218,8 @@ gc (struct database_dyn *db)
 
   /* Determine the highest offset.  */
   BITMAP_T mask = HIGHBIT;
-  ref_t highref = (high * BITS - 1) * BLOCK_ALIGN;
   while ((mark[high - 1] & mask) == 0)
-    {
-      mask >>= 1;
-      highref -= BLOCK_ALIGN;
-    }
+    mask >>= 1;
 
   /* Now we can iterate over the MARK array and find bits which are not
      set.  These represent memory which can be recovered.  */
@@ -264,7 +259,7 @@ gc (struct database_dyn *db)
 
   /* Now we start modifying the data.  Make sure all readers of the
      data are aware of this and temporarily don't use the data.  */
-  ++db->head->gc_cycle;
+  atomic_fetch_add_relaxed (&db->head->gc_cycle, 1);
   assert ((db->head->gc_cycle & 1) == 1);
 
 
@@ -490,7 +485,7 @@ gc (struct database_dyn *db)
 
 
   /* Now we are done modifying the data.  */
-  ++db->head->gc_cycle;
+  atomic_fetch_add_relaxed (&db->head->gc_cycle, 1);
   assert ((db->head->gc_cycle & 1) == 0);
 
   /* We are done.  */

@@ -1,5 +1,5 @@
 /* Find pathnames matching a pattern.  Linux version.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,12 @@
 
 #include <sys/stat.h>
 #include <kernel_stat.h>
+
+#define struct_stat    struct stat
+#define struct_stat64  struct stat64
+#define GLOB_LSTAT     gl_lstat
+#define GLOB_STAT64    __stat64
+#define GLOB_LSTAT64   __lstat64
 
 #define glob64 __no_glob64_decl
 #define __glob64 __no___glob64_decl

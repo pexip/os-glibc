@@ -1,5 +1,5 @@
 /* Round to nearest integer value, rounding halfway cases to even.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define NO_MATH_REDIRECT
 #include <math.h>
 #include <fenv_private.h>
 #include <libm-alias-double.h>
@@ -49,5 +50,4 @@ __roundeven (double x)
   return x;
 }
 
-hidden_def (__roundeven)
 libm_alias_double (__roundeven, roundeven)

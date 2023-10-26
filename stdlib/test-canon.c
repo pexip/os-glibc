@@ -1,7 +1,6 @@
 /* Test program for returning the canonical absolute name of a given file.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by David Mosberger <davidm@azstarnet.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -175,7 +174,9 @@ do_test (int argc, char ** argv)
 	  continue;
 	}
 
-      if (!check_path (buf, tests[i].out ? tests[i].out : tests[i].resolved))
+      /* Verify buf contents if the call succeeded or failed with ENOENT.  */
+      if ((result != NULL || errno == ENOENT)
+	  && !check_path (buf, tests[i].out ? tests[i].out : tests[i].resolved))
 	{
 	  printf ("%s: flunked test %d (expected resolved `%s', got `%s')\n",
 		  argv[0], i, tests[i].out ? tests[i].out : tests[i].resolved,

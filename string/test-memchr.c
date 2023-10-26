@@ -1,7 +1,6 @@
 /* Test memchr functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -45,11 +44,10 @@
 #endif /* WIDE */
 
 typedef CHAR *(*proto_t) (const CHAR *, int, size_t);
-CHAR *SIMPLE_MEMCHR (const CHAR *, int, size_t);
 
-IMPL (SIMPLE_MEMCHR, 0)
 IMPL (MEMCHR, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_MEMCHR (const CHAR *s, int c, size_t n)
 {
@@ -65,8 +63,8 @@ do_one_test (impl_t *impl, const CHAR *s, int c, size_t n, CHAR *exp_res)
   CHAR *res = CALL (impl, s, c, n);
   if (res != exp_res)
     {
-      error (0, 0, "Wrong result in function %s %p %p", impl->name,
-	     res, exp_res);
+      error (0, 0, "Wrong result in function %s (%p, %d, %zu) -> %p != %p",
+             impl->name, s, c, n, res, exp_res);
       ret = 1;
       return;
     }
@@ -91,7 +89,7 @@ do_test (size_t align, size_t pos, size_t len, size_t n, int seek_char)
     }
   buf[align + len] = 0;
 
-  if (pos < len)
+  if (pos < MIN(n, len))
     {
       buf[align + pos] = seek_char;
       buf[align + len] = -seek_char;
@@ -105,6 +103,38 @@ do_test (size_t align, size_t pos, size_t len, size_t n, int seek_char)
 
   FOR_EACH_IMPL (impl, 0)
     do_one_test (impl, (CHAR *) (buf + align), seek_char, n, result);
+}
+
+static void
+do_overflow_tests (void)
+{
+  size_t i, j, len;
+  const size_t one = 1;
+  uintptr_t buf_addr = (uintptr_t) buf1;
+
+  for (i = 0; i < 750; ++i)
+    {
+        do_test (0, i, 751, SIZE_MAX - i, BIG_CHAR);
+        do_test (0, i, 751, i - buf_addr, BIG_CHAR);
+        do_test (0, i, 751, -buf_addr - i, BIG_CHAR);
+        do_test (0, i, 751, SIZE_MAX - buf_addr - i, BIG_CHAR);
+        do_test (0, i, 751, SIZE_MAX - buf_addr + i, BIG_CHAR);
+
+      len = 0;
+      for (j = 8 * sizeof(size_t) - 1; j ; --j)
+        {
+          len |= one << j;
+          do_test (0, i, 751, len - i, BIG_CHAR);
+          do_test (0, i, 751, len + i, BIG_CHAR);
+          do_test (0, i, 751, len - buf_addr - i, BIG_CHAR);
+          do_test (0, i, 751, len - buf_addr + i, BIG_CHAR);
+
+          do_test (0, i, 751, ~len - i, BIG_CHAR);
+          do_test (0, i, 751, ~len + i, BIG_CHAR);
+          do_test (0, i, 751, ~len - buf_addr - i, BIG_CHAR);
+          do_test (0, i, 751, ~len - buf_addr + i, BIG_CHAR);
+        }
+    }
 }
 
 static void
@@ -221,6 +251,7 @@ test_main (void)
     do_test (page_size / 2 - i, i, i, 1, 0x9B);
 
   do_random_tests ();
+  do_overflow_tests ();
   return ret;
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,5 +38,5 @@ __setsockopt (int fd,
     return __hurd_dfail (fd, err);
   return 0;
 }
-
+libc_hidden_def (__setsockopt)
 weak_alias (__setsockopt, setsockopt)

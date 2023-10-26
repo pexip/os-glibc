@@ -1,5 +1,5 @@
 /* GLRO(dl_pagesize) initialization DSO test with a static executable.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,14 +25,9 @@
    mapped from a static executable.
 
    On targets that support different page sizes, the kernel communicates
-   the size currently in use via the auxiliary vector.  This vector is
-   available to initial startup, but not any DSOs loaded later on.  As
-   static executables do not export their symbols a DSO cannot access
-   the value obtained by initial startup and the value therefore has to
-   be passed on to the DSO and stored within its data area explicitly.
-   This is performed by a call to DL_STATIC_INIT that is defined in a
-   target-dependent way, and that on variable page size targets stores
-   it in the GLRO(dl_pagesize) variable of the DSO's dynamic linker.  */
+   the size currently in use via the auxiliary vector.  The auxiliary
+   vector and HWCAP/HWCAP2 bits are copied across the static dlopen
+   boundary in __rtld_static_init.  */
 static int
 do_test (void)
 {

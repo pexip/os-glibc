@@ -1,5 +1,5 @@
 /* Set the default attributes to be used by pthread_create in the process.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,13 +20,12 @@
 #include <stdlib.h>
 #include <pthreadP.h>
 #include <string.h>
-
+#include <shlib-compat.h>
 
 int
-pthread_setattr_default_np (const pthread_attr_t *in)
+__pthread_setattr_default_np (const pthread_attr_t *in)
 {
   const struct pthread_attr *real_in;
-  struct pthread_attr attrs;
   int ret;
 
   real_in = (struct pthread_attr *) in;
@@ -58,49 +57,43 @@ pthread_setattr_default_np (const pthread_attr_t *in)
   if (real_in->flags & ATTR_FLAG_STACKADDR)
     return EINVAL;
 
-  attrs = *real_in;
+  union pthread_attr_transparent temp;
+  ret = __pthread_attr_copy (&temp.external, in);
+  if (ret != 0)
+    return ret;
 
-  /* Now take the lock because we start writing into
+  /* Now take the lock because we start accessing
      __default_pthread_attr.  */
   lll_lock (__default_pthread_attr_lock, LLL_PRIVATE);
 
-  /* Free the cpuset if the input is 0.  Otherwise copy in the cpuset
-     contents.  */
-  size_t cpusetsize = attrs.cpusetsize;
-  if (cpusetsize == 0)
-    {
-      free (__default_pthread_attr.cpuset);
-      __default_pthread_attr.cpuset = NULL;
-    }
-  else if (cpusetsize == __default_pthread_attr.cpusetsize)
-    {
-      attrs.cpuset = __default_pthread_attr.cpuset;
-      memcpy (attrs.cpuset, real_in->cpuset, cpusetsize);
-    }
-  else
-    {
-      /* This may look wrong at first sight, but it isn't.  We're freeing
-	 __default_pthread_attr.cpuset and allocating to attrs.cpuset because
-	 we'll copy over all of attr to __default_pthread_attr later.  */
-      cpu_set_t *newp = realloc (__default_pthread_attr.cpuset,
-				 cpusetsize);
+  /* Preserve the previous stack size (see above).  */
+  if (temp.internal.stacksize == 0)
+    temp.internal.stacksize = __default_pthread_attr.internal.stacksize;
 
-      if (newp == NULL)
-	{
-	  ret = ENOMEM;
-	  goto out;
-	}
+  /* Destroy the old attribute structure because it will be
+     overwritten.  */
+  __pthread_attr_destroy (&__default_pthread_attr.external);
 
-      attrs.cpuset = newp;
-      memcpy (attrs.cpuset, real_in->cpuset, cpusetsize);
-    }
+  /* __default_pthread_attr takes ownership, so do not free
+     attrs.internal after this point.  */
+  __default_pthread_attr = temp;
 
-  /* We don't want to accidentally set the default stacksize to zero.  */
-  if (attrs.stacksize == 0)
-    attrs.stacksize = __default_pthread_attr.stacksize;
-  __default_pthread_attr = attrs;
-
- out:
   lll_unlock (__default_pthread_attr_lock, LLL_PRIVATE);
   return ret;
+}
+versioned_symbol (libc, __pthread_setattr_default_np,
+		  pthread_setattr_default_np, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_18, GLIBC_2_34)
+compat_symbol (libc, __pthread_setattr_default_np,
+	       pthread_setattr_default_np, GLIBC_2_18);
+#endif
+
+/* This is placed in the same file as pthread_setattr_default_np
+   because only this function can trigger allocation of attribute
+   data.  This way, the function is automatically defined for all the
+   cases when it is needed in static builds.  */
+void
+__default_pthread_attr_freeres (void)
+{
+  __pthread_attr_destroy (&__default_pthread_attr.external);
 }

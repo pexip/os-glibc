@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2020 Free Software Foundation, Inc.
+# Copyright (C) 1993-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -56,8 +56,6 @@ else ifeq (dlfcn,$(subdir))
   LDLIBS-dl.so += $(objdir)/mach/libmachuser.so
 else ifeq (nis,$(subdir))
   LDLIBS-nsl.so += $(objdir)/mach/libmachuser.so
-  LDLIBS-nss_nis.so += $(objdir)/mach/libmachuser.so
-  LDLIBS-nss_nisplus.so += $(objdir)/mach/libmachuser.so
   LDLIBS-nss_compat.so += $(objdir)/mach/libmachuser.so
 else ifeq (nss,$(subdir))
   LDLIBS-nss.so += $(objdir)/mach/libmachuser.so

@@ -1,7 +1,6 @@
 /* Access functions for JISX0208 conversion.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,7 +22,7 @@
 #include <gconv.h>
 #include <stdint.h>
 
-/* Struct for table with indeces in UCS mapping table.  */
+/* Struct for table with indices in UCS mapping table.  */
 struct jisx0208_ucs_idx
 {
   uint16_t start;

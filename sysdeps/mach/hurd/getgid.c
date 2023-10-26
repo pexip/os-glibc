@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@ __getgid (void)
   error_t err;
   gid_t gid;
 
+retry:
   HURD_CRITICAL_BEGIN;
   __mutex_lock (&_hurd_id.lock);
 
@@ -46,6 +47,9 @@ __getgid (void)
 
   __mutex_unlock (&_hurd_id.lock);
   HURD_CRITICAL_END;
+  if (gid == -1 && errno == EINTR)
+    /* Got a signal while inside an RPC of the critical section, retry again */
+    goto retry;
 
   return gid;
 }

@@ -1,6 +1,5 @@
-/* Copyright (C) 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by David Mosberger-Tang <davidm@hpl.hp.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -112,8 +111,7 @@ __sigstack_longjmp (__jmp_buf buf, int val)
   jb_sp  = ((unsigned long *)  buf)[JB_SP];
   jb_bsp = ((unsigned long **) buf)[JB_BSP];
 
-  INTERNAL_SYSCALL_DECL (err);
-  (void) INTERNAL_SYSCALL (sigaltstack, err, 2, NULL, &stk);
+  INTERNAL_SYSCALL_CALL (sigaltstack, NULL, &stk);
 
   ss_sp = (unsigned long) stk.ss_sp;
   jb_rnat_addr = ia64_rse_rnat_addr (jb_bsp);

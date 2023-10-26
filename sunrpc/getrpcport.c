@@ -1,5 +1,5 @@
 /* Obtain the RPC port number for an RPC service on a host.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -66,3 +66,8 @@ getrpcport (const char *host, u_long prognum, u_long versnum, u_int proto)
     return 0;
   return pmap_getport (&addr, prognum, versnum, proto);
 }
+#ifdef SHARED
+# ifndef EXPORT_RPC_SYMBOLS
+compat_symbol (libc, getrpcport, getrpcport, GLIBC_2_0);
+# endif
+#endif

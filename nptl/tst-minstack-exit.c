@@ -1,5 +1,5 @@
 /* Test that pthread_exit works with the minimum stack size.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <support/check.h>
 #include <support/xthread.h>
+
+_Static_assert (__SC_THREAD_STACK_MIN_VALUE == _SC_THREAD_STACK_MIN,
+                "__SC_THREAD_STACK_MIN_VALUE is correct");
 
 static void *
 threadfunc (void *closure)

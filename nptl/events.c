@@ -1,5 +1,5 @@
 /* Event functions used while debugging.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,10 +24,10 @@ void
 __nptl_create_event (void)
 {
 }
-hidden_def (__nptl_create_event)
+libc_hidden_def (__nptl_create_event)
 
 void
 __nptl_death_event (void)
 {
 }
-hidden_def (__nptl_death_event)
+libc_hidden_def (__nptl_death_event)

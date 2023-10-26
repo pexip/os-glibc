@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,6 @@
 subdir          := nptl_db
 
 include ../Makeconfig
-
-nptl_db-version = 1.0
 
 extra-libs = libthread_db
 extra-libs-others := $(extra-libs)
@@ -51,13 +49,24 @@ libthread_db-inhibit-o = $(filter-out .os,$(object-suffixes))
 # The ps_* callback functions are not defined.
 libthread_db.so-no-z-defs = yes
 
+# This is a hack.  This is not the correct solution.  When this glibc
+# is tested, the gdb used could be loaded by the host glibc, which
+# may not support DT_RELR, and report a failure instead of unsupported.
+# For now, build this without DT_RELR support to avoid this situation.
+libthread_db.so-no-dt-relr = yes
+
 tests-special += $(objpfx)db-symbols.out
 
 include ../Rules
 
 $(objpfx)db-symbols.out: $(objpfx)db-symbols.v.i \
-			 $(common-objpfx)nptl/libpthread.so
-	LC_ALL=C $(READELF) -W -s $(filter %.so,$^) | $(AWK) -f $< > $@; \
+			 $(objpfx)libc.symlist-private
+	LC_ALL=C $(AWK) -f $^ > $@; \
 	$(evaluate-test)
 
 $(objpfx)db-symbols.v.i: db-symbols.awk
+
+$(objpfx)libc.symlist-private: $(..)scripts/abilist.awk \
+  $(common-objpfx)libc.dynsym
+	LC_ALL=C $(AWK) -v include_private=1 -f $^ > $@T
+	mv -f $@T $@

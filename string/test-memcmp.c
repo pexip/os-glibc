@@ -1,8 +1,6 @@
 /* Test and measure memcmp functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
-   Added wmemcmp support by Liubov Dmitrieva <liubov.dmitrieva@gmail.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,11 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #define TEST_MAIN
-#ifdef WIDE
+#ifdef TEST_MEMCMPEQ
+# define TEST_NAME "__memcmpeq"
+#elif defined WIDE
 # define TEST_NAME "wmemcmp"
 #else
 # define TEST_NAME "memcmp"
 #endif
+
 #include "test-string.h"
 #ifdef WIDE
 # include <inttypes.h>
@@ -37,8 +38,9 @@
 # define CHARBYTES 4
 # define CHAR__MIN WCHAR_MIN
 # define CHAR__MAX WCHAR_MAX
+
 int
-simple_wmemcmp (const wchar_t *s1, const wchar_t *s2, size_t n)
+SIMPLE_MEMCMP (const wchar_t *s1, const wchar_t *s2, size_t n)
 {
   int ret = 0;
   /* Warning!
@@ -50,10 +52,14 @@ simple_wmemcmp (const wchar_t *s1, const wchar_t *s2, size_t n)
 }
 #else
 # include <limits.h>
-
-# define MEMCMP memcmp
+# ifdef TEST_MEMCMPEQ
+#  define MEMCMP __memcmpeq
+#  define SIMPLE_MEMCMP simple_memcmpeq
+# else
+#  define MEMCMP memcmp
+#  define SIMPLE_MEMCMP simple_memcmp
+# endif
 # define MEMCPY memcpy
-# define SIMPLE_MEMCMP simple_memcmp
 # define CHAR char
 # define MAX_CHAR 255
 # define UCHAR unsigned char
@@ -62,7 +68,7 @@ simple_wmemcmp (const wchar_t *s1, const wchar_t *s2, size_t n)
 # define CHAR__MAX CHAR_MAX
 
 int
-simple_memcmp (const char *s1, const char *s2, size_t n)
+SIMPLE_MEMCMP (const char *s1, const char *s2, size_t n)
 {
   int ret = 0;
 
@@ -71,9 +77,14 @@ simple_memcmp (const char *s1, const char *s2, size_t n)
 }
 #endif
 
+#ifndef BAD_RESULT
+# define BAD_RESULT(result, expec)                                      \
+    (((result) == 0 && (expec)) || ((result) < 0 && (expec) >= 0) ||    \
+     ((result) > 0 && (expec) <= 0))
+# endif
+
 typedef int (*proto_t) (const CHAR *, const CHAR *, size_t);
 
-IMPL (SIMPLE_MEMCMP, 0)
 IMPL (MEMCMP, 1)
 
 static int
@@ -81,9 +92,7 @@ check_result (impl_t *impl, const CHAR *s1, const CHAR *s2, size_t len,
 	      int exp_result)
 {
   int result = CALL (impl, s1, s2, len);
-  if ((exp_result == 0 && result != 0)
-      || (exp_result < 0 && result >= 0)
-      || (exp_result > 0 && result <= 0))
+  if (BAD_RESULT(result, exp_result))
     {
       error (0, 0, "Wrong result in function %s %d %d", impl->name,
 	     result, exp_result);
@@ -111,11 +120,11 @@ do_test (size_t align1, size_t align2, size_t len, int exp_result)
   if (len == 0)
     return;
 
-  align1 &= 63;
+  align1 &= (4096 - CHARBYTES);
   if (align1 + (len + 1) * CHARBYTES >= page_size)
     return;
 
-  align2 &= 63;
+  align2 &= (4096 - CHARBYTES);
   if (align2 + (len + 1) * CHARBYTES >= page_size)
     return;
 
@@ -188,9 +197,7 @@ do_random_tests (void)
 	{
 	  r = CALL (impl, (CHAR *) p1 + align1, (const CHAR *) p2 + align2,
 		    len);
-	  if ((r == 0 && result)
-	      || (r < 0 && result >= 0)
-	      || (r > 0 && result <= 0))
+	  if (BAD_RESULT(r, result))
 	    {
 	      error (0, 0, "Iteration %zd - wrong result in function %s (%zd, %zd, %zd, %zd) %ld != %d, p1 %p p2 %p",
 		     n, impl->name, align1 * CHARBYTES & 63,  align2 * CHARBYTES & 63, len, pos, r, result, p1, p2);
@@ -487,18 +494,40 @@ test_main (void)
     printf ("\t%s", impl->name);
   putchar ('\n');
 
-  for (i = 1; i < 16; ++i)
+  for (i = 1; i < 32; ++i)
     {
       do_test (i * CHARBYTES, i * CHARBYTES, i, 0);
       do_test (i * CHARBYTES, i * CHARBYTES, i, 1);
       do_test (i * CHARBYTES, i * CHARBYTES, i, -1);
     }
 
-  for (i = 0; i < 16; ++i)
+  for (i = 0; i < 32; ++i)
     {
       do_test (0, 0, i, 0);
       do_test (0, 0, i, 1);
       do_test (0, 0, i, -1);
+      do_test (4096 - i, 0, i, 0);
+      do_test (4096 - i, 0, i, 1);
+      do_test (4096 - i, 0, i, -1);
+      do_test (4095, 0, i, 0);
+      do_test (4095, 0, i, 1);
+      do_test (4095, 0, i, -1);
+      do_test (4095, 4095, i, 0);
+      do_test (4095, 4095, i, 1);
+      do_test (4095, 4095, i, -1);
+      do_test (4000, 95, i, 0);
+      do_test (4000, 95, i, 1);
+      do_test (4000, 95, i, -1);
+    }
+
+  for (i = 33; i < 385; i += 32)
+    {
+      do_test (0, 0, i, 0);
+      do_test (0, 0, i, 1);
+      do_test (0, 0, i, -1);
+      do_test (i, 0, i, 0);
+      do_test (0, i, i, 1);
+      do_test (i, i, i, -1);
     }
 
   for (i = 1; i < 10; ++i)
@@ -506,13 +535,19 @@ test_main (void)
       do_test (0, 0, 2 << i, 0);
       do_test (0, 0, 2 << i, 1);
       do_test (0, 0, 2 << i, -1);
-      do_test (0, 0, 16 << i, 0);
       do_test ((8 - i) * CHARBYTES, (2 * i) * CHARBYTES, 16 << i, 0);
+      do_test (0, 0, 16 << i, 0);
       do_test (0, 0, 16 << i, 1);
       do_test (0, 0, 16 << i, -1);
+      do_test (i, 0, 2 << i, 0);
+      do_test (0, i, 2 << i, 1);
+      do_test (i, i, 2 << i, -1);
+      do_test (i, 0, 16 << i, 0);
+      do_test (0, i, 16 << i, 1);
+      do_test (i, i, 16 << i, -1);
     }
 
-  for (i = 1; i < 8; ++i)
+  for (i = 1; i < 10; ++i)
     {
       do_test (i * CHARBYTES, 2 * (i * CHARBYTES), 8 << i, 0);
       do_test (i * CHARBYTES, 2 * (i * CHARBYTES), 8 << i, 1);

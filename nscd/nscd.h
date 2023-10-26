@@ -1,6 +1,5 @@
-/* Copyright (c) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Thorsten Kukuk <kukuk@suse.de>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -364,6 +363,8 @@ extern void gc (struct database_dyn *db);
 /* nscd_setup_thread.c */
 extern int setup_thread (struct database_dyn *db);
 
+/* cachedumper.c */
+extern void nscd_print_cache (const char *name);
 
 /* Special version of TEMP_FAILURE_RETRY for functions returning error
    values.  */

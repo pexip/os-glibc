@@ -1,5 +1,5 @@
 /* Increase the size of a dynamic array.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 
 #include <dynarray.h>
 #include <errno.h>
+#include <intprops.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,7 +38,7 @@ __libc_dynarray_resize (struct dynarray_header *list, size_t size,
      over-allocation here.  */
 
   size_t new_size_bytes;
-  if (__builtin_mul_overflow (size, element_size, &new_size_bytes))
+  if (INT_MULTIPLY_WRAPV (size, element_size, &new_size_bytes))
     {
       /* Overflow.  */
       __set_errno (ENOMEM);

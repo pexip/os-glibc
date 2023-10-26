@@ -1,5 +1,5 @@
 /* Linux implementation of preadv2 (LFS version).
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,20 +19,15 @@
 #include <sys/uio.h>
 #include <sysdep-cancel.h>
 
-#if !defined(__NR_preadv64v2) && defined(__NR_preadv2)
-# define __NR_preadv64v2 __NR_preadv2
-#endif
-
 ssize_t
 preadv64v2 (int fd, const struct iovec *vector, int count, off64_t offset,
 	    int flags)
 {
-#ifdef __NR_preadv64v2
-  ssize_t result = SYSCALL_CANCEL (preadv64v2, fd, vector, count,
+  ssize_t result = SYSCALL_CANCEL (preadv2, fd, vector, count,
 				   LO_HI_LONG (offset), flags);
   if (result >= 0 || errno != ENOSYS)
     return result;
-#endif
+
   /* Trying to emulate the preadv2 syscall flags is troublesome:
 
      * We can not temporary change the file state of the O_DSYNC and O_SYNC

@@ -1,5 +1,5 @@
 /* Minimal /bin/sh for in-container use.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -93,8 +93,9 @@ copy_func (char **argv)
 {
   char *sname = argv[0];
   char *dname = argv[1];
-  int sfd, dfd;
+  int sfd = -1, dfd = -1;
   struct stat st;
+  int ret = 1;
 
   sfd = open (sname, O_RDONLY);
   if (sfd < 0)
@@ -108,7 +109,7 @@ copy_func (char **argv)
     {
       fprintf (stderr, "cp: unable to fstat %s: %s\n",
 	       sname, strerror (errno));
-      return 1;
+      goto out;
     }
 
   dfd = open (dname, O_WRONLY | O_TRUNC | O_CREAT, 0600);
@@ -116,23 +117,58 @@ copy_func (char **argv)
     {
       fprintf (stderr, "cp: unable to open %s for writing: %s\n",
 	       dname, strerror (errno));
-      return 1;
+      goto out;
     }
 
   if (support_copy_file_range (sfd, 0, dfd, 0, st.st_size, 0) != st.st_size)
     {
       fprintf (stderr, "cp: cannot copy file %s to %s: %s\n",
 	       sname, dname, strerror (errno));
-      return 1;
+      goto out;
     }
 
-  close (sfd);
-  close (dfd);
-
+  ret = 0;
   chmod (dname, st.st_mode & 0777);
 
-  return 0;
+out:
+  if (sfd >= 0)
+    close (sfd);
+  if (dfd >= 0)
+    close (dfd);
 
+  return ret;
+
+}
+
+/* Emulate the 'exit' builtin.  The exit value is optional.  */
+static int
+exit_func (char **argv)
+{
+  int exit_val = 0;
+
+  if (argv[0] != 0)
+    exit_val = atoi (argv[0]) & 0xff;
+  exit (exit_val);
+  return 0;
+}
+
+/* Emulate the "/bin/kill" command.  Options are ignored.  */
+static int
+kill_func (char **argv)
+{
+  int signum = SIGTERM;
+  int i;
+
+  for (i = 0; argv[i]; i++)
+    {
+      pid_t pid;
+      if (strcmp (argv[i], "$$") == 0)
+	pid = getpid ();
+      else
+	pid = atoi (argv[i]);
+      kill (pid, signum);
+    }
+  return 0;
 }
 
 /* This is a list of all the built-in commands we understand.  */
@@ -143,6 +179,8 @@ static struct {
   { "true", true_func },
   { "echo", echo_func },
   { "cp", copy_func },
+  { "exit", exit_func },
+  { "kill", kill_func },
   { NULL, NULL }
 };
 
@@ -228,7 +266,7 @@ run_command_array (char **argv)
       if (new_stderr != 2)
 	{
 	  dup2 (new_stderr, 2);
-	  close (new_stdout);
+	  close (new_stderr);
 	}
 
       if (builtin_func != NULL)
@@ -238,7 +276,7 @@ run_command_array (char **argv)
 
       fprintf (stderr, "sh: execing %s failed: %s",
 	       argv[0], strerror (errno));
-      exit (1);
+      exit (127);
     }
 
   waitpid (pid, &status, 0);
@@ -250,6 +288,11 @@ run_command_array (char **argv)
       int rv = WEXITSTATUS (status);
       if (rv)
 	exit (rv);
+    }
+  else if (WIFSIGNALED (status))
+    {
+      int sig = WTERMSIG (status);
+      raise (sig);
     }
   else
     exit (1);

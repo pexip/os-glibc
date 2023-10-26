@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,13 +29,18 @@ __pthread_attr_destroy (pthread_attr_t *attr)
   iattr = (struct pthread_attr *) attr;
 
 #if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_1)
-  /* In old struct pthread_attr, neither next nor cpuset are
-     present.  */
+  /* In old struct pthread_attr, the extension member is missing.  */
   if (__builtin_expect ((iattr->flags & ATTR_FLAG_OLDATTR), 0) == 0)
 #endif
-    /* The affinity CPU set might be allocated dynamically.  */
-    free (iattr->cpuset);
+    {
+      if (iattr->extension != NULL)
+        {
+          free (iattr->extension->cpuset);
+          free (iattr->extension);
+        }
+    }
 
   return 0;
 }
-strong_alias (__pthread_attr_destroy, pthread_attr_destroy)
+libc_hidden_def (__pthread_attr_destroy)
+weak_alias (__pthread_attr_destroy, pthread_attr_destroy)

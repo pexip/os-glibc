@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Chris Metcalf <cmetcalf@tilera.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,7 +16,9 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sys/sendfile.h>
+#include <stddef.h>
 #include <errno.h>
+#include <sysdep.h>
 
 /* Send COUNT bytes from file associated with IN_FD starting at OFFSET to
    descriptor OUT_FD.  */

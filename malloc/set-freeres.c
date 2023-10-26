@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,16 +19,26 @@
 #include <stdlib.h>
 #include <set-hooks.h>
 #include <libc-internal.h>
+#include <unwind-link.h>
+#include <dlfcn/dlerror.h>
+#include <ldsodefs.h>
 
+#include "../nss/nsswitch.h"
 #include "../libio/libioP.h"
 
 DEFINE_HOOK (__libc_subfreeres, (void));
 
 symbol_set_define (__libc_freeres_ptrs);
 
-extern __attribute__ ((weak)) void __libdl_freeres (void);
-
-extern __attribute__ ((weak)) void __libpthread_freeres (void);
+extern void __libpthread_freeres (void)
+#if PTHREAD_IN_LIBC && defined SHARED
+/* It is possible to call __libpthread_freeres directly in shared
+   builds with an integrated libpthread.  */
+  attribute_hidden
+#else
+  __attribute__ ((weak))
+#endif
+  ;
 
 void __libc_freeres_fn_section
 __libc_freeres (void)
@@ -41,20 +51,26 @@ __libc_freeres (void)
     {
       void *const *p;
 
+      call_function_static_weak (__nss_module_freeres);
+      call_function_static_weak (__nss_action_freeres);
+      call_function_static_weak (__nss_database_freeres);
+
       _IO_cleanup ();
 
       /* We run the resource freeing after IO cleanup.  */
       RUN_HOOK (__libc_subfreeres, ());
 
-      /* Call the libdl list of cleanup functions
-	 (weak-ref-and-check).  */
-      if (&__libdl_freeres != NULL)
-	__libdl_freeres ();
+      call_function_static_weak (__libpthread_freeres);
 
-      /* Call the libpthread list of cleanup functions
-	 (weak-ref-and-check).  */
-      if (&__libpthread_freeres != NULL)
-	__libpthread_freeres ();
+#ifdef SHARED
+      __libc_unwind_link_freeres ();
+#endif
+
+      call_function_static_weak (__libc_dlerror_result_free);
+
+#ifdef SHARED
+      GLRO (dl_libc_freeres) ();
+#endif
 
       for (p = symbol_set_first_element (__libc_freeres_ptrs);
            !symbol_set_end_p (__libc_freeres_ptrs, p); ++p)

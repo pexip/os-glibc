@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,12 +35,8 @@ ___gettimeofday (struct timeval *restrict tv, void *restrict tz)
   TIMESPEC_TO_TIMEVAL (tv, &ts);
   return 0;
 }
-
-#ifdef VERSION_gettimeofday
-weak_alias (___gettimeofday, __wgettimeofday);
-default_symbol_version (___gettimeofday, __gettimeofday, VERSION_gettimeofday);
-default_symbol_version (__wgettimeofday,   gettimeofday, VERSION_gettimeofday);
-#else
+/* Define to override default symbol version.  */
+#ifndef SET_VERSION
 strong_alias (___gettimeofday, __gettimeofday)
 weak_alias (___gettimeofday, gettimeofday)
 #endif

@@ -1,6 +1,5 @@
-/* Copyright (C) 2004-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,6 +24,7 @@
 #include <nsswitch.h>
 #include <resolv/resolv_context.h>
 #include <resolv/resolv-internal.h>
+#include <nss_dns.h>
 
 #if PACKETSZ > 65536
 # define MAXPACKET	PACKETSZ
@@ -88,7 +88,7 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
 	  unsigned char *endptr = ansp.ptr + r;
 
 	  /* Skip over the query.  This is the name, type, and class.  */
-	  int s = __dn_skipname (ptr, endptr);
+	  int s = __libc_dn_skipname (ptr, endptr);
 	  if (s < 0)
 	    {
 	    unavail:
@@ -106,7 +106,7 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
 		 then type, class, TTL, and the length of the RDATA.
 		 We remember the name start.  */
 	      unsigned char *namestart = ptr;
-	      s = __dn_skipname (ptr, endptr);
+	      s = __libc_dn_skipname (ptr, endptr);
 	      if (s < 0)
 		goto unavail;
 
@@ -118,13 +118,13 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
 		goto unavail;
 
 	      /* Check whether type and class match.  */
-	      uint_fast16_t type;
+	      short int type;
 	      NS_GET16 (type, ptr);
 	      if (type == qtypes[i])
 		{
 		  /* We found the record.  */
-		  s = __dn_expand (ansp.buf->buf, endptr, namestart,
-				   buffer, buflen);
+		  s = __libc_dn_expand (ansp.buf->buf, endptr, namestart,
+					buffer, buflen);
 		  if (s < 0)
 		    {
 		      if (errno != EMSGSIZE)
@@ -148,15 +148,18 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
 	      if (type != ns_t_cname)
 		goto unavail;
 
-	      if (__ns_get16 (ptr) != ns_c_in)
+	      uint16_t rrclass;
+	      NS_GET16 (rrclass, ptr);
+	      if (rrclass != ns_c_in)
 		goto unavail;
 
-	      /* Also skip over class and TTL.  */
-	      ptr += sizeof (uint16_t) + sizeof (uint32_t);
+	      /* Skip over TTL.  */
+	      ptr += sizeof (uint32_t);
 
 	      /* Skip over RDATA length and RDATA itself.  */
-	      uint16_t rdatalen = __ns_get16 (ptr);
-	      ptr += sizeof (uint16_t);
+	      uint16_t rdatalen;
+	      NS_GET16 (rdatalen, ptr);
+
 	      /* Not enough room for RDATA.  */
 	      if (endptr - ptr < rdatalen)
 		goto unavail;
@@ -180,3 +183,4 @@ _nss_dns_getcanonname_r (const char *name, char *buffer, size_t buflen,
   __resolv_context_put (ctx);
   return status;
 }
+libc_hidden_def (_nss_dns_getcanonname_r)

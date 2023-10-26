@@ -1,5 +1,5 @@
 /* arch_fork definition for Linux fork implementation.
-   Copyright (C) 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2014-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,9 @@
 #ifndef __ARCH_FORK_H
 #define __ARCH_FORK_H
 
+#include <sysdep.h>
+#include <sched.h>
+#include <signal.h>
 #include <unistd.h>
 
 /* Call the clone syscall with fork semantic.  The CTID address is used

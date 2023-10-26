@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,8 +26,6 @@
 
 #include <aio_misc.h>
 
-#ifdef __NR_rt_sigqueueinfo
-
 /* Return any pending signal or wait for one for the given time.  */
 int
 __aio_sigqueue (int sig, const union sigval val, pid_t caller_pid)
@@ -41,11 +39,8 @@ __aio_sigqueue (int sig, const union sigval val, pid_t caller_pid)
   info.si_signo = sig;
   info.si_code = SI_ASYNCIO;
   info.si_pid = caller_pid;
-  info.si_uid = getuid ();
+  info.si_uid = __getuid ();
   info.si_value = val;
 
   return INLINE_SYSCALL (rt_sigqueueinfo, 3, info.si_pid, sig, &info);
 }
-#else
-# include <rt/aio_sigqueue.c>
-#endif

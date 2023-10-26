@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,10 +21,10 @@
 #include <sched.h>
 #include "pthreadP.h"
 #include <lowlevellock.h>
-
+#include <shlib-compat.h>
 
 int
-pthread_setschedprio (pthread_t threadid, int prio)
+__pthread_setschedprio (pthread_t threadid, int prio)
 {
   struct pthread *pd = (struct pthread *) threadid;
 
@@ -47,7 +46,7 @@ pthread_setschedprio (pthread_t threadid, int prio)
     param.sched_priority = pd->tpp->priomax;
 
   /* Try to set the scheduler information.  */
-  if (__glibc_unlikely (sched_setparam (pd->tid, &param) == -1))
+  if (__glibc_unlikely (__sched_setparam (pd->tid, &param) == -1))
     result = errno;
   else
     {
@@ -62,3 +61,10 @@ pthread_setschedprio (pthread_t threadid, int prio)
 
   return result;
 }
+versioned_symbol (libc, __pthread_setschedprio, pthread_setschedprio,
+		  GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_3_4, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_setschedprio, pthread_setschedprio,
+	       GLIBC_2_3_4);
+#endif

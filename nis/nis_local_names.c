@@ -1,6 +1,5 @@
-/* Copyright (c) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Thorsten Kukuk <kukuk@vt.uni-paderborn.de>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +30,7 @@ nis_local_group (void)
   char *cptr;
   if (__nisgroup[0] == '\0'
       && (cptr = getenv ("NIS_GROUP")) != NULL
+      && cptr[0] != '\0'
       && strlen (cptr) < NIS_MAXNAMELEN)
     {
       char *cp = stpcpy (__nisgroup, cptr);

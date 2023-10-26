@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,18 +15,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
 #include <signal.h>
-#include <unistd.h>
-
 #include <sysdep.h>
-#include <sys/syscall.h>
-
+#include <sigsetops.h>
 
 /* Change the set of blocked signals to SET,
    wait until a signal arrives, and restore the set of blocked signals.  */
 int
 sigpending (sigset_t *set)
 {
-  return INLINE_SYSCALL (rt_sigpending, 2, set, _NSIG / 8);
+  return INLINE_SYSCALL_CALL (rt_sigpending, set, __NSIG_BYTES);
 }

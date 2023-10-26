@@ -1,7 +1,6 @@
 /* Skeleton for a conversion module.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -795,11 +794,13 @@ FUNCTION_NAME (struct __gconv_step *step, struct __gconv_step_data *data,
 # else
 	  /* Make sure the remaining bytes fit into the state objects
 	     buffer.  */
-	  assert (inend - *inptrp < 4);
+	  size_t cnt_after = inend - *inptrp;
+	  assert (cnt_after <= sizeof (data->__statep->__value.__wchb));
 
 	  size_t cnt;
-	  for (cnt = 0; *inptrp < inend; ++cnt)
-	    data->__statep->__value.__wchb[cnt] = *(*inptrp)++;
+	  for (cnt = 0; cnt < cnt_after; ++cnt)
+	    data->__statep->__value.__wchb[cnt] = (*inptrp)[cnt];
+	  *inptrp = inend;
 	  data->__statep->__count &= ~7;
 	  data->__statep->__count |= cnt;
 # endif

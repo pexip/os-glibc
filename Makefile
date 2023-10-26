@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2020 Free Software Foundation, Inc.
+# Copyright (C) 1991-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@ endif # $(AUTOCONF) = no
 		   subdir_objs subdir_stubs subdir_testclean		\
 		   $(addprefix install-, no-libc.a bin lib data headers others)
 
-headers := limits.h values.h features.h gnu-versions.h \
+headers := limits.h values.h features.h features-time64.h gnu-versions.h \
 	   bits/xopen_lim.h gnu/libc-version.h stdc-predef.h \
 	   bits/libc-header-start.h
 
@@ -109,12 +109,6 @@ elf/ldso_install:
 # Ignore the error if we cannot update /etc/ld.so.cache.
 ifeq (no,$(cross-compiling))
 ifeq (yes,$(build-shared))
-install: install-symbolic-link
-.PHONY: install-symbolic-link
-install-symbolic-link: subdir_install
-	$(symbolic-link-prog) $(symbolic-link-list)
-	rm -f $(symbolic-link-list)
-
 install:
 	-test ! -x $(elf-objpfx)ldconfig || LC_ALL=C \
 	  $(elf-objpfx)ldconfig $(addprefix -r ,$(install_root)) \
@@ -144,8 +138,15 @@ builddir=`dirname "$$0"`
 GCONV_PATH="$${builddir}/iconvdata"
 
 usage () {
-  echo "usage: $$0 [--tool=strace] PROGRAM [ARGUMENTS...]" 2>&1
-  echo "       $$0 --tool=valgrind PROGRAM [ARGUMENTS...]" 2>&1
+cat << EOF
+Usage: $$0 [OPTIONS] <program> [ARGUMENTS...]
+
+  --tool=TOOL  Run with the specified TOOL. It can be strace, rpctrace,
+               valgrind or container. The container will run within
+               support/test-container.  For strace and valgrind,
+               additional arguments can be passed after the tool name.
+EOF
+
   exit 1
 }
 
@@ -174,12 +175,16 @@ case "$$toolname" in
     exec $(subst $(common-objdir),"$${builddir}", $(test-program-prefix)) \
       $${1+"$$@"}
     ;;
-  strace)
-    exec strace $(patsubst %, -E%, $(run-program-env)) \
+  strace*)
+    exec $$toolname $(patsubst %, -E%, $(run-program-env)) \
       $(test-via-rtld-prefix) $${1+"$$@"}
     ;;
-  valgrind)
-    exec env $(run-program-env) valgrind $(test-via-rtld-prefix) $${1+"$$@"}
+  rpctrace)
+    exec rpctrace $(patsubst %, -E%, $(run-program-env)) \
+      $(test-via-rtld-prefix) $${1+"$$@"}
+    ;;
+  valgrind*)
+    exec env $(run-program-env) $$toolname $(test-via-rtld-prefix) $${1+"$$@"}
     ;;
   container)
     exec env $(run-program-env) $(test-via-rtld-prefix) \
@@ -303,6 +308,15 @@ if [ ! -v TESTCASE ] || [ ! -f $${TESTCASE} ]
 then
   usage
   exit 1
+fi
+
+# Container tests needing locale data should install them in-container.
+# Other tests/binaries need to use locale data from the build tree.
+if [ "$$CONTAINER" = false ]
+then
+  ENVVARS="GCONV_PATH=$${BUILD_DIR}/iconvdata $$ENVVARS"
+  ENVVARS="LOCPATH=$${BUILD_DIR}/localedata $$ENVVARS"
+  ENVVARS="LC_ALL=C $$ENVVARS"
 fi
 
 # Expand environment setup command
@@ -551,10 +565,10 @@ $(objpfx)check-wrapper-headers.out: scripts/check-wrapper-headers.py $(headers)
 endif # $(headers)
 
 define summarize-tests
-@egrep -v '^(PASS|XFAIL):' $(objpfx)$1 || true
+@grep -E -v '^(PASS|XFAIL):' $(objpfx)$1 || true
 @echo "Summary of test results$2:"
 @sed 's/:.*//' < $(objpfx)$1 | sort | uniq -c
-@! egrep -q -v '^(X?PASS|XFAIL|UNSUPPORTED):' $(objpfx)$1
+@! grep -E -q -v '^(X?PASS|XFAIL|UNSUPPORTED):' $(objpfx)$1
 endef
 
 # The intention here is to do ONE install of our build into the
@@ -588,6 +602,9 @@ $(objpfx)testroot.pristine/install.stamp :
 	# We need a working /bin/sh for some of the tests.
 	test -d $(objpfx)testroot.pristine/bin || \
 	  mkdir $(objpfx)testroot.pristine/bin
+	# We need the compiled locale dir for localedef tests.
+	test -d $(objpfx)testroot.pristine/$(complocaledir) || \
+	  mkdir -p $(objpfx)testroot.pristine/$(complocaledir)
 	cp $(objpfx)support/shell-container $(objpfx)testroot.pristine/bin/sh
 	cp $(objpfx)support/echo-container $(objpfx)testroot.pristine/bin/echo
 	cp $(objpfx)support/true-container $(objpfx)testroot.pristine/bin/true

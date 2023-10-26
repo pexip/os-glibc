@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,9 +27,7 @@ _exit (int status)
 {
   while (1)
     {
-#ifdef __NR_exit_group
       INLINE_SYSCALL (exit_group, 1, status);
-#endif
       INLINE_SYSCALL (exit, 1, status);
 
 #ifdef ABORT_INSTRUCTION

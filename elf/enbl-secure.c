@@ -1,5 +1,5 @@
 /* Define and initialize the `__libc_enable_secure' flag.  Generic version.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,18 +19,12 @@
 /* This file is used in the static libc.  For the shared library,
    dl-sysdep.c defines and initializes __libc_enable_secure.  */
 
-#include <unistd.h>
+/* Mark symbols hidden in static PIE for early self relocation to work.  */
+#if BUILD_PIE_DEFAULT
+# pragma GCC visibility push(hidden)
+#endif
+#include <startup.h>
 #include <libc-internal.h>
 
-/* If nonzero __libc_enable_secure is already set.  */
-int __libc_enable_secure_decided;
 /* Safest assumption, if somehow the initializer isn't run.  */
 int __libc_enable_secure = 1;
-
-void
-__libc_init_secure (void)
-{
-  if (__libc_enable_secure_decided == 0)
-    __libc_enable_secure = (__geteuid () != __getuid ()
-			    || __getegid () != __getgid ());
-}

@@ -1,7 +1,6 @@
 /* Test freopen with mmap stdio.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,6 +80,42 @@ do_test_basic (void)
   fclose (f);
 }
 
+#if defined __GNUC__ && __GNUC__ >= 11
+/* Force an error to detect incorrectly making freopen a deallocator
+   for its last argument via attribute malloc.  The function closes
+   the stream without deallocating it so either the argument or
+   the pointer returned from the function (but not both) can be passed
+   to fclose.  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic error "-Wmismatched-dealloc"
+#endif
+
+/* Verify that freopen returns stream.  */
+static void
+do_test_return_stream (void)
+{
+  FILE *f1 = fopen (name, "r");
+  if (f1 == NULL)
+    FAIL_EXIT1 ("fopen: %m");
+
+  FILE *f2 = freopen (name, "r+", f1);
+  if (f2 == NULL)
+    FAIL_EXIT1 ("freopen: %m");
+
+  /* Verify that freopen isn't declared with the no-argument attribute
+     malloc (which could let GCC fold the inequality to false).  */
+  if (f1 != f2)
+    FAIL_EXIT1 ("freopen returned a different stream");
+
+  /* This shouldn't trigger -Wmismatched-dealloc.  */
+  fclose (f1);
+}
+
+#if defined __GNUC__ && __GNUC__ >= 11
+/* Pop -Wmismatched-dealloc set to error above.  */
+# pragma GCC diagnostic pop
+#endif
+
 /* Test for BZ#21398, where it tries to freopen stdio after the close
    of its file descriptor.  */
 static void
@@ -105,6 +140,7 @@ do_test (void)
 {
   do_test_basic ();
   do_test_bz21398 ();
+  do_test_return_stream ();
 
   return 0;
 }

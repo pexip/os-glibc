@@ -1,5 +1,5 @@
 /* utimes -- change file timestamps.  Linux/Alpha/tv32 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,13 +25,13 @@
 #include <tv32-compat.h>
 
 int
-__getrusage_tv32 (int who, struct rusage32 *usage32)
+__getrusage_tv32 (int who, struct __rusage32 *usage32)
 {
-  struct rusage usage64;
-  if (__getrusage (who, &usage64) == -1)
+  struct rusage usage;
+  if (__getrusage (who, &usage) == -1)
     return -1;
 
-  rusage64_to_rusage32 (usage32, &usage64);
+  rusage64_to_rusage32 (&usage, usage32);
   return 0;
 }
 

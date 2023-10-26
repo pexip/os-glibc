@@ -1,7 +1,6 @@
 /* Find path of executable.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,11 +36,10 @@ _dl_get_origin (void)
   char linkval[PATH_MAX];
   char *result;
   int len;
-  INTERNAL_SYSCALL_DECL (err);
 
-  len = INTERNAL_SYSCALL (readlink, err, 3, "/proc/self/exe", linkval,
-			  sizeof (linkval));
-  if (! INTERNAL_SYSCALL_ERROR_P (len, err) && len > 0 && linkval[0] != '[')
+  len = INTERNAL_SYSCALL_CALL (readlink, "/proc/self/exe", linkval,
+			       sizeof (linkval));
+  if (! INTERNAL_SYSCALL_ERROR_P (len) && len > 0 && linkval[0] != '[')
     {
       /* We can use this value.  */
       assert (linkval[0] == '/');

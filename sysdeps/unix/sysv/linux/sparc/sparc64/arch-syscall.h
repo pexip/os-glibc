@@ -27,6 +27,7 @@
 #define __NR_clock_settime 256
 #define __NR_clone 217
 #define __NR_close 6
+#define __NR_close_range 436
 #define __NR_connect 98
 #define __NR_copy_file_range 357
 #define __NR_creat 8
@@ -39,6 +40,7 @@
 #define __NR_epoll_create1 319
 #define __NR_epoll_ctl 194
 #define __NR_epoll_pwait 309
+#define __NR_epoll_pwait2 441
 #define __NR_epoll_wait 195
 #define __NR_eventfd 313
 #define __NR_eventfd2 318
@@ -48,6 +50,7 @@
 #define __NR_exit 1
 #define __NR_exit_group 188
 #define __NR_faccessat 296
+#define __NR_faccessat2 439
 #define __NR_fadvise64 209
 #define __NR_fadvise64_64 210
 #define __NR_fallocate 314
@@ -79,6 +82,7 @@
 #define __NR_fsync 95
 #define __NR_ftruncate 130
 #define __NR_futex 142
+#define __NR_futex_waitv 449
 #define __NR_futimesat 288
 #define __NR_get_kernel_syms 223
 #define __NR_get_mempolicy 304
@@ -135,6 +139,9 @@
 #define __NR_kexec_load 306
 #define __NR_keyctl 283
 #define __NR_kill 37
+#define __NR_landlock_add_rule 445
+#define __NR_landlock_create_ruleset 444
+#define __NR_landlock_restrict_self 446
 #define __NR_lchown 16
 #define __NR_lgetxattr 173
 #define __NR_link 9
@@ -164,6 +171,7 @@
 #define __NR_mlockall 239
 #define __NR_mmap 71
 #define __NR_mount 167
+#define __NR_mount_setattr 442
 #define __NR_move_mount 429
 #define __NR_move_pages 307
 #define __NR_mprotect 74
@@ -191,12 +199,14 @@
 #define __NR_open_by_handle_at 333
 #define __NR_open_tree 428
 #define __NR_openat 284
+#define __NR_openat2 437
 #define __NR_pause 29
 #define __NR_pciconfig_read 148
 #define __NR_pciconfig_write 149
 #define __NR_perf_event_open 327
 #define __NR_perfctr 18
 #define __NR_personality 191
+#define __NR_pidfd_getfd 438
 #define __NR_pidfd_open 434
 #define __NR_pidfd_send_signal 424
 #define __NR_pipe 42
@@ -212,6 +222,8 @@
 #define __NR_preadv 324
 #define __NR_preadv2 358
 #define __NR_prlimit64 331
+#define __NR_process_madvise 440
+#define __NR_process_mrelease 448
 #define __NR_process_vm_readv 338
 #define __NR_process_vm_writev 339
 #define __NR_pselect6 297
@@ -221,6 +233,7 @@
 #define __NR_pwritev2 359
 #define __NR_query_module 184
 #define __NR_quotactl 165
+#define __NR_quotactl_fd 443
 #define __NR_read 3
 #define __NR_readahead 205
 #define __NR_readdir 204
@@ -273,6 +286,7 @@
 #define __NR_sendmsg 114
 #define __NR_sendto 133
 #define __NR_set_mempolicy 305
+#define __NR_set_mempolicy_home_node 450
 #define __NR_set_robust_list 300
 #define __NR_set_tid_address 166
 #define __NR_setdomainname 163

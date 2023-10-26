@@ -1,6 +1,6 @@
 /* Check compatibility of CET-enabled executable with dlopened legacy
    shared object.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,6 +22,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <x86intrin.h>
+#include <support/check.h>
+
+#if defined CET_IS_PERMISSIVE || defined CET_DISABLED_BY_ENV
+# define CET_MAYBE_DISABLED 1
+#else
+# define CET_MAYBE_DISABLED 0
+#endif
 
 static void
 do_test_1 (const char *modname, bool fail)
@@ -29,25 +37,30 @@ do_test_1 (const char *modname, bool fail)
   int (*fp) (void);
   void *h;
 
+  /* NB: dlopen should never fail on non-CET platforms.  If SHSTK is
+     disabled, assuming IBT is also disabled.  */
+  bool cet_enabled = _get_ssp () != 0 && !CET_MAYBE_DISABLED;
+  if (!cet_enabled)
+    fail = false;
+
   h = dlopen (modname, RTLD_LAZY);
   if (h == NULL)
     {
+      const char *err = dlerror ();
       if (fail)
 	{
-	  const char *err = dlerror ();
-	  if (strstr (err, "shadow stack isn't enabled") == NULL)
-	    {
-	      printf ("incorrect dlopen '%s' error: %s\n", modname,
-		      dlerror ());
-	      exit (1);
-	    }
+	  if (strstr (err, "rebuild shared object with SHSTK support enabled")
+	      == NULL)
+	    FAIL_EXIT1 ("incorrect dlopen '%s' error: %s\n", modname, err);
 
 	  return;
 	}
 
-      printf ("cannot open '%s': %s\n", modname, dlerror ());
-      exit (1);
+      FAIL_EXIT1 ("cannot open '%s': %s\n", modname, err);
     }
+
+  if (fail)
+    FAIL_EXIT1 ("dlopen should have failed\n");
 
   fp = dlsym (h, "test");
   if (fp == NULL)

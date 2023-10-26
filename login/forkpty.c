@@ -1,6 +1,5 @@
-/* Copyright (C) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Zack Weinberg <zack@rabi.phys.columbia.edu>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,34 +20,41 @@
 #include <unistd.h>
 #include <utmp.h>
 #include <pty.h>
+#include <shlib-compat.h>
 
 int
-forkpty (int *amaster, char *name, const struct termios *termp,
-	 const struct winsize *winp)
+__forkpty (int *pptmx, char *name, const struct termios *termp,
+	   const struct winsize *winp)
 {
-  int master, slave, pid;
+  int ptmx, terminal, pid;
 
-  if (openpty (&master, &slave, name, termp, winp) == -1)
+  if (openpty (&ptmx, &terminal, name, termp, winp) == -1)
     return -1;
 
-  switch (pid = fork ())
+  switch (pid = __fork ())
     {
     case -1:
-      close (master);
-      close (slave);
+      __close (ptmx);
+      __close (terminal);
       return -1;
     case 0:
       /* Child.  */
-      close (master);
-      if (login_tty (slave))
+      __close (ptmx);
+      if (login_tty (terminal))
 	_exit (1);
 
       return 0;
     default:
       /* Parent.  */
-      *amaster = master;
-      close (slave);
+      *pptmx = ptmx;
+      __close (terminal);
 
       return pid;
     }
 }
+versioned_symbol (libc, __forkpty, forkpty, GLIBC_2_34);
+libc_hidden_ver (__forkpty, forkpty)
+
+#if OTHER_SHLIB_COMPAT (libutil, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libutil, __forkpty, forkpty, GLIBC_2_0);
+#endif

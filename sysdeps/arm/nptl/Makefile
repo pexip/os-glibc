@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2020 Free Software Foundation, Inc.
+# Copyright (C) 2005-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -15,14 +15,7 @@
 # License along with the GNU C Library.  If not, see
 # <https://www.gnu.org/licenses/>.
 
-ifeq ($(subdir),csu)
-gen-as-const-headers += tcb-offsets.sym
-endif
-
 ifeq ($(subdir),nptl)
-libpthread-sysdep_routines += nptl-aeabi_unwind_cpp_pr1
-libpthread-shared-only-routines += nptl-aeabi_unwind_cpp_pr1
-
 # This test relies on compiling part of the binary with EH information,
 # part without, and unwinding through.  The .ARM.exidx tables have
 # start addresses for EH regions, but no end addresses.  Every

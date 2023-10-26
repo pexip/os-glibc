@@ -1,7 +1,6 @@
 /* Thread Priority Protect helpers.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2006.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,9 +24,10 @@
 #include <stdlib.h>
 #include <atomic.h>
 
-
 int __sched_fifo_min_prio = -1;
+libc_hidden_data_def (__sched_fifo_min_prio)
 int __sched_fifo_max_prio = -1;
+libc_hidden_data_def (__sched_fifo_max_prio)
 
 /* We only want to initialize __sched_fifo_min_prio and __sched_fifo_max_prio
    once.  The standard solution would be similar to pthread_once, but then
@@ -47,6 +47,7 @@ __init_sched_fifo_prio (void)
   atomic_store_relaxed (&__sched_fifo_min_prio,
 			__sched_get_priority_min (SCHED_FIFO));
 }
+libc_hidden_def (__init_sched_fifo_prio)
 
 int
 __pthread_tpp_change_priority (int previous_prio, int new_prio)
@@ -155,6 +156,7 @@ __pthread_tpp_change_priority (int previous_prio, int new_prio)
 
   return result;
 }
+libc_hidden_def (__pthread_tpp_change_priority)
 
 int
 __pthread_current_priority (void)
@@ -193,3 +195,4 @@ __pthread_current_priority (void)
 
   return result;
 }
+libc_hidden_def (__pthread_current_priority)

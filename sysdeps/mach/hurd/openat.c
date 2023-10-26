@@ -1,5 +1,5 @@
 /* openat -- Open a file named relative to an open directory.  Hurd version.
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <hurd.h>
 #include <hurd/fd.h>
+#include <sysdep-cancel.h>
 
 /* Open FILE with access OFLAG.  Interpret relative paths relative to
    the directory associated with FD.  If O_CREAT or O_TMPFILE is in OFLAG, a
@@ -33,6 +34,7 @@ __openat (int fd, const char *file, int oflag, ...)
 {
   mode_t mode;
   io_t port;
+  int cancel_oldtype;
 
   if (__OPEN_NEEDS_MODE (oflag))
     {
@@ -44,7 +46,10 @@ __openat (int fd, const char *file, int oflag, ...)
   else
     mode = 0;
 
+  cancel_oldtype = LIBC_CANCEL_ASYNC();
   port = __file_name_lookup_at (fd, 0, file, oflag, mode);
+  LIBC_CANCEL_RESET (cancel_oldtype);
+
   if (port == MACH_PORT_NULL)
     return -1;
 

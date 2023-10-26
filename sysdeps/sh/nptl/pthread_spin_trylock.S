@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,12 +15,13 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread-errnos.h>
+#include <errno.h>
+#include <shlib-compat.h>
 
-	.globl	pthread_spin_trylock
-	.type	pthread_spin_trylock,@function
+	.globl	__pthread_spin_trylock
+	.type	__pthread_spin_trylock,@function
 	.align	5
-pthread_spin_trylock:
+__pthread_spin_trylock:
 	tas.b	@r4
 	bf/s	1f
 	mov	#EBUSY, r0
@@ -28,4 +29,11 @@ pthread_spin_trylock:
 1:
 	rts
 	 nop
-	.size	pthread_spin_trylock,.-pthread_spin_trylock
+	.size	__pthread_spin_trylock,.-__pthread_spin_trylock
+versioned_symbol (libc, __pthread_spin_trylock, pthread_spin_trylock,
+		  GLIBC_2_34)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_trylock, pthread_spin_trylock,
+	       GLIBC_2_2)
+#endif

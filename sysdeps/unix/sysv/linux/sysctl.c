@@ -1,5 +1,5 @@
-/* Read or write system information.  Linux version.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* sysctl function stub.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,25 +17,21 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <linux/sysctl.h>
+#include <stddef.h>
+#include <shlib-compat.h>
 
-#include <sysdep.h>
-#include <sys/syscall.h>
-
-int
-__sysctl (int *name, int nlen, void *oldval, size_t *oldlenp,
-	  void *newval, size_t newlen)
+#if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_32)
+int attribute_compat_text_section
+___sysctl (int *name, int nlen, void *oldval, size_t *oldlenp,
+           void *newval, size_t newlen)
 {
-  struct __sysctl_args args =
-  {
-    .name = name,
-    .nlen = nlen,
-    .oldval = oldval,
-    .oldlenp = oldlenp,
-    .newval = newval,
-    .newlen = newlen
-  };
-
-  return INLINE_SYSCALL (_sysctl, 1, &args);
+  __set_errno (ENOSYS);
+  return -1;
 }
-weak_alias (__sysctl, sysctl)
+compat_symbol (libc, ___sysctl, sysctl, GLIBC_2_0);
+
+# if SHLIB_COMPAT (libc, GLIBC_2_2, GLIBC_2_17)
+strong_alias (___sysctl, ___sysctl2)
+compat_symbol (libc, ___sysctl2, __sysctl, GLIBC_2_2);
+# endif
+#endif

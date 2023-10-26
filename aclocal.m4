@@ -34,6 +34,7 @@ AC_PROVIDE([AS_SHELL_FN_as_fn_set_status])dnl
 AC_PROVIDE([AS_SHELL_FN_as_fn_exit])dnl
 AC_PROVIDE([AS_SHELL_FN_as_fn_arith])dnl
 AC_PROVIDE([AS_SHELL_FN_ac_fn_c_try_compile])dnl
+AC_PROVIDE([AS_SHELL_FN_ac_fn_c_try_cpp])dnl
 define([AS_MESSAGE_LOG_FD],5)dnl
 define([AS_MESSAGE_FD],6)dnl
 dnl Ripped out of AS_INIT, which does more cruft we do not want.
@@ -113,8 +114,12 @@ if test -n "$path_binutils"; then
     path_binutils=`(cd $path_binutils; pwd) | sed 's%/*$%/%'`
     CC="$CC -B$path_binutils"
 fi
+case "$CC" in
+    *fuse-ld=lld*) LDNAME=ld.lld;;
+    *)             LDNAME=ld;;
+esac
 AS=`$CC -print-prog-name=as`
-LD=`$CC -print-prog-name=ld`
+LD=`$CC -print-prog-name=$LDNAME`
 AR=`$CC -print-prog-name=ar`
 AC_SUBST(AR)
 OBJDUMP=`$CC -print-prog-name=objdump`
@@ -223,20 +228,23 @@ AC_DEFUN([LIBC_LINKER_FEATURE],
 [AC_MSG_CHECKING([for linker that supports $1])
 libc_linker_feature=no
 if test x"$gnu_ld" = x"yes"; then
-  libc_linker_check=`$LD -v --help 2>/dev/null | grep "\$1"`
-  if test -n "$libc_linker_check"; then
-    cat > conftest.c <<EOF
+  cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
-    if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-				$2 -nostdlib -nostartfiles
-				-fPIC -shared -o conftest.so conftest.c
-				1>&AS_MESSAGE_LOG_FD])
-    then
+  if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		    $2 -nostdlib -nostartfiles
+		    -fPIC -shared -o conftest.so conftest.c
+		    1>&AS_MESSAGE_LOG_FD])
+  then
+    if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp $2 -nostdlib \
+	-nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+	| grep "warning: $1 ignored" > /dev/null 2>&1; then
+      true
+    else
       libc_linker_feature=yes
     fi
-    rm -f conftest*
   fi
+  rm -f conftest*
 fi
 if test $libc_linker_feature = yes; then
   $3
@@ -272,7 +280,7 @@ int _start (void) { $2 return 0; }
 EOF
 if ! AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
 		     $3 -nostdlib -nostartfiles
-		     -S conftest.c -o - | fgrep "$1"
+		     -S conftest.c -o - | grep -F "$1"
 		     1>&AS_MESSAGE_LOG_FD])
 then
   libc_compiler_builtin_inlined=yes

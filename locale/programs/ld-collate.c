@@ -1,6 +1,5 @@
-/* Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gnu.org>, 1995.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -24,6 +23,7 @@
 #include <wchar.h>
 #include <stdint.h>
 #include <sys/param.h>
+#include <array_length.h>
 
 #include "localedef.h"
 #include "charmap.h"
@@ -195,6 +195,9 @@ struct name_list
 /* The real definition of the struct for the LC_COLLATE locale.  */
 struct locale_collate_t
 {
+  /* Does the locale use code points to compare the encoding?  */
+  bool codepoint_collation;
+
   int col_weight_max;
   int cur_weight_max;
 
@@ -1483,6 +1486,9 @@ order for `%.*s' already defined at %s:%Zu"),
 	    }
 	}
     }
+  /* Move the cursor to the last entry in the ellipsis.
+     Subsequent operations need to start from the last entry.  */
+  collate->cursor = endp;
 }
 
 
@@ -1507,6 +1513,7 @@ collate_startup (struct linereader *ldfile, struct localedef_t *locale,
 	  obstack_init (&collate->mempool);
 
 	  collate->col_weight_max = -1;
+	  collate->codepoint_collation = false;
 	}
       else
 	/* Reuse the copy_locale's data structures.  */
@@ -1555,7 +1562,6 @@ collate_finish (struct localedef_t *locale, const struct charmap_t *charmap)
   int need_undefined = 0;
   struct section_list *sect;
   int ruleidx;
-  int nr_wide_elems = 0;
 
   if (collate == NULL)
     {
@@ -1564,6 +1570,10 @@ collate_finish (struct localedef_t *locale, const struct charmap_t *charmap)
 		      "LC_COLLATE");
       return;
     }
+
+  /* No data required.  */
+  if (collate->codepoint_collation)
+    return;
 
   /* If this assertion is hit change the type in `element_t'.  */
   assert (nrules <= sizeof (runp->used_in_level) * 8);
@@ -1705,13 +1715,7 @@ symbol `%s' has the same encoding as"), (*eptr)->name);
 	}
 
       if (runp->used_in_level)
-	{
-	  runp->wcorder = wcact++;
-
-	  /* We take the opportunity to count the elements which have
-	     wide characters.  */
-	  ++nr_wide_elems;
-	}
+	runp->wcorder = wcact++;
 
       if (runp->is_character)
 	{
@@ -2039,7 +2043,7 @@ add_to_tablewc (uint32_t ch, struct element_t *runp)
 		obstack_int32_grow_fast (atwc.extrapool, curp->wcs[i]);
 
 	      /* Now find the end of the consecutive sequence and
-		 add all the indeces in the indirect pool.  */
+		 add all the indices in the indirect pool.  */
 	      do
 		{
 		  weightidx = output_weightwc (atwc.weightpool, atwc.collate,
@@ -2089,6 +2093,10 @@ add_to_tablewc (uint32_t ch, struct element_t *runp)
     }
 }
 
+/* Include the C locale identity tables for _NL_COLLATE_COLLSEQMB and
+   _NL_COLLATE_COLLSEQWC.  */
+#include "C-collate-seq.c"
+
 void
 collate_output (struct localedef_t *locale, const struct charmap_t *charmap,
 		const char *output_path)
@@ -2112,7 +2120,7 @@ collate_output (struct localedef_t *locale, const struct charmap_t *charmap,
   add_locale_uint32 (&file, nrules);
 
   /* If we have no LC_COLLATE data emit only the number of rules as zero.  */
-  if (collate == NULL)
+  if (collate == NULL || collate->codepoint_collation)
     {
       size_t idx;
       for (idx = 1; idx < nelems; idx++)
@@ -2120,6 +2128,17 @@ collate_output (struct localedef_t *locale, const struct charmap_t *charmap,
 	  /* The words have to be handled specially.  */
 	  if (idx == _NL_ITEM_INDEX (_NL_COLLATE_SYMB_HASH_SIZEMB))
 	    add_locale_uint32 (&file, 0);
+	  else if (idx == _NL_ITEM_INDEX (_NL_COLLATE_CODESET)
+		   && collate != NULL)
+	    /* A valid LC_COLLATE must have a code set name.  */
+	    add_locale_string (&file, charmap->code_set_name);
+	  else if (idx == _NL_ITEM_INDEX (_NL_COLLATE_COLLSEQMB)
+		   && collate != NULL)
+	    add_locale_raw_data (&file, collseqmb, sizeof (collseqmb));
+	  else if (idx == _NL_ITEM_INDEX (_NL_COLLATE_COLLSEQWC)
+		   && collate != NULL)
+	    add_locale_uint32_array (&file, collseqwc,
+				     array_length (collseqwc));
 	  else
 	    add_locale_empty (&file);
 	}
@@ -2255,7 +2274,7 @@ collate_output (struct localedef_t *locale, const struct charmap_t *charmap,
 		  obstack_1grow_fast (&extrapool, curp->mbs[i]);
 
 		/* Now find the end of the consecutive sequence and
-		   add all the indeces in the indirect pool.  */
+		   add all the indices in the indirect pool.  */
 		do
 		  {
 		    weightidx = output_weight (&weightpool, collate, curp);
@@ -2669,6 +2688,10 @@ collate_read (struct linereader *ldfile, struct localedef_t *result,
 
       switch (nowtok)
 	{
+	case tok_codepoint_collation:
+	  collate->codepoint_collation = true;
+	  break;
+
 	case tok_copy:
 	  /* Allow copying other locales.  */
 	  now = lr_token (ldfile, charmap, result, NULL, verbose);
@@ -3739,9 +3762,11 @@ error while adding equivalent collating symbol"));
 	  /* Next we assume `LC_COLLATE'.  */
 	  if (!ignore_content)
 	    {
-	      if (state == 0 && copy_locale == NULL)
+	      if (state == 0
+		  && copy_locale == NULL
+		  && !collate->codepoint_collation)
 		/* We must either see a copy statement or have
-		   ordering values.  */
+		   ordering values, or codepoint_collation.  */
 		lr_error (ldfile,
 			  _("%s: empty category description not allowed"),
 			  "LC_COLLATE");

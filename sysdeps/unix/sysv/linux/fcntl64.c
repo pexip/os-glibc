@@ -1,5 +1,5 @@
 /* Manipulate file descriptor.  Linux LFS version.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -54,6 +54,9 @@ libc_hidden_def (__libc_fcntl64)
 weak_alias (__libc_fcntl64, __fcntl64)
 libc_hidden_weak (__fcntl64)
 weak_alias (__libc_fcntl64, fcntl64)
+#if __TIMESIZE != 64
+weak_alias (__libc_fcntl64, __fcntl_time64)
+#endif
 
 #ifdef __OFF_T_MATCHES_OFF64_T
 weak_alias (__libc_fcntl64, __libc_fcntl)

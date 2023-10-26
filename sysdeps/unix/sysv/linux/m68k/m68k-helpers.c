@@ -1,4 +1,4 @@
-/* Copyright (C) 2019-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2019-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -21,6 +21,5 @@
 void *
 __m68k_read_tp (void)
 {
-  INTERNAL_SYSCALL_DECL (err);
-  return (void*) INTERNAL_SYSCALL_CALL (get_thread_area, err);
+  return (void*) INTERNAL_SYSCALL_CALL (get_thread_area);
 }

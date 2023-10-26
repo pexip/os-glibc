@@ -1,5 +1,5 @@
 /* File descriptors.
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,8 +20,6 @@
 
 #define	_HURD_FD_H	1
 #include <features.h>
-
-#include <cthreads.h>
 
 #include <hurd/hurd_types.h>
 #include <hurd/port.h>
@@ -47,9 +45,12 @@ struct hurd_fd
 
 /* Current file descriptor table.  */
 
+#if defined __USE_EXTERN_INLINES && defined _LIBC
+#include <lock-intern.h>
 extern int _hurd_dtablesize;
 extern struct hurd_fd **_hurd_dtable;
 extern struct mutex _hurd_dtable_lock; /* Locks those two variables.  */
+#endif
 
 #include <hurd/signal.h>
 
@@ -115,6 +116,7 @@ _hurd_fd_get (int fd)
   HURD_FD_USE ((fd), HURD_FD_PORT_USE (descriptor, (expr)))
 
 /* Likewise, but FD is a pointer to the file descriptor structure.  */
+/* Also see HURD_FD_PORT_USE_CANCEL.  */
 
 #define	HURD_FD_PORT_USE(fd, expr)					      \
   ({ error_t __result;							      \
@@ -293,9 +295,15 @@ __hurd_at_flags (int *at_flags, int *flags)
 
   *flags |= (*at_flags & AT_SYMLINK_NOFOLLOW) ? O_NOLINK : 0;
   *at_flags &= ~AT_SYMLINK_NOFOLLOW;
+
   if (*at_flags & AT_SYMLINK_FOLLOW)
     *flags &= ~O_NOLINK;
   *at_flags &= ~AT_SYMLINK_FOLLOW;
+
+  if (*at_flags & AT_NO_AUTOMOUNT)
+    *flags |= O_NOTRANS;
+  *at_flags &= ~AT_NO_AUTOMOUNT;
+
   if (*at_flags != 0)
     return EINVAL;
 

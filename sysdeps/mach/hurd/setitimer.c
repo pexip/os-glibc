@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -105,7 +105,7 @@ timer_thread (void)
 	  __msg_sig_post_request (_hurd_msgport,
 				  _hurd_itimer_port,
 				  MACH_MSG_TYPE_MAKE_SEND_ONCE,
-				  SIGALRM, 0, __mach_task_self ());
+				  SIGALRM, SI_TIMER, __mach_task_self ());
 	  break;
 
 	case MACH_RCV_INTERRUPTED:
@@ -339,6 +339,7 @@ __setitimer (enum __itimer_which which, const struct itimerval *new,
 	     struct itimerval *old)
 {
   void *crit;
+  int ret;
 
   switch (which)
     {
@@ -353,9 +354,15 @@ __setitimer (enum __itimer_which which, const struct itimerval *new,
       break;
     }
 
+retry:
   crit = _hurd_critical_section_lock ();
   __spin_lock (&_hurd_itimer_lock);
-  return setitimer_locked (new, old, crit, 0);
+  ret = setitimer_locked (new, old, crit, 0);
+  if (ret == -1 && errno == EINTR)
+    /* Got a signal while inside an RPC of the critical section, retry again */
+    goto retry;
+
+  return ret;
 }
 
 static void

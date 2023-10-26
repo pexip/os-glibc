@@ -1,7 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>
-   and Richard Henderson <rth@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,9 +21,11 @@
 #include <string.h>
 #include <unistd.h>
 #include "pthreadP.h"
+#include <libc-diag.h>
 #include <jmpbuf-unwind.h>
+#include <shlib-compat.h>
 
-#ifdef _STACK_GROWS_DOWN
+#if _STACK_GROWS_DOWN
 # define FRAME_LEFT(frame, other, adj) \
   ((uintptr_t) frame - adj >= (uintptr_t) other - adj)
 #elif _STACK_GROWS_UP
@@ -90,8 +90,17 @@ unwind_stop (int version, _Unwind_Action actions,
 	}
     }
 
+  DIAG_PUSH_NEEDS_COMMENT;
+#if __GNUC_PREREQ (7, 0)
+  /* This call results in a -Wstringop-overflow warning because struct
+     pthread_unwind_buf is smaller than jmp_buf.  setjmp and longjmp
+     do not use anything beyond the common prefix (they never access
+     the saved signal mask), so that is a false positive.  */
+  DIAG_IGNORE_NEEDS_COMMENT (11, "-Wstringop-overflow=");
+#endif
   if (do_longjump)
     __libc_unwind_longjmp ((struct __jmp_buf_tag *) buf->cancel_jmp_buf, 1);
+  DIAG_POP_NEEDS_COMMENT;
 
   return _URC_NO_REASON;
 }
@@ -124,15 +133,19 @@ __pthread_unwind (__pthread_unwind_buf_t *buf)
   /* We better do not get here.  */
   abort ();
 }
-hidden_def (__pthread_unwind)
-
+libc_hidden_def (__pthread_unwind)
 
 void
 __cleanup_fct_attribute __attribute ((noreturn))
-__pthread_unwind_next (__pthread_unwind_buf_t *buf)
+___pthread_unwind_next (__pthread_unwind_buf_t *buf)
 {
   struct pthread_unwind_buf *ibuf = (struct pthread_unwind_buf *) buf;
 
   __pthread_unwind ((__pthread_unwind_buf_t *) ibuf->priv.data.prev);
 }
-hidden_def (__pthread_unwind_next)
+versioned_symbol (libc, ___pthread_unwind_next, __pthread_unwind_next,
+		  GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_3_3, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_unwind_next, __pthread_unwind_next,
+	       GLIBC_2_3_3);
+#endif

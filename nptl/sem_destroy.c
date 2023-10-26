@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,8 +28,11 @@ __new_sem_destroy (sem_t *sem)
   /* Nothing to do.  */
   return 0;
 }
-versioned_symbol (libpthread, __new_sem_destroy, sem_destroy, GLIBC_2_1);
-#if SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_1)
+versioned_symbol (libc, __new_sem_destroy, sem_destroy, GLIBC_2_34);
+#if OTHER_SHLIB_COMPAT(libpthread, GLIBC_2_0, GLIBC_2_1)
 strong_alias (__new_sem_destroy, __old_sem_destroy)
 compat_symbol (libpthread, __old_sem_destroy, sem_destroy, GLIBC_2_0);
+#endif
+#if OTHER_SHLIB_COMPAT(libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, __new_sem_destroy, sem_destroy, GLIBC_2_1);
 #endif

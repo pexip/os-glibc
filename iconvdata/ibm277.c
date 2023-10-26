@@ -1,7 +1,6 @@
 /* Conversion from and to IBM277.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,6 +22,6 @@
 #define TABLES <ibm277.h>
 
 #define CHARSET_NAME	"IBM277//"
-#define HAS_HOLES	1	/* Not all 256 character are defined.  */
+#define HAS_HOLES	0
 
 #include <8bit-gap.c>

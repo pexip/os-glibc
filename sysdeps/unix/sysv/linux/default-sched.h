@@ -1,5 +1,5 @@
 /* Determine calling thread's scheduling parameters.  Linux version.
-   Copyright (C) 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2014-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,17 +26,15 @@
 static void
 collect_default_sched (struct pthread *pd)
 {
-  INTERNAL_SYSCALL_DECL (scerr);
-
   if ((pd->flags & ATTR_FLAG_POLICY_SET) == 0)
     {
-      pd->schedpolicy = INTERNAL_SYSCALL (sched_getscheduler, scerr, 1, 0);
+      pd->schedpolicy = INTERNAL_SYSCALL_CALL (sched_getscheduler, 0);
       pd->flags |= ATTR_FLAG_POLICY_SET;
     }
 
   if ((pd->flags & ATTR_FLAG_SCHED_SET) == 0)
     {
-      INTERNAL_SYSCALL (sched_getparam, scerr, 2, 0, &pd->schedparam);
+      INTERNAL_SYSCALL_CALL (sched_getparam, 0, &pd->schedparam);
       pd->flags |= ATTR_FLAG_SCHED_SET;
     }
 }

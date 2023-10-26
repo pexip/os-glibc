@@ -1,7 +1,6 @@
 /* Iterate over a process's threads.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -133,14 +132,14 @@ td_ta_thr_iter (const td_thragent_t *ta_arg, td_thr_iter_f *callback,
      have to iterate over both lists separately.  We start with the
      list of threads with user-defined stacks.  */
 
-  err = DB_GET_SYMBOL (list, ta, __stack_user);
+  err = __td_ta_stack_user (ta, &list);
   if (err == TD_OK)
     err = iterate_thread_list (ta, callback, cbdata_p, state, ti_pri,
 			       list, true);
 
   /* And the threads with stacks allocated by the implementation.  */
   if (err == TD_OK)
-    err = DB_GET_SYMBOL (list, ta, stack_used);
+    err = __td_ta_stack_used (ta, &list);
   if (err == TD_OK)
     err = iterate_thread_list (ta, callback, cbdata_p, state, ti_pri,
 			       list, false);

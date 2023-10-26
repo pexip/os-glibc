@@ -1,6 +1,6 @@
 /* Common definitions for libm tests for _Float64.
 
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@
 #define PREFIX FLT64
 #define TYPE_STR "double"
 #define ULP_IDX ULP_DBL
-#define ULP_I_IDX ULP_I_DBL
 #define LIT(x) __f64 (x)
 #define LITM(x) x ## f64
 #define FTOSTR strfromf64

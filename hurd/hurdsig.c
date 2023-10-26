@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,11 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cthreads.h>		/* For `struct mutex'.  */
+#include <lock-intern.h>	/* For `struct mutex'.  */
 #include <pthreadP.h>
 #include <mach.h>
 #include <mach/thread_switch.h>
 #include <mach/mig_support.h>
+#include <mach/vm_param.h>
 
 #include <hurd.h>
 #include <hurd/id.h>
@@ -85,8 +86,9 @@ _hurd_thread_sigstate (thread_t thread)
       ss = malloc (sizeof (*ss));
       if (ss == NULL)
 	__libc_fatal ("hurd: Can't allocate sigstate\n");
-      ss->thread = thread;
+      __spin_lock_init (&ss->critical_section_lock);
       __spin_lock_init (&ss->lock);
+      ss->thread = thread;
 
       /* Initialize default state.  */
       __sigemptyset (&ss->blocked);
@@ -97,6 +99,9 @@ _hurd_thread_sigstate (thread_t thread)
       ss->suspended = MACH_PORT_NULL;
       ss->intr_port = MACH_PORT_NULL;
       ss->context = NULL;
+      ss->active_resources = NULL;
+      ss->cancel = 0;
+      ss->cancel_hook = NULL;
 
       if (thread == MACH_PORT_NULL)
 	{
@@ -109,6 +114,8 @@ _hurd_thread_sigstate (thread_t thread)
 	}
       else
 	{
+	  error_t err;
+
 	  /* Use the global actions as a default for new threads.  */
 	  struct hurd_sigstate *s = _hurd_global_sigstate;
 	  if (s)
@@ -122,6 +129,11 @@ _hurd_thread_sigstate (thread_t thread)
 
 	  ss->next = _hurd_sigstates;
 	  _hurd_sigstates = ss;
+
+	  err = __mach_port_mod_refs (__mach_task_self (), thread,
+				      MACH_PORT_RIGHT_SEND, 1);
+	  if (err)
+	    __libc_fatal ("hurd: Can't add reference on Mach thread\n");
 	}
     }
   __mutex_unlock (&_hurd_siglock);
@@ -130,8 +142,7 @@ _hurd_thread_sigstate (thread_t thread)
 libc_hidden_def (_hurd_thread_sigstate)
 
 /* Destroy a sigstate structure.  Called by libpthread just before the
- * corresponding thread is terminated (the kernel thread port must remain valid
- * until this function is called.) */
+ * corresponding thread is terminated.  */
 void
 _hurd_sigstate_delete (thread_t thread)
 {
@@ -148,7 +159,12 @@ _hurd_sigstate_delete (thread_t thread)
 
   __mutex_unlock (&_hurd_siglock);
   if (ss)
-    free (ss);
+    {
+      if (ss->thread != MACH_PORT_NULL)
+	__mach_port_deallocate (__mach_task_self (), ss->thread);
+
+      free (ss);
+    }
 }
 
 /* Make SS a global receiver, with pthread signal semantics.  */
@@ -560,8 +576,8 @@ abort_all_rpcs (int signo, struct machine_thread_all_state *state, int live)
       }
 }
 
-/* Wake up any sigsuspend call that is blocking SS->thread.  SS must be
-   locked.  */
+/* Wake up any sigsuspend or pselect call that is blocking SS->thread.  SS must
+   be locked.  */
 static void
 wake_sigsuspend (struct hurd_sigstate *ss)
 {
@@ -591,8 +607,8 @@ sigset_t _hurdsig_preempted_set;
 weak_alias (_hurdsig_preemptors, _hurdsig_preempters)
 
 /* Mask of stop signals.  */
-#define STOPSIGS (sigmask (SIGTTIN) | sigmask (SIGTTOU) \
-		  | sigmask (SIGSTOP) | sigmask (SIGTSTP))
+#define STOPSIGS (__sigmask (SIGTTIN) | __sigmask (SIGTTOU) \
+		  | __sigmask (SIGSTOP) | __sigmask (SIGTSTP))
 
 /* Actual delivery of a single signal.  Called with SS unlocked.  When
    the signal is delivered, return SS, locked (or, if SS was originally
@@ -607,6 +623,13 @@ post_signal (struct hurd_sigstate *ss,
   struct machine_thread_all_state thread_state;
   enum { stop, ignore, core, term, handle } act;
   int ss_suspended;
+
+  /* sigaction for preemptors */
+  struct sigaction preempt_sigaction = {
+    .sa_flags = SA_RESTART
+  };
+
+  struct sigaction *action;
 
   /* Mark the signal as pending.  */
   void mark_pending (void)
@@ -730,7 +753,7 @@ post_signal (struct hurd_sigstate *ss,
       {				/* PE cannot be null.  */
 	do
 	  {
-	    if (HURD_PREEMPT_SIGNAL_P (pe, signo, detail->code))
+	    if (HURD_PREEMPT_SIGNAL_P (pe, signo, detail->exc_subcode))
 	      {
 		if (pe->preemptor)
 		  {
@@ -764,11 +787,16 @@ post_signal (struct hurd_sigstate *ss,
     /* Ignore the signal altogether.  */
     act = ignore;
   else if (handler != SIG_ERR)
-    /* Run the preemption-provided handler.  */
-    act = handle;
+    {
+      /* Run the preemption-provided handler.  */
+      action = &preempt_sigaction;
+      act = handle;
+    }
   else
     {
       /* No preemption.  Do normal handling.  */
+
+      action = & _hurd_sigstate_actions (ss) [signo];
 
       if (!untraced && __sigismember (&_hurdsig_traced, signo))
 	{
@@ -784,7 +812,7 @@ post_signal (struct hurd_sigstate *ss,
 	  return NULL;
 	}
 
-      handler = _hurd_sigstate_actions (ss) [signo].sa_handler;
+      handler = action->sa_handler;
 
       if (handler == SIG_DFL)
 	/* Figure out the default action for this signal.  */
@@ -1056,7 +1084,7 @@ post_signal (struct hurd_sigstate *ss,
 
 	/* Call the machine-dependent function to set the thread up
 	   to run the signal handler, and preserve its old context.  */
-	scp = _hurd_setup_sighandler (ss, handler, signo, detail,
+	scp = _hurd_setup_sighandler (ss, action, handler, signo, detail,
 				      wait_for_reply, &thread_state);
 	if (scp == NULL)
 	  goto sigbomb;
@@ -1094,8 +1122,6 @@ post_signal (struct hurd_sigstate *ss,
 	      ss->context = NULL;
 	    }
 	}
-
-	struct sigaction *action = & _hurd_sigstate_actions (ss) [signo];
 
 	/* Backdoor extra argument to signal handler.  */
 	scp->sc_error = detail->error;
@@ -1374,7 +1400,7 @@ _S_msg_sig_post (mach_port_t me,
   if (err = signal_allowed (signo, refport))
     return err;
 
-  d.code = sigcode;
+  d.code = d.exc_subcode = sigcode;
   d.exc = 0;
 
   /* Post the signal to a global receiver thread (or mark it pending in
@@ -1403,7 +1429,7 @@ _S_msg_sig_post_untraced (mach_port_t me,
   if (err = signal_allowed (signo, refport))
     return err;
 
-  d.code = sigcode;
+  d.code = d.exc_subcode = sigcode;
   d.exc = 0;
 
   /* Post the signal to the designated signal-receiving thread.  This will
@@ -1473,8 +1499,8 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
 
   /* Start the signal thread listening on the message port.  */
 
-#pragma weak __cthread_fork
-  if (!__cthread_fork)
+#pragma weak __pthread_create
+  if (!__pthread_create)
     {
       err = __thread_create (__mach_task_self (), &_hurd_msgport_thread);
       assert_perror (err);
@@ -1499,41 +1525,40 @@ _hurdsig_init (const int *intarray, size_t intarraysize)
     }
   else
     {
-      /* When cthreads is being used, we need to make the signal thread a
-         proper cthread.  Otherwise it cannot use mutex_lock et al, which
-         will be the cthreads versions.  Various of the message port RPC
+      pthread_t thread;
+      pthread_attr_t attr;
+      void *addr;
+      size_t size;
+
+      /* When pthread is being used, we need to make the signal thread a
+         proper pthread.  Otherwise it cannot use mutex_lock et al, which
+         will be the pthread versions.  Various of the message port RPC
          handlers need to take locks, so we need to be able to call into
-         cthreads code and meet its assumptions about how our thread and
-         its stack are arranged.  Since cthreads puts it there anyway,
+         pthread code and meet its assumptions about how our thread and
+         its stack are arranged.  Since pthread puts it there anyway,
          we'll let the signal thread's per-thread variables be found as for
-         any normal cthread, and just leave the magic __hurd_sigthread_*
+         any normal pthread, and just leave the magic __hurd_sigthread_*
          values all zero so they'll be ignored.  */
-#pragma weak __cthread_detach
+
+#pragma weak __pthread_detach
 #pragma weak __pthread_getattr_np
 #pragma weak __pthread_attr_getstack
-      __cthread_t thread = __cthread_fork (
-			     (cthread_fn_t) &_hurd_msgport_receive, 0);
-      __cthread_detach (thread);
+      __pthread_create(&thread, NULL, &_hurd_msgport_receive, NULL);
 
-      if (__pthread_getattr_np)
-	{
-	  /* Record signal thread stack layout for fork() */
-	  pthread_attr_t attr;
-	  void *addr;
-	  size_t size;
+      /* Record signal thread stack layout for fork() */
+      __pthread_getattr_np (thread, &attr);
+      __pthread_attr_getstack (&attr, &addr, &size);
+      __hurd_sigthread_stack_base = (uintptr_t) addr;
+      __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + size;
 
-	  __pthread_getattr_np ((pthread_t) thread, &attr);
-	  __pthread_attr_getstack (&attr, &addr, &size);
-	  __hurd_sigthread_stack_base = (uintptr_t) addr;
-	  __hurd_sigthread_stack_end = __hurd_sigthread_stack_base + size;
-	}
+      __pthread_detach(thread);
 
       /* XXX We need the thread port for the signal thread further on
          in this thread (see hurdfault.c:_hurdsigfault_init).
          Therefore we block until _hurd_msgport_thread is initialized
          by the newly created thread.  This really shouldn't be
          necessary; we should be able to fetch the thread port for a
-         cthread from here.  */
+         pthread from here.  */
       while (_hurd_msgport_thread == 0)
 	__swtch_pri (0);
     }

@@ -1,4 +1,5 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Internal errno names mapping definition.
+   Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,21 +17,16 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
-#include <stddef.h>
+#include <err_map.h>
+#include <errno.h>
+#include <libintl.h>
+#include <stdio.h>
 
-const char *const _sys_errlist[] =
-  {
-    "Error 0",			/* 0 */
-    "Argument out of function's domain", /* 1 = EDOM */
-    "Result out of range",	/* 2 = ERANGE */
-    "Operation not implemented", /* 3 = ENOSYS */
-    "Invalid argument",		/* 4 = EINVAL */
-    "Illegal seek",		/* 5 = ESPIPE */
-    "Bad file descriptor",	/* 6 = EBADF */
-    "Cannot allocate memory",	/* 7 = ENOMEM */
-    "Permission denied",	/* 8 = EACCES */
-    "Too many open files in system", /* 9 = ENFILE */
-    "Too many open files",	/* 10 = EMFILE */
-  };
-
-const int _sys_nerr = array_length (_sys_errlist);
+const char *
+__get_errlist (int errnum)
+{
+  int mapped = ERR_MAP (errnum);
+  if (mapped >= 0 && mapped < _sys_errlist_internal_len)
+    return _sys_errlist_internal[mapped];
+  return NULL;
+}

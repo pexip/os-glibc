@@ -1,7 +1,6 @@
 /* Uncancelable versions of cancelable interfaces.  Linux/NPTL version.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,6 +23,7 @@
 #include <sysdep.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/poll.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -65,8 +65,19 @@ __close_nocancel_nostatus (int fd)
 static inline void
 __writev_nocancel_nostatus (int fd, const struct iovec *iov, int iovcnt)
 {
-  INTERNAL_SYSCALL_DECL (err);
-  INTERNAL_SYSCALL_CALL (writev, err, fd, iov, iovcnt);
+  INTERNAL_SYSCALL_CALL (writev, fd, iov, iovcnt);
+}
+
+static inline int
+__getrandom_nocancel (void *buf, size_t buflen, unsigned int flags)
+{
+  return INLINE_SYSCALL_CALL (getrandom, buf, buflen, flags);
+}
+
+static inline int
+__poll_infinity_nocancel (struct pollfd *fds, nfds_t nfds)
+{
+  return INLINE_SYSCALL_CALL (ppoll, fds, nfds, NULL, NULL, 0);
 }
 
 /* Uncancelable fcntl.  */

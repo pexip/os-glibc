@@ -1,7 +1,6 @@
 /* Atomic operations.  PowerPC32 version.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -105,9 +104,7 @@
 /*
  * "light weight" sync can also be used for the release barrier.
  */
-# ifndef UP
-#  define __ARCH_REL_INSTR	"lwsync"
-# endif
+# define __ARCH_REL_INSTR	"lwsync"
 # define atomic_write_barrier()	__asm ("lwsync" ::: "memory")
 #else
 /*

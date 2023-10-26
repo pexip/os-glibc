@@ -25,6 +25,12 @@ no-special-regs := $(sort $(foreach n,40 41 50 51 60 61 62 63 \
 				    -ffixed-v$n)) \
 		   -ffixed-vrsave -ffixed-vscr -mno-altivec -mno-vsx
 
+# Likewise, we must disable IEEE long double support as some (all?)
+# compilers will not accept the above options with IEEE long double.
+ifeq ($(ibm128-fcts),yes)
+no-special-regs += -mabi=ibmlongdouble
+endif
+
 # Need to prevent gcc from using fprs in code used during dynamic linking.
 
 CFLAGS-dl-runtime.os = $(no-special-regs)
@@ -53,7 +59,6 @@ tests += tst-setjmp-bug21895-static
 tests-static += tst-setjmp-bug21895-static
 modules-names += setjmp-bug21895
 
-$(objpfx)tst-setjmp-bug21895-static: $(common-objpfx)dlfcn/libdl.a
 $(objpfx)tst-setjmp-bug21895-static.out: $(objpfx)setjmp-bug21895.so
 
 tst-setjmp-bug21895-static-ENV = \
