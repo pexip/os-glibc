@@ -19,6 +19,9 @@ test-xfail-tst-personality = yes
 test-xfail-tst-pkey = yes
 test-xfail-tst-dir = yes
 test-xfail-tst-clock2 = yes
+test-xfail-tst-adjtime = yes
+test-xfail-tst-ntp_gettime = yes
+test-xfail-tst-ntp_gettimex = yes
 
 # As Pexos has moved to a newer kernel, these headers now expose fds_bit and
 # val.  The changes in upstream glibc to prevent this are too large to
