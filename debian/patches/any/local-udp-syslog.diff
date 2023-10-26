@@ -1,73 +1,78 @@
+diff --git a/misc/syslog.c b/misc/syslog.c
+index 554089bfc..b460cee0e 100644
 --- a/misc/syslog.c
 +++ b/misc/syslog.c
-@@ -328,7 +328,7 @@
- 		free (buf);
+@@ -277,11 +277,10 @@ out:
+     free (buf);
  }
  
--static struct sockaddr_un SyslogAddr;	/* AF_UNIX address of local logger */
-+static struct sockaddr_in SyslogAddr;	/* AF_INET address of local logger */
- 
+-/* AF_UNIX address of local logger  */
+-static const struct sockaddr_un SyslogAddr =
++/* AF_INET address of local logger  */
++static struct sockaddr_in SyslogAddr =
+   {
+-    .sun_family = AF_UNIX,
+-    .sun_path = _PATH_LOG
++    .sin_family = AF_INET
+   };
  
  static void
-@@ -340,41 +340,28 @@
- 	if (logfac != 0 && (logfac &~ LOG_FACMASK) == 0)
- 		LogFacility = logfac;
+@@ -293,40 +292,29 @@ openlog_internal (const char *ident, int logstat, int logfac)
+   if ((logfac & ~LOG_FACMASK) == 0)
+     LogFacility = logfac;
  
--	int retry = 0;
--	while (retry < 2) {
--		if (LogFile == -1) {
--			SyslogAddr.sun_family = AF_UNIX;
--			(void)strncpy(SyslogAddr.sun_path, _PATH_LOG,
--				      sizeof(SyslogAddr.sun_path));
--			if (LogStat & LOG_NDELAY) {
--			  LogFile = __socket(AF_UNIX, LogType | SOCK_CLOEXEC, 0);
--			  if (LogFile == -1)
--			    return;
--			}
-+	if (LogFile == -1) {
-+		SyslogAddr.sin_family = AF_INET;
-+		SyslogAddr.sin_port = htons(514);
-+		SyslogAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-+		if (LogStat & LOG_NDELAY) {
-+			LogFile = __socket(AF_INET, LogType | SOCK_CLOEXEC, 0);
-+			if (LogFile == -1)
-+				return;
- 		}
--		if (LogFile != -1 && !connected)
-+	}
-+	if (LogFile != -1 && !connected)
-+	{
-+		int old_errno = errno;
-+		if (__connect(LogFile, &SyslogAddr, sizeof(SyslogAddr))
-+		    == -1)
- 		{
--			int old_errno = errno;
--			if (__connect(LogFile, &SyslogAddr, sizeof(SyslogAddr))
--			    == -1)
--			{
--				int saved_errno = errno;
--				int fd = LogFile;
--				LogFile = -1;
--				(void)__close(fd);
--				__set_errno (old_errno);
--				if (saved_errno == EPROTOTYPE)
--				{
--					/* retry with the other type: */
--					LogType = (LogType == SOCK_DGRAM
--						   ? SOCK_STREAM : SOCK_DGRAM);
--					++retry;
--					continue;
--				}
--			} else
--				connected = 1;
--		}
--		break;
-+			int fd = LogFile;
-+			LogFile = -1;
-+			(void)__close(fd);
-+			__set_errno (old_errno);
-+		} else
-+			connected = 1;
+-  int retry = 0;
+-  while (retry < 2)
++  if (LogFile == -1)
+     {
+-      if (LogFile == -1)
++      SyslogAddr.sin_port = htons(514);
++      SyslogAddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++      if (LogStat & LOG_NDELAY)
+ 	{
+-	  if (LogStat & LOG_NDELAY)
+-	    {
+-	      LogFile = __socket (AF_UNIX, LogType | SOCK_CLOEXEC, 0);
+-	      if (LogFile == -1)
+-		return;
+-	    }
++	  LogFile = __socket (AF_INET, LogType | SOCK_CLOEXEC, 0);
++	  if (LogFile == -1)
++	    return;
  	}
+-      if (LogFile != -1 && !connected)
++    }
++  if (LogFile != -1 && !connected)
++    {
++      int old_errno = errno;
++      if (__connect (LogFile, &SyslogAddr, sizeof (SyslogAddr)) == -1)
+ 	{
+-	  int old_errno = errno;
+-	  if (__connect (LogFile, &SyslogAddr, sizeof (SyslogAddr)) == -1)
+-	    {
+-	      int saved_errno = errno;
+-	      int fd = LogFile;
+-	      LogFile = -1;
+-	      __close (fd);
+-	      __set_errno (old_errno);
+-	      if (saved_errno == EPROTOTYPE)
+-		{
+-		  /* retry with the other type: */
+-		  LogType = LogType == SOCK_DGRAM ? SOCK_STREAM : SOCK_DGRAM;
+-		  ++retry;
+-		  continue;
+-		}
+-	    }
+-	  else
+-	    connected = true;
++	  int fd = LogFile;
++	  LogFile = -1;
++	  __close (fd);
++	  __set_errno (old_errno);
+ 	}
+-      break;
++      else
++	connected = true;
+     }
  }
  
