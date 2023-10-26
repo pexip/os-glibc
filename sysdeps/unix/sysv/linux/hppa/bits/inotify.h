@@ -1,4 +1,4 @@
-/* Copyright (C) 2005-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,6 @@ enum
   {
     IN_CLOEXEC = 010000000,
 #define IN_CLOEXEC IN_CLOEXEC
-    IN_NONBLOCK = 000200004 /* HPUX has separate NDELAY & NONBLOCK */
+    IN_NONBLOCK = 000200000
 #define IN_NONBLOCK IN_NONBLOCK
   };

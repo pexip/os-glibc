@@ -18,7 +18,8 @@ hidden_proto (__finitef)
 hidden_proto (__isinff)
 hidden_proto (__isnanf)
 
-#  ifndef __NO_LONG_DOUBLE_MATH
+#  if !defined __NO_LONG_DOUBLE_MATH \
+      && __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI == 0
 hidden_proto (__finitel)
 hidden_proto (__isinfl)
 hidden_proto (__isnanl)
@@ -28,7 +29,6 @@ hidden_proto (__isnanl)
 hidden_proto (__finitef128)
 hidden_proto (__isinff128)
 hidden_proto (__isnanf128)
-hidden_proto (__signbitf128)
 #  endif
 # endif
 
@@ -38,9 +38,9 @@ libm_hidden_proto (__issignaling)
 libm_hidden_proto (__issignalingf)
 libm_hidden_proto (__exp)
 libm_hidden_proto (__expf)
-libm_hidden_proto (__roundeven)
 
-# ifndef __NO_LONG_DOUBLE_MATH
+#  if !defined __NO_LONG_DOUBLE_MATH \
+      && __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI == 0
 libm_hidden_proto (__fpclassifyl)
 libm_hidden_proto (__issignalingl)
 libm_hidden_proto (__expl)
@@ -140,7 +140,8 @@ fabsf128 (_Float128 x)
   double (FUNC) (ARGS (double)) asm (PREFIX #FUNC );		\
   MATH_REDIRECT_LDBL (FUNC, PREFIX, ARGS)			\
   MATH_REDIRECT_F128 (FUNC, PREFIX, ARGS)
-#   ifdef __NO_LONG_DOUBLE_MATH
+#   if defined __NO_LONG_DOUBLE_MATH 				\
+       || __LDOUBLE_REDIRECTS_TO_FLOAT128_ABI == 1
 #    define MATH_REDIRECT_LDBL(FUNC, PREFIX, ARGS)
 #   else
 #    define MATH_REDIRECT_LDBL(FUNC, PREFIX, ARGS)			\
@@ -154,13 +155,16 @@ fabsf128 (_Float128 x)
 #   endif
 #   define MATH_REDIRECT_UNARY_ARGS(TYPE) TYPE
 #   define MATH_REDIRECT_BINARY_ARGS(TYPE) TYPE, TYPE
+#   define MATH_REDIRECT_TERNARY_ARGS(TYPE) TYPE, TYPE, TYPE
 MATH_REDIRECT (sqrt, "__ieee754_", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (ceil, "__", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (floor, "__", MATH_REDIRECT_UNARY_ARGS)
+MATH_REDIRECT (roundeven, "__", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (rint, "__", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (trunc, "__", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (round, "__", MATH_REDIRECT_UNARY_ARGS)
 MATH_REDIRECT (copysign, "__", MATH_REDIRECT_BINARY_ARGS)
+MATH_REDIRECT (fma, "__", MATH_REDIRECT_TERNARY_ARGS)
 #  endif
 # endif
 

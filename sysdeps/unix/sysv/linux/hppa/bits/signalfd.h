@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,6 @@ enum
   {
     SFD_CLOEXEC = 010000000,
 #define SFD_CLOEXEC SFD_CLOEXEC
-    SFD_NONBLOCK = 00200004 /* HPUX has separate NDELAY & NONBLOCK */
+    SFD_NONBLOCK = 00200000
 #define SFD_NONBLOCK SFD_NONBLOCK
   };

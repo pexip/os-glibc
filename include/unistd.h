@@ -3,8 +3,13 @@
 
 # ifndef _ISOMAC
 
+#  include <stdbool.h>
+#  include <kernel-features.h>
+
 libc_hidden_proto (_exit, __noreturn__)
+#  ifndef NO_RTLD_HIDDEN
 rtld_hidden_proto (_exit, __noreturn__)
+#  endif
 libc_hidden_proto (alarm)
 extern size_t __confstr (int name, char *buf, size_t len);
 libc_hidden_proto (__confstr)
@@ -23,6 +28,8 @@ libc_hidden_proto (seteuid)
 libc_hidden_proto (setegid)
 libc_hidden_proto (tcgetpgrp)
 libc_hidden_proto (readlinkat)
+libc_hidden_proto (fsync)
+libc_hidden_proto (fdatasync)
 
 /* Now define the internal interfaces.  */
 extern int __access (const char *__name, int __type);
@@ -31,8 +38,7 @@ extern int __euidaccess (const char *__name, int __type);
 extern int __faccessat (int __fd, const char *__file, int __type, int __flag);
 extern int __faccessat_noerrno (int __fd, const char *__file, int __type,
 			        int __flag);
-extern __off64_t __lseek64 (int __fd, __off64_t __offset, int __whence)
-     attribute_hidden;
+extern __off64_t __lseek64 (int __fd, __off64_t __offset, int __whence);
 extern __off_t __lseek (int __fd, __off_t __offset, int __whence);
 libc_hidden_proto (__lseek)
 extern __off_t __libc_lseek (int __fd, __off_t __offset, int __whence);
@@ -46,7 +52,7 @@ extern ssize_t __pread64 (int __fd, void *__buf, size_t __nbytes,
 			  __off64_t __offset);
 libc_hidden_proto (__pread64);
 extern ssize_t __libc_pread64 (int __fd, void *__buf, size_t __nbytes,
-			       __off64_t __offset) attribute_hidden;
+			       __off64_t __offset);
 extern ssize_t __pwrite (int __fd, const void *__buf, size_t __n,
 			 __off_t __offset);
 libc_hidden_proto (__pwrite)
@@ -56,7 +62,7 @@ extern ssize_t __pwrite64 (int __fd, const void *__buf, size_t __n,
 			   __off64_t __offset);
 libc_hidden_proto (__pwrite64)
 extern ssize_t __libc_pwrite64 (int __fd, const void *__buf, size_t __n,
-				__off64_t __offset) attribute_hidden;
+				__off64_t __offset);
 extern ssize_t __libc_read (int __fd, void *__buf, size_t __n);
 libc_hidden_proto (__libc_read)
 libc_hidden_proto (read)
@@ -102,6 +108,8 @@ extern int __dup3 (int __fd, int __fd2, int flags);
 libc_hidden_proto (__dup3)
 extern int __execve (const char *__path, char *const __argv[],
 		     char *const __envp[]) attribute_hidden;
+extern int __execveat (int dirfd, const char *__path, char *const __argv[],
+		       char *const __envp[], int flags) attribute_hidden;
 extern long int __pathconf (const char *__path, int __name);
 extern long int __fpathconf (int __fd, int __name);
 extern long int __sysconf (int __name);
@@ -133,8 +141,10 @@ libc_hidden_proto (__setresuid)
 libc_hidden_proto (__setresgid)
 extern __pid_t __vfork (void);
 libc_hidden_proto (__vfork)
-extern int __ttyname_r (int __fd, char *__buf, size_t __buflen)
-     attribute_hidden;
+extern int __ttyname_r (int __fd, char *__buf, size_t __buflen);
+libc_hidden_proto (__ttyname_r)
+extern __pid_t _Fork (void);
+libc_hidden_proto (_Fork);
 extern int __isatty (int __fd) attribute_hidden;
 extern int __link (const char *__from, const char *__to);
 extern int __symlink (const char *__from, const char *__to);
@@ -151,6 +161,14 @@ extern int __brk (void *__addr) attribute_hidden;
 extern int __close (int __fd);
 libc_hidden_proto (__close)
 extern int __libc_close (int __fd);
+#  if __ASSUME_CLOSE_RANGE
+static inline _Bool __closefrom_fallback (int __lowfd, _Bool dirfd_fallback)
+{
+  return false;
+}
+#  else
+extern _Bool __closefrom_fallback (int __lowfd, _Bool) attribute_hidden;
+#  endif
 extern ssize_t __read (int __fd, void *__buf, size_t __nbytes);
 libc_hidden_proto (__read)
 extern ssize_t __write (int __fd, const void *__buf, size_t __n);
@@ -165,6 +183,8 @@ extern int __truncate (const char *path, __off_t __length);
 extern void *__sbrk (intptr_t __delta);
 libc_hidden_proto (__sbrk)
 
+extern int __tcsetpgrp (int fd, __pid_t pgrp);
+libc_hidden_proto (__tcsetpgrp)
 
 /* This variable is set nonzero at startup if the process's effective
    IDs differ from its real IDs, or it is otherwise indicated that
@@ -172,7 +192,6 @@ libc_hidden_proto (__sbrk)
    and some functions contained in the C library ignore various
    environment variables that normally affect them.  */
 extern int __libc_enable_secure attribute_relro;
-extern int __libc_enable_secure_decided;
 rtld_hidden_proto (__libc_enable_secure)
 
 

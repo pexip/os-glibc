@@ -1,5 +1,5 @@
 /* Common definition for ifunc selections optimized with SSE4.1.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();
 
-  if (CPU_FEATURES_CPU_P (cpu_features, SSE4_1))
+  if (CPU_FEATURE_USABLE_P (cpu_features, SSE4_1))
     return OPTIMIZE (sse41);
 
   return OPTIMIZE (c);

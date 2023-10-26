@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,6 +28,13 @@ int
 _hurd_raise_signal (struct hurd_sigstate *ss,
 		    int signo, const struct hurd_signal_detail *detail)
 {
+  if (signo <= 0 || signo >= NSIG)
+    {
+      if (ss)
+	__spin_unlock (&ss->lock);
+      return EINVAL;
+    }
+
   if (ss == NULL)
     {
       ss = _hurd_self_sigstate ();

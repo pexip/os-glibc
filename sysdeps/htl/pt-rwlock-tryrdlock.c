@@ -1,5 +1,5 @@
 /* Try to acquire a rwlock for reading.  Generic version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,7 +25,7 @@
 int
 pthread_rwlock_tryrdlock (struct __pthread_rwlock *rwlock)
 {
-  __pthread_spin_lock (&rwlock->__lock);
+  __pthread_spin_wait (&rwlock->__lock);
   if (__pthread_spin_trylock (&rwlock->__held) == 0)
     /* Successfully acquired the lock.  */
     {

@@ -1,6 +1,5 @@
-/* Copyright (c) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Thorsten Kukuk <kukuk@suse.de>, 1998.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -77,6 +76,8 @@ static run_modes run_mode = RUN_DAEMONIZE;
 
 static const char *conffile = _PATH_NSCDCONF;
 
+static const char *print_cache = NULL;
+
 time_t start_time;
 
 uintptr_t pagesize_m1;
@@ -106,6 +107,8 @@ static const struct argp_option options[] =
     N_("Read configuration data from NAME") },
   { "debug", 'd', NULL, 0,
     N_("Do not fork and display messages on the current tty") },
+  { "print", 'p', N_("NAME"), 0,
+    N_("Print contents of the offline cache file NAME") },
   { "foreground", 'F', NULL, 0,
     N_("Do not fork, but otherwise behave like a daemon") },
   { "nthreads", 't', N_("NUMBER"), 0, N_("Start NUMBER threads") },
@@ -156,6 +159,11 @@ main (int argc, char **argv)
       argp_help (&argp, stdout, ARGP_HELP_SEE, program_invocation_short_name);
       exit (1);
     }
+
+  /* Print the contents of the indicated cache file.  */
+  if (print_cache != NULL)
+    /* Does not return.  */
+    nscd_print_cache (print_cache);
 
   /* Read the configuration file.  */
   if (nscd_parse_file (conffile, dbs) != 0)
@@ -404,6 +412,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       run_mode = RUN_DEBUG;
       break;
 
+    case 'p':
+      print_cache = arg;
+      break;
+
     case 'F':
       run_mode = RUN_FOREGROUND;
       break;
@@ -510,7 +522,7 @@ print_version (FILE *stream, struct argp_state *state)
 Copyright (C) %s Free Software Foundation, Inc.\n\
 This is free software; see the source for copying conditions.  There is NO\n\
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
-"), "2020");
+"), "2022");
   fprintf (stream, gettext ("Written by %s.\n"),
 	   "Thorsten Kukuk and Ulrich Drepper");
 }

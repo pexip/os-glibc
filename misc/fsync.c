@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,6 +25,6 @@ fsync (int fd)
   __set_errno (ENOSYS);
   return -1;
 }
-
+libc_hidden_def (fsync)
 
 stub_warning (fsync)

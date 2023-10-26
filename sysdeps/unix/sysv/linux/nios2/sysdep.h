@@ -1,5 +1,5 @@
 /* Assembler macros for Nios II.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@
 
 #ifdef __ASSEMBLER__
 
+#undef SYSCALL_ERROR_LABEL
 #define SYSCALL_ERROR_LABEL __local_syscall_error
 
 #undef PSEUDO
@@ -139,34 +140,8 @@
 /* In order to get __set_errno() definition in INLINE_SYSCALL.  */
 #include <errno.h>
 
-/* Previously Nios2 used the generic version without the libc_hidden_def
-   which lead in a non existent __send symbol in libc.so.  */
-# undef HAVE_INTERNAL_SEND_SYMBOL
-
-/* Define a macro which expands into the inline wrapper code for a system
-   call.  */
-#undef INLINE_SYSCALL
-#define INLINE_SYSCALL(name, nr, args...)                               \
-  ({ INTERNAL_SYSCALL_DECL(err);					\
-     unsigned int result_var = INTERNAL_SYSCALL (name, err, nr, args);	\
-     if ( INTERNAL_SYSCALL_ERROR_P (result_var, err) )			\
-       {								\
-	 __set_errno (INTERNAL_SYSCALL_ERRNO (result_var, err));	\
-	 result_var = -1L;						\
-       }								\
-     (int) result_var; })
-
-#undef INTERNAL_SYSCALL_DECL
-#define INTERNAL_SYSCALL_DECL(err) unsigned int err __attribute__((unused))
-
-#undef INTERNAL_SYSCALL_ERROR_P
-#define INTERNAL_SYSCALL_ERROR_P(val, err) ((void) (val), (unsigned int) (err))
-
-#undef INTERNAL_SYSCALL_ERRNO
-#define INTERNAL_SYSCALL_ERRNO(val, err)   ((void) (err), val)
-
 #undef INTERNAL_SYSCALL_RAW
-#define INTERNAL_SYSCALL_RAW(name, err, nr, args...)            \
+#define INTERNAL_SYSCALL_RAW(name, nr, args...)                 \
   ({ unsigned int _sys_result;                                  \
      {                                                          \
        /* Load argument values in temporary variables
@@ -180,18 +155,17 @@
                      : "+r" (_r2), "=r" (_err)                  \
                      : ASM_ARGS_##nr				\
                      : __SYSCALL_CLOBBERS);                     \
-       _sys_result = _r2;                                       \
-       err = _err;                                              \
+       _sys_result = _err != 0 ? -_r2 : _r2;                    \
      }                                                          \
      (int) _sys_result; })
 
 #undef INTERNAL_SYSCALL
-#define INTERNAL_SYSCALL(name, err, nr, args...) \
-	INTERNAL_SYSCALL_RAW(SYS_ify(name), err, nr, args)
+#define INTERNAL_SYSCALL(name, nr, args...) \
+	INTERNAL_SYSCALL_RAW(SYS_ify(name), nr, args)
 
 #undef INTERNAL_SYSCALL_NCS
-#define INTERNAL_SYSCALL_NCS(number, err, nr, args...) \
-	INTERNAL_SYSCALL_RAW(number, err, nr, args)
+#define INTERNAL_SYSCALL_NCS(number, nr, args...) \
+	INTERNAL_SYSCALL_RAW(number, nr, args)
 
 #define LOAD_ARGS_0()
 #define LOAD_REGS_0
@@ -240,6 +214,9 @@
 #define ASM_ARGS_6      ASM_ARGS_5, "r" (_r9)
 
 #define __SYSCALL_CLOBBERS "memory"
+
+#undef HAVE_INTERNAL_BRK_ADDR_SYMBOL
+#define HAVE_INTERNAL_BRK_ADDR_SYMBOL 1
 
 #endif /* __ASSEMBLER__ */
 

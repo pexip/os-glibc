@@ -1,5 +1,5 @@
 /* Unlock a rwlock.  Generic version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ __pthread_rwlock_unlock (pthread_rwlock_t *rwlock)
 {
   struct __pthread *wakeup;
 
-  __pthread_spin_lock (&rwlock->__lock);
+  __pthread_spin_wait (&rwlock->__lock);
 
   assert (__pthread_spin_trylock (&rwlock->__held) == EBUSY);
 

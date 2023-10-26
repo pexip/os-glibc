@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gmail.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -41,18 +40,15 @@ sysv_scalbl (long double x, long double fn)
 
   return z;
 }
-#endif
 
 
 /* Wrapper scalbl */
 long double
 __scalbl (long double x, long double fn)
 {
-#if LIBM_SVID_COMPAT
   if (__glibc_unlikely (_LIB_VERSION == _SVID_))
     return sysv_scalbl (x, fn);
   else
-#endif
     {
       long double z = __ieee754_scalbl (x, fn);
 
@@ -79,3 +75,4 @@ __scalbl (long double x, long double fn)
     }
 }
 weak_alias (__scalbl, scalbl)
+#endif

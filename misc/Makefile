@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2020 Free Software Foundation, Inc.
+# Copyright (C) 1991-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -37,7 +37,8 @@ headers	:= sys/uio.h bits/uio-ext.h bits/uio_lim.h \
 	   bits/syslog.h bits/syslog-ldbl.h bits/syslog-path.h bits/error.h \
 	   bits/select2.h bits/hwcap.h sys/auxv.h \
 	   sys/sysmacros.h bits/sysmacros.h bits/types/struct_iovec.h \
-	   bits/err-ldbl.h bits/error-ldbl.h
+	   bits/err-ldbl.h bits/error-ldbl.h \
+	   sys/single_threaded.h
 
 routines := brk sbrk sstk ioctl \
 	    readv writev preadv preadv64 pwritev pwritev64 \
@@ -72,7 +73,8 @@ routines := brk sbrk sstk ioctl \
 	    fgetxattr flistxattr fremovexattr fsetxattr getxattr \
 	    listxattr lgetxattr llistxattr lremovexattr lsetxattr \
 	    removexattr setxattr getauxval ifunc-impl-list makedev \
-	    allocate_once
+	    allocate_once fd_to_filename single_threaded unwind-link \
+	    atomic_wide_counter
 
 generated += tst-error1.mtrace tst-error1-mem.out \
   tst-allocate_once.mtrace tst-allocate_once-mem.out
@@ -87,7 +89,14 @@ tests := tst-dirname tst-tsearch tst-fdset tst-mntent tst-hsearch \
 	 tst-preadvwritev tst-preadvwritev64 tst-makedev tst-empty \
 	 tst-preadvwritev2 tst-preadvwritev64v2 tst-warn-wide \
 	 tst-ldbl-warn tst-ldbl-error tst-dbl-efgcvt tst-ldbl-efgcvt \
-	 tst-mntent-autofs
+	 tst-mntent-autofs tst-syscalls tst-mntent-escape tst-select \
+	 tst-ioctl
+
+tests-time64 := \
+  tst-select-time64 \
+  tst-pselect-time64 \
+  tst-ioctl-time64 \
+  # tests-time64
 
 # Tests which need libdl.
 ifeq (yes,$(build-shared))
@@ -97,10 +106,16 @@ endif
 tests-internal := tst-atomic tst-atomic-long tst-allocate_once
 tests-static := tst-empty
 
+# Test for the internal, non-exported __fd_to_filename function.
+tests-internal += tst-fd_to_filename
+tests-static += tst-fd_to_filename
+
 ifeq ($(run-built-tests),yes)
 tests-special += $(objpfx)tst-error1-mem.out \
   $(objpfx)tst-allocate_once-mem.out
 endif
+
+tests-container := tst-syslog
 
 CFLAGS-select.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-tsearch.c += $(uses-callbacks)
@@ -136,6 +151,10 @@ CFLAGS-sbrk.o = $(no-stack-protector)
 CFLAGS-sbrk.op = $(no-stack-protector)
 CFLAGS-brk.o = $(no-stack-protector)
 CFLAGS-brk.op = $(no-stack-protector)
+CFLAGS-mmap.o = $(no-stack-protector)
+CFLAGS-mmap.op = $(no-stack-protector)
+CFLAGS-mmap64.o = $(no-stack-protector)
+CFLAGS-mmap64.op = $(no-stack-protector)
 
 include ../Rules
 
@@ -143,15 +162,20 @@ $(objpfx)libg.a: $(dep-dummy-lib); $(make-dummy-lib)
 
 $(objpfx)tst-tsearch: $(libm)
 
-tst-error1-ENV = MALLOC_TRACE=$(objpfx)tst-error1.mtrace
+tst-error1-ENV = MALLOC_TRACE=$(objpfx)tst-error1.mtrace \
+		 LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 tst-error1-ARGS = $(objpfx)tst-error1.out
 $(objpfx)tst-error1-mem.out: $(objpfx)tst-error1.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-error1.mtrace > $@; \
 	$(evaluate-test)
 
-tst-allocate_once-ENV = MALLOC_TRACE=$(objpfx)tst-allocate_once.mtrace
+tst-allocate_once-ENV = MALLOC_TRACE=$(objpfx)tst-allocate_once.mtrace \
+			LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)tst-allocate_once-mem.out: $(objpfx)tst-allocate_once.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-allocate_once.mtrace > $@; \
 	$(evaluate-test)
 
-$(objpfx)tst-gethostid: $(libdl)
+$(objpfx)tst-select: $(librt)
+$(objpfx)tst-select-time64: $(librt)
+$(objpfx)tst-pselect: $(librt)
+$(objpfx)tst-pselect-time64: $(librt)

@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +28,7 @@ int __attr_list_lock = LLL_LOCK_INITIALIZER;
 
 
 int
-__pthread_attr_init_2_1 (pthread_attr_t *attr)
+__pthread_attr_init (pthread_attr_t *attr)
 {
   struct pthread_attr *iattr;
 
@@ -48,7 +47,8 @@ __pthread_attr_init_2_1 (pthread_attr_t *attr)
 
   return 0;
 }
-versioned_symbol (libc, __pthread_attr_init_2_1, pthread_attr_init, GLIBC_2_1);
+libc_hidden_def (__pthread_attr_init)
+versioned_symbol (libc, __pthread_attr_init, pthread_attr_init, GLIBC_2_1);
 
 
 #if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_1)

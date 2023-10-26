@@ -1,6 +1,5 @@
-/* Copyright (C) 2009-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,9 +38,8 @@
       if (new_sp < cur_sp)						\
 	{								\
 	  stack_t oss;							\
-	  INTERNAL_SYSCALL_DECL (err);					\
-	  int res = INTERNAL_SYSCALL (sigaltstack, err, 2, NULL, &oss);	\
-	  if (!INTERNAL_SYSCALL_ERROR_P (res, err))			\
+	  int res = INTERNAL_SYSCALL_CALL (sigaltstack, NULL, &oss);	\
+	  if (!INTERNAL_SYSCALL_ERROR_P (res))				\
 	    {								\
 	      if ((oss.ss_flags & SS_ONSTACK) == 0			\
 		  || ((uintptr_t) (oss.ss_sp + oss.ss_size) - new_sp	\

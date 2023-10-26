@@ -1,5 +1,5 @@
 /* Check if clone (CLONE_THREAD) does not call exit_group (BZ #21512)
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -56,7 +56,11 @@ f (void *a)
 static inline int
 futex_wait (int *futexp, int val)
 {
+#ifdef __NR_futex
   return syscall (__NR_futex, futexp, FUTEX_WAIT, val);
+#else
+  return syscall (__NR_futex_time64, futexp, FUTEX_WAIT, val);
+#endif
 }
 
 static int

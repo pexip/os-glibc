@@ -1,5 +1,5 @@
 /* Check if posix_spawn does not act as a cancellation entrypoint.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -86,11 +86,7 @@ do_test (void)
     }
 
   /* Not interested in knowing when the pipe is closed.  */
-  if (sigignore (SIGPIPE) != 0)
-    {
-      puts ("error: sigignore failed");
-      exit (1);
-    }
+  xsignal (SIGPIPE, SIG_IGN);
 
   /* To synchronize with the thread.  */
   if (pthread_barrier_init (&b, NULL, 2) != 0)

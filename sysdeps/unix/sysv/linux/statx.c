@@ -1,5 +1,5 @@
 /* Linux statx implementation.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,24 +18,21 @@
 
 #include <errno.h>
 #include <sys/stat.h>
-
+#include <sysdep.h>
 #include "statx_generic.c"
 
 int
 statx (int fd, const char *path, int flags,
        unsigned int mask, struct statx *buf)
 {
-#ifdef __NR_statx
   int ret = INLINE_SYSCALL_CALL (statx, fd, path, flags, mask, buf);
-# ifdef __ASSUME_STATX
+#ifdef __ASSUME_STATX
   return ret;
-# else
+#else
   if (ret == 0 || errno != ENOSYS)
     /* Preserve non-error/non-ENOSYS return values.  */
     return ret;
-# endif
-#endif
-#ifndef __ASSUME_STATX
-  return statx_generic (fd, path, flags, mask, buf);
+  else
+    return statx_generic (fd, path, flags, mask, buf);
 #endif
 }

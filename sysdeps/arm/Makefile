@@ -1,11 +1,6 @@
 gnulib-arch = $(elf-objpfx)libgcc-stubs.a
 static-gnulib-arch = $(elf-objpfx)libgcc-stubs.a
 
-# All supported build tools support TLS descriptors, but the OS may not.
-ifndef have-arm-tls-desc
-have-arm-tls-desc = yes
-endif
-
 ifeq ($(subdir),elf)
 sysdep-dl-routines += tlsdesc dl-tlsdesc
 sysdep_routines += aeabi_unwind_cpp_pr1 find_exidx
@@ -18,7 +13,7 @@ $(objpfx)libgcc-stubs.a: $(objpfx)aeabi_unwind_cpp_pr1.os
 lib-noranlib: $(objpfx)libgcc-stubs.a
 
 ifeq ($(build-shared),yes)
-ifeq ($(have-arm-tls-desc),yes)
+ifeq (yes,$(have-mtls-dialect-gnu2))
 tests += tst-armtlsdescloc tst-armtlsdescextnow tst-armtlsdescextlazy
 modules-names += tst-armtlsdesclocmod
 modules-names += tst-armtlsdescextlazymod tst-armtlsdescextnowmod
@@ -62,9 +57,4 @@ endif
 ifeq ($(subdir),rt)
 librt-sysdep_routines += rt-aeabi_unwind_cpp_pr1 rt-arm-unwind-resume
 librt-shared-only-routines += rt-aeabi_unwind_cpp_pr1 rt-arm-unwind-resume
-endif
-
-ifeq ($(subdir),nptl)
-libpthread-sysdep_routines += pt-arm-unwind-resume
-libpthread-shared-only-routines += pt-arm-unwind-resume
 endif

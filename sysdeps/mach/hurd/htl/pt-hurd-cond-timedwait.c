@@ -1,5 +1,5 @@
 /* pthread_hurd_cond_timedwait_np.  Hurd-specific wait on a condition.
-   Copyright (C) 2012-2020 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
   {
     int unblock;
 
-    __pthread_spin_lock (&cond->__lock);
+    __pthread_spin_wait (&cond->__lock);
     /* The thread only needs to be awaken if it's blocking or about to block.
        If it was already unblocked, it's not queued any more.  */
     unblock = self->prevp != NULL;
@@ -81,7 +81,7 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
      the condition variable's lock.  */
 
   __spin_lock (&ss->lock);
-  __pthread_spin_lock (&cond->__lock);
+  __pthread_spin_wait (&cond->__lock);
   cancel = ss->cancel;
   if (cancel)
     /* We were cancelled before doing anything.  Don't block at all.  */
@@ -111,6 +111,10 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
       /* Release MUTEX before blocking.  */
       __pthread_mutex_unlock (mutex);
 
+  /* Increase the waiter reference count.  Relaxed MO is sufficient because
+     we only need to synchronize when decrementing the reference count.  */
+  atomic_fetch_add_relaxed (&cond->__wrefs, 2);
+
       /* Block the thread.  */
       if (abstime != NULL)
 	err = __pthread_timedblock (self, abstime, clock_id);
@@ -123,7 +127,7 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
       /* As it was done when enqueueing, prevent hurd_thread_cancel from
          suspending us while the condition lock is held.  */
       __spin_lock (&ss->lock);
-      __pthread_spin_lock (&cond->__lock);
+      __pthread_spin_wait (&cond->__lock);
       if (self->prevp == NULL)
 	/* Another thread removed us from the list of waiters, which means
 	   a wakeup message has been sent.  It was either consumed while
@@ -143,6 +147,13 @@ __pthread_hurd_cond_timedwait_internal (pthread_cond_t *cond,
       if (drain)
 	__pthread_block (self);
     }
+
+  /* If destruction is pending (i.e., the wake-request flag is nonzero) and we
+     are the last waiter (prior value of __wrefs was 1 << 1), then wake any
+     threads waiting in pthread_cond_destroy.  Release MO to synchronize with
+     these threads.  Don't bother clearing the wake-up request flag.  */
+  if ((atomic_fetch_add_release (&cond->__wrefs, -2)) == 3)
+    __gsync_wake (__mach_task_self (), (vm_offset_t) &cond->__wrefs, 0, 0);
 
   /* Clear the hook, now that we are done blocking.  */
   ss->cancel_hook = NULL;

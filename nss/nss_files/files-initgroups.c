@@ -1,5 +1,5 @@
 /* Initgroups handling in nss_files module.
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,21 +25,20 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <scratch_buffer.h>
+#include <nss.h>
+#include <nss_files.h>
 
 enum nss_status
 _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
 			   long int *size, gid_t **groupsp, long int limit,
 			   int *errnop)
 {
-  FILE *stream = fopen ("/etc/group", "rce");
+  FILE *stream = __nss_files_fopen ("/etc/group");
   if (stream == NULL)
     {
       *errnop = errno;
       return *errnop == ENOMEM ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
     }
-
-  /* No other thread using this stream.  */
-  __fsetlocking (stream, FSETLOCKING_BYCALLER);
 
   char *line = NULL;
   size_t linelen = 0;
@@ -56,10 +55,10 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
     {
       fpos_t pos;
       fgetpos (stream, &pos);
-      ssize_t n = getline (&line, &linelen, stream);
+      ssize_t n = __getline (&line, &linelen, stream);
       if (n < 0)
 	{
-	  if (! feof_unlocked (stream))
+	  if (! __feof_unlocked (stream))
 	    status = ((*errnop = errno) == ENOMEM
 		      ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL);
 	  break;
@@ -128,3 +127,4 @@ _nss_files_initgroups_dyn (const char *user, gid_t group, long int *start,
 
   return status == NSS_STATUS_SUCCESS && !any ? NSS_STATUS_NOTFOUND : status;
 }
+libc_hidden_def (_nss_files_initgroups_dyn)

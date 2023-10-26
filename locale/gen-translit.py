@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Generate the locale/C-translit.h file.
-# Copyright (C) 2018-2020 Free Software Foundation, Inc.
+# Copyright (C) 2018-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -92,7 +92,7 @@ for lineno, line in enumerate(sys.stdin):
     if translits \
        and translit.codepoints.decoded <= translits[-1].codepoints.decoded:
         raise IOError("unexpected codepoint {!r} on line {}: {!r}".format(
-            translit.codeponts.decoded, lineno + 1, line))
+            translit.codepoints.decoded, lineno + 1, line))
     translits.append(translit)
 
 # Generate the C sources.

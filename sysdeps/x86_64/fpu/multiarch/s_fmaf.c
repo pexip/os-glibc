@@ -1,5 +1,5 @@
 /* FMA version of fmaf.
-   Copyright (C) 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#define NO_MATH_REDIRECT
 #include <config.h>
 #include <math.h>
 #include <init-arch.h>
@@ -40,8 +41,8 @@ __fmaf_fma4 (float x, float y, float z)
 }
 
 
-libm_ifunc (__fmaf, HAS_ARCH_FEATURE (FMA_Usable)
-	    ? __fmaf_fma3 : (HAS_ARCH_FEATURE (FMA4_Usable)
+libm_ifunc (__fmaf, CPU_FEATURE_USABLE (FMA)
+	    ? __fmaf_fma3 : (CPU_FEATURE_USABLE (FMA4)
 			     ? __fmaf_fma4 : __fmaf_sse2));
 libm_alias_float (__fma, fma)
 

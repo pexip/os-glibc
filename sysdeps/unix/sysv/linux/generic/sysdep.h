@@ -1,6 +1,5 @@
-/* Copyright (C) 2011-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Chris Metcalf <cmetcalf@tilera.com>, 2011.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,12 +23,4 @@
 /* Provide the common name to allow more code reuse.  */
 #ifdef __NR_llseek
 # define __NR__llseek __NR_llseek
-#endif
-
-#if __WORDSIZE == 64
-/* By defining the older names, glibc will build syscall wrappers for
-   both pread and pread64; sysdeps/unix/sysv/linux/wordsize-64/pread64.c
-   will suppress generating any separate code for pread64.c.  */
-#define __NR_pread __NR_pread64
-#define __NR_pwrite __NR_pwrite64
 #endif

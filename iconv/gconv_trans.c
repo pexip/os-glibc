@@ -1,7 +1,6 @@
 /* Transliteration using the locale's data.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 2000.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,15 +37,15 @@ __gconv_transliterate (struct __gconv_step *step,
 		       unsigned char **outbufstart, size_t *irreversible)
 {
   /* Find out about the locale's transliteration.  */
-  uint_fast32_t size;
+  uint32_t size;
   const uint32_t *from_idx;
   const uint32_t *from_tbl;
   const uint32_t *to_idx;
   const uint32_t *to_tbl;
   const uint32_t *winbuf;
   const uint32_t *winbufend;
-  uint_fast32_t low;
-  uint_fast32_t high;
+  uint32_t low;
+  uint32_t high;
 
   /* The input buffer.  There are actually 4-byte values.  */
   winbuf = (const uint32_t *) *inbufp;
@@ -79,14 +78,14 @@ __gconv_transliterate (struct __gconv_step *step,
     return (winbuf == winbufend
 	    ? __GCONV_EMPTY_INPUT : __GCONV_INCOMPLETE_INPUT);
 
-  /* The array starting at FROM_IDX contains indeces to the string table
-     in FROM_TBL.  The indeces are sorted wrt to the strings.  I.e., we
+  /* The array starting at FROM_IDX contains indices to the string table
+     in FROM_TBL.  The indices are sorted wrt to the strings.  I.e., we
      are doing binary search.  */
   low = 0;
   high = size;
   while (low < high)
     {
-      uint_fast32_t med = (low + high) / 2;
+      uint32_t med = (low + high) / 2;
       uint32_t idx;
       int cnt;
 
@@ -112,7 +111,7 @@ __gconv_transliterate (struct __gconv_step *step,
 	  do
 	    {
 	      /* Determine length of replacement.  */
-	      uint_fast32_t len = 0;
+	      unsigned int len = 0;
 	      int res;
 	      const unsigned char *toinptr;
 	      unsigned char *outptr;

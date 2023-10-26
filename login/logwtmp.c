@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,10 +20,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <utmp.h>
-
+#include <struct___timespec64.h>
+#include <shlib-compat.h>
 
 void
-logwtmp (const char *line, const char *name, const char *host)
+__logwtmp (const char *line, const char *name, const char *host)
 {
   struct utmp ut;
 
@@ -36,9 +36,15 @@ logwtmp (const char *line, const char *name, const char *host)
   strncpy (ut.ut_name, name, sizeof ut.ut_name);
   strncpy (ut.ut_host, host, sizeof ut.ut_host);
 
-  struct timespec ts;
-  __clock_gettime (CLOCK_REALTIME, &ts);
+  struct __timespec64 ts;
+  __clock_gettime64 (CLOCK_REALTIME, &ts);
   TIMESPEC_TO_TIMEVAL (&ut.ut_tv, &ts);
 
-  updwtmp (_PATH_WTMP, &ut);
+  __updwtmp (_PATH_WTMP, &ut);
 }
+versioned_symbol (libc, __logwtmp, logwtmp, GLIBC_2_34);
+libc_hidden_ver (__logwtmp, logwtmp)
+
+#if OTHER_SHLIB_COMPAT (libutil, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libutil, __logwtmp, logwtmp, GLIBC_2_0);
+#endif

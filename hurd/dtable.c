@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <limits.h>
-#include <cthreads.h>		/* For `struct mutex'.  */
+#include <lock-intern.h>	/* For `struct mutex'.  */
 #include "set-hooks.h"
 #include "hurdmalloc.h"		/* XXX */
 
@@ -36,7 +36,7 @@ DEFINE_HOOK (_hurd_fd_subinit, (void));
 
 /* Initialize the file descriptor table at startup.  */
 
-static void
+static void attribute_used_retain
 init_dtable (void)
 {
   int i;
@@ -91,12 +91,10 @@ init_dtable (void)
 
   /* Run things that want to run after the file descriptor table
      is initialized.  */
-  RUN_HOOK (_hurd_fd_subinit, ());
-
-  (void) &init_dtable;		/* Avoid "defined but not used" warning.  */
+  RUN_RELHOOK (_hurd_fd_subinit, ());
 }
 
-text_set_element (_hurd_subinit, init_dtable);
+SET_RELHOOK (_hurd_subinit, init_dtable);
 
 /* XXX when the linker supports it, the following functions should all be
    elsewhere and just have text_set_elements here.  */
@@ -189,6 +187,7 @@ ctty_new_pgrp (void)
 {
   int i;
 
+retry:
   HURD_CRITICAL_BEGIN;
   __mutex_lock (&_hurd_dtable_lock);
 
@@ -224,8 +223,18 @@ ctty_new_pgrp (void)
 	    /* This fd has a ctty-special port.  We need a new one, to tell
 	       the io server of our different process group.  */
 	    io_t new;
-	    if (__term_open_ctty (port, _hurd_pid, _hurd_pgrp, &new))
-	      new = MACH_PORT_NULL;
+	    error_t err;
+	    if ((err = __term_open_ctty (port, _hurd_pid, _hurd_pgrp, &new)))
+	      {
+		if (err == EINTR)
+		  {
+		    /* Got a signal while inside an RPC of the critical section, retry again */
+		    __mutex_unlock (&_hurd_dtable_lock);
+		    HURD_CRITICAL_UNLOCK;
+		    goto retry;
+		  }
+		new = MACH_PORT_NULL;
+	      }
 	    _hurd_port_set (&d->ctty, new);
 	  }
 

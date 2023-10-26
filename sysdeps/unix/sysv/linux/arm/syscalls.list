@@ -15,19 +15,13 @@ getgroups	-	getgroups32	i:ip	__getgroups	getgroups
 setfsgid	-	setfsgid32	Ei:i	setfsgid
 setfsuid	-	setfsuid32	Ei:i	setfsuid
 
-prlimit64	EXTRA	prlimit64	i:iipp	prlimit64
-
-fanotify_mark	EXTRA	fanotify_mark	i:iiiiis	fanotify_mark
-
 personality	EXTRA	personality	Ei:i	__personality	personality
 
 # proper socket implementations:
 bind		-	bind		i:ipi	__bind		bind
 getpeername	-	getpeername	i:ipp	__getpeername	getpeername
 getsockname	-	getsockname	i:ipp	__getsockname	getsockname
-getsockopt	-	getsockopt	i:iiiBN	__getsockopt	getsockopt
 listen		-	listen		i:ii	__listen	listen
-setsockopt	-	setsockopt	i:iiibn	__setsockopt	setsockopt
 shutdown	-	shutdown	i:ii	__shutdown	shutdown
 socket		-	socket		i:iii	__socket	socket
 socketpair	-	socketpair	i:iiif	__socketpair	socketpair

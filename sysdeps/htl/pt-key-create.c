@@ -1,5 +1,5 @@
 /* pthread_key_create.  Hurd version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <pthreadP.h>
 
 pthread_mutex_t __pthread_key_lock;
+pthread_once_t __pthread_key_once = PTHREAD_ONCE_INIT;
 
 void (**__pthread_key_destructors) (void *arg);
 int __pthread_key_size;
@@ -106,5 +107,5 @@ do_search:
   __pthread_mutex_unlock (&__pthread_key_lock);
   return 0;
 }
-strong_alias (__pthread_key_create, pthread_key_create)
+weak_alias (__pthread_key_create, pthread_key_create)
 hidden_def (__pthread_key_create)

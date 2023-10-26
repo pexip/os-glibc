@@ -1,5 +1,5 @@
 /* Support code for testing libm functions (driver).
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@
 /* Flags set by the including file.  */
 const int flag_test_errno = TEST_ERRNO;
 const int flag_test_exceptions = TEST_EXCEPTIONS;
-const int flag_test_inline = TEST_INLINE;
 const int flag_test_mathvec = TEST_MATHVEC;
 
 #if TEST_NARROW
@@ -41,8 +40,6 @@ const int snan_tests_arg = SNAN_TESTS (FLOAT);
 /* Informal description of the functions being tested.  */
 #if TEST_MATHVEC
 # define TEST_MSG "testing " STR_FLOAT " (vector length " STR_VEC_LEN ")\n"
-#elif TEST_INLINE
-# define TEST_MSG "testing " STR_FLOAT " (inline functions)\n"
 #elif TEST_NARROW
 # define TEST_MSG "testing " STR_FLOAT " (argument " STR_ARG_FLOAT ")\n"
 #else
@@ -70,11 +67,7 @@ const char test_msg[] = TEST_MSG;
 					 ? TEST_NAN_PAYLOAD		\
 					 : 0)
 
-#if TEST_INLINE
-const char qtype_str[] = "i" TYPE_STR;
-#else
 const char qtype_str[] = TYPE_STR;
-#endif
 
 /* Various constants derived from pi.  We must supply them precalculated for
    accuracy.  They are written as a series of postfix operations to keep
@@ -129,6 +122,16 @@ const char qtype_str[] = TYPE_STR;
 /* For nexttoward tests.  */
 #define snan_value_ld	__builtin_nansl ("")
 
+/* For pseudo-normal number tests.  */
+#if TEST_COND_intel96
+# include <math_ldbl.h>
+#define pseudo_inf { .parts = { 0x00000000, 0x00000000, 0x7fff }}
+#define pseudo_zero { .parts = { 0x00000000, 0x00000000, 0x0100 }}
+#define pseudo_qnan { .parts = { 0x00000001, 0x00000000, 0x7fff }}
+#define pseudo_snan { .parts = { 0x00000001, 0x40000000, 0x7fff }}
+#define pseudo_unnormal { .parts = { 0x00000001, 0x40000000, 0x0100 }}
+#endif
+
 /* Structures for each kind of test.  */
 /* Used for both RUN_TEST_LOOP_f_f and RUN_TEST_LOOP_fp_f.  */
 struct test_f_f_data
@@ -166,10 +169,30 @@ struct test_fj_f_data
   } rd, rn, rz, ru;
 };
 #ifdef ARG_FLOAT
+struct test_a_f_data
+{
+  const char *arg_str;
+  ARG_FLOAT arg;
+  struct
+  {
+    FLOAT expected;
+    int exceptions;
+  } rd, rn, rz, ru;
+};
 struct test_aa_f_data
 {
   const char *arg_str;
   ARG_FLOAT arg1, arg2;
+  struct
+  {
+    FLOAT expected;
+    int exceptions;
+  } rd, rn, rz, ru;
+};
+struct test_aaa_f_data
+{
+  const char *arg_str;
+  ARG_FLOAT arg1, arg2, arg3;
   struct
   {
     FLOAT expected;
@@ -323,6 +346,19 @@ struct test_f_i_data
     int exceptions;
   } rd, rn, rz, ru;
 };
+/* Used for RUN_TEST_LOOP_f_i_tg_u and RUN_TEST_LOOP_f_b_tg_u.  */
+#if TEST_COND_intel96
+struct test_j_i_data_u
+{
+  const char *arg_str;
+  ieee_long_double_shape_type arg;
+  struct
+  {
+    int expected;
+    int exceptions;
+  } rd, rn, rz, ru;
+};
+#endif
 /* Used for RUN_TEST_LOOP_ff_b, RUN_TEST_LOOP_fpfp_b and
    RUN_TEST_LOOP_ff_i_tg.  */
 struct test_ff_i_data
@@ -443,7 +479,7 @@ struct test_Ff_b1_data
 
 /* Run an individual test, including any required setup and checking
    of results, or loop over all tests in an array.  */
-#define RUN_TEST_f_f(ARG_STR, FUNC_NAME, ARG, EXPECTED,			\
+#define RUN_TEST_1_f(ARG_STR, FUNC_NAME, ARG, EXPECTED,			\
 		     EXCEPTIONS)					\
   do									\
     if (enable_test (EXCEPTIONS))					\
@@ -454,13 +490,15 @@ struct test_Ff_b1_data
 	COMMON_TEST_CLEANUP;						\
       }									\
   while (0)
-#define RUN_TEST_LOOP_f_f(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
+#define RUN_TEST_LOOP_1_f(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
   IF_ROUND_INIT_ ## ROUNDING_MODE					\
     for (size_t i = 0; i < sizeof (ARRAY) / sizeof (ARRAY)[0]; i++)	\
-      RUN_TEST_f_f ((ARRAY)[i].arg_str, FUNC_NAME, (ARRAY)[i].arg,	\
+      RUN_TEST_1_f ((ARRAY)[i].arg_str, FUNC_NAME, (ARRAY)[i].arg,	\
 		    (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
 		    (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);		\
   ROUND_RESTORE_ ## ROUNDING_MODE
+#define RUN_TEST_LOOP_f_f RUN_TEST_LOOP_1_f
+#define RUN_TEST_LOOP_a_f RUN_TEST_LOOP_1_f
 #define RUN_TEST_fp_f(ARG_STR, FUNC_NAME, ARG, EXPECTED,		\
 		     EXCEPTIONS)					\
   do									\
@@ -508,8 +546,8 @@ struct test_Ff_b1_data
 #define RUN_TEST_LOOP_fl_f RUN_TEST_LOOP_2_f
 #define RUN_TEST_if_f RUN_TEST_2_f
 #define RUN_TEST_LOOP_if_f RUN_TEST_LOOP_2_f
-#define RUN_TEST_fff_f(ARG_STR, FUNC_NAME, ARG1, ARG2, ARG3,		\
-		       EXPECTED, EXCEPTIONS)				\
+#define RUN_TEST_3_f(ARG_STR, FUNC_NAME, ARG1, ARG2, ARG3,		\
+		     EXPECTED, EXCEPTIONS)				\
   do									\
     if (enable_test (EXCEPTIONS))					\
       {									\
@@ -519,14 +557,16 @@ struct test_Ff_b1_data
 	COMMON_TEST_CLEANUP;						\
       }									\
   while (0)
-#define RUN_TEST_LOOP_fff_f(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
+#define RUN_TEST_LOOP_3_f(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
   IF_ROUND_INIT_ ## ROUNDING_MODE					\
     for (size_t i = 0; i < sizeof (ARRAY) / sizeof (ARRAY)[0]; i++)	\
-      RUN_TEST_fff_f ((ARRAY)[i].arg_str, FUNC_NAME, (ARRAY)[i].arg1,	\
-		      (ARRAY)[i].arg2, (ARRAY)[i].arg3,			\
-		      (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
-		      (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);	\
+      RUN_TEST_3_f ((ARRAY)[i].arg_str, FUNC_NAME, (ARRAY)[i].arg1,	\
+		    (ARRAY)[i].arg2, (ARRAY)[i].arg3,			\
+		    (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
+		    (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);		\
   ROUND_RESTORE_ ## ROUNDING_MODE
+#define RUN_TEST_LOOP_fff_f RUN_TEST_LOOP_3_f
+#define RUN_TEST_LOOP_aaa_f RUN_TEST_LOOP_3_f
 #define RUN_TEST_fiu_M(ARG_STR, FUNC_NAME, ARG1, ARG2, ARG3,		\
 		       EXPECTED, EXCEPTIONS)				\
   do									\
@@ -838,6 +878,22 @@ struct test_Ff_b1_data
       RUN_TEST_f_i_tg ((ARRAY)[i].arg_str, FUNC_NAME, (ARRAY)[i].arg,	\
 		       (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
 		       (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);	\
+  ROUND_RESTORE_ ## ROUNDING_MODE
+#define RUN_TEST_LOOP_j_b_tg_u(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
+  IF_ROUND_INIT_ ## ROUNDING_MODE					\
+  for (size_t i = 0; i < sizeof (ARRAY) / sizeof (ARRAY)[0]; i++)	\
+  RUN_TEST_f_b_tg ((ARRAY)[i].arg_str, FUNC_NAME,			\
+		   (FLOAT)(ARRAY)[i].arg.value,				\
+		   (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
+		   (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);		\
+  ROUND_RESTORE_ ## ROUNDING_MODE
+#define RUN_TEST_LOOP_j_i_tg_u(FUNC_NAME, ARRAY, ROUNDING_MODE)		\
+  IF_ROUND_INIT_ ## ROUNDING_MODE					\
+  for (size_t i = 0; i < sizeof (ARRAY) / sizeof (ARRAY)[0]; i++)	\
+  RUN_TEST_f_i_tg ((ARRAY)[i].arg_str, FUNC_NAME,			\
+		   (FLOAT)(ARRAY)[i].arg.value,				\
+		   (ARRAY)[i].RM_##ROUNDING_MODE.expected,		\
+		   (ARRAY)[i].RM_##ROUNDING_MODE.exceptions);		\
   ROUND_RESTORE_ ## ROUNDING_MODE
 #define RUN_TEST_ff_b(ARG_STR, FUNC_NAME, ARG1, ARG2, EXPECTED,		\
 		      EXCEPTIONS)					\

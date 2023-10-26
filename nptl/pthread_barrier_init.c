@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,7 +19,7 @@
 #include "pthreadP.h"
 #include <futex-internal.h>
 #include <kernel-features.h>
-
+#include <shlib-compat.h>
 
 static const struct pthread_barrierattr default_barrierattr =
   {
@@ -29,7 +28,7 @@ static const struct pthread_barrierattr default_barrierattr =
 
 
 int
-__pthread_barrier_init (pthread_barrier_t *barrier,
+___pthread_barrier_init (pthread_barrier_t *barrier,
 			const pthread_barrierattr_t *attr, unsigned int count)
 {
   ASSERT_TYPE_SIZE (pthread_barrier_t, __SIZEOF_PTHREAD_BARRIER_T);
@@ -61,4 +60,14 @@ __pthread_barrier_init (pthread_barrier_t *barrier,
 
   return 0;
 }
-weak_alias (__pthread_barrier_init, pthread_barrier_init)
+versioned_symbol (libc, ___pthread_barrier_init, pthread_barrier_init,
+                  GLIBC_2_34);
+libc_hidden_ver (___pthread_barrier_init, __pthread_barrier_init)
+#ifndef SHARED
+strong_alias (___pthread_barrier_init, __pthread_barrier_init)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_barrier_init, pthread_barrier_init,
+               GLIBC_2_2);
+#endif

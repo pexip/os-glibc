@@ -1,7 +1,6 @@
 /*
  * IBM Accurate Mathematical Library
- * Written by International Business Machines Corp.
- * Copyright (C) 2001-2020 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2022 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,13 +66,15 @@
 /* storage variables of type double.                                   */
 
 #ifdef DLA_FMS
-# define  EMULV(x, y, z, zz, p, hx, tx, hy, ty)          \
+# define  EMULV(x, y, z, zz)          \
   z = x * y; zz = DLA_FMS (x, y, z);
 #else
-# define  EMULV(x, y, z, zz, p, hx, tx, hy, ty)          \
-  p = CN * (x);  hx = ((x) - p) + p;  tx = (x) - hx; \
-  p = CN * (y);  hy = ((y) - p) + p;  ty = (y) - hy; \
-  z = (x) * (y); zz = (((hx * hy - z) + hx * ty) + tx * hy) + tx * ty;
+# define  EMULV(x, y, z, zz)          \
+    ({  __typeof__ (x) __p, hx, tx, hy, ty;          \
+        __p = CN * (x);  hx = ((x) - __p) + __p;  tx = (x) - hx; \
+        __p = CN * (y);  hy = ((y) - __p) + __p;  ty = (y) - hy; \
+        z = (x) * (y); zz = (((hx * hy - z) + hx * ty) + tx * hy) + tx * ty; \
+    })
 #endif
 
 
@@ -83,13 +84,15 @@
 /* storage variables of type double.                                         */
 
 #ifdef DLA_FMS
-# define  MUL12(x,y,z,zz,p,hx,tx,hy,ty,q)        \
-	   EMULV(x,y,z,zz,p,hx,tx,hy,ty)
+# define  MUL12(x, y, z, zz)        \
+	   EMULV(x, y, z, zz)
 #else
-# define  MUL12(x,y,z,zz,p,hx,tx,hy,ty,q)        \
-	   p=CN*(x);  hx=((x)-p)+p;  tx=(x)-hx; \
-	   p=CN*(y);  hy=((y)-p)+p;  ty=(y)-hy; \
-	   p=hx*hy;  q=hx*ty+tx*hy; z=p+q;  zz=((p-z)+q)+tx*ty;
+# define  MUL12(x, y, z, zz)        \
+    ({  __typeof__ (x) __p, hx, tx, hy, ty, __q; \
+	   __p=CN*(x);  hx=((x)-__p)+__p;  tx=(x)-hx;  \
+	   __p=CN*(y);  hy=((y)-__p)+__p;  ty=(y)-hy;  \
+	   __p=hx*hy;  __q=hx*ty+tx*hy; z=__p+__q;  zz=((__p-z)+__q)+tx*ty; \
+    })
 #endif
 
 
@@ -125,8 +128,8 @@
 /* are assumed to be double-length numbers. p,hx,tx,hy,ty,q,c,cc are         */
 /* temporary storage variables of type double.                               */
 
-#define  MUL2(x, xx, y, yy, z, zz, p, hx, tx, hy, ty, q, c, cc)  \
-  MUL12 (x, y, c, cc, p, hx, tx, hy, ty, q)                      \
+#define  MUL2(x, xx, y, yy, z, zz, c, cc)  \
+  MUL12 (x, y, c, cc);                     \
   cc = ((x) * (yy) + (xx) * (y)) + cc;   z = c + cc;   zz = (c - z) + cc;
 
 
@@ -136,8 +139,8 @@
 /* are assumed to be double-length numbers. p,hx,tx,hy,ty,q,c,cc,u,uu        */
 /* are temporary storage variables of type double.                           */
 
-#define  DIV2(x,xx,y,yy,z,zz,p,hx,tx,hy,ty,q,c,cc,u,uu)  \
-	   c=(x)/(y);   MUL12(c,y,u,uu,p,hx,tx,hy,ty,q)  \
+#define  DIV2(x, xx, y, yy, z, zz, c, cc, u, uu)  \
+	   c=(x)/(y);   MUL12(c,y,u,uu);          \
 	   cc=(((((x)-u)-uu)+(xx))-c*(yy))/(y);   z=c+cc;   zz=(c-z)+cc;
 
 

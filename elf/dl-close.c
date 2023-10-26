@@ -1,5 +1,5 @@
 /* Close a shared object opened by `_dl_open'.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 #include <sysdep-cancel.h>
 #include <tls.h>
 #include <stap-probe.h>
+#include <dl-find_object.h>
 
 #include <dl-unmap-segments.h>
 
@@ -77,17 +78,20 @@ remove_slotinfo (size_t idx, struct dtv_slotinfo_list *listp, size_t disp,
 	 object that wasn't fully set up.  */
       if (__glibc_likely (old_map != NULL))
 	{
-	  assert (old_map->l_tls_modid == idx);
-
-	  /* Mark the entry as unused. */
-	  listp->slotinfo[idx - disp].gen = GL(dl_tls_generation) + 1;
-	  listp->slotinfo[idx - disp].map = NULL;
+	  /* Mark the entry as unused.  These can be read concurrently.  */
+	  atomic_store_relaxed (&listp->slotinfo[idx - disp].gen,
+				GL(dl_tls_generation) + 1);
+	  atomic_store_relaxed (&listp->slotinfo[idx - disp].map, NULL);
 	}
 
       /* If this is not the last currently used entry no need to look
 	 further.  */
       if (idx != GL(dl_tls_max_dtv_idx))
-	return true;
+	{
+	  /* There is an unused dtv entry in the middle.  */
+	  GL(dl_tls_dtv_gaps) = true;
+	  return true;
+	}
     }
 
   while (idx - disp > (disp == 0 ? 1 + GL(dl_tls_static_nelem) : 0))
@@ -96,8 +100,8 @@ remove_slotinfo (size_t idx, struct dtv_slotinfo_list *listp, size_t disp,
 
       if (listp->slotinfo[idx - disp].map != NULL)
 	{
-	  /* Found a new last used index.  */
-	  GL(dl_tls_max_dtv_idx) = idx;
+	  /* Found a new last used index.  This can be read concurrently.  */
+	  atomic_store_relaxed (&GL(dl_tls_max_dtv_idx), idx);
 	  return true;
 	}
     }
@@ -164,8 +168,6 @@ _dl_close_worker (struct link_map *map, bool force)
 
   bool any_tls = false;
   const unsigned int nloaded = ns->_ns_nloaded;
-  char used[nloaded];
-  char done[nloaded];
   struct link_map *maps[nloaded];
 
   /* Run over the list and assign indexes to the link maps and enter
@@ -173,16 +175,13 @@ _dl_close_worker (struct link_map *map, bool force)
   int idx = 0;
   for (struct link_map *l = ns->_ns_loaded; l != NULL; l = l->l_next)
     {
+      l->l_map_used = 0;
+      l->l_map_done = 0;
       l->l_idx = idx;
       maps[idx] = l;
       ++idx;
-
     }
   assert (idx == nloaded);
-
-  /* Prepare the bitmaps.  */
-  memset (used, '\0', sizeof (used));
-  memset (done, '\0', sizeof (done));
 
   /* Keep track of the lowest index link map we have covered already.  */
   int done_index = -1;
@@ -190,7 +189,7 @@ _dl_close_worker (struct link_map *map, bool force)
     {
       struct link_map *l = maps[done_index];
 
-      if (done[done_index])
+      if (l->l_map_done)
 	/* Already handled.  */
 	continue;
 
@@ -201,12 +200,12 @@ _dl_close_worker (struct link_map *map, bool force)
 	  /* See CONCURRENCY NOTES in cxa_thread_atexit_impl.c to know why
 	     acquire is sufficient and correct.  */
 	  && atomic_load_acquire (&l->l_tls_dtor_count) == 0
-	  && !used[done_index])
+	  && !l->l_map_used)
 	continue;
 
       /* We need this object and we handle it now.  */
-      done[done_index] = 1;
-      used[done_index] = 1;
+      l->l_map_used = 1;
+      l->l_map_done = 1;
       /* Signal the object is still needed.  */
       l->l_idx = IDX_STILL_USED;
 
@@ -222,9 +221,9 @@ _dl_close_worker (struct link_map *map, bool force)
 		{
 		  assert ((*lp)->l_idx >= 0 && (*lp)->l_idx < nloaded);
 
-		  if (!used[(*lp)->l_idx])
+		  if (!(*lp)->l_map_used)
 		    {
-		      used[(*lp)->l_idx] = 1;
+		      (*lp)->l_map_used = 1;
 		      /* If we marked a new object as used, and we've
 			 already processed it, then we need to go back
 			 and process again from that point forward to
@@ -247,9 +246,9 @@ _dl_close_worker (struct link_map *map, bool force)
 	      {
 		assert (jmap->l_idx >= 0 && jmap->l_idx < nloaded);
 
-		if (!used[jmap->l_idx])
+		if (!jmap->l_map_used)
 		  {
-		    used[jmap->l_idx] = 1;
+		    jmap->l_map_used = 1;
 		    if (jmap->l_idx - 1 < done_index)
 		      done_index = jmap->l_idx - 1;
 		  }
@@ -259,13 +258,9 @@ _dl_close_worker (struct link_map *map, bool force)
 
   /* Sort the entries.  We can skip looking for the binary itself which is
      at the front of the search list for the main namespace.  */
-  _dl_sort_maps (maps + (nsid == LM_ID_BASE), nloaded - (nsid == LM_ID_BASE),
-		 used + (nsid == LM_ID_BASE), true);
+  _dl_sort_maps (maps, nloaded, (nsid == LM_ID_BASE), true);
 
   /* Call all termination functions at once.  */
-#ifdef SHARED
-  bool do_audit = GLRO(dl_naudit) > 0 && !ns->_ns_loaded->l_auditing;
-#endif
   bool unload_any = false;
   bool scope_mem_left = false;
   unsigned int unload_global = 0;
@@ -277,7 +272,7 @@ _dl_close_worker (struct link_map *map, bool force)
       /* All elements must be in the same namespace.  */
       assert (imap->l_ns == nsid);
 
-      if (!used[i])
+      if (!imap->l_map_used)
 	{
 	  assert (imap->l_type == lt_loaded && !imap->l_nodelete_active);
 
@@ -299,22 +294,7 @@ _dl_close_worker (struct link_map *map, bool force)
 
 #ifdef SHARED
 	  /* Auditing checkpoint: we remove an object.  */
-	  if (__glibc_unlikely (do_audit))
-	    {
-	      struct audit_ifaces *afct = GLRO(dl_audit);
-	      for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
-		{
-		  if (afct->objclose != NULL)
-		    {
-		      struct auditstate *state
-			= link_map_audit_state (imap, cnt);
-		      /* Return value is ignored.  */
-		      (void) afct->objclose (&state->cookie);
-		    }
-
-		  afct = afct->next;
-		}
-	    }
+	  _dl_audit_objclose (imap);
 #endif
 
 	  /* This object must not be used anymore.  */
@@ -330,7 +310,7 @@ _dl_close_worker (struct link_map *map, bool force)
 	  if (i < first_loaded)
 	    first_loaded = i;
 	}
-      /* Else used[i].  */
+      /* Else imap->l_map_used.  */
       else if (imap->l_type == lt_loaded)
 	{
 	  struct r_scope_elem *new_list = NULL;
@@ -475,29 +455,11 @@ _dl_close_worker (struct link_map *map, bool force)
 
 #ifdef SHARED
   /* Auditing checkpoint: we will start deleting objects.  */
-  if (__glibc_unlikely (do_audit))
-    {
-      struct link_map *head = ns->_ns_loaded;
-      struct audit_ifaces *afct = GLRO(dl_audit);
-      /* Do not call the functions for any auditing object.  */
-      if (head->l_auditing == 0)
-	{
-	  for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
-	    {
-	      if (afct->activity != NULL)
-		{
-		  struct auditstate *state = link_map_audit_state (head, cnt);
-		  afct->activity (&state->cookie, LA_ACT_DELETE);
-		}
-
-	      afct = afct->next;
-	    }
-	}
-    }
+  _dl_audit_activity_nsid (nsid, LA_ACT_DELETE);
 #endif
 
   /* Notify the debugger we are about to remove some loaded objects.  */
-  struct r_debug *r = _dl_debug_initialize (0, nsid);
+  struct r_debug *r = _dl_debug_update (nsid);
   r->r_state = RT_DELETE;
   _dl_debug_state ();
   LIBC_PROBE (unmap_start, 2, nsid, r);
@@ -546,6 +508,9 @@ _dl_close_worker (struct link_map *map, bool force)
   size_t tls_free_end;
   tls_free_start = tls_free_end = NO_TLS_OFFSET;
 
+  /* Protects global and module specitic TLS state.  */
+  __rtld_lock_lock_recursive (GL(dl_load_tls_lock));
+
   /* We modify the list of loaded objects.  */
   __rtld_lock_lock_recursive (GL(dl_load_write_lock));
 
@@ -554,7 +519,7 @@ _dl_close_worker (struct link_map *map, bool force)
   for (unsigned int i = first_loaded; i < nloaded; ++i)
     {
       struct link_map *imap = maps[i];
-      if (!used[i])
+      if (!imap->l_map_used)
 	{
 	  assert (imap->l_type == lt_loaded);
 
@@ -571,7 +536,9 @@ _dl_close_worker (struct link_map *map, bool force)
 					GL(dl_tls_dtv_slotinfo_list), 0,
 					imap->l_init_called))
 		/* All dynamically loaded modules with TLS are unloaded.  */
-		GL(dl_tls_max_dtv_idx) = GL(dl_tls_static_nelem);
+		/* Can be read concurrently.  */
+		atomic_store_relaxed (&GL(dl_tls_max_dtv_idx),
+				      GL(dl_tls_static_nelem));
 
 	      if (imap->l_tls_offset != NO_TLS_OFFSET
 		  && imap->l_tls_offset != FORCED_DYNAMIC_TLS_OFFSET)
@@ -716,6 +683,9 @@ _dl_close_worker (struct link_map *map, bool force)
 	  if (imap->l_next != NULL)
 	    imap->l_next->l_prev = imap->l_prev;
 
+	  /* Update the data used by _dl_find_object.  */
+	  _dl_find_object_dlclose (imap);
+
 	  free (imap->l_versions);
 	  if (imap->l_origin != (char *) -1)
 	    free ((char *) imap->l_origin);
@@ -769,34 +739,23 @@ _dl_close_worker (struct link_map *map, bool force)
   /* If we removed any object which uses TLS bump the generation counter.  */
   if (any_tls)
     {
-      if (__glibc_unlikely (++GL(dl_tls_generation) == 0))
+      size_t newgen = GL(dl_tls_generation) + 1;
+      if (__glibc_unlikely (newgen == 0))
 	_dl_fatal_printf ("TLS generation counter wrapped!  Please report as described in "REPORT_BUGS_TO".\n");
+      /* Can be read concurrently.  */
+      atomic_store_relaxed (&GL(dl_tls_generation), newgen);
 
       if (tls_free_end == GL(dl_tls_static_used))
 	GL(dl_tls_static_used) = tls_free_start;
     }
 
-#ifdef SHARED
-  /* Auditing checkpoint: we have deleted all objects.  */
-  if (__glibc_unlikely (do_audit))
-    {
-      struct link_map *head = ns->_ns_loaded;
-      /* Do not call the functions for any auditing object.  */
-      if (head->l_auditing == 0)
-	{
-	  struct audit_ifaces *afct = GLRO(dl_audit);
-	  for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
-	    {
-	      if (afct->activity != NULL)
-		{
-		  struct auditstate *state = link_map_audit_state (head, cnt);
-		  afct->activity (&state->cookie, LA_ACT_CONSISTENT);
-		}
+  /* TLS is cleaned up for the unloaded modules.  */
+  __rtld_lock_unlock_recursive (GL(dl_load_tls_lock));
 
-	      afct = afct->next;
-	    }
-	}
-    }
+#ifdef SHARED
+  /* Auditing checkpoint: we have deleted all objects.  Also, do not notify
+     auditors of the cleanup of a failed audit module loading attempt.  */
+  _dl_audit_activity_nsid (nsid, LA_ACT_CONSISTENT);
 #endif
 
   if (__builtin_expect (ns->_ns_loaded == NULL, 0)

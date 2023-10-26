@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,11 +16,18 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include "pthreadP.h"
-
+#include <shlib-compat.h>
 
 int
-pthread_spin_unlock (pthread_spinlock_t *lock)
+__pthread_spin_unlock (pthread_spinlock_t *lock)
 {
   __sync_lock_release ((int *) lock);
   return 0;
 }
+versioned_symbol (libc, __pthread_spin_unlock, pthread_spin_unlock,
+                  GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_unlock, pthread_spin_unlock,
+               GLIBC_2_2);
+#endif

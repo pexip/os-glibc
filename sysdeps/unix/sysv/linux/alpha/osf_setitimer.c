@@ -1,5 +1,5 @@
 /* getitimer -- Get the state of an interval timer.  Linux/Alpha/tv32 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,19 +20,20 @@
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
 
+#include <time.h>
 #include <sys/time.h>
 #include <tv32-compat.h>
 
 int
 attribute_compat_text_section
-__setitimer_tv32 (int which, const struct itimerval32 *restrict new_value,
-		  struct itimerval32 *restrict old_value)
+__setitimer_tv32 (int which, const struct __itimerval32 *restrict new_value,
+		  struct __itimerval32 *restrict old_value)
 {
   struct itimerval new_value_64;
   new_value_64.it_interval
-    = valid_timeval_to_timeval64 (new_value->it_interval);
+    = valid_timeval32_to_timeval (new_value->it_interval);
   new_value_64.it_value
-    = valid_timeval_to_timeval64 (new_value->it_value);
+    = valid_timeval32_to_timeval (new_value->it_value);
 
   if (old_value == NULL)
     return __setitimer (which, &new_value_64, NULL);
@@ -43,9 +44,9 @@ __setitimer_tv32 (int which, const struct itimerval32 *restrict new_value,
 
   /* Write all fields of 'old_value' regardless of overflow.  */
   old_value->it_interval
-     = valid_timeval64_to_timeval (old_value_64.it_interval);
+     = valid_timeval_to_timeval32 (old_value_64.it_interval);
   old_value->it_value
-     = valid_timeval64_to_timeval (old_value_64.it_value);
+     = valid_timeval_to_timeval32 (old_value_64.it_value);
   return 0;
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -734,7 +734,6 @@ libc_hidden_proto (_IO_getline)
 extern size_t _IO_getline_info (FILE *,char *, size_t,
 				    int, int, int *);
 libc_hidden_proto (_IO_getline_info)
-extern ssize_t _IO_getdelim (char **, size_t *, int, FILE *);
 extern size_t _IO_getwline (FILE *,wchar_t *, size_t, wint_t, int);
 extern size_t _IO_getwline_info (FILE *,wchar_t *, size_t,
 				     wint_t, int, wint_t *);

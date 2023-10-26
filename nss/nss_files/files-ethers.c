@@ -1,4 +1,4 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 #include <string.h>
 #include <netinet/ether.h>
 #include <netinet/if_ether.h>
+#include <nss.h>
 
 struct etherent_data {};
 

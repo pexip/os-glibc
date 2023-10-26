@@ -1,5 +1,5 @@
 /* Definitions of user-visible names for spin locks.
-   Copyright (C) 1994-2020 Free Software Foundation, Inc.
+   Copyright (C) 1994-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -66,6 +66,15 @@ __PT_SPIN_INLINE int __pthread_spin_lock (__pthread_spinlock_t *__lock);
 
 __PT_SPIN_INLINE int
 __pthread_spin_lock (__pthread_spinlock_t *__lock)
+{
+  __spin_lock_solid ((__spin_lock_t *) __lock);
+  return 0;
+}
+
+__PT_SPIN_INLINE int __pthread_spin_wait (__pthread_spinlock_t *__lock);
+
+__PT_SPIN_INLINE int
+__pthread_spin_wait (__pthread_spinlock_t *__lock)
 {
   __spin_lock ((__spin_lock_t *) __lock);
   return 0;

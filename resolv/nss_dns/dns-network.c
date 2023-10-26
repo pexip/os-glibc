@@ -1,6 +1,5 @@
-/* Copyright (C) 1996-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Extended from original form by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -67,6 +66,7 @@
 #include "nsswitch.h"
 #include <arpa/inet.h>
 #include <arpa/nameser.h>
+#include <nss_dns.h>
 #include <resolv/resolv-internal.h>
 #include <resolv/resolv_context.h>
 
@@ -150,7 +150,7 @@ _nss_dns_getnetbyname_r (const char *name, struct netent *result,
   __resolv_context_put (ctx);
   return status;
 }
-
+libc_hidden_def (_nss_dns_getnetbyname_r)
 
 enum nss_status
 _nss_dns_getnetbyaddr_r (uint32_t net, int type, struct netent *result,
@@ -244,7 +244,7 @@ _nss_dns_getnetbyaddr_r (uint32_t net, int type, struct netent *result,
   __resolv_context_put (ctx);
   return status;
 }
-
+libc_hidden_def (_nss_dns_getnetbyaddr_r)
 
 static enum nss_status
 getanswer_r (const querybuf *answer, int anslen, struct netent *result,
@@ -320,7 +320,7 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
   /* Skip the question part.  */
   while (question_count-- > 0)
     {
-      int n = __dn_skipname (cp, end_of_message);
+      int n = __libc_dn_skipname (cp, end_of_message);
       if (n < 0 || end_of_message - (cp + n) < QFIXEDSZ)
        {
          __set_h_errno (NO_RECOVERY);
@@ -345,7 +345,7 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
 	  n = -1;
 	}
 
-      if (n < 0 || res_dnok (bp) == 0)
+      if (n < 0 || __libc_res_dnok (bp) == 0)
 	break;
       cp += n;
 
@@ -379,7 +379,7 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
 	      n = -1;
 	    }
 
-	  if (n < 0 || !res_hnok (bp))
+	  if (n < 0 || !__libc_res_hnok (bp))
 	    {
 	      /* XXX What does this mean?  The original form from bind
 		 returns NULL. Incrementing cp has no effect in any case.
@@ -467,7 +467,7 @@ getanswer_r (const querybuf *answer, int anslen, struct netent *result,
 		    /* If we are out of digits now, there are two cases:
 		       1. We are done with digits and now see "in-addr.arpa".
 		       2. This is not the droid we are looking for.  */
-		    if (!isdigit (*p) && !strcasecmp (p, "in-addr.arpa"))
+		    if (!isdigit (*p) && !__strcasecmp (p, "in-addr.arpa"))
 		      {
 			result->n_net = val;
 			return NSS_STATUS_SUCCESS;

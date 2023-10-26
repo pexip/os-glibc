@@ -1,5 +1,5 @@
 /* Common code for NSS test cases.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,10 +33,14 @@
 
 #include <pwd.h>
 #include <grp.h>
+#include <shadow.h>
+#include <netdb.h>
 
 typedef struct test_tables {
   struct passwd *pwd_table;
   struct group *grp_table;
+  struct spwd *spwd_table;
+  struct hostent *host_table;
 } test_tables;
 
 extern void _nss_test1_init_hook (test_tables *) __attribute__((weak));
@@ -44,9 +48,13 @@ extern void _nss_test2_init_hook (test_tables *) __attribute__((weak));
 
 #define PWD_LAST()    { .pw_name = NULL, .pw_uid = 0 }
 #define GRP_LAST()    { .gr_name = NULL, .gr_gid = 0 }
+#define SPWD_LAST()    { .sp_namp = NULL, .sp_pwdp = NULL }
+#define HOST_LAST()    { .h_name = NULL, .h_aliases = NULL, .h_length = 0, .h_addr_list = NULL }
 
 #define PWD_ISLAST(p)    ((p)->pw_name == NULL && (p)->pw_uid == 0)
 #define GRP_ISLAST(g)    ((g)->gr_name == NULL && (g)->gr_gid == 0)
+#define SPWD_ISLAST(s)    ((s)->sp_namp == NULL && (s)->sp_pwdp == 0)
+#define HOST_ISLAST(h)    ((h)->h_name == NULL && (h)->h_length == 0)
 
 /* Macros to fill in the tables easily.  */
 
@@ -71,6 +79,14 @@ extern void _nss_test2_init_hook (test_tables *) __attribute__((weak));
 #define GRP_N(u,n,m)						     \
     { .gr_name = (char *) n, .gr_passwd = (char *) "*", .gr_gid = u, \
       .gr_mem = (char **) m }
+
+#define SPWD(u) \
+    { .sp_namp = (char *) "name" #u, .sp_pwdp = (char *) "passwd" #u }
+
+#define HOST(u)								\
+    { .h_name = (char *) "name" #u, .h_aliases = NULL, .h_addrtype = u,	\
+      .h_length = 4,							\
+      .h_addr_list = (char **) hostaddr_##u  }
 
 /*------------------------------------------------------------*/
 

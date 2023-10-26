@@ -1,7 +1,6 @@
 /* Conversion loop frame work.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -420,8 +419,10 @@ SINGLE(LOOPFCT) (struct __gconv_step *step,
 #  else
       /* We don't have enough input for another complete input
 	 character.  */
-      while (inptr < inend)
-	state->__value.__wchb[inlen++] = *inptr++;
+      size_t inlen_after = inlen + (inend - inptr);
+      assert (inlen_after <= sizeof (state->__value.__wchb));
+      for (; inlen < inlen_after; inlen++)
+	state->__value.__wchb[inlen] = *inptr++;
 #  endif
 
       return __GCONV_INCOMPLETE_INPUT;
@@ -434,6 +435,18 @@ SINGLE(LOOPFCT) (struct __gconv_step *step,
     return __GCONV_FULL_OUTPUT;
 
   /*  Now add characters from the normal input buffer.  */
+  if (inlen >= MAX_NEEDED_INPUT || inptr >= inend)
+    /* Avoid a -Wstringop-overflow= warning when this loop is
+       unrolled.  The compiler cannot otherwise see that this is
+       unreachable because it depends on (state->__count & 7) not
+       being too large after a previous conversion step.
+       Starting with GCC 12, we also have mark the inptr >= inend
+       case as unreachable to omit the warning.  Note that this SINGLE
+       function is only used to implement the mb*towc*() or wc*tomb*()
+       functions.  Those functions use inptr and inend pointing to a
+       variable on stack, compute the inend pointer or explicitly check
+       the arguments which always leads to inptr < inend.  */
+    __builtin_unreachable ();
   do
     bytebuf[inlen++] = *inptr++;
   while (inlen < MAX_NEEDED_INPUT && inptr < inend);
@@ -483,11 +496,11 @@ SINGLE(LOOPFCT) (struct __gconv_step *step,
       /* We don't have enough input for another complete input
 	 character.  */
       assert (inend - inptr > (state->__count & ~7));
-      assert (inend - inptr <= sizeof (state->__value));
+      assert (inend - inptr <= sizeof (state->__value.__wchb));
       state->__count = (state->__count & ~7) | (inend - inptr);
-      inlen = 0;
-      while (inptr < inend)
-	state->__value.__wchb[inlen++] = *inptr++;
+      for (inlen = 0; inlen < inend - inptr; inlen++)
+	state->__value.__wchb[inlen] = inptr[inlen];
+      inptr = inend;
 #  endif
     }
 

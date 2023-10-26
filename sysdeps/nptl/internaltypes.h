@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,9 +35,10 @@ struct pthread_attr
   /* Stack handling.  */
   void *stackaddr;
   size_t stacksize;
-  /* Affinity map.  */
-  cpu_set_t *cpuset;
-  size_t cpusetsize;
+
+  /* Allocated via a call to __pthread_attr_extension once needed.  */
+  struct pthread_attr_extension *extension;
+  void *unused;
 };
 
 #define ATTR_FLAG_DETACHSTATE		0x0001
@@ -48,7 +48,27 @@ struct pthread_attr
 #define ATTR_FLAG_OLDATTR		0x0010
 #define ATTR_FLAG_SCHED_SET		0x0020
 #define ATTR_FLAG_POLICY_SET		0x0040
+#define ATTR_FLAG_DO_RSEQ		0x0080
 
+/* Used to allocate a pthread_attr_t object which is also accessed
+   internally.  */
+union pthread_attr_transparent
+{
+  pthread_attr_t external;
+  struct pthread_attr internal;
+};
+
+/* Extension space for pthread attributes.  Referenced by the
+   extension member of struct pthread_attr.  */
+struct pthread_attr_extension
+{
+  /* Affinity map.  */
+  cpu_set_t *cpuset;
+  size_t cpusetsize;
+
+  sigset_t sigmask;
+  bool sigmask_set;
+};
 
 /* Mutex attribute data structure.  */
 struct pthread_mutexattr

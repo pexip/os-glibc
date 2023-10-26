@@ -1,5 +1,5 @@
 /* Crash the process immediately, without possibility of deadlock.  Linux.
-   Copyright (C) 2014-2020 Free Software Foundation, Inc.
+   Copyright (C) 2014-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,9 +25,8 @@
 static inline void
 __safe_fatal (void)
 {
-  INTERNAL_SYSCALL_DECL (err);
-  pid_t self = INTERNAL_SYSCALL (getpid, err, 0);
-  INTERNAL_SYSCALL (kill, err, 2, self, SIGKILL);
+  pid_t self = INTERNAL_SYSCALL_CALL (getpid);
+  INTERNAL_SYSCALL_CALL (kill, self, SIGKILL);
 }
 
 #endif  /* safe-fatal.h */

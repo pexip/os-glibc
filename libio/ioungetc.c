@@ -1,4 +1,4 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 #include "libioP.h"
 
 int
-_IO_ungetc (int c, FILE *fp)
+ungetc (int c, FILE *fp)
 {
   int result;
   CHECK_FILE (fp, EOF);
@@ -40,5 +40,5 @@ _IO_ungetc (int c, FILE *fp)
   _IO_release_lock (fp);
   return result;
 }
-
-weak_alias (_IO_ungetc, ungetc)
+libc_hidden_def (ungetc)
+strong_alias (ungetc, _IO_ungetc)

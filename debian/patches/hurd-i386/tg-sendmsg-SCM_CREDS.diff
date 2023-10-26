@@ -17,16 +17,16 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
 	auth_reply.
 
 ---
- hurd/Makefile               |   2 +-
- sysdeps/mach/hurd/recvmsg.c | 137 ++++++++++++++++++++++++++++++++++++++++++++
- sysdeps/mach/hurd/sendmsg.c |  34 +++++++++++
- 3 files changed, 172 insertions(+), 1 deletion(-)
+ hurd/Makefile               |    2 
+ sysdeps/mach/hurd/recvmsg.c |  137 ++++++++++++++++++++++++++++++++++++++++++++
+ sysdeps/mach/hurd/sendmsg.c |   36 +++++++++++
+ 3 files changed, 174 insertions(+), 1 deletion(-)
 
 --- a/sysdeps/mach/hurd/recvmsg.c
 +++ b/sysdeps/mach/hurd/recvmsg.c
-@@ -23,6 +23,123 @@
- #include <hurd/fd.h>
+@@ -24,6 +24,123 @@
  #include <hurd/socket.h>
+ #include <sysdep-cancel.h>
  
 +static unsigned
 +contains_uid (unsigned int n, __uid_t uids[n], __uid_t uid)
@@ -148,7 +148,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
  /* Receive a message as described by MESSAGE from socket FD.
     Returns the number of bytes read or -1 for errors.  */
  ssize_t
-@@ -198,6 +315,21 @@
+@@ -211,6 +328,21 @@
  	    newfds++;
  	  }
        }
@@ -170,7 +170,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
    }
  
    for (i = 0; i < nports; i++)
-@@ -228,6 +360,11 @@
+@@ -241,6 +373,11 @@
  		__mach_port_deallocate (__mach_task_self (), ports[ii]);
  	      }
  	    }
@@ -195,10 +195,10 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
  #include <hurd/ifsock.h>
  #include <hurd/socket.h>
 +#include <hurd/auth_request.h>
+ #include <sysdep-cancel.h>
  #include "hurd/hurdsocket.h"
  
- /* Send a message described MESSAGE on socket FD.
-@@ -112,6 +114,8 @@
+@@ -113,6 +115,8 @@
      if (cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS)
        nports += (cmsg->cmsg_len - CMSG_ALIGN (sizeof (struct cmsghdr)))
  		/ sizeof (int);
@@ -207,7 +207,7 @@ Samuel Thibault  <samuel.thibault@ens-lyon.org>
  
    if (nports)
      ports = __alloca (nports * sizeof (mach_port_t));
-@@ -146,6 +150,38 @@
+@@ -147,6 +151,38 @@
  		goto out;
  	    }
  	}

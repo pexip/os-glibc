@@ -1,8 +1,6 @@
 /* Test and measure STRLEN functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
-   Added wcslen support by Liubov Dmitrieva <liubov.dmitrieva@gmail.com>, 2011
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,6 +37,7 @@
 
 typedef size_t (*proto_t) (const CHAR *);
 
+/* Naive implementation to verify results.  */
 size_t
 simple_STRLEN (const CHAR *s)
 {
@@ -57,7 +56,6 @@ builtin_strlen (const CHAR *p)
 IMPL (builtin_strlen, 0)
 #endif
 
-IMPL (simple_STRLEN, 0)
 IMPL (STRLEN, 1)
 
 
@@ -79,7 +77,7 @@ do_test (size_t align, size_t len)
 {
   size_t i;
 
-  align &= 63;
+  align &= (getpagesize () / sizeof (CHAR)) - 1;
   if (align + sizeof (CHAR) * len >= page_size)
     return;
 
@@ -158,6 +156,19 @@ test_main (void)
       do_test (sizeof (CHAR) * 7, 1 << i);
       do_test (sizeof (CHAR) * i, 1 << i);
       do_test (sizeof (CHAR) * i, (size_t)((1 << i) / 1.5));
+    }
+
+  /* Test strings near page boundary */
+
+  size_t maxlength = 64 / sizeof (CHAR) - 1;
+  size_t pagesize = getpagesize () / sizeof (CHAR);
+
+  for (i = maxlength ; i > 1; --i)
+    {
+      /* String stays on the same page.  */
+      do_test (pagesize - i, i - 1);
+      /* String crosses page boundary.  */
+      do_test (pagesize - i, maxlength);
     }
 
   do_random_tests ();

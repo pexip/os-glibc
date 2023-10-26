@@ -1,7 +1,7 @@
---- a/sysdeps/unix/sysv/linux/i386/readelflib.c
-+++ b/sysdeps/unix/sysv/linux/i386/readelflib.c
-@@ -62,8 +62,11 @@
- #ifndef SKIP_EM_IA_64
+--- a/sysdeps/unix/sysv/linux/x86/readelflib.c
++++ b/sysdeps/unix/sysv/linux/x86/readelflib.c
+@@ -63,8 +63,11 @@
+ #ifndef __x86_64__
  failed:
  #endif
 -      error (0, 0, _("%s is for unknown machine %d.\n"),

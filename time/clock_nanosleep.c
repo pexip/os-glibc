@@ -1,5 +1,5 @@
 /* High-resolution sleep with the specified clock.  Stub version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,8 +38,7 @@ versioned_symbol (libc, __clock_nanosleep, clock_nanosleep, GLIBC_2_17);
 /* clock_nanosleep moved to libc in version 2.17;
    old binaries may expect the symbol version it had in librt.  */
 #if SHLIB_COMPAT (libc, GLIBC_2_2, GLIBC_2_17)
-strong_alias (__clock_nanosleep, __clock_nanosleep_2);
-compat_symbol (libc, __clock_nanosleep_2, clock_nanosleep, GLIBC_2_2);
+compat_symbol (libc, __clock_nanosleep, clock_nanosleep, GLIBC_2_2);
 #endif
 
 stub_warning (clock_nanosleep)

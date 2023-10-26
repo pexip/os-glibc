@@ -1,5 +1,5 @@
 /* Default attributes.  Generic version.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -23,8 +23,8 @@
 
 #include <pt-internal.h>
 
-const struct __pthread_attr __pthread_default_attr = {
-  __schedparam: { sched_priority: 0 },
+struct __pthread_attr __pthread_default_attr = {
+  __schedparam: { __sched_priority: 0 },
   __stacksize: 0,
   __stackaddr: NULL,
 #ifdef PAGESIZE

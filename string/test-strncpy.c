@@ -1,7 +1,6 @@
 /* Test strncpy functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,21 +47,16 @@
 # include "test-string.h"
 # ifndef WIDE
 #  define SIMPLE_STRNCPY simple_strncpy
-#  define STUPID_STRNCPY stupid_strncpy
 #  define STRNCPY strncpy
 # else
 #  define SIMPLE_STRNCPY simple_wcsncpy
-#  define STUPID_STRNCPY stupid_wcsncpy
 #  define STRNCPY wcsncpy
 # endif /* WIDE */
 
-CHAR *SIMPLE_STRNCPY (CHAR *, const CHAR *, size_t);
-CHAR *STUPID_STRNCPY (CHAR *, const CHAR *, size_t);
 
-IMPL (STUPID_STRNCPY, 0)
-IMPL (SIMPLE_STRNCPY, 0)
 IMPL (STRNCPY, 1)
 
+/* Naive implementation to verify results.  */
 CHAR *
 SIMPLE_STRNCPY (CHAR *dst, const CHAR *src, size_t n)
 {
@@ -77,18 +71,6 @@ SIMPLE_STRNCPY (CHAR *dst, const CHAR *src, size_t n)
   return ret;
 }
 
-CHAR *
-STUPID_STRNCPY (CHAR *dst, const CHAR *src, size_t n)
-{
-  size_t nc = STRNLEN (src, n);
-  size_t i;
-
-  for (i = 0; i < nc; ++i)
-    dst[i] = src[i];
-  for (; i < n; ++i)
-    dst[i] = '\0';
-  return dst;
-}
 #endif /* !STRNCPY_RESULT */
 
 typedef CHAR *(*proto_t) (CHAR *, const CHAR *, size_t);
@@ -153,6 +135,40 @@ do_test (size_t align1, size_t align2, size_t len, size_t n, int max_char)
 
   FOR_EACH_IMPL (impl, 0)
     do_one_test (impl, s2, s1, len, n);
+}
+
+static void
+do_page_tests (void)
+{
+  CHAR *s1, *s2;
+  const size_t maxoffset = 64;
+
+  /* Put s1 at the maxoffset from the edge of buf1's last page.  */
+  s1 = (CHAR *) buf1 + BUF1PAGES * page_size / sizeof(CHAR) - maxoffset;
+  /* s2 needs room to put a string with size of maxoffset + 1 at s2 +
+     (maxoffset - 1).  */
+  s2 = (CHAR *) buf2 + page_size / sizeof(CHAR) - maxoffset * 2;
+
+  MEMSET (s1, 'a', maxoffset - 1);
+  s1[maxoffset - 1] = '\0';
+
+  /* Both strings are bounded to a page with read/write access and the next
+     page is protected with PROT_NONE (meaning that any access outside of the
+     page regions will trigger an invalid memory access).
+
+     The loop copies the string s1 for all possible offsets up to maxoffset
+     for both inputs with a size larger than s1 (so memory access outside the
+     expected memory regions might trigger invalid access).  */
+
+  for (size_t off1 = 0; off1 < maxoffset; off1++)
+    {
+      for (size_t off2 = 0; off2 < maxoffset; off2++)
+	{
+	  FOR_EACH_IMPL (impl, 0)
+	    do_one_test (impl, s2 + off2, s1 + off1, maxoffset - off1 - 1,
+			 maxoffset + (maxoffset - off2));
+	}
+    }
 }
 
 static void
@@ -317,6 +333,7 @@ test_main (void)
     }
 
   do_random_tests ();
+  do_page_tests ();
   return ret;
 }
 

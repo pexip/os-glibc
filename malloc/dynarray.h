@@ -1,5 +1,5 @@
 /* Type-safe arrays which grow dynamically.  Shared definitions.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -165,8 +165,7 @@ bool __libc_dynarray_finalize (struct dynarray_header *list, void *scratch,
 /* Internal function.  Terminate the process after an index error.
    SIZE is the number of elements of the dynamic array.  INDEX is the
    lookup index which triggered the failure.  */
-void __libc_dynarray_at_failure (size_t size, size_t index)
-  __attribute__ ((noreturn));
+_Noreturn void __libc_dynarray_at_failure (size_t size, size_t index);
 
 #ifndef _ISOMAC
 libc_hidden_proto (__libc_dynarray_emplace_enlarge)

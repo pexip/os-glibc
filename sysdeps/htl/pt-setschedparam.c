@@ -1,5 +1,5 @@
 /* Set the scheduling parameters for a thread.  Generic version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,5 +26,5 @@ __pthread_setschedparam (pthread_t thread, int policy,
   return ENOSYS;
 }
 
-strong_alias (__pthread_setschedparam, pthread_setschedparam);
+weak_alias (__pthread_setschedparam, pthread_setschedparam);
 stub_warning (pthread_setschedparam)

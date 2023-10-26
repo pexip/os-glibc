@@ -1,5 +1,5 @@
 /* Linux open syscall implementation, LFS.
-   Copyright (C) 1991-2020 Free Software Foundation, Inc.
+   Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,15 +20,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdarg.h>
-
 #include <sysdep-cancel.h>
-
-
-#ifdef __OFF_T_MATCHES_OFF64_T
-# define EXTRA_OPEN_FLAGS 0
-#else
-# define EXTRA_OPEN_FLAGS O_LARGEFILE
-#endif
+#include <shlib-compat.h>
 
 /* Open FILE with access OFLAG.  If O_CREAT or O_TMPFILE is in OFLAG,
    a third argument is the file protection.  */
@@ -45,7 +38,7 @@ __libc_open64 (const char *file, int oflag, ...)
       va_end (arg);
     }
 
-  return SYSCALL_CANCEL (openat, AT_FDCWD, file, oflag | EXTRA_OPEN_FLAGS,
+  return SYSCALL_CANCEL (openat, AT_FDCWD, file, oflag | O_LARGEFILE,
 			 mode);
 }
 
@@ -58,4 +51,8 @@ strong_alias (__libc_open64, __libc_open)
 strong_alias (__libc_open64, __open)
 libc_hidden_weak (__open)
 weak_alias (__libc_open64, open)
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_2)
+compat_symbol (libc, __libc_open64, open64, GLIBC_2_2);
 #endif

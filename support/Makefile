@@ -1,5 +1,5 @@
 # Makefile for support library, used only at build and test time
-# Copyright (C) 2016-2020 Free Software Foundation, Inc.
+# Copyright (C) 2016-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -35,16 +35,23 @@ libsupport-routines = \
   ignore_stderr \
   next_to_fault \
   oom_error \
+  resolv_response_context_duplicate \
+  resolv_response_context_free \
   resolv_test \
   set_fortify_handler \
+  support_stack_alloc \
   support-xfstat \
+  support-xfstat-time64 \
   support-xstat \
+  support-xstat-time64 \
   support_become_root \
   support_can_chroot \
   support_capture_subprocess \
   support_capture_subprocess_check \
   support_chroot \
+  support_copy_file \
   support_copy_file_range \
+  support_create_timer \
   support_descriptor_supports_holes \
   support_descriptors \
   support_enter_mount_namespace \
@@ -56,55 +63,82 @@ libsupport-routines = \
   support_format_hostent \
   support_format_netent \
   support_isolate_in_subprocess \
+  support_mutex_pi_monotonic \
+  support_need_proc \
+  support_path_support_time64 \
+  support_process_state \
   support_ptrace \
+  support-open-dev-null-range \
   support_openpty \
   support_paths \
   support_quote_blob \
+  support_quote_blob_wide \
   support_quote_string \
   support_record_failure \
   support_run_diff \
+  support_select_modifies_timeout \
+  support_select_normalizes_timeout \
   support_set_small_thread_stack_size \
   support_shared_allocate \
   support_small_stack_thread_attribute \
+  support_socket_so_timestamp_time64 \
+  support_stat_nanoseconds \
   support_subprocess \
   support_test_compare_blob \
   support_test_compare_failure \
   support_test_compare_string \
-  support_write_file_string \
+  support_test_compare_string_wide \
   support_test_main \
   support_test_verify_impl \
+  support_wait_for_thread_exit \
+  support_write_file_string \
   temp_file \
   timespec \
+  timespec-time64 \
   timespec-add \
+  timespec-add-time64 \
   timespec-sub \
+  timespec-sub-time64 \
   write_message \
   xaccept \
   xaccept4 \
   xasprintf \
   xbind \
   xcalloc \
+  xchdir \
   xchroot \
   xclock_gettime \
+  xclock_gettime_time64 \
+  xclock_settime \
+  xclock_settime_time64 \
+  xclone \
   xclose \
+  xchmod \
   xconnect \
   xcopy_file_range \
   xdlfcn \
   xdlmopen \
   xdup2 \
+  xfchmod \
   xfclose \
   xfopen \
   xfork \
   xftruncate \
+  xgetline \
   xgetsockname \
   xlisten \
   xlseek \
+  xlstat \
+  xlstat-time64 \
   xmalloc \
   xmemstream \
   xmkdir \
   xmkdirp \
+  xmkfifo \
   xmmap \
   xmprotect \
   xmunmap \
+  xnewlocale \
   xopen \
   xpipe \
   xpoll \
@@ -113,6 +147,7 @@ libsupport-routines = \
   xpthread_attr_init \
   xpthread_attr_setdetachstate \
   xpthread_attr_setguardsize \
+  xpthread_attr_setaffinity_np \
   xpthread_attr_setstack \
   xpthread_attr_setstacksize \
   xpthread_barrier_destroy \
@@ -127,6 +162,9 @@ libsupport-routines = \
   xpthread_create \
   xpthread_detach \
   xpthread_join \
+  xpthread_key_create \
+  xpthread_key_delete \
+  xpthread_kill \
   xpthread_mutex_consistent \
   xpthread_mutex_destroy \
   xpthread_mutex_init \
@@ -168,6 +206,7 @@ libsupport-routines = \
   xsymlink \
   xsysconf \
   xunlink \
+  xuselocale \
   xwaitpid \
   xwrite \
 
@@ -186,7 +225,17 @@ CFLAGS-support_paths.c = \
 		-DLIBDIR_PATH=\"$(libdir)\" \
 		-DBINDIR_PATH=\"$(bindir)\" \
 		-DSBINDIR_PATH=\"$(sbindir)\" \
-		-DROOTSBINDIR_PATH=\"$(rootsbindir)\"
+		-DSLIBDIR_PATH=\"$(slibdir)\" \
+		-DROOTSBINDIR_PATH=\"$(rootsbindir)\" \
+		-DCOMPLOCALEDIR_PATH=\"$(complocaledir)\"
+
+# In support_timespec_check_in_range we may be passed a very tight
+# range for which we should produce a correct result for expected
+# being withing the observed range.  The code uses double internally
+# in support_timespec_check_in_range and for that computation we use
+# -fexcess-precision=standard.
+CFLAGS-timespec.c += -fexcess-precision=standard
+CFLAGS-timespec-time64.c += -fexcess-precision=standard
 
 ifeq (,$(CXX))
 LINKS_DSO_PROGRAM = links-dso-program-c
@@ -211,10 +260,16 @@ others-noinstall += shell-container echo-container true-container
 others += $(LINKS_DSO_PROGRAM)
 others-noinstall += $(LINKS_DSO_PROGRAM)
 
+others += test-run-command
+others-static += test-run-command
+others-noinstall += test-run-command
+LDLIBS-test-run-command = $(libsupport)
+
 $(objpfx)test-container : $(libsupport)
 $(objpfx)shell-container : $(libsupport)
 $(objpfx)echo-container : $(libsupport)
 $(objpfx)true-container : $(libsupport)
+$(objpfx)test-run-command : $(libsupport) $(common-objpfx)elf/static-stubs.o
 
 tests = \
   README-testing \
@@ -223,12 +278,17 @@ tests = \
   tst-support_capture_subprocess \
   tst-support_descriptors \
   tst-support_format_dns_packet \
+  tst-support-open-dev-null-range \
+  tst-support-process_state \
   tst-support_quote_blob \
+  tst-support_quote_blob_wide \
   tst-support_quote_string \
   tst-support_record_failure \
   tst-test_compare \
   tst-test_compare_blob \
   tst-test_compare_string \
+  tst-test_compare_string_wide \
+  tst-timespec \
   tst-xreadlink \
   tst-xsigstack \
 

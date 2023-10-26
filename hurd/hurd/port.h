@@ -1,5 +1,5 @@
 /* Lightweight user references for ports.
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@ struct hurd_port
 
 
 /* Evaluate EXPR with the variable `port' bound to the port in PORTCELL.  */
+/* Also see HURD_PORT_USE_CANCEL.  */
 
 #define	HURD_PORT_USE(portcell, expr)					      \
   ({ struct hurd_port *const __p = (portcell);				      \

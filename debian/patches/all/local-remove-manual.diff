@@ -4,10 +4,10 @@ solution is to drop those dependencies and make sure that MAKEINFO=:
 so that no target depends on manual/*.texi files.
 
 ---
- manual/Makefile            |  254 +++++++++++++++++++++++++++++++++++++++++++++
- sysdeps/gnu/Makefile       |    2 
+ manual/Makefile            |  182 +++++++++++++++++++++++++++++++++++++++++++++
+ stdio-common/Makefile      |    2 
  sysdeps/mach/hurd/Makefile |    2 
- 3 files changed, 256 insertions(+), 2 deletions(-)
+ 3 files changed, 184 insertions(+), 2 deletions(-)
 
 --- /dev/null
 +++ b/manual/Makefile
@@ -194,17 +194,17 @@ so that no target depends on manual/*.texi files.
 +
 +TAGS: $(minimal-dist)
 +	$(ETAGS) -o $@ $^
---- a/sysdeps/gnu/Makefile
-+++ b/sysdeps/gnu/Makefile
-@@ -18,7 +18,7 @@
- # Generate the list of strings for errno codes from the section of the
- # manual which documents the codes.
+--- a/stdio-common/Makefile
++++ b/stdio-common/Makefile
+@@ -251,7 +251,7 @@
+   # generated
+ endif # $(run-built-tests)
  
--$(..)sysdeps/gnu/errlist.c: $(..)sysdeps/gnu/errlist.awk \
-+$(..)sysdeps/gnu/errlist-disabled.c: $(..)sysdeps/gnu/errlist.awk \
- 			    $(..)manual/errno.texi
- 	$(AWK) -f $^ > $@-tmp
- # Make it unwritable so noone will edit it by mistake.
+-tests-special += $(objpfx)tst-errno-manual.out
++# tests-special += $(objpfx)tst-errno-manual.out
+ 
+ include ../Rules
+ 
 --- a/sysdeps/mach/hurd/Makefile
 +++ b/sysdeps/mach/hurd/Makefile
 @@ -88,7 +88,7 @@

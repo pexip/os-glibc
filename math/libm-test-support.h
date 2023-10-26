@@ -1,5 +1,5 @@
 /* Support code for testing libm functions (common declarations).
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@
 
 extern const int flag_test_errno;
 extern const int flag_test_exceptions;
-extern const int flag_test_inline;
 extern const int flag_test_mathvec;
 extern const int snan_tests_arg;
 extern const char test_msg[];
@@ -60,7 +59,6 @@ extern const char doc[];
 #define IGNORE_ZERO_INF_SIGN		0x400
 #define TEST_NAN_SIGN			0x800
 #define TEST_NAN_PAYLOAD		0x1000
-#define NO_TEST_INLINE			0x2000
 #define XFAIL_TEST			0x4000
 /* Indicate errno settings required or disallowed.  */
 #define ERRNO_UNCHANGED			0x8000

@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,5 +24,5 @@
 int
 signalfd (int fd, const sigset_t *mask, int flags)
 {
-  return INLINE_SYSCALL (signalfd4, 4, fd, mask, _NSIG / 8, flags);
+  return INLINE_SYSCALL (signalfd4, 4, fd, mask, __NSIG_BYTES, flags);
 }

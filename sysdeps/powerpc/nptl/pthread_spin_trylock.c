@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,9 +17,10 @@
 
 #include <errno.h>
 #include "pthreadP.h"
+#include <shlib-compat.h>
 
 int
-pthread_spin_trylock (pthread_spinlock_t *lock)
+__pthread_spin_trylock (pthread_spinlock_t *lock)
 {
   unsigned int old;
   int err = EBUSY;
@@ -39,3 +39,10 @@ pthread_spin_trylock (pthread_spinlock_t *lock)
 
   return err;
 }
+versioned_symbol (libc, __pthread_spin_trylock, pthread_spin_trylock,
+		  GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_trylock, pthread_spin_trylock,
+	       GLIBC_2_2);
+#endif

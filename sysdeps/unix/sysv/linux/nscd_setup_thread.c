@@ -1,7 +1,6 @@
 /* Setup of nscd worker threads.  Linux verison.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -25,7 +24,6 @@
 int
 setup_thread (struct database_dyn *db)
 {
-#ifdef __NR_set_tid_address
   /* Only supported when NPTL is used.  */
   char buf[100];
   if (confstr (_CS_GNU_LIBPTHREAD_VERSION, buf, sizeof (buf)) >= sizeof (buf)
@@ -35,15 +33,13 @@ setup_thread (struct database_dyn *db)
   /* Do not try this at home, kids.  We play with the SETTID address
      even thought the process is multi-threaded.  This can only work
      since none of the threads ever terminates.  */
-  INTERNAL_SYSCALL_DECL (err);
-  int r = INTERNAL_SYSCALL (set_tid_address, err, 1,
-			    &db->head->nscd_certainly_running);
-  if (!INTERNAL_SYSCALL_ERROR_P (r, err))
+  int r = INTERNAL_SYSCALL_CALL (set_tid_address,
+				 &db->head->nscd_certainly_running);
+  if (!INTERNAL_SYSCALL_ERROR_P (r))
     /* We know the kernel can reset this field when nscd terminates.
        So, set the field to a nonzero value which indicates that nscd
        is certainly running and clients can skip the test.  */
     return db->head->nscd_certainly_running = 1;
-#endif
 
   return 0;
 }

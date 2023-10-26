@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2020 Free Software Foundation, Inc.
+# Copyright (C) 1993-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -186,7 +186,9 @@ ifeq ($(subdir),csu)
 extra-objs += static-start.o
 
 # We need special startup code for statically linked binaries.
-$(objpfx)crt0.o: $(objpfx)static-start.o $(objpfx)abi-note.o $(objpfx)init.o
+$(objpfx)crt0.o: $(objpfx)static-start.o $(objpfx)abi-note.o $(objpfx)init.o $(objpfx)static-reloc.o
+	$(link-relocatable)
+$(objpfx)rcrt0.o: $(objpfx)static-start.o $(objpfx)abi-note.o $(objpfx)init.o
 	$(link-relocatable)
 
 endif
@@ -196,7 +198,17 @@ sysdep_routines += cthreads
 endif
 
 ifeq (io, $(subdir))
-sysdep_routines += f_setlk close_nocancel_nostatus
+sysdep_routines += f_setlk close_nocancel close_nocancel_nostatus \
+		   fcntl_nocancel open_nocancel openat_nocancel read_nocancel \
+		   pread64_nocancel write_nocancel pwrite64_nocancel \
+		   wait4_nocancel \
+		   xstat fxstat lxstat xstat64 fxstat64 lxstat64 \
+		   xmknod xmknodat \
+		   fxstatat fxstatat64
+endif
+
+ifeq (misc, $(subdir))
+sysdep_routines += writev_nocancel writev_nocancel_nostatus mremap
 endif
 
 ifeq ($(subdir),sunrpc)
@@ -212,5 +224,6 @@ CFLAGS-ypclnt.c += -DUSE_BINDINGDIR=1
 endif
 
 LDLIBS-pthread.so += $(objdir)/hurd/libhurduser.so
+LDLIBS-c_malloc_debug.so += $(link-rpcuserlibs)
 
 endif	# in-Makerules

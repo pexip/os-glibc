@@ -1,5 +1,5 @@
 /* elision-conf.c: Lock elision tunable parameters.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,13 +48,6 @@ struct elision_config __elision_aconf =
     .skip_trylock_internal_abort = 3,
   };
 
-/* Force elision for all new locks.  This is used to decide whether existing
-   DEFAULT locks should be automatically upgraded to elision in
-   pthread_mutex_lock().  Disabled for suid programs.  Only used when elision
-   is available.  */
-
-int __pthread_force_elision attribute_hidden = 0;
-
 #if HAVE_TUNABLES
 static __always_inline void
 do_set_elision_enable (int32_t elision_enable)
@@ -63,7 +56,7 @@ do_set_elision_enable (int32_t elision_enable)
      if __libc_enable_secure isn't enabled since elision_enable will be set
      according to the default, which is disabled.  */
   if (elision_enable == 1)
-    __pthread_force_elision = HAS_CPU_FEATURE (RTM) ? 1 : 0;
+    __pthread_force_elision = CPU_FEATURE_USABLE (RTM) ? 1 : 0;
 }
 
 /* The pthread->elision_enable tunable is 0 or 1 indicating that elision
@@ -98,10 +91,8 @@ TUNABLE_CALLBACK_FNDECL (skip_trylock_internal_abort, int32_t);
 
 /* Initialize elision.  */
 
-static void
-elision_init (int argc __attribute__ ((unused)),
-	      char **argv  __attribute__ ((unused)),
-	      char **environ)
+void
+__lll_elision_init (void)
 {
 #if HAVE_TUNABLES
   /* Elision depends on tunables and must be explicitly turned on by setting
@@ -122,15 +113,3 @@ elision_init (int argc __attribute__ ((unused)),
   if (!__pthread_force_elision)
     __elision_aconf.retry_try_xbegin = 0; /* Disable elision on rwlocks.  */
 }
-
-#ifdef SHARED
-# define INIT_SECTION ".init_array"
-#else
-# define INIT_SECTION ".preinit_array"
-#endif
-
-void (*const __pthread_init_array []) (int, char **, char **)
-  __attribute__ ((section (INIT_SECTION), aligned (sizeof (void *)))) =
-{
-  &elision_init
-};

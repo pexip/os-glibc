@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Martin Schwidefsky <schwidefsky@de.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,7 +35,7 @@
    G1.  We don't need to do all these steps if there are no waiters in G1
    and/or G2.  See __pthread_cond_signal for further details.  */
 int
-__pthread_cond_broadcast (pthread_cond_t *cond)
+___pthread_cond_broadcast (pthread_cond_t *cond)
 {
   LIBC_PROBE (cond_broadcast, 1, cond);
 
@@ -87,6 +86,9 @@ __pthread_cond_broadcast (pthread_cond_t *cond)
 
   return 0;
 }
-
-versioned_symbol (libpthread, __pthread_cond_broadcast, pthread_cond_broadcast,
-		  GLIBC_2_3_2);
+versioned_symbol (libc, ___pthread_cond_broadcast,
+		  pthread_cond_broadcast, GLIBC_2_3_2);
+libc_hidden_ver (___pthread_cond_broadcast, __pthread_cond_broadcast)
+#ifndef SHARED
+strong_alias (___pthread_cond_broadcast, __pthread_cond_broadcast)
+#endif

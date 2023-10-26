@@ -1,5 +1,5 @@
 /* Assembler macros for x86-64.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -94,6 +94,46 @@ lose:									      \
 #define R13_LP	r13
 #define R14_LP	r14
 #define R15_LP	r15
+
+/* Zero upper vector registers and return with xtest.  NB: Use VZEROALL
+   to avoid RTM abort triggered by VZEROUPPER inside transactionally.  */
+#define ZERO_UPPER_VEC_REGISTERS_RETURN_XTEST \
+	xtest;							\
+	jnz	1f;						\
+	vzeroupper;						\
+	ret;							\
+1:								\
+	vzeroall;						\
+	ret
+
+/* Can be used to replace vzeroupper that is not directly before a
+   return.  This is useful when hoisting a vzeroupper from multiple
+   return paths to decrease the total number of vzerouppers and code
+   size.  */
+#define COND_VZEROUPPER_XTEST							\
+    xtest;							\
+    jz 1f;							\
+    vzeroall;							\
+    jmp 2f;							\
+1:							\
+    vzeroupper;							\
+2:
+
+/* In RTM define this as COND_VZEROUPPER_XTEST.  */
+#ifndef COND_VZEROUPPER
+# define COND_VZEROUPPER vzeroupper
+#endif
+
+/* Zero upper vector registers and return.  */
+#ifndef ZERO_UPPER_VEC_REGISTERS_RETURN
+# define ZERO_UPPER_VEC_REGISTERS_RETURN \
+	VZEROUPPER;						\
+	ret
+#endif
+
+#ifndef VZEROUPPER_RETURN
+# define VZEROUPPER_RETURN	VZEROUPPER; ret
+#endif
 
 #else	/* __ASSEMBLER__ */
 

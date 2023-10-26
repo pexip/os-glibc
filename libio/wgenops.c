@@ -1,7 +1,5 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Ulrich Drepper <drepper@cygnus.com>.
-   Based on the single byte version by Per Bothner <bothner@cygnus.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -379,12 +377,11 @@ libc_hidden_def (_IO_wdoallocbuf)
 int
 _IO_wdefault_doallocate (FILE *fp)
 {
-  wchar_t *buf;
-
-  buf = malloc (BUFSIZ);
+  wchar_t *buf = (wchar_t *)malloc (BUFSIZ);
   if (__glibc_unlikely (buf == NULL))
     return EOF;
-  _IO_wsetb (fp, buf, buf + BUFSIZ, 1);
+
+  _IO_wsetb (fp, buf, buf + BUFSIZ / sizeof *buf, 1);
   return 1;
 }
 libc_hidden_def (_IO_wdefault_doallocate)

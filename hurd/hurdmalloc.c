@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include "set-hooks.h"
 
 #include "hurdmalloc.h"		/* XXX see that file */
 
 #include <mach.h>
+#include <mach/spin-lock.h>
 #define vm_allocate __vm_allocate
 #define vm_page_size __vm_page_size
 
@@ -79,8 +81,6 @@
 
 #include <assert.h>
 
-#include <cthreads.h>
-
 #define MCHECK
 
 /*
@@ -149,7 +149,7 @@ static struct free_list malloc_free_list[NBUCKETS];
    It preserves the values of data variables like malloc_free_list, but
    does not save the vm_allocate'd space allocated by this malloc.  */
 
-static void
+static void attribute_used_retain
 malloc_init (void)
 {
   int i;
@@ -161,11 +161,6 @@ malloc_init (void)
       malloc_free_list[i].in_use = 0;
 #endif
     }
-
-  /* This not only suppresses a `defined but not used' warning,
-     but it is ABSOLUTELY NECESSARY to avoid the hyperclever
-     compiler from "optimizing out" the entire function!  */
-  (void) &malloc_init;
 }
 
 static void
@@ -221,7 +216,7 @@ malloc (size_t size)
 		i += 1;
 		n <<= 1;
 	}
-	ASSERT(i < NBUCKETS);
+	assert(i < NBUCKETS);
 	fl = &malloc_free_list[i];
 	spin_lock(&fl->lock);
 	h = fl->head;
@@ -291,11 +286,11 @@ free (void *base)
 	 * Sanity checks.
 	 */
 	if (i < 0 || i >= NBUCKETS) {
-		ASSERT(0 <= i && i < NBUCKETS);
+		assert(0 <= i && i < NBUCKETS);
 		return;
 	}
 	if (fl != &malloc_free_list[i]) {
-		ASSERT(fl == &malloc_free_list[i]);
+		assert(fl == &malloc_free_list[i]);
 		return;
 	}
 	/*
@@ -340,11 +335,11 @@ realloc (void *old_base, size_t new_size)
 	 * Sanity checks.
 	 */
 	if (i < 0 || i >= NBUCKETS) {
-		ASSERT(0 <= i && i < NBUCKETS);
+		assert(0 <= i && i < NBUCKETS);
 		return 0;
 	}
 	if (fl != &malloc_free_list[i]) {
-		ASSERT(fl == &malloc_free_list[i]);
+		assert(fl == &malloc_free_list[i]);
 		return 0;
 	}
 	/*
@@ -446,4 +441,4 @@ _hurd_malloc_fork_child(void)
 }
 
 
-text_set_element (_hurd_preinit_hook, malloc_init);
+SET_RELHOOK (_hurd_preinit_hook, malloc_init);

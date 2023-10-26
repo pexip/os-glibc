@@ -1,5 +1,5 @@
 /* pthread_attr_getdetachstate.  Generic version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,4 +26,4 @@ __pthread_attr_getdetachstate (const pthread_attr_t *attr, int *detachstate)
   return 0;
 }
 
-strong_alias (__pthread_attr_getdetachstate, pthread_attr_getdetachstate);
+weak_alias (__pthread_attr_getdetachstate, pthread_attr_getdetachstate);

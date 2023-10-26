@@ -1,5 +1,5 @@
 # Makefile for sysdeps/ieee754/ldbl-96.
-# Copyright (C) 2016-2020 Free Software Foundation, Inc.
+# Copyright (C) 2016-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -17,5 +17,8 @@
 # <https://www.gnu.org/licenses/>.
 
 ifeq ($(subdir),math)
-tests += test-canonical-ldbl-96 test-totalorderl-ldbl-96
+tests += test-canonical-ldbl-96 test-totalorderl-ldbl-96 test-sinl-pseudo
+ifeq ($(have-ssp),yes)
+CFLAGS-test-sinl-pseudo.c += -fstack-protector-all
 endif
+endif # $(subdir) == math

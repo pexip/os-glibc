@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,22 +15,23 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread-errnos.h>
 #include <sysdep.h>
+#include <errno.h>
+#include <shlib-compat.h>
 
-
-#ifdef UP
-# define LOCK
-#else
-# define LOCK lock
-#endif
-
-ENTRY(pthread_spin_trylock)
+ENTRY(__pthread_spin_trylock)
 	movl	$1, %eax
 	xorl	%ecx, %ecx
-	LOCK
+	lock
 	cmpxchgl %ecx, (%rdi)
 	movl	$EBUSY, %eax
 	cmovel	%ecx, %eax
 	retq
-END(pthread_spin_trylock)
+END(__pthread_spin_trylock)
+versioned_symbol (libc, __pthread_spin_trylock, pthread_spin_trylock,
+		  GLIBC_2_34)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_trylock, pthread_spin_trylock,
+	       GLIBC_2_2)
+#endif

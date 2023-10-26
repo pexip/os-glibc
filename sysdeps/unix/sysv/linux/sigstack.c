@@ -1,7 +1,6 @@
 /* Emulate sigstack function using sigaltstack.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,7 +21,6 @@
 #include <sys/syscall.h>
 
 
-#ifdef __NR_sigaltstack
 int
 sigstack (struct sigstack *ss, struct sigstack *oss)
 {
@@ -61,6 +59,3 @@ sigstack (struct sigstack *ss, struct sigstack *oss)
 }
 
 link_warning (sigstack, "the `sigstack' function is dangerous.  `sigaltstack' should be used instead.")
-#else
-# include <signal/sigstack.c>
-#endif

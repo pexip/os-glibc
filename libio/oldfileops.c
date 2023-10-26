@@ -1,6 +1,5 @@
-/* Copyright (C) 1993-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Per Bothner <bothner@cygnus.com>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -487,7 +486,7 @@ _IO_old_file_seekoff (FILE *fp, off64_t offset, int dir, int mode)
       break;
     case _IO_seek_end:
       {
-	struct stat64 st;
+	struct __stat64_t64 st;
 	if (_IO_SYSSTAT (fp, &st) == 0 && S_ISREG (st.st_mode))
 	  {
 	    offset += st.st_size;

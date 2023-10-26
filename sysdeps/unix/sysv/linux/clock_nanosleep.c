@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,11 +27,10 @@
 /* We can simply use the syscall.  The CPU clocks are not supported
    with this function.  */
 int
-__clock_nanosleep_time64 (clockid_t clock_id, int flags, const struct __timespec64 *req,
-                          struct __timespec64 *rem)
+__clock_nanosleep_time64 (clockid_t clock_id, int flags,
+			  const struct __timespec64 *req,
+			  struct __timespec64 *rem)
 {
-  int r;
-
   if (clock_id == CLOCK_THREAD_CPUTIME_ID)
     return EINVAL;
   if (clock_id == CLOCK_PROCESS_CPUTIME_ID)
@@ -39,48 +38,42 @@ __clock_nanosleep_time64 (clockid_t clock_id, int flags, const struct __timespec
 
   /* If the call is interrupted by a signal handler or encounters an error,
      it returns a positive value similar to errno.  */
-  INTERNAL_SYSCALL_DECL (err);
 
+#ifndef __NR_clock_nanosleep_time64
+# define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
+#endif
+
+  int r;
 #ifdef __ASSUME_TIME64_SYSCALLS
-# ifndef __NR_clock_nanosleep_time64
-#  define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
-# endif
-  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, err, clock_id,
-                               flags, req, rem);
+  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags, req,
+			       rem);
 #else
-# ifdef __NR_clock_nanosleep_time64
-  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, err, clock_id,
-                               flags, req, rem);
-
-  if (! INTERNAL_SYSCALL_ERROR_P (r, err))
-    return 0;
-  if (INTERNAL_SYSCALL_ERRNO (r, err) != ENOSYS)
-    return INTERNAL_SYSCALL_ERRNO (r, err);
-# endif /* __NR_clock_nanosleep_time64 */
-
-  if (! in_time_t_range (req->tv_sec))
+  if (!in_time_t_range (req->tv_sec))
     {
-      __set_errno (EOVERFLOW);
-      return -1;
+      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep_time64, clock_id, flags,
+				   req, rem);
+      if (r == -ENOSYS)
+	r = -EOVERFLOW;
     }
-
-  struct timespec tr32;
-  struct timespec ts32 = valid_timespec64_to_timespec (*req);
-  r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep, err, clock_id, flags,
-                               &ts32, &tr32);
-  if (INTERNAL_SYSCALL_ERROR_P (r, err))
+  else
     {
-      if (INTERNAL_SYSCALL_ERRNO (r, err) == EINTR && rem != NULL
-	  && (flags & TIMER_ABSTIME) == 0)
-	*rem = valid_timespec_to_timespec64 (tr32);
+      struct timespec tr32;
+      struct timespec ts32 = valid_timespec64_to_timespec (*req);
+      r = INTERNAL_SYSCALL_CANCEL (clock_nanosleep, clock_id, flags, &ts32,
+				   &tr32);
+      if (INTERNAL_SYSCALL_ERROR_P (r))
+	{
+	  if (r == -EINTR && rem != NULL && (flags & TIMER_ABSTIME) == 0)
+	    *rem = valid_timespec_to_timespec64 (tr32);
+	}
     }
-#endif /* __ASSUME_TIME64_SYSCALLS */
-
-  return (INTERNAL_SYSCALL_ERROR_P (r, err)
-	  ? INTERNAL_SYSCALL_ERRNO (r, err) : 0);
+#endif
+  return -r;
 }
 
 #if __TIMESIZE != 64
+libc_hidden_def (__clock_nanosleep_time64)
+
 int
 __clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
                    struct timespec *rem)
@@ -89,7 +82,8 @@ __clock_nanosleep (clockid_t clock_id, int flags, const struct timespec *req,
   struct __timespec64 treq64, trem64;
 
   treq64 = valid_timespec_to_timespec64 (*req);
-  r = __clock_nanosleep_time64 (clock_id, flags, &treq64, &trem64);
+  r = __clock_nanosleep_time64 (clock_id, flags, &treq64,
+                                rem != NULL ? &trem64 : NULL);
 
   if (r == EINTR && rem != NULL && (flags & TIMER_ABSTIME) == 0)
     *rem = valid_timespec64_to_timespec (trem64);

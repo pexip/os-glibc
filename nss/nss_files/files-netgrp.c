@@ -1,7 +1,6 @@
 /* Netgroup file parser in nss_files modules.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,10 +25,11 @@
 #include <string.h>
 #include "nsswitch.h"
 #include "netgroup.h"
+#include <nss_files.h>
 
 #define DATAFILE	"/etc/netgroup"
 
-libnss_files_hidden_proto (_nss_files_endnetgrent)
+libc_hidden_proto (_nss_files_endnetgrent)
 
 #define EXPAND(needed)							      \
   do									      \
@@ -62,7 +62,7 @@ _nss_files_setnetgrent (const char *group, struct __netgrent *result)
     return NSS_STATUS_UNAVAIL;
 
   /* Find the netgroups file and open it.  */
-  fp = fopen (DATAFILE, "rce");
+  fp = __nss_files_fopen (DATAFILE);
   if (fp == NULL)
     status = errno == EAGAIN ? NSS_STATUS_TRYAGAIN : NSS_STATUS_UNAVAIL;
   else
@@ -76,11 +76,9 @@ _nss_files_setnetgrent (const char *group, struct __netgrent *result)
       status = NSS_STATUS_NOTFOUND;
       result->cursor = result->data;
 
-      __fsetlocking (fp, FSETLOCKING_BYCALLER);
-
-      while (!feof_unlocked (fp))
+      while (!__feof_unlocked (fp))
 	{
-	  ssize_t curlen = getline (&line, &line_len, fp);
+	  ssize_t curlen = __getline (&line, &line_len, fp);
 	  int found;
 
 	  if (curlen < 0)
@@ -112,7 +110,7 @@ _nss_files_setnetgrent (const char *group, struct __netgrent *result)
 		result->cursor -= 2;
 
 	      /* Get next line.  */
-	      curlen = getline (&line, &line_len, fp);
+	      curlen = __getline (&line, &line_len, fp);
 	      if (curlen <= 0)
 		break;
 
@@ -151,7 +149,7 @@ _nss_files_setnetgrent (const char *group, struct __netgrent *result)
 
   return status;
 }
-
+libc_hidden_def (_nss_files_setnetgrent)
 
 enum nss_status
 _nss_files_endnetgrent (struct __netgrent *result)
@@ -163,7 +161,7 @@ _nss_files_endnetgrent (struct __netgrent *result)
   result->cursor = NULL;
   return NSS_STATUS_SUCCESS;
 }
-libnss_files_hidden_def (_nss_files_endnetgrent)
+libc_hidden_def (_nss_files_endnetgrent)
 
 static char *
 strip_whitespace (char *str)
@@ -278,7 +276,7 @@ _nss_netgroup_parseline (char **cursor, struct __netgrent *result,
 
   return status;
 }
-libnss_files_hidden_def (_nss_netgroup_parseline)
+libc_hidden_def (_nss_netgroup_parseline)
 
 
 enum nss_status
@@ -292,3 +290,4 @@ _nss_files_getnetgrent_r (struct __netgrent *result, char *buffer,
 
   return status;
 }
+libc_hidden_def (_nss_files_getnetgrent_r)

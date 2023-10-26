@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,4 @@
 
 /* We have to completely disable cancellation.  assert() must not be a
    cancellation point but the implementation uses write() etc.  */
-#define FATAL_PREPARE \
-  __libc_ptf_call (__pthread_setcancelstate, \
-		   (PTHREAD_CANCEL_DISABLE, NULL), 0)
+#define FATAL_PREPARE __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, NULL)

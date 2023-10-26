@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -89,4 +89,6 @@ __writev (int fd, const struct iovec *vector, int count)
   return bytes_written;
 }
 libc_hidden_def (__writev)
+#ifndef __writev
 weak_alias (__writev, writev)
+#endif

@@ -1,10 +1,6 @@
 GLIBC_PROVIDES dnl See aclocal.m4 in the top level source directory.
 # Local configure fragment for sysdeps/s390.
 
-dnl It is always possible to access static and hidden symbols in an
-dnl position independent way.
-AC_DEFINE(PI_STATIC_AND_HIDDEN)
-
 AC_CACHE_CHECK(for __builtin_tbegin, libc_cv_gcc_builtin_tbegin, [dnl
 cat > conftest.c <<\EOF
 #include <htmintrin.h>
@@ -88,7 +84,9 @@ void testinsn (char *buf)
     __asm__ (".machine \"arch13\" \n\t"
 	     ".machinemode \"zarch_nohighgprs\" \n\t"
 	     "lghi %%r0,16 \n\t"
-	     "mvcrl 0(%0),32(%0)" : : "a" (buf) : "memory", "r0");
+	     "mvcrl 0(%0),32(%0) \n\t"
+	     "vstrs %%v20,%%v20,%%v20,%%v20,0,2"
+	     : : "a" (buf) : "memory", "r0");
 }
 EOF
 dnl test, if assembler supports S390 arch13 instructions
@@ -195,7 +193,9 @@ cat > conftest.c <<\EOF
 void testinsn (char *buf)
 {
     __asm__ ("lghi %%r0,16 \n\t"
-	     "mvcrl 0(%0),32(%0)" : : "a" (buf) : "memory", "r0");
+	     "mvcrl 0(%0),32(%0) \n\t"
+	     "vstrs %%v20,%%v20,%%v20,%%v20,0,2"
+	     : : "a" (buf) : "memory", "r0");
 }
 EOF
 dnl test, if assembler supports S390 arch13 zarch instructions as default
@@ -210,6 +210,23 @@ rm -f conftest* ])
 if test "$libc_cv_asm_s390_min_arch13_zarch" = yes ;
 then
   AC_DEFINE(HAVE_S390_MIN_ARCH13_ZARCH_ASM_SUPPORT)
+fi
+
+dnl test if GCC is new enough. See gcc "Bug 98269 - gcc 6.5.0
+dnl __builtin_add_overflow() with small uint32_t values incorrectly detects
+dnl overflow
+dnl (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98269)
+AC_CACHE_CHECK([if $CC is sufficient to build libc on s390x],
+libc_cv_compiler_ok_on_s390x, [
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
+#if !defined __GNUC__ || __GNUC__ < 7 || (__GNUC__ == 7 && __GNUC_MINOR__ < 1)
+#error insufficient compiler for building on s390x
+#endif
+]])],
+	[libc_cv_compiler_ok_on_s390x=yes],
+	[libc_cv_compiler_ok_on_s390x=no])])
+if test "$libc_cv_compiler_ok_on_s390x" != yes; then
+   critic_missing="$critic_missing On s390x, GCC >= 7.1.0 is required."
 fi
 
 test -n "$critic_missing" && AC_MSG_ERROR([

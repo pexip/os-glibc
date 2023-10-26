@@ -1,6 +1,5 @@
-/* Copyright (C) 2000-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Andreas Schwab <schwab@suse.de>.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,20 +27,15 @@
 int
 __getpagesize (void)
 {
-#ifdef __NR_getpagesize
   int result;
-#endif
 
   if (GLRO(dl_pagesize) != 0)
     return GLRO(dl_pagesize);
 
-#ifdef __NR_getpagesize
-  INTERNAL_SYSCALL_DECL (err);
-  result = INTERNAL_SYSCALL (getpagesize, err, 0);
+  result = INTERNAL_SYSCALL_CALL (getpagesize);
   /* The only possible error is ENOSYS.  */
-  if (!INTERNAL_SYSCALL_ERROR_P (result, err))
+  if (!INTERNAL_SYSCALL_ERROR_P (result))
     return result;
-#endif
 
   return 4096;
 }

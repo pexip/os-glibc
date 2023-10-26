@@ -1,6 +1,6 @@
 /* Common definition for memmove/memmove_chk ifunc selections.
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ IFUNC_SELECTOR (void)
   if (CPU_FEATURES_ARCH_P (cpu_features, Fast_Unaligned_Load))
     return OPTIMIZE (sse2_unaligned);
 
-  if (CPU_FEATURES_CPU_P (cpu_features, SSSE3))
+  if (CPU_FEATURE_USABLE_P (cpu_features, SSSE3))
     {
       if (CPU_FEATURES_ARCH_P (cpu_features, Fast_Rep_String))
 	return OPTIMIZE (ssse3_rep);

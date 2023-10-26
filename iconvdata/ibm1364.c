@@ -1,7 +1,6 @@
 /* Conversion from and to IBM1364.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Masahide Washizawa <washi@jp.ibm.com>, 2005.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -158,24 +157,14 @@ enum
 									      \
     if (__builtin_expect (ch, 0) == SO)					      \
       {									      \
-	/* Shift OUT, change to DBCS converter.  */			      \
-	if (curcs == db)						      \
-	  {								      \
-	    result = __GCONV_ILLEGAL_INPUT;				      \
-	    break;							      \
-	  }								      \
+	/* Shift OUT, change to DBCS converter (redundant escape okay).  */   \
 	curcs = db;							      \
 	++inptr;							      \
 	continue;							      \
       }									      \
     if (__builtin_expect (ch, 0) == SI)					      \
       {									      \
-	/* Shift IN, change to SBCS converter.  */			      \
-	if (curcs == sb)						      \
-	  {								      \
-	    result = __GCONV_ILLEGAL_INPUT;				      \
-	    break;							      \
-	  }								      \
+	/* Shift IN, change to SBCS converter (redundant escape okay).  */    \
 	curcs = sb;							      \
 	++inptr;							      \
 	continue;							      \

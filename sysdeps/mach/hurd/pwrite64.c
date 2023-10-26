@@ -1,6 +1,6 @@
 /* Write block to given position in file without changing file pointer.
    Hurd version.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,19 +17,17 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <unistd.h>
-#include <hurd/fd.h>
+#include <sysdep-cancel.h>
+#include <not-cancel.h>
 
 ssize_t
 __libc_pwrite64 (int fd, const void *buf, size_t nbytes, off64_t offset)
 {
-  error_t err;
-  if (offset < 0)
-    err = EINVAL;
-  else
-    err = HURD_FD_USE (fd, _hurd_fd_write (descriptor, buf, &nbytes, offset));
-  return err ? __hurd_dfail (fd, err) : nbytes;
+  ssize_t ret;
+  int cancel_oldtype = LIBC_CANCEL_ASYNC();
+  ret = __pwrite64_nocancel (fd, buf, nbytes, offset);
+  LIBC_CANCEL_RESET (cancel_oldtype);
+  return ret;
 }
 
 #ifndef __libc_pwrite64

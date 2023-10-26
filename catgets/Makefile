@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2020 Free Software Foundation, Inc.
+# Copyright (C) 1996-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -56,7 +56,9 @@ generated += tst-catgets.mtrace tst-catgets-mem.out
 
 generated-dirs += de
 
-tst-catgets-ENV = NLSPATH="$(objpfx)%l/%N.cat" LANG=de MALLOC_TRACE=$(objpfx)tst-catgets.mtrace
+tst-catgets-ENV = NLSPATH="$(objpfx)%l/%N.cat" LANG=de \
+		  MALLOC_TRACE=$(objpfx)tst-catgets.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 ifeq ($(run-built-tests),yes)
 # This test just checks whether the program produces any error or not.

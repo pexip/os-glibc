@@ -1,7 +1,6 @@
 /* Install given floating-point environment and raise exceptions.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,7 +31,7 @@ __feupdateenv (const fenv_t *envp)
   __asm__ ("fnstsw %0" : "=m" (*&temp));
 
   /* If the CPU supports SSE we test the MXCSR as well.  */
-  if (HAS_CPU_FEATURE (SSE))
+  if (CPU_FEATURE_USABLE (SSE))
     __asm__ ("stmxcsr %0" : "=m" (*&xtemp));
 
   temp = (temp | xtemp) & FE_ALL_EXCEPT;

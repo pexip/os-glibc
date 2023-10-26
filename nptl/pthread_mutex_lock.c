@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,21 +25,32 @@
 #include <atomic.h>
 #include <futex-internal.h>
 #include <stap-probe.h>
-
-#ifndef lll_lock_elision
-#define lll_lock_elision(lock, try_lock, private)	({ \
-      lll_lock (lock, private); 0; })
-#endif
-
-#ifndef lll_trylock_elision
-#define lll_trylock_elision(a,t) lll_trylock(a)
-#endif
+#include <shlib-compat.h>
 
 /* Some of the following definitions differ when pthread_mutex_cond_lock.c
    includes this file.  */
 #ifndef LLL_MUTEX_LOCK
-# define LLL_MUTEX_LOCK(mutex) \
+/* lll_lock with single-thread optimization.  */
+static inline void
+lll_mutex_lock_optimized (pthread_mutex_t *mutex)
+{
+  /* The single-threaded optimization is only valid for private
+     mutexes.  For process-shared mutexes, the mutex could be in a
+     shared mapping, so synchronization with another process is needed
+     even without any threads.  If the lock is already marked as
+     acquired, POSIX requires that pthread_mutex_lock deadlocks for
+     normal mutexes, so skip the optimization in that case as
+     well.  */
+  int private = PTHREAD_MUTEX_PSHARED (mutex);
+  if (private == LLL_PRIVATE && SINGLE_THREAD_P && mutex->__data.__lock == 0)
+    mutex->__data.__lock = 1;
+  else
+    lll_lock (mutex->__data.__lock, private);
+}
+
+# define LLL_MUTEX_LOCK(mutex)						\
   lll_lock ((mutex)->__data.__lock, PTHREAD_MUTEX_PSHARED (mutex))
+# define LLL_MUTEX_LOCK_OPTIMIZED(mutex) lll_mutex_lock_optimized (mutex)
 # define LLL_MUTEX_TRYLOCK(mutex) \
   lll_trylock ((mutex)->__data.__lock)
 # define LLL_ROBUST_MUTEX_LOCK_MODIFIER 0
@@ -50,17 +60,20 @@
 # define LLL_MUTEX_TRYLOCK_ELISION(mutex) \
   lll_trylock_elision((mutex)->__data.__lock, (mutex)->__data.__elision, \
 		   PTHREAD_MUTEX_PSHARED (mutex))
+# define PTHREAD_MUTEX_LOCK ___pthread_mutex_lock
+# define PTHREAD_MUTEX_VERSIONS 1
 #endif
 
-#ifndef FORCE_ELISION
-#define FORCE_ELISION(m, s)
+#ifndef LLL_MUTEX_READ_LOCK
+# define LLL_MUTEX_READ_LOCK(mutex) \
+  atomic_load_relaxed (&(mutex)->__data.__lock)
 #endif
 
 static int __pthread_mutex_lock_full (pthread_mutex_t *mutex)
      __attribute_noinline__;
 
 int
-__pthread_mutex_lock (pthread_mutex_t *mutex)
+PTHREAD_MUTEX_LOCK (pthread_mutex_t *mutex)
 {
   /* See concurrency notes regarding mutex type which is loaded from __kind
      in struct __pthread_mutex_s in sysdeps/nptl/bits/thread-shared-types.h.  */
@@ -77,10 +90,10 @@ __pthread_mutex_lock (pthread_mutex_t *mutex)
       FORCE_ELISION (mutex, goto elision);
     simple:
       /* Normal mutex.  */
-      LLL_MUTEX_LOCK (mutex);
+      LLL_MUTEX_LOCK_OPTIMIZED (mutex);
       assert (mutex->__data.__owner == 0);
     }
-#ifdef HAVE_ELISION
+#if ENABLE_ELISION_SUPPORT
   else if (__glibc_likely (type == PTHREAD_MUTEX_TIMED_ELISION_NP))
     {
   elision: __attribute__((unused))
@@ -112,7 +125,7 @@ __pthread_mutex_lock (pthread_mutex_t *mutex)
 	}
 
       /* We have to get the mutex.  */
-      LLL_MUTEX_LOCK (mutex);
+      LLL_MUTEX_LOCK_OPTIMIZED (mutex);
 
       assert (mutex->__data.__owner == 0);
       mutex->__data.__count = 1;
@@ -120,24 +133,34 @@ __pthread_mutex_lock (pthread_mutex_t *mutex)
   else if (__builtin_expect (PTHREAD_MUTEX_TYPE (mutex)
 			  == PTHREAD_MUTEX_ADAPTIVE_NP, 1))
     {
-      if (! __is_smp)
-	goto simple;
-
       if (LLL_MUTEX_TRYLOCK (mutex) != 0)
 	{
 	  int cnt = 0;
 	  int max_cnt = MIN (max_adaptive_count (),
 			     mutex->__data.__spins * 2 + 10);
+	  int spin_count, exp_backoff = 1;
+	  unsigned int jitter = get_jitter ();
 	  do
 	    {
-	      if (cnt++ >= max_cnt)
+	      /* In each loop, spin count is exponential backoff plus
+		 random jitter, random range is [0, exp_backoff-1].  */
+	      spin_count = exp_backoff + (jitter & (exp_backoff - 1));
+	      cnt += spin_count;
+	      if (cnt >= max_cnt)
 		{
+		  /* If cnt exceeds max spin count, just go to wait
+		     queue.  */
 		  LLL_MUTEX_LOCK (mutex);
 		  break;
 		}
-	      atomic_spin_nop ();
+	      do
+		atomic_spin_nop ();
+	      while (--spin_count > 0);
+	      /* Prepare for next loop.  */
+	      exp_backoff = get_next_backoff (exp_backoff);
 	    }
-	  while (LLL_MUTEX_TRYLOCK (mutex) != 0);
+	  while (LLL_MUTEX_READ_LOCK (mutex) != 0
+		 || LLL_MUTEX_TRYLOCK (mutex) != 0);
 
 	  mutex->__data.__spins += (cnt - mutex->__data.__spins) / 8;
 	}
@@ -292,12 +315,11 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 	     meantime.  */
 	  if ((oldval & FUTEX_WAITERS) == 0)
 	    {
-	      if (atomic_compare_and_exchange_bool_acq (&mutex->__data.__lock,
-							oldval | FUTEX_WAITERS,
-							oldval)
-		  != 0)
+	      int val = atomic_compare_and_exchange_val_acq
+		(&mutex->__data.__lock, oldval | FUTEX_WAITERS, oldval);
+	      if (val != oldval)
 		{
-		  oldval = mutex->__data.__lock;
+		  oldval = val;
 		  continue;
 		}
 	      oldval |= FUTEX_WAITERS;
@@ -310,8 +332,8 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 	  assume_other_futex_waiters |= FUTEX_WAITERS;
 
 	  /* Block using the futex and reload current lock value.  */
-	  lll_futex_wait (&mutex->__data.__lock, oldval,
-			  PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+	  futex_wait ((unsigned int *) &mutex->__data.__lock, oldval,
+		      PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 	  oldval = mutex->__data.__lock;
 	}
 
@@ -416,8 +438,8 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 	    int private = (robust
 			   ? PTHREAD_ROBUST_MUTEX_PSHARED (mutex)
 			   : PTHREAD_MUTEX_PSHARED (mutex));
-	    int e = futex_lock_pi ((unsigned int *) &mutex->__data.__lock,
-				   NULL, private);
+	    int e = __futex_lock_pi64 (&mutex->__data.__lock, 0 /* ununsed  */,
+				       NULL, private);
 	    if (e == ESRCH || e == EDEADLK)
 	      {
 		assert (e != EDEADLK
@@ -429,8 +451,8 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 
 		/* Delay the thread indefinitely.  */
 		while (1)
-		  lll_timedwait (&(int){0}, 0, 0 /* ignored */, NULL,
-				 private);
+		  __futex_abstimed_wait64 (&(unsigned int){0}, 0,
+					   0 /* ignored */, NULL, private);
 	      }
 
 	    oldval = mutex->__data.__lock;
@@ -572,8 +594,9 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 		  break;
 
 		if (oldval != ceilval)
-		  lll_futex_wait (&mutex->__data.__lock, ceilval | 2,
-				  PTHREAD_MUTEX_PSHARED (mutex));
+		  futex_wait ((unsigned int * ) &mutex->__data.__lock,
+			      ceilval | 2,
+			      PTHREAD_MUTEX_PSHARED (mutex));
 	      }
 	    while (atomic_compare_and_exchange_val_acq (&mutex->__data.__lock,
 							ceilval | 2, ceilval)
@@ -601,10 +624,20 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 
   return 0;
 }
-#ifndef __pthread_mutex_lock
-weak_alias (__pthread_mutex_lock, pthread_mutex_lock)
-hidden_def (__pthread_mutex_lock)
-#endif
+
+#if PTHREAD_MUTEX_VERSIONS
+libc_hidden_ver (___pthread_mutex_lock, __pthread_mutex_lock)
+# ifndef SHARED
+strong_alias (___pthread_mutex_lock, __pthread_mutex_lock)
+# endif
+versioned_symbol (libpthread, ___pthread_mutex_lock, pthread_mutex_lock,
+		  GLIBC_2_0);
+
+# if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_34)
+compat_symbol (libpthread, ___pthread_mutex_lock, __pthread_mutex_lock,
+	       GLIBC_2_0);
+# endif
+#endif /* PTHREAD_MUTEX_VERSIONS */
 
 
 #ifdef NO_INCR

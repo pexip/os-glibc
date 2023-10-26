@@ -1,5 +1,5 @@
 /* Template for error handling for runtime dynamic linker.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -132,7 +132,7 @@ _dl_signal_cexception (int errcode, struct dl_exception *exception,
 		       const char *occasion)
 {
   if (__builtin_expect (GLRO(dl_debug_mask)
-			& ~(DL_DEBUG_STATISTICS|DL_DEBUG_PRELINK), 0))
+			& ~(DL_DEBUG_STATISTICS), 0))
     _dl_debug_printf ("%s: error: %s: %s (%s)\n",
 		      exception->objname, occasion,
 		      exception->errstring, receiver ? "continued" : "fatal");
@@ -153,7 +153,7 @@ _dl_signal_cerror (int errcode, const char *objname, const char *occation,
 		   const char *errstring)
 {
   if (__builtin_expect (GLRO(dl_debug_mask)
-			& ~(DL_DEBUG_STATISTICS|DL_DEBUG_PRELINK), 0))
+			& ~(DL_DEBUG_STATISTICS), 0))
     _dl_debug_printf ("%s: error: %s: %s (%s)\n", objname, occation,
 		      errstring, receiver ? "continued" : "fatal");
 
@@ -248,4 +248,16 @@ _dl_receive_error (receiver_fct fct, void (*operate) (void *), void *args)
   catch_hook = old_catch;
   receiver = old_receiver;
 }
+
+/* Forwarder used for initializing GLRO (_dl_catch_error).  */
+int
+_rtld_catch_error (const char **objname, const char **errstring,
+		   bool *mallocedp, void (*operate) (void *),
+		   void *args)
+{
+  /* The reference to _dl_catch_error will eventually be relocated to
+     point to the implementation in libc.so.  */
+  return _dl_catch_error (objname, errstring, mallocedp, operate, args);
+}
+
 #endif /* DL_ERROR_BOOTSTRAP */

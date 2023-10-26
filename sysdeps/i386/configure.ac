@@ -53,25 +53,6 @@ rm -f conftest*])
   fi
 fi
 
-dnl Check whether asm supports Intel MPX
-AC_CACHE_CHECK(for Intel MPX support, libc_cv_asm_mpx, [dnl
-cat > conftest.s <<\EOF
-        bndmov %bnd0,(%esp)
-EOF
-if AC_TRY_COMMAND(${CC-cc} -c $ASFLAGS conftest.s 1>&AS_MESSAGE_LOG_FD); then
-  libc_cv_asm_mpx=yes
-else
-  libc_cv_asm_mpx=no
-fi
-rm -f conftest*])
-if test $libc_cv_asm_mpx = yes; then
-  AC_DEFINE(HAVE_MPX_SUPPORT)
-fi
-
-dnl It is always possible to access static and hidden symbols in an
-dnl position independent way.
-AC_DEFINE(PI_STATIC_AND_HIDDEN)
-
 dnl When multi-arch is enabled, all external functions must be called
 dnl via PIC PLT in PIE, which requires setting up EBX register.
 if test x"$multi_arch" != xno; then

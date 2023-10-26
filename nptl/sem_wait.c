@@ -1,7 +1,6 @@
 /* sem_wait -- wait on a semaphore.  Generic futex-using version.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Mackerras <paulus@au.ibm.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <lowlevellock.h>	/* lll_futex* used by the old code.  */
+#include "semaphoreP.h"
 #include "sem_waitcommon.c"
 
 int
@@ -39,12 +39,16 @@ __new_sem_wait (sem_t *sem)
   if (__new_sem_wait_fast ((struct new_sem *) sem, 0) == 0)
     return 0;
   else
-    return __new_sem_wait_slow ((struct new_sem *) sem,
-				CLOCK_REALTIME, NULL);
+    return __new_sem_wait_slow64 ((struct new_sem *) sem,
+				  CLOCK_REALTIME, NULL);
 }
-versioned_symbol (libpthread, __new_sem_wait, sem_wait, GLIBC_2_1);
+versioned_symbol (libc, __new_sem_wait, sem_wait, GLIBC_2_34);
 
-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_1)
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, __new_sem_wait, sem_wait, GLIBC_2_1);
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_1)
 int
 attribute_compat_text_section
 __old_sem_wait (sem_t *sem)
@@ -79,8 +83,13 @@ __new_sem_trywait (sem_t *sem)
   __set_errno (EAGAIN);
   return -1;
 }
-versioned_symbol (libpthread, __new_sem_trywait, sem_trywait, GLIBC_2_1);
-#if SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_1)
+versioned_symbol (libc, __new_sem_trywait, sem_trywait, GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_34)
+compat_symbol (libpthread, __new_sem_trywait, sem_trywait, GLIBC_2_1);
+#endif
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_0, GLIBC_2_1)
 int
 __old_sem_trywait (sem_t *sem)
 {

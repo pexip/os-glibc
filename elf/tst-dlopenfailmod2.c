@@ -1,5 +1,5 @@
 /* Module which depends on on a NODELETE module, and can be loaded.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,11 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <pthread.h>
 #include <stdio.h>
 
-/* Force linking against libpthread.  */
-void *pthread_create_reference = pthread_create;
+/* Force linking against tst-dlopenfailnodelmod.so.  */
+void no_delete_mod_function (void);
+void *function_reference = no_delete_mod_function;
 
 static void __attribute__ ((constructor))
 init (void)

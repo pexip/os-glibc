@@ -1,5 +1,5 @@
 /* Data for processor capability information.  PowerPC version.
-   Copyright (C) 2005-2020 Free Software Foundation, Inc.
+   Copyright (C) 2005-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ PROCINFO_CLASS const char _dl_powerpc_cap_flags[64][15]
     "", "", "", "",
     "", "", "", "",
     "", "", "", "",
-    "", "", "", "htm-no-suspend",
+    "", "mma", "arch_3_1", "htm-no-suspend",
     "scv", "darn", "ieee128", "arch_3_00",
     "htm-nosc", "vcrypto", "tar", "isel",
     "ebb", "dscr", "htm", "arch_2_07",

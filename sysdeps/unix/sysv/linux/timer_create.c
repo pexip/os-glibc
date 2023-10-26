@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License as
@@ -24,20 +23,14 @@
 #include <time.h>
 #include <sysdep.h>
 #include <internaltypes.h>
-#include <nptl/pthreadP.h>
+#include <pthreadP.h>
 #include "kernel-posix-timers.h"
 #include "kernel-posix-cpu-timers.h"
-
-
-#ifdef timer_create_alias
-# define timer_create timer_create_alias
-#endif
-
+#include <shlib-compat.h>
 
 int
-timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
+___timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 {
-#undef timer_create
   {
     clockid_t syscall_clockid = (clock_id == CLOCK_PROCESS_CPUTIME_ID
 				 ? MAKE_PROCESS_CPUCLOCK (0, CPUCLOCK_SCHED)
@@ -52,16 +45,6 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
       {
 	struct sigevent local_evp;
 
-	/* We avoid allocating too much memory by basically
-	   using struct timer as a derived class with the
-	   first two elements being in the superclass.  We only
-	   need these two elements here.  */
-	struct timer *newp = (struct timer *) malloc (offsetof (struct timer,
-								thrfunc));
-	if (newp == NULL)
-	  /* No more memory.  */
-	  return -1;
-
 	if (evp == NULL)
 	  {
 	    /* The kernel has to pass up the timer ID which is a
@@ -69,57 +52,41 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	       the kernel to determine it.  */
 	    local_evp.sigev_notify = SIGEV_SIGNAL;
 	    local_evp.sigev_signo = SIGALRM;
-	    local_evp.sigev_value.sival_ptr = newp;
+	    local_evp.sigev_value.sival_ptr = NULL;
 
 	    evp = &local_evp;
 	  }
 
 	kernel_timer_t ktimerid;
-	int retval = INLINE_SYSCALL (timer_create, 3, syscall_clockid, evp,
-				     &ktimerid);
+	if (INLINE_SYSCALL_CALL (timer_create, syscall_clockid, evp,
+				 &ktimerid) == -1)
+	  return -1;
 
-	if (retval != -1)
-	  {
-	    newp->sigev_notify = (evp != NULL
-				  ? evp->sigev_notify : SIGEV_SIGNAL);
-	    newp->ktimerid = ktimerid;
-
-	    *timerid = (timer_t) newp;
-	  }
-	else
-	  {
-	    /* Cannot allocate the timer, fail.  */
-	    free (newp);
-	    retval = -1;
-	  }
-
-	return retval;
+	*timerid = kernel_timer_to_timerid (ktimerid);
       }
     else
       {
 	/* Create the helper thread.  */
-	pthread_once (&__helper_once, __start_helper_thread);
-	if (__helper_tid == 0)
+	__pthread_once (&__timer_helper_once, __timer_start_helper_thread);
+	if (__timer_helper_tid == 0)
 	  {
 	    /* No resources to start the helper thread.  */
 	    __set_errno (EAGAIN);
 	    return -1;
 	  }
 
-	struct timer *newp;
-	newp = (struct timer *) malloc (sizeof (struct timer));
+	struct timer *newp = malloc (sizeof (struct timer));
 	if (newp == NULL)
 	  return -1;
 
 	/* Copy the thread parameters the user provided.  */
 	newp->sival = evp->sigev_value;
 	newp->thrfunc = evp->sigev_notify_function;
-	newp->sigev_notify = SIGEV_THREAD;
 
 	/* We cannot simply copy the thread attributes since the
 	   implementation might keep internal information for
 	   each instance.  */
-	(void) pthread_attr_init (&newp->attr);
+	__pthread_attr_init (&newp->attr);
 	if (evp->sigev_notify_attributes != NULL)
 	  {
 	    struct pthread_attr *nattr;
@@ -137,40 +104,83 @@ timer_create (clockid_t clock_id, struct sigevent *evp, timer_t *timerid)
 	  }
 
 	/* In any case set the detach flag.  */
-	(void) pthread_attr_setdetachstate (&newp->attr,
-					    PTHREAD_CREATE_DETACHED);
+	__pthread_attr_setdetachstate (&newp->attr, PTHREAD_CREATE_DETACHED);
 
 	/* Create the event structure for the kernel timer.  */
 	struct sigevent sev =
 	  { .sigev_value.sival_ptr = newp,
 	    .sigev_signo = SIGTIMER,
 	    .sigev_notify = SIGEV_SIGNAL | SIGEV_THREAD_ID,
-	    ._sigev_un = { ._pad = { [0] = __helper_tid } } };
+	    ._sigev_un = { ._pad = { [0] = __timer_helper_tid } } };
 
 	/* Create the timer.  */
-	INTERNAL_SYSCALL_DECL (err);
 	int res;
-	res = INTERNAL_SYSCALL (timer_create, err, 3,
-				syscall_clockid, &sev, &newp->ktimerid);
-	if (! INTERNAL_SYSCALL_ERROR_P (res, err))
+	res = INTERNAL_SYSCALL_CALL (timer_create, syscall_clockid, &sev,
+				     &newp->ktimerid);
+	if (INTERNAL_SYSCALL_ERROR_P (res))
 	  {
-	    /* Add to the queue of active timers with thread
-	       delivery.  */
-	    pthread_mutex_lock (&__active_timer_sigev_thread_lock);
-	    newp->next = __active_timer_sigev_thread;
-	    __active_timer_sigev_thread = newp;
-	    pthread_mutex_unlock (&__active_timer_sigev_thread_lock);
-
-	    *timerid = (timer_t) newp;
-	    return 0;
+	    free (newp);
+	    __set_errno (INTERNAL_SYSCALL_ERRNO (res));
+	    return -1;
 	  }
 
-	/* Free the resources.  */
-	free (newp);
+	/* Add to the queue of active timers with thread delivery.  */
+	__pthread_mutex_lock (&__timer_active_sigev_thread_lock);
+	newp->next = __timer_active_sigev_thread;
+	__timer_active_sigev_thread = newp;
+	__pthread_mutex_unlock (&__timer_active_sigev_thread_lock);
 
-	__set_errno (INTERNAL_SYSCALL_ERRNO (res, err));
-
-	return -1;
+	*timerid = timer_to_timerid (newp);
       }
   }
+
+  return 0;
 }
+versioned_symbol (libc, ___timer_create, timer_create, GLIBC_2_34);
+libc_hidden_ver (___timer_create, __timer_create)
+
+#if TIMER_T_WAS_INT_COMPAT
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_3_3, GLIBC_2_34)
+compat_symbol (librt, ___timer_create, timer_create, GLIBC_2_3_3);
+# endif
+
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_3_3)
+timer_t __timer_compat_list[OLD_TIMER_MAX];
+
+int
+__timer_create_old (clockid_t clock_id, struct sigevent *evp, int *timerid)
+{
+  timer_t newp;
+
+  int res = __timer_create (clock_id, evp, &newp);
+  if (res == 0)
+    {
+      int i;
+      for (i = 0; i < OLD_TIMER_MAX; ++i)
+	if (__timer_compat_list[i] == NULL
+	    && ! atomic_compare_and_exchange_bool_acq (&__timer_compat_list[i],
+						       newp, NULL))
+	  {
+	    *timerid = i;
+	    break;
+	  }
+
+      if (__glibc_unlikely (i == OLD_TIMER_MAX))
+	{
+	  /* No free slot.  */
+	  __timer_delete (newp);
+	  __set_errno (EINVAL);
+	  res = -1;
+	}
+    }
+
+  return res;
+}
+compat_symbol (librt, __timer_create_old, timer_create, GLIBC_2_2);
+# endif /* OTHER_SHLIB_COMPAT */
+
+#else /* !TIMER_T_WAS_INT_COMPAT */
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (librt, ___timer_create, timer_create, GLIBC_2_2);
+# endif
+#endif /* !TIMER_T_WAS_INT_COMPAT */

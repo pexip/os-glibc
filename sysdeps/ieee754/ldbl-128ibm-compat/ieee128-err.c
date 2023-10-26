@@ -1,5 +1,5 @@
 /* Wrappers for err.h functions.  IEEE128 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -91,3 +91,10 @@ IEEE128_DECL (errx) (int status, const char *format, ...)
   VA (verrx (status, format, ap))
 }
 IEEE128_ALIAS (errx)
+
+hidden_def (___ieee128_warn)
+hidden_def (___ieee128_warnx)
+hidden_def (___ieee128_vwarn)
+hidden_def (___ieee128_vwarnx)
+hidden_def (___ieee128_verr)
+hidden_def (___ieee128_verrx)

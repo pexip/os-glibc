@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,27 +16,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
-#include <nptl/pthreadP.h>              /* SIGCANCEL, SIGSETXID */
+#include <pthreadP.h>              /* SIGCANCEL, SIGSETXID */
 
 /* Get and/or change the set of blocked signals.  */
 int
 __sigprocmask (int how, const sigset_t *set, sigset_t *oset)
 {
-  sigset_t local_newmask;
-
-  /* The only thing we have to make sure here is that SIGCANCEL and
-     SIGSETXID are not blocked.  */
-  if (set != NULL
-      && __glibc_unlikely (__sigismember (set, SIGCANCEL)
-	|| __glibc_unlikely (__sigismember (set, SIGSETXID))))
-    {
-      local_newmask = *set;
-      __sigdelset (&local_newmask, SIGCANCEL);
-      __sigdelset (&local_newmask, SIGSETXID);
-      set = &local_newmask;
-    }
-
-  return INLINE_SYSCALL_CALL (rt_sigprocmask, how, set, oset, _NSIG / 8);
+  int result = __pthread_sigmask (how, set, oset);
+  if (result == 0)
+    return 0;
+  __set_errno (result);
+  return -1;
 }
 libc_hidden_def (__sigprocmask)
 weak_alias (__sigprocmask, sigprocmask)

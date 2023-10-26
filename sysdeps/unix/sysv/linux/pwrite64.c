@@ -1,6 +1,5 @@
-/* Copyright (C) 1997-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,10 +17,7 @@
 
 #include <unistd.h>
 #include <sysdep-cancel.h>
-
-#ifndef __NR_pwrite64
-# define __NR_pwrite64 __NR_pwrite
-#endif
+#include <shlib-compat.h>
 
 ssize_t
 __libc_pwrite64 (int fd, const void *buf, size_t count, off64_t offset)
@@ -37,4 +33,13 @@ weak_alias (__libc_pwrite64, pwrite64)
 strong_alias (__libc_pwrite64, __libc_pwrite)
 weak_alias (__libc_pwrite64, __pwrite)
 weak_alias (__libc_pwrite64, pwrite)
+
+# if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_1, GLIBC_2_2)
+compat_symbol (libc, __libc_pwrite64, pwrite, GLIBC_2_2);
+# endif
+#endif
+
+#if SHLIB_COMPAT (libc, GLIBC_2_1, GLIBC_2_2)
+compat_symbol (libc, __libc_pwrite64, pwrite64, GLIBC_2_2);
+compat_symbol (libc, __libc_pwrite64, __pwrite64, GLIBC_2_2);
 #endif

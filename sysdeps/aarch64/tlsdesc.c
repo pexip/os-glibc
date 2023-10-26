@@ -1,6 +1,6 @@
 /* Manage TLS descriptors.  AArch64 version.
 
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -22,7 +22,6 @@
 #include <tls.h>
 #include <dl-tlsdesc.h>
 #include <dl-unmap-segments.h>
-#define _dl_tlsdesc_resolve_hold 0
 #include <tlsdeschtab.h>
 
 /* Unmap the dynamic object, but also release its TLS descriptor table

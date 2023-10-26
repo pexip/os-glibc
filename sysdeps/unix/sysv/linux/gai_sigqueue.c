@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,8 +26,6 @@
 
 #include "gai_misc.h"
 
-#ifdef __NR_rt_sigqueueinfo
-
 /* Return any pending signal or wait for one for the given time.  */
 int
 __gai_sigqueue (int sig, const union sigval val, pid_t caller_pid)
@@ -46,6 +44,4 @@ __gai_sigqueue (int sig, const union sigval val, pid_t caller_pid)
 
   return INLINE_SYSCALL (rt_sigqueueinfo, 3, info.si_pid, sig, &info);
 }
-#else
-# include <resolv/gai_sigqueue.c>
-#endif
+libc_hidden_def (__gai_sigqueue)

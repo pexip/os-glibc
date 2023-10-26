@@ -129,13 +129,26 @@ libc {
     copy_file_range;
   }
   GLIBC_2.28 {
+    fcntl;
     fcntl64;
     statx;
+  }
+  GLIBC_2.33 {
+    stat; stat64; fstat; fstat64; lstat; lstat64; fstatat; fstatat64;
+    mknod; mknodat;
+  }
+  GLIBC_2.34 {
+    closefrom;
   }
   GLIBC_PRIVATE {
     __libc_fcntl64;
     __fcntl_nocancel;
     __open64_nocancel;
     __write_nocancel;
+    __file_is_unchanged;
+    __file_change_detection_for_stat;
+    __file_change_detection_for_path;
+    __file_change_detection_for_fp;
+    __fstat64;
   }
 }

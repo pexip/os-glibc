@@ -1,5 +1,5 @@
 /* Get NaN payload.  flt-32 version.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,6 +27,9 @@ __getpayloadf (const float *x)
 {
   uint32_t ix;
   GET_FLOAT_WORD (ix, *x);
+  if ((ix & 0x7f800000) != 0x7f800000
+      || (ix & 0x7fffff) == 0)
+    return -1;
   ix &= 0x3fffff;
   if (FIX_INT_FP_CONVERT_ZERO && ix == 0)
     return 0.0f;

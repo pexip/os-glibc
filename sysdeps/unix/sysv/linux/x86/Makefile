@@ -12,8 +12,6 @@ sysdep_headers += sys/elf.h sys/perm.h sys/reg.h sys/vm86.h sys/debugreg.h sys/i
 endif
 
 ifeq ($(subdir),nptl)
-libpthread-sysdep_routines += elision-lock elision-unlock elision-timed \
-			      elision-trylock
 CFLAGS-elision-lock.c += -mrtm
 CFLAGS-elision-unlock.c += -mrtm
 CFLAGS-elision-timed.c += -mrtm
@@ -24,7 +22,7 @@ ifeq ($(subdir),setjmp)
 tests += tst-saved_mask-1
 endif
 
-ifeq ($(enable-cet),yes)
+ifneq ($(enable-cet),no)
 ifeq ($(subdir),elf)
 tests += tst-cet-property-1 tst-cet-property-2
 
@@ -38,6 +36,11 @@ $(objpfx)tst-cet-property-2.out: $(objpfx)tst-cet-property-2 \
 	  $(objpfx)tst-cet-property-2 \
 	  < $(objpfx)tst-cet-property-1.out > $@; \
 	  $(evaluate-test)
+endif
+
+ifeq ($(subdir),posix)
+tests += tst-cet-vfork-1
+CFLAGS-tst-cet-vfork-1.c += -mshstk
 endif
 
 ifeq ($(subdir),stdlib)

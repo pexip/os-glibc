@@ -26,8 +26,8 @@
  /* Create a symbolic link from soname to libname in directory path.  */
  static void
  create_links (const char *real_path, const char *path, const char *libname,
-@@ -476,6 +495,7 @@
-   struct stat64 stat_lib, stat_so, lstat_so;
+@@ -460,6 +477,7 @@ create_links (const char *real_path, const char *path, const char *libname,
+   struct stat stat_lib, stat_so, lstat_so;
    int do_link = 1;
    int do_remove = 1;
 +  int i;

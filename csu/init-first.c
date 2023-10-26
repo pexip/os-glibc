@@ -1,5 +1,5 @@
 /* Initialization code run first thing by the ELF startup code.  Common version
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,7 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -29,10 +28,6 @@
 
 #include <ldsodefs.h>
 
-/* Set nonzero if we have to be prepared for more than one libc being
-   used in the process.  Safe assumption if initializer never runs.  */
-int __libc_multiple_libcs attribute_hidden = 1;
-
 /* Remember the command line argument and enviroment contents for
    later calls of initializers for dynamic libraries.  */
 int __libc_argc attribute_hidden;
@@ -43,25 +38,24 @@ void
 __libc_init_first (int argc, char **argv, char **envp)
 {
 #ifdef SHARED
-  /* For DSOs we do not need __libc_init_first but instead _init.  */
+  /* For DSOs we do not need __libc_init_first but an ELF constructor.  */
 }
 
-void
-attribute_hidden
-_init (int argc, char **argv, char **envp)
+static void __attribute__ ((constructor))
+_init_first (int argc, char **argv, char **envp)
 {
 #endif
 
-  __libc_multiple_libcs = &_dl_starting_up && !_dl_starting_up;
-
   /* Make sure we don't initialize twice.  */
-  if (!__libc_multiple_libcs)
+#ifdef SHARED
+  if (__libc_initial)
     {
       /* Set the FPU control word to the proper default value if the
 	 kernel would use a different value.  */
       if (__fpu_control != GLRO(dl_fpu_control))
 	__setfpucw (__fpu_control);
     }
+#endif
 
   /* Save the command-line arguments.  */
   __libc_argc = argc;
@@ -75,19 +69,13 @@ _init (int argc, char **argv, char **envp)
 #endif
 
   __init_misc (argc, argv, envp);
-
-  /* Initialize ctype data.  */
-  __ctype_init ();
-
-#if defined SHARED && !defined NO_CTORS_DTORS_SECTIONS
-  __libc_global_ctors ();
-#endif
 }
 
 /* This function is defined here so that if this file ever gets into
    ld.so we will get a link error.  Having this file silently included
-   in ld.so causes disaster, because the _init definition above will
-   cause ld.so to gain an init function, which is not a cool thing. */
+   in ld.so causes disaster, because the _init_first definition above
+   will cause ld.so to gain an ELF constructor, which is not a cool
+   thing. */
 
 extern void _dl_start (void) __attribute__ ((noreturn));
 

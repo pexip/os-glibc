@@ -90,6 +90,12 @@ if 'CFLAGS' is specified it must enable optimization.  For example:
      library will still be usable, but functionality may be lost--for
      example, you can't build a shared libc with old binutils.
 
+'--with-default-link'
+     With '--with-default-link', the build system does not use a custom
+     linker script for linking shared objects.  The default is
+     '--without-default-link', because the custom linker script is
+     needed for full RELRO protection.
+
 '--with-nonshared-cflags=CFLAGS'
      Use additional compiler flags CFLAGS to build the parts of the
      library which are always statically linked into applications and
@@ -106,37 +112,66 @@ if 'CFLAGS' is specified it must enable optimization.  For example:
      particular case and potentially change debugging information and
      metadata only).
 
+'--with-rtld-early-cflags=CFLAGS'
+     Use additional compiler flags CFLAGS to build the early startup
+     code of the dynamic linker.  These flags can be used to enable
+     early dynamic linker diagnostics to run on CPUs which are not
+     compatible with the rest of the GNU C Library, for example, due to
+     compiler flags which target a later instruction set architecture
+     (ISA).
+
+'--with-timeoutfactor=NUM'
+     Specify an integer NUM to scale the timeout of test programs.  This
+     factor can be changed at run time using 'TIMEOUTFACTOR' environment
+     variable.
+
 '--disable-shared'
      Don't build shared libraries even if it is possible.  Not all
      systems support shared libraries; you need ELF support and
      (currently) the GNU linker.
 
-'--enable-static-pie'
-     Enable static position independent executable (static PIE) support.
-     Static PIE is similar to static executable, but can be loaded at
-     any address without help from a dynamic linker.  All static
-     programs as well as static tests are built as static PIE, except
-     for those marked with no-pie.  The resulting glibc can be used with
-     the GCC option, -static-pie, which is available with GCC 8 or
-     above, to create static PIE. This option also implies that glibc
-     programs and tests are created as dynamic position independent
-     executables (PIE) by default.
+'--disable-default-pie'
+     Don't build glibc programs and the testsuite as position
+     independent executables (PIE). By default, glibc programs and tests
+     are created as position independent executables on targets that
+     support it.  If the toolchain and architecture support it, static
+     executables are built as static PIE and the resulting glibc can be
+     used with the GCC option, -static-pie, which is available with GCC
+     8 or above, to create static PIE.
 
 '--enable-cet'
+'--enable-cet=permissive'
      Enable Intel Control-flow Enforcement Technology (CET) support.
-     When the GNU C Library is built with '--enable-cet', the resulting
-     library is protected with indirect branch tracking (IBT) and shadow
-     stack (SHSTK).  When CET is enabled, the GNU C Library is
-     compatible with all existing executables and shared libraries.
-     This feature is currently supported on i386, x86_64 and x32 with
-     GCC 8 and binutils 2.29 or later.  Note that when CET is enabled,
-     the GNU C Library requires CPUs capable of multi-byte NOPs, like
-     x86-64 processors as well as Intel Pentium Pro or newer.
+     When the GNU C Library is built with '--enable-cet' or
+     '--enable-cet=permissive', the resulting library is protected with
+     indirect branch tracking (IBT) and shadow stack (SHSTK).  When CET
+     is enabled, the GNU C Library is compatible with all existing
+     executables and shared libraries.  This feature is currently
+     supported on i386, x86_64 and x32 with GCC 8 and binutils 2.29 or
+     later.  Note that when CET is enabled, the GNU C Library requires
+     CPUs capable of multi-byte NOPs, like x86-64 processors as well as
+     Intel Pentium Pro or newer.  With '--enable-cet', it is an error to
+     dlopen a non CET enabled shared library in CET enabled application.
+     With '--enable-cet=permissive', CET is disabled when dlopening a
+     non CET enabled shared library in CET enabled application.
 
      NOTE: '--enable-cet' has been tested for i686, x86_64 and x32 on
-     non-CET processors.  '--enable-cet' has been tested for x86_64 and
-     x32 on CET SDVs, but Intel CET support hasn't been validated for
-     i686.
+     non-CET processors.  '--enable-cet' has been tested for i686,
+     x86_64 and x32 on CET processors.
+
+'--enable-memory-tagging'
+     Enable memory tagging support if the architecture supports it.
+     When the GNU C Library is built with this option then the resulting
+     library will be able to control the use of tagged memory when
+     hardware support is present by use of the tunable
+     'glibc.mem.tagging'.  This includes the generation of tagged memory
+     when using the 'malloc' APIs.
+
+     At present only AArch64 platforms with MTE provide this
+     functionality, although the library will still operate (without
+     memory tagging) on older versions of the architecture.
+
+     The default is to disable support for memory tagging.
 
 '--disable-profile'
      Don't build libraries with profiling information.  You may want to
@@ -184,14 +219,9 @@ if 'CFLAGS' is specified it must enable optimization.  For example:
 '--enable-pt_chown'
      The file 'pt_chown' is a helper binary for 'grantpt' (*note
      Pseudo-Terminals: Allocation.) that is installed setuid root to fix
-     up pseudo-terminal ownership.  It is not built by default because
-     systems using the Linux kernel are commonly built with the 'devpts'
-     filesystem enabled and mounted at '/dev/pts', which manages
-     pseudo-terminal ownership automatically.  By using
-     '--enable-pt_chown', you may build 'pt_chown' and install it setuid
-     and owned by 'root'.  The use of 'pt_chown' introduces additional
-     security risks to the system and you should enable it only if you
-     understand and accept those risks.
+     up pseudo-terminal ownership on GNU/Hurd.  It is not required on
+     GNU/Linux, and the GNU C Library will not use the installed
+     'pt_chown' program when configured with '--enable-pt_chown'.
 
 '--disable-werror'
      By default, the GNU C Library is built with '-Werror'.  If you wish
@@ -223,15 +253,6 @@ if 'CFLAGS' is specified it must enable optimization.  For example:
           colon-separated list in a single environment variable
           'GLIBC_TUNABLES'.
 
-'--enable-obsolete-nsl'
-     By default, libnsl is only built as shared library for backward
-     compatibility and the NSS modules libnss_compat, libnss_nis and
-     libnss_nisplus are not built at all.  Use this option to enable
-     libnsl with all depending NSS modules and header files.  For
-     architectures and ABIs that have been added after version 2.28 of
-     the GNU C Library this option is not available, and the libnsl
-     compatibility library is not built.
-
 '--disable-crypt'
      Do not install the passphrase-hashing library 'libcrypt' or the
      header file 'crypt.h'.  'unistd.h' will still declare the function
@@ -248,6 +269,10 @@ if 'CFLAGS' is specified it must enable optimization.  For example:
      cache can be disabled on a per-application basis using tunables
      (set glibc.malloc.tcache_count to zero), this option can be used to
      remove it from the build completely.
+
+'--disable-scv'
+     Disable using 'scv' instruction for syscalls.  All syscalls will
+     use 'sc' instead, even if the kernel supports 'scv'.  PowerPC only.
 
 '--build=BUILD-SYSTEM'
 '--host=HOST-SYSTEM'
@@ -343,6 +368,21 @@ is the absolute directory name for the main source directory and
 HOSTNAME is the host name of a system that can run the newly built
 binaries of the GNU C Library.  The source and build directories must be
 visible at the same locations on both the build system and HOSTNAME.
+The 'cross-test-ssh.sh' script requires 'flock' from 'util-linux' to
+work when GLIBC_TEST_ALLOW_TIME_SETTING environment variable is set.
+
+   It is also possible to execute tests, which require setting the date
+on the target machine.  Following use cases are supported:
+   * 'GLIBC_TEST_ALLOW_TIME_SETTING' is set in the environment in which
+     eligible tests are executed and have the privilege to run
+     'clock_settime'.  In this case, nothing prevents those tests from
+     running in parallel, so the caller shall assure that those tests
+     are serialized or provide a proper wrapper script for them.
+
+   * The 'cross-test-ssh.sh' script is used and one passes the
+     '--allow-time-setting' flag.  In this case, both sets
+     'GLIBC_TEST_ALLOW_TIME_SETTING' and serialization of test execution
+     are assured automatically.
 
    In general, when testing the GNU C Library, 'test-wrapper' may be set
 to the name and arguments of any program to run newly built binaries.
@@ -360,6 +400,10 @@ directly assigned, then 'test-wrapper-env-only' must be set; its use has
 the same syntax as 'test-wrapper-env', the only difference in its
 semantics being starting with an empty set of environment variables
 rather than the ambient set.
+
+   For AArch64 with SVE, when testing the GNU C Library, 'test-wrapper'
+may be set to "SRCDIR/sysdeps/unix/sysv/linux/aarch64/vltest.py
+VECTOR-LENGTH" to change Vector Length.
 
 Installing the C Library
 ========================
@@ -456,16 +500,29 @@ build the GNU C Library:
 
    * GNU 'make' 4.0 or newer
 
-     As of relase time, GNU 'make' 4.2.1 is the newest verified to work
-     to build the GNU C Library.
+     As of relase time, GNU 'make' 4.3 is the newest verified to work to
+     build the GNU C Library.
 
    * GCC 6.2 or newer
 
      GCC 6.2 or higher is required.  In general it is recommended to use
      the newest version of the compiler that is known to work for
      building the GNU C Library, as newer compilers usually produce
-     better code.  As of release time, GCC 9.2.1 is the newest compiler
+     better code.  As of release time, GCC 12.1 is the newest compiler
      verified to work to build the GNU C Library.
+
+     For PowerPC 64-bits little-endian (powerpc64le), a GCC version with
+     support for '-mno-gnu-attribute', '-mabi=ieeelongdouble', and
+     '-mabi=ibmlondouble' is required.  Likewise, the compiler must also
+     support passing '-mlong-double-128' with the preceding options.  As
+     of release, this implies GCC 7.4 and newer (excepting GCC 7.5.0,
+     see GCC PR94200).  These additional features are required for
+     building the GNU C Library with support for IEEE long double.
+
+     For ARC architecture builds, GCC 8.3 or higher is needed.
+
+     For s390x architecture builds, GCC 7.1 or higher is needed (See gcc
+     Bug 98269).
 
      For multi-arch support it is recommended to use a GCC which has
      been built with support for GNU indirect functions.  This ensures
@@ -486,8 +543,15 @@ build the GNU C Library:
 
      You must use GNU 'binutils' (as and ld) to build the GNU C Library.
      No other assembler or linker has the necessary functionality at the
-     moment.  As of release time, GNU 'binutils' 2.32 is the newest
+     moment.  As of release time, GNU 'binutils' 2.38 is the newest
      verified to work to build the GNU C Library.
+
+     For PowerPC 64-bits little-endian (powerpc64le), 'objcopy' is
+     required to support '--update-section'.  This option requires
+     binutils 2.26 or newer.
+
+     ARC architecture needs 'binutils' 2.32 or higher for TLS related
+     fixes.
 
    * GNU 'texinfo' 4.7 or later
 
@@ -495,7 +559,7 @@ build the GNU C Library:
      need this version of the 'texinfo' package.  Earlier versions do
      not understand all the tags used in the document, and the
      installation mechanism for the info files is not present or works
-     differently.  As of release time, 'texinfo' 6.6 is the newest
+     differently.  As of release time, 'texinfo' 6.8 is the newest
      verified to work to build the GNU C Library.
 
    * GNU 'awk' 3.1.2, or higher
@@ -503,32 +567,32 @@ build the GNU C Library:
      'awk' is used in several places to generate files.  Some 'gawk'
      extensions are used, including the 'asorti' function, which was
      introduced in version 3.1.2 of 'gawk'.  As of release time, 'gawk'
-     version 5.0.1 is the newest verified to work to build the GNU C
+     version 5.1.1 is the newest verified to work to build the GNU C
      Library.
 
    * GNU 'bison' 2.7 or later
 
      'bison' is used to generate the 'yacc' parser code in the 'intl'
-     subdirectory.  As of release time, 'bison' version 3.4.1 is the
+     subdirectory.  As of release time, 'bison' version 3.8.2 is the
      newest verified to work to build the GNU C Library.
 
    * Perl 5
 
      Perl is not required, but if present it is used in some tests and
      the 'mtrace' program, to build the GNU C Library manual.  As of
-     release time 'perl' version 5.30.1 is the newest verified to work
+     release time 'perl' version 5.34.1 is the newest verified to work
      to build the GNU C Library.
 
    * GNU 'sed' 3.02 or newer
 
      'Sed' is used in several places to generate files.  Most scripts
      work with any version of 'sed'.  As of release time, 'sed' version
-     4.5 is the newest verified to work to build the GNU C Library.
+     4.8 is the newest verified to work to build the GNU C Library.
 
    * Python 3.4 or later
 
      Python is required to build the GNU C Library.  As of release time,
-     Python 3.7.4 is the newest verified to work for building and
+     Python 3.10.5 is the newest verified to work for building and
      testing the GNU C Library.
 
    * PExpect 4.0
@@ -536,7 +600,7 @@ build the GNU C Library:
      The pretty printer tests drive GDB through test programs and
      compare its output to the printers'.  PExpect is used to capture
      the output of GDB, and should be compatible with the Python version
-     in your system.  As of release time PExpect 4.3 is the newest
+     in your system.  As of release time PExpect 4.8.0 is the newest
      verified to work to test the pretty printers.
 
    * GDB 7.8 or later with support for Python 2.7/3.4 or later
@@ -545,7 +609,7 @@ build the GNU C Library:
      use the pretty printers.  Notice that your system having Python
      available doesn't imply that GDB supports it, nor that your
      system's Python and GDB's have the same version.  As of release
-     time GNU 'debugger' 8.3 is the newest verified to work to test the
+     time GNU 'debugger' 12.1 is the newest verified to work to test the
      pretty printers.
 
      Unless Python, PExpect and GDB with Python support are present, the
@@ -561,7 +625,7 @@ and if you change any of the message translation files you will need
 
    * GNU 'gettext' 0.10.36 or later
 
-     As of release time, GNU 'gettext' version 0.19.8.1 is the newest
+     As of release time, GNU 'gettext' version 0.21 is the newest
      version verified to work to build the GNU C Library.
 
 You may also need these packages if you upgrade your source tree using
@@ -608,6 +672,9 @@ components of the GNU C Library installation to be in '/lib' and some in
 '/usr/lib'.  This is handled automatically if you configure the GNU C
 Library with '--prefix=/usr'.  If you set some other prefix or allow it
 to default to '/usr/local', then all the components are installed there.
+
+   As of release time, Linux version 5.18 is the newest stable version
+verified to work to build the GNU C Library.
 
 Reporting Bugs
 ==============

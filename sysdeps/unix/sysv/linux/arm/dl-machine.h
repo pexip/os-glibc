@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  ARM/Linux version
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 
 /* This definition is Linux-specific.  */
 #define CLEAR_CACHE(BEG,END)                                            \
-  INTERNAL_SYSCALL (cacheflush, , 3, (BEG), (END), 0)
+  INTERNAL_SYSCALL_CALL (cacheflush, (BEG), (END), 0)
 
 #endif
 

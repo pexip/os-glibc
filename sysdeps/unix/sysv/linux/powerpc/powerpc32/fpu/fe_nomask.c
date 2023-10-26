@@ -1,5 +1,5 @@
 /* Procedure definition for FE_NOMASK_ENV for Linux/ppc.
-   Copyright (C) 2000-2020 Free Software Foundation, Inc.
+   Copyright (C) 2000-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,8 +27,7 @@
 const fenv_t *
 __fe_nomask_env_priv (void)
 {
-  INTERNAL_SYSCALL_DECL (err);
-  INTERNAL_SYSCALL (prctl, err, 2, PR_SET_FPEXC, PR_FP_EXC_PRECISE);
+  INTERNAL_SYSCALL_CALL (prctl, PR_SET_FPEXC, PR_FP_EXC_PRECISE);
 
   return FE_ENABLED_ENV;
 }

@@ -1,7 +1,6 @@
 /* Attach to target process.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 1999.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,7 +38,7 @@ td_ta_new (struct ps_prochandle *ps, td_thragent_t **ta)
   LOG ("td_ta_new");
 
   /* Check whether the versions match.  */
-  if (td_lookup (ps, SYM_nptl_version, &versaddr) != PS_OK)
+  if (td_lookup (ps, SYM___nptl_version, &versaddr) != PS_OK)
     return TD_NOLIBTHREAD;
   if (ps_pdread (ps, versaddr, versbuf, sizeof (versbuf)) != PS_OK)
     return TD_ERR;

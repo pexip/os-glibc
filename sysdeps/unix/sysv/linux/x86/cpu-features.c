@@ -1,6 +1,6 @@
 /* Initialize CPU feature data for Linux/x86.
    This file is part of the GNU C Library.
-   Copyright (C) 2018-2020 Free Software Foundation, Inc.
+   Copyright (C) 2018-2022 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,9 +24,7 @@ static inline int __attribute__ ((always_inline))
 get_cet_status (void)
 {
   unsigned long long cet_status[3];
-  INTERNAL_SYSCALL_DECL (err);
-  if (INTERNAL_SYSCALL (arch_prctl, err, 2, ARCH_CET_STATUS,
-			cet_status) == 0)
+  if (INTERNAL_SYSCALL_CALL (arch_prctl, ARCH_CET_STATUS, cet_status) == 0)
     return cet_status[0];
   return 0;
 }
@@ -36,7 +34,7 @@ static inline void
 x86_setup_tls (void)
 {
   __libc_setup_tls ();
-  THREAD_SETMEM (THREAD_SELF, header.feature_1, GL(dl_x86_feature_1)[0]);
+  THREAD_SETMEM (THREAD_SELF, header.feature_1, GL(dl_x86_feature_1));
 }
 
 #  define ARCH_SETUP_TLS() x86_setup_tls ()

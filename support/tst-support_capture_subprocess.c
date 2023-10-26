@@ -1,5 +1,5 @@
 /* Test capturing output from a subprocess.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -133,7 +133,9 @@ static int
 parse_int (const char *str)
 {
   char *endptr;
-  long int ret = strtol (str, &endptr, 10);
+  long int ret;
+  errno = 0;
+  ret = strtol (str, &endptr, 10);
   TEST_COMPARE (errno, 0);
   TEST_VERIFY (ret >= 0 && ret <= INT_MAX);
   return ret;

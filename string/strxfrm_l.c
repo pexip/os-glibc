@@ -1,6 +1,5 @@
-/* Copyright (C) 1995-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Ulrich Drepper <drepper@gnu.org>, 1995.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,7 +49,7 @@
 /* Group locale data for shorter parameter lists.  */
 typedef struct
 {
-  uint_fast32_t nrules;
+  uint32_t nrules;
   unsigned char *rulesets;
   USTRING_TYPE *weights;
   int32_t *table;
@@ -136,7 +135,7 @@ do_xfrm (const USTRING_TYPE *usrc, STRING_TYPE *dest, size_t n,
 {
   int32_t weight_idx;
   unsigned char rule_idx;
-  uint_fast32_t pass;
+  uint32_t pass;
   size_t needed = 0;
   size_t last_needed;
 
@@ -405,10 +404,10 @@ static size_t
 do_xfrm_cached (STRING_TYPE *dest, size_t n, const locale_data_t *l_data,
 		size_t idxmax, int32_t *idxarr, const unsigned char *rulearr)
 {
-  uint_fast32_t nrules = l_data->nrules;
+  uint32_t nrules = l_data->nrules;
   unsigned char *rulesets = l_data->rulesets;
   USTRING_TYPE *weights = l_data->weights;
-  uint_fast32_t pass;
+  uint32_t pass;
   size_t needed = 0;
   size_t last_needed;
   size_t idxcnt;
@@ -708,7 +707,7 @@ STRXFRM (STRING_TYPE *dest, const STRING_TYPE *src, size_t n, locale_t l)
   assert (((uintptr_t) l_data.indirect) % __alignof__ (l_data.indirect[0]) == 0);
 
   /* We need the elements of the string as unsigned values since they
-     are used as indeces.  */
+     are used as indices.  */
   const USTRING_TYPE *usrc = (const USTRING_TYPE *) src;
 
   /* Allocate cache for small strings on the stack and fill it with weight and

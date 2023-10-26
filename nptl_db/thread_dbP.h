@@ -1,5 +1,5 @@
 /* Private header for thread debug library
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 #include <assert.h>
 #include "proc_service.h"
 #include "thread_db.h"
-#include "../nptl/pthreadP.h"  	/* This is for *_BITMASK only.  */
+#include <pthreadP.h>  	/* This is for *_BITMASK only.  */
 #include <list.h>
 #include <gnu/lib-names.h>
 #include <libc-diag.h>
@@ -107,6 +107,8 @@ struct td_thragent
 # undef DB_FUNCTION
 # undef DB_SYMBOL
 # undef DB_VARIABLE
+
+  psaddr_t ta_addr__rtld_global;
 
   /* The method of locating a thread's th_unique value.  */
   enum
@@ -268,5 +270,18 @@ extern td_err_e _td_check_sizeof (td_thragent_t *ta, uint32_t *sizep,
 
 extern td_err_e __td_ta_lookup_th_unique (const td_thragent_t *ta,
 					  lwpid_t lwpid, td_thrhandle_t *th);
+
+/* Try to initialize TA->ta_addr__rtld_global.  Return true on
+   success, false on failure (which may be cached).  */
+bool __td_ta_rtld_global (td_thragent_t *ta) attribute_hidden;
+
+/* Obtain the address of the list_t fields _dl_stack_user and
+   _dl_stack_used in _rtld_global, or fall back to the global
+   variables of the same name (to support statically linked
+   programs).  */
+td_err_e __td_ta_stack_user (td_thragent_t *ta, psaddr_t *plist)
+  attribute_hidden;
+td_err_e __td_ta_stack_used (td_thragent_t *ta, psaddr_t *plist)
+  attribute_hidden;
 
 #endif /* thread_dbP.h */

@@ -1,6 +1,5 @@
-/* Copyright (c) 1998-2020 Free Software Foundation, Inc.
+/* Copyright (c) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -452,6 +451,11 @@ prune_cache (struct database_dyn *table, time_t now, int fd)
 	  pthread_rwlock_wrlock (&table->lock);
 	}
 
+      /* Now we start modifying the data.  Make sure all readers of the
+	 data are aware of this and temporarily don't use the data.  */
+      atomic_fetch_add_relaxed (&table->head->gc_cycle, 1);
+      assert ((table->head->gc_cycle & 1) == 1);
+
       while (first <= last)
 	{
 	  if (mark[first])
@@ -491,6 +495,10 @@ prune_cache (struct database_dyn *table, time_t now, int fd)
 
 	  ++first;
 	}
+
+      /* Now we are done modifying the data.  */
+      atomic_fetch_add_relaxed (&table->head->gc_cycle, 1);
+      assert ((table->head->gc_cycle & 1) == 0);
 
       /* It's all done.  */
       pthread_rwlock_unlock (&table->lock);

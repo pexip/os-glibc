@@ -1,7 +1,6 @@
 /* Cache handling for host lookup.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -31,19 +30,6 @@
 
 #include "dbg_log.h"
 #include "nscd.h"
-
-
-typedef enum nss_status (*nss_gethostbyname4_r)
-  (const char *name, struct gaih_addrtuple **pat,
-   char *buffer, size_t buflen, int *errnop,
-   int *h_errnop, int32_t *ttlp);
-typedef enum nss_status (*nss_gethostbyname3_r)
-  (const char *name, int af, struct hostent *host,
-   char *buffer, size_t buflen, int *errnop,
-   int *h_errnop, int32_t *, char **);
-typedef enum nss_status (*nss_getcanonname_r)
-  (const char *name, char *buffer, size_t buflen, char **result,
-   int *errnop, int *h_errnop);
 
 
 static const ai_response_header notfound =
@@ -84,20 +70,13 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
 	dbg_log (_("Reloading \"%s\" in hosts cache!"), (char *) key);
     }
 
-  static service_user *hosts_database;
-  service_user *nip;
+  nss_action_list nip;
   int no_more;
   int rc6 = 0;
   int rc4 = 0;
   int herrno = 0;
 
-  if (hosts_database == NULL)
-    no_more = __nss_database_lookup2 ("hosts", NULL,
-				      "dns [!UNAVAIL=return] files",
-				      &hosts_database);
-  else
-    no_more = 0;
-  nip = hosts_database;
+  no_more = !__nss_database_get (nss_database_hosts, &nip);
 
   /* Initialize configurations.  */
   struct resolv_context *ctx = __resolv_context_get ();
@@ -127,8 +106,8 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
       char *canon = NULL;
       size_t canonlen;
 
-      nss_gethostbyname4_r fct4 = __nss_lookup_function (nip,
-							 "gethostbyname4_r");
+      nss_gethostbyname4_r *fct4 = __nss_lookup_function (nip,
+							  "gethostbyname4_r");
       if (fct4 != NULL)
 	{
 	  struct gaih_addrtuple atmem;
@@ -212,8 +191,8 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
 	{
 	  /* Prefer the function which also returns the TTL and
 	     canonical name.  */
-	  nss_gethostbyname3_r fct = __nss_lookup_function (nip,
-							    "gethostbyname3_r");
+	  nss_gethostbyname3_r *fct
+	    = __nss_lookup_function (nip, "gethostbyname3_r");
 	  if (fct == NULL)
 	    fct = __nss_lookup_function (nip, "gethostbyname2_r");
 
@@ -279,7 +258,7 @@ addhstaiX (struct database_dyn *db, int fd, request_header *req,
 	  if (canon == NULL)
 	    {
 	      /* Determine the canonical name.  */
-	      nss_getcanonname_r cfct;
+	      nss_getcanonname_r *cfct;
 	      cfct = __nss_lookup_function (nip, "getcanonname_r");
 	      if (cfct != NULL)
 		{
@@ -455,10 +434,10 @@ next_nip:
       if (nss_next_action (nip, status[1]) == NSS_ACTION_RETURN)
 	break;
 
-      if (nip->next == NULL)
+      if (nip[1].module == NULL)
 	no_more = -1;
       else
-	nip = nip->next;
+	++nip;
     }
 
   /* No result found.  Create a negative result record.  */

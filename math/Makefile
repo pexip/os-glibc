@@ -1,4 +1,4 @@
-# Copyright (C) 1996-2020 Free Software Foundation, Inc.
+# Copyright (C) 1996-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@ subdir		:= math
 include ../Makeconfig
 
 # Installed header files.
-headers		:= math.h bits/mathcalls.h bits/mathinline.h \
+headers		:= math.h bits/mathcalls.h \
 		   fpu_control.h complex.h bits/cmathcalls.h fenv.h \
-		   bits/fenv.h bits/fenvinline.h bits/mathdef.h tgmath.h \
+		   bits/fenv.h bits/mathdef.h tgmath.h \
 		   bits/math-vector.h finclude/math-vector-fortran.h \
 		   bits/libm-simd-decl-stubs.h bits/iscanonical.h \
 		   bits/flt-eval-method.h bits/fp-fast.h bits/fp-logb.h \
@@ -48,7 +48,7 @@ libm-support = s_lib_version s_matherr s_signgam			\
 
 # Wrappers for these functions generated per type using a file named
 # <func>_template.c and the appropriate math-type-macros-<TYPE>.h.
-gen-libm-calls = cargF conjF cimagF crealF cabsF s_cacosF		  \
+gen-libm-calls = cargF conjF cimagF crealF cabsF e_scalbF s_cacosF	  \
 	         s_cacoshF s_ccosF s_ccoshF s_casinF s_csinF s_casinhF	  \
 		 k_casinhF s_csinhF k_casinhF s_csinhF s_catanhF s_catanF \
 		 s_ctanF s_ctanhF s_cexpF s_clogF s_cprojF s_csqrtF	  \
@@ -58,13 +58,17 @@ gen-libm-calls = cargF conjF cimagF crealF cabsF s_cacosF		  \
 		 w_log1pF w_scalblnF s_fmaxmagF s_fminmagF w_acosF	  \
 		 w_acoshF w_asinF w_atan2F w_atanhF w_coshF w_exp10F	  \
 		 w_exp2F w_fmodF w_hypotF w_j0F w_j1F w_jnF w_logF	  \
-		 w_log10F w_log2F w_powF w_remainderF w_sinhF w_sqrtF	  \
-		 w_tgammaF w_lgammaF w_lgammaF_r w_expF e_exp2F
+		 w_log10F w_log2F w_powF w_remainderF w_scalbF		  \
+		 w_sinhF w_sqrtF					  \
+		 w_tgammaF w_lgammaF w_lgammaF_r w_expF e_exp2F		  \
+		 s_fmaximumF s_fmaximum_magF s_fmaximum_numF		  \
+		 s_fmaximum_mag_numF s_fminimumF s_fminimum_magF	  \
+		 s_fminimum_numF s_fminimum_mag_numF
 
 libm-calls =								  \
 	e_acosF e_acoshF e_asinF e_atan2F e_atanhF e_coshF e_expF e_fmodF \
 	e_hypotF e_j0F e_j1F e_jnF e_lgammaF_r e_logF e_log10F e_powF	  \
-	e_remainderF e_scalbF e_sinhF e_sqrtF e_gammaF_r	  \
+	e_remainderF e_sinhF e_sqrtF e_gammaF_r				  \
 	e_ilogbF							  \
 	k_tanF s_asinhF s_atanF s_cbrtF					  \
 	s_ceilF s_cosF s_erfF s_expm1F s_fabsF				  \
@@ -90,7 +94,7 @@ libm-compat-calls =							\
 	w_lgammaF_r_compat w_lgammaF_compat2 w_expF_compat		\
 	w_lgamma_compatF k_standardF
 
-libm-narrow-fns = add div mul sub
+libm-narrow-fns = add div fma mul sqrt sub
 libm-narrow-types-basic = s_fF s_f32xFf64
 libm-narrow-types-ldouble-yes = s_fFl s_dFl
 libm-narrow-types-float128-yes = s_f32Ff128 s_f64Ff128 s_f64xFf128
@@ -125,8 +129,7 @@ type-ldouble-yes := ldouble
 
 # double support
 type-double-suffix :=
-type-double-routines := branred doasin dosincos mpa mpatan2	\
-		       k_rem_pio2 mpatan mpsqrt mptan sincos32	\
+type-double-routines := branred k_rem_pio2 	\
 		       sincostab math_err e_exp_data e_log_data	\
 		       e_log2_data e_pow_log_data
 
@@ -144,10 +147,15 @@ type-float128-yes := float128
 # _Float64x may be supported, only as an alias type.
 type-float64x-yes := float64x
 
+# IBM long double support in additional to IEEE 128 long double support
+type-ibm128-suffix := l
+type-ibm128-yes := ibm128
+
 types = $(types-basic) $(type-float128-$(float128-fcts))
 test-types = $(test-types-basic) $(type-float128-$(float128-fcts)) \
 	     float32 float64 $(type-float128-$(float128-alias-fcts)) \
-	     float32x $(type-float64x-$(float64x-alias-fcts))
+	     float32x $(type-float64x-$(float64x-alias-fcts)) \
+	     $(type-ibm128-$(ibm128-fcts))
 
 # Pairs of types for which narrowing functions should be tested (this
 # variable has more entries than libm-narrow-types because it includes
@@ -190,6 +198,9 @@ calls = s_isinfF s_isnanF s_finiteF s_copysignF s_modfF s_scalbnF s_frexpF \
 gen-calls = s_ldexpF
 generated += $(foreach s,.c .S,$(call type-foreach, $(calls:s_%=m_%$(s))))
 routines = $(call type-foreach, $(calls))
+# The $(calls) that are shared between libm and libc are not included in static
+# libm so the symbols end up in exactly one place.
+libm-shared-only-routines = $(call type-foreach, $(calls:s_%=m_%))
 
 ifeq ($(build-mathvec),yes)
 # We need to install libm.so and libm.a as linker scripts
@@ -227,7 +238,7 @@ tests = test-matherr-3 test-fenv basic-test \
 	test-misc test-fpucw test-fpucw-ieee tst-definitions test-tgmath \
 	test-tgmath-ret bug-nextafter bug-nexttoward bug-tgmath1 \
 	test-tgmath-int test-tgmath2 test-powl tst-CMPLX tst-CMPLX2 test-snan \
-	test-fenv-tls test-fenv-preserve test-fenv-return test-fenvinline \
+	test-fenv-tls test-fenv-preserve test-fenv-return \
 	test-nearbyint-except test-fenv-clear \
 	test-nearbyint-except-2 test-signgam-uchar test-signgam-uchar-init \
 	test-signgam-uint test-signgam-uint-init test-signgam-ullong \
@@ -243,7 +254,11 @@ tests-static = test-fpucw-static test-fpucw-ieee-static \
 	       test-signgam-uchar-static test-signgam-uchar-init-static \
 	       test-signgam-uint-static test-signgam-uint-init-static \
 	       test-signgam-ullong-static test-signgam-ullong-init-static
-tests-internal = test-matherr test-matherr-2
+
+# The tested symbols matherr, _LIB_VERSION have been removed in glibc 2.27.
+ifeq ($(have-GLIBC_2.26)$(build-shared),yesyes)
+tests += test-matherr test-matherr-2
+endif
 
 # These tests use internal (unexported) GMP functions and are linked
 # statically to obtain access to these functions.
@@ -275,9 +290,11 @@ libm-test-funcs-auto = acos acosh asin asinh atan atan2 atanh cabs cacos \
 		       lgamma log log10 log1p log2 pow sin sincos sinh sqrt \
 		       tan tanh tgamma y0 y1 yn
 libm-test-funcs-noauto = canonicalize ceil cimag conj copysign cproj creal \
-			 fabs fdim floor fmax fmaxmag fmin fminmag fmod \
-			 fpclassify frexp fromfp fromfpx getpayload ilogb \
-			 iscanonical iseqsig isfinite isgreater \
+			 fabs fdim floor fmax fmaximum fmaximum_mag \
+			 fmaximum_mag_num fmaximum_num fmaxmag fmin fminimum \
+			 fminimum_mag fminimum_mag_num fminimum_num fminmag \
+			 fmod fpclassify frexp fromfp fromfpx getpayload \
+			 ilogb iscanonical iseqsig isfinite isgreater \
 			 isgreaterequal isinf isless islessequal \
 			 islessgreater isnan isnormal issignaling issubnormal \
 			 isunordered iszero llogb llrint llround logb lrint \
@@ -287,7 +304,7 @@ libm-test-funcs-noauto = canonicalize ceil cimag conj copysign cproj creal \
 			 significand totalorder totalordermag trunc ufromfp \
 			 ufromfpx compat_totalorder compat_totalordermag
 libm-test-funcs-compat = compat_totalorder compat_totalordermag
-libm-test-funcs-narrow = add div mul sub
+libm-test-funcs-narrow = add div fma mul sqrt sub
 libm-test-funcs-all = $(libm-test-funcs-auto) $(libm-test-funcs-noauto)
 libm-test-c-auto = $(foreach f,$(libm-test-funcs-auto),libm-test-$(f).c)
 libm-test-c-noauto = $(foreach f,$(libm-test-funcs-noauto),libm-test-$(f).c)
@@ -297,14 +314,9 @@ generated += libm-test-ulps.h $(libm-test-c-auto) $(libm-test-c-noauto) \
 	     $(libm-test-c-narrow)
 
 libm-tests-base-normal = $(foreach t,$(test-types),test-$(t))
-libm-tests-base-inline = $(foreach t,$(test-types),test-i$(t))
 libm-tests-base-narrow = $(foreach t,$(test-type-pairs),test-$(t))
-libm-tests-base = $(libm-tests-base-normal) $(libm-tests-base-inline) \
-		  $(libm-vec-tests)
+libm-tests-base = $(libm-tests-base-normal) $(libm-vec-tests)
 libm-tests-normal = $(foreach t,$(libm-tests-base-normal),\
-				$(foreach f,$(libm-test-funcs-all),\
-					    $(t)-$(f)))
-libm-tests-inline = $(foreach t,$(libm-tests-base-inline),\
 				$(foreach f,$(libm-test-funcs-all),\
 					    $(t)-$(f)))
 libm-tests-narrow = $(foreach t,$(libm-tests-base-narrow),\
@@ -312,11 +324,9 @@ libm-tests-narrow = $(foreach t,$(libm-tests-base-narrow),\
 					    $(t)-$(f)))
 libm-tests-vector = $(foreach t,$(libmvec-tests),\
 				$(foreach f,$($(t)-funcs),test-$(t)-$(f)))
-libm-tests = $(libm-tests-normal) $(libm-tests-inline) \
-	     $(libm-tests-narrow) $(libm-tests-vector)
+libm-tests = $(libm-tests-normal) $(libm-tests-narrow) $(libm-tests-vector)
 libm-tests-compat = $(foreach t,$(libm-tests-base-normal) \
-				$(libm-tests-base-finite) \
-				$(libm-tests-base-inline),\
+				$(libm-tests-base-finite),\
 				$(foreach f,$(libm-test-funcs-compat),\
 					    $(t)-$(f)))
 libm-tests-for-type = $(foreach f,$(libm-test-funcs-all),\
@@ -326,8 +336,7 @@ libm-tests-for-type = $(foreach f,$(libm-test-funcs-all),\
 
 libm-tests.o = $(addsuffix .o,$(libm-tests))
 
-tests += $(filter-out $(libm-tests-compat),$(libm-tests))
-tests-internal += $(libm-tests-compat)
+tests += $(libm-tests)
 generated += $(addsuffix .c,$(libm-tests)) \
 	     $(foreach t,$(test-types),libm-test-support-$(t).c)
 
@@ -365,13 +374,15 @@ $(foreach t,$(libm-tests-base),\
 tgmath3-narrow-types = f d f16 f32 f64 f128 f32x f64x
 tgmath3-narrow-macros = $(foreach t,$(tgmath3-narrow-types), \
 				    $(foreach f,$(libm-narrow-fns),$(t)$(f)))
-tgmath3-macros = atan2 cbrt ceil copysign erf erfc exp2 expm1 fdim floor \
-		 fma fmax fmin fmod frexp hypot ilogb ldexp lgamma llrint \
-		 llround log10 log1p log2 logb lrint lround nearbyint \
+tgmath3-macros = atan2 cbrt ceil copysign erf erfc exp10 exp2 expm1 fdim \
+		 floor fma fmax fmin fmod frexp hypot ilogb ldexp lgamma \
+		 llrint llround log10 log1p log2 logb lrint lround nearbyint \
 		 nextafter nexttoward remainder remquo rint round scalbn \
 		 scalbln tgamma trunc acos asin atan acosh asinh atanh cos \
 		 sin tan cosh sinh tanh exp log pow sqrt fabs carg cimag conj \
-		 cproj creal roundeven nextup nextdown fminmag fmaxmag llogb \
+		 cproj creal roundeven nextup nextdown fminmag fmaxmag \
+		 fmaximum fmaximum_mag fmaximum_num fmaximum_mag_num \
+		 fminimum fminimum_mag fminimum_num fminimum_mag_num llogb \
 		 fromfp fromfpx ufromfp ufromfpx scalb $(tgmath3-narrow-macros)
 tgmath3-macro-tests = $(addprefix test-tgmath3-,$(tgmath3-macros))
 tests += $(tgmath3-macro-tests)
@@ -411,7 +422,6 @@ CFLAGS-test-float-vlen16-wrappers.c += $(float-vlen16-arch-ext-cflags)
 # validated.
 libm-test-no-inline-cflags = -fno-inline -ffloat-store -fno-builtin \
 			     -fsignaling-nans
-libm-test-inline-cflags = $(libm-test-fast-math-cflags)
 CFLAGS-test-tgmath.c += -fno-builtin
 # The following testcase uses very long lines (>3 million), so it may take a
 # while to compile it. See: http://llvm.org/bugs/show_bug.cgi?id=14106 and
@@ -487,19 +497,7 @@ $(foreach t,$(libm-tests-normal),$(objpfx)$(t).c): $(objpfx)test-%.c:
 	( \
 	  echo "#include <test-$$type.h>"; \
 	  echo "#include <test-math-exceptions.h>"; \
-	  echo "#include <test-math-no-inline.h>"; \
 	  echo "#include <test-math-errno.h>"; \
-	  echo "#include <test-math-scalar.h>"; \
-	  echo "#include <libm-test-$$func.c>"; \
-	) > $@
-
-$(foreach t,$(libm-tests-inline),$(objpfx)$(t).c): $(objpfx)test-i%.c:
-	type_func=$*; \
-	type=$${type_func%%-*}; \
-	func=$${type_func#*-}; \
-	( \
-	  echo "#include <test-$$type.h>"; \
-	  echo "#include <test-math-inline.h>"; \
 	  echo "#include <test-math-scalar.h>"; \
 	  echo "#include <libm-test-$$func.c>"; \
 	) > $@
@@ -514,7 +512,6 @@ $(foreach t,$(libm-tests-narrow),$(objpfx)$(t).c): $(objpfx)test-%.c:
 	  echo "#include <test-$$ret_type.h>"; \
 	  echo "#include <test-arg-$$arg_type.h>"; \
 	  echo "#include <test-math-exceptions.h>"; \
-	  echo "#include <test-math-no-inline.h>"; \
 	  echo "#include <test-math-errno.h>"; \
 	  echo "#include <test-math-narrow.h>"; \
 	  echo "#include <libm-test-narrow-$$func.c>"; \
@@ -561,13 +558,6 @@ $(foreach f,$(libm-test-funcs-all),\
 	    $(objpfx)$(o)-$(f).o): CFLAGS += $(libm-test-no-inline-cflags)
 endef
 object-suffixes-left := $(libm-tests-base-normal)
-include $(o-iterator)
-
-define o-iterator-doit
-$(foreach f,$(libm-test-funcs-all),\
-	    $(objpfx)$(o)-$(f).o): CFLAGS += $(libm-test-inline-cflags)
-endef
-object-suffixes-left := $(libm-tests-base-inline)
 include $(o-iterator)
 
 define o-iterator-doit
@@ -635,15 +625,145 @@ endef
 object-suffixes-left := $(all-object-suffixes)
 include $(o-iterator)
 
-# We don't want the fdlibm code to use the inline math functions,
-# only the fdlibm code.
-math-CPPFLAGS += -D__NO_MATH_INLINES -D__LIBC_INTERNAL_MATH_INLINES
-
 ifneq ($(long-double-fcts),yes)
 # The `double' and `long double' types are the same on this machine.
 # We won't compile the `long double' code at all.  Tell the `double' code
 # to define aliases for the `FUNCl' names.
 math-CPPFLAGS += -DNO_LONG_DOUBLE
+# GCC 10 diagnoses aliases with types conflicting with built-in
+# functions.
+CFLAGS-w_acos.c += -fno-builtin-acosl
+CFLAGS-w_acosh.c += -fno-builtin-acoshl
+CFLAGS-w_asin.c += -fno-builtin-asinl
+CFLAGS-s_asinh.c += -fno-builtin-asinhl
+CFLAGS-s_atan.c += -fno-builtin-atanl
+CFLAGS-w_atan2.c += -fno-builtin-atan2l
+CFLAGS-w_atanh.c += -fno-builtin-atanhl
+CFLAGS-s_cabs.c += -fno-builtin-cabsl
+CFLAGS-s_cacos.c += -fno-builtin-cacosl
+CFLAGS-s_cacosh.c += -fno-builtin-cacoshl
+CFLAGS-s_canonicalize.c += -fno-builtin-canonicalizel
+CFLAGS-s_carg.c += -fno-builtin-cargl
+CFLAGS-s_casin.c += -fno-builtin-casinl
+CFLAGS-s_casinh.c += -fno-builtin-casinhl
+CFLAGS-s_catan.c += -fno-builtin-catanl
+CFLAGS-s_catanh.c += -fno-builtin-catanhl
+CFLAGS-s_cbrt.c += -fno-builtin-cbrtl
+CFLAGS-s_ccos.c += -fno-builtin-ccosl
+CFLAGS-s_ccosh.c += -fno-builtin-ccoshl
+CFLAGS-s_ceil.c += -fno-builtin-ceill
+CFLAGS-s_cexp.c += -fno-builtin-cexpl
+CFLAGS-s_cimag.c += -fno-builtin-cimagl
+CFLAGS-s_clog.c += -fno-builtin-clogl
+CFLAGS-s_clog10.c += -fno-builtin-clog10l
+CFLAGS-s_conj.c += -fno-builtin-conjl
+CFLAGS-s_copysign.c += -fno-builtin-copysignl
+CFLAGS-s_cos.c += -fno-builtin-cosl
+CFLAGS-w_cosh.c += -fno-builtin-coshl
+CFLAGS-s_cpow.c += -fno-builtin-cpowl
+CFLAGS-s_cproj.c += -fno-builtin-cprojl
+CFLAGS-s_creal.c += -fno-builtin-creall
+CFLAGS-s_csin.c += -fno-builtin-csinl
+CFLAGS-s_csinh.c += -fno-builtin-csinhl
+CFLAGS-s_csqrt.c += -fno-builtin-csqrtl
+CFLAGS-s_ctan.c += -fno-builtin-ctanl
+CFLAGS-s_ctanh.c += -fno-builtin-ctanhl
+CFLAGS-s_dadd.c += -fno-builtin-daddl
+CFLAGS-s_ddiv.c += -fno-builtin-ddivl
+CFLAGS-s_dfma.c += -fno-builtin-dfmal
+CFLAGS-s_dmul.c += -fno-builtin-dmull
+CFLAGS-s_dsqrt.c += -fno-builtin-dsqrtl
+CFLAGS-s_dsub.c += -fno-builtin-dsubl
+CFLAGS-s_erf.c += -fno-builtin-erfl
+CFLAGS-s_erfc.c += -fno-builtin-erfcl
+CFLAGS-e_exp.c += -fno-builtin-expl
+CFLAGS-w_exp10.c += -fno-builtin-exp10l
+CFLAGS-e_exp2.c += -fno-builtin-exp2l
+CFLAGS-s_expm1.c += -fno-builtin-expm1l
+CFLAGS-s_fabs.c += -fno-builtin-fabsl
+CFLAGS-s_fadd.c += -fno-builtin-faddl
+CFLAGS-s_fdim.c += -fno-builtin-fdiml
+CFLAGS-s_fdiv.c += -fno-builtin-fdivl
+CFLAGS-s_ffma.c += -fno-builtin-ffmal
+CFLAGS-s_finite.c += -fno-builtin-finitel
+CFLAGS-s_floor.c += -fno-builtin-floorl
+CFLAGS-s_fma.c += -fno-builtin-fmal
+CFLAGS-s_fmax.c += -fno-builtin-fmaxl
+CFLAGS-s_fmaximum.c += -fno-builtin-fmaximuml
+CFLAGS-s_fmaximum_mag.c += -fno-builtin-fmaximum_magl
+CFLAGS-s_fmaximum_mag_num.c += -fno-builtin-fmaximum_mag_numl
+CFLAGS-s_fmaximum_num.c += -fno-builtin-fmaximum_numl
+CFLAGS-s_fmaxmag.c += -fno-builtin-fmaxmagl
+CFLAGS-s_fmin.c += -fno-builtin-fminl
+CFLAGS-s_fminimum.c += -fno-builtin-fminimuml
+CFLAGS-s_fminimum_mag.c += -fno-builtin-fminimum_magl
+CFLAGS-s_fminimum_mag_num.c += -fno-builtin-fminimum_mag_numl
+CFLAGS-s_fminimum_num.c += -fno-builtin-fminimum_numl
+CFLAGS-s_fminmag.c += -fno-builtin-fminmagl
+CFLAGS-w_fmod.c += -fno-builtin-fmodl
+CFLAGS-s_fmul.c += -fno-builtin-fmull
+CFLAGS-s_frexp.c += -fno-builtin-frexpl
+CFLAGS-s_fromfp.c += -fno-builtin-fromfpl
+CFLAGS-s_fromfpx.c += -fno-builtin-fromfpxl
+CFLAGS-s_fsqrt.c += -fno-builtin-fsqrtl
+CFLAGS-s_fsub.c += -fno-builtin-fsubl
+CFLAGS-s_gamma.c += -fno-builtin-gammal
+CFLAGS-s_getpayload.c += -fno-builtin-getpayloadl
+CFLAGS-w_hypot.c += -fno-builtin-hypotl
+CFLAGS-w_ilogb.c += -fno-builtin-ilogbl
+CFLAGS-s_isinf.c += -fno-builtin-isinfl
+CFLAGS-s_isnan.c += -fno-builtin-isnanl
+CFLAGS-w_j0.c += -fno-builtin-j0l
+CFLAGS-w_j1.c += -fno-builtin-j1l
+CFLAGS-w_jn.c += -fno-builtin-jnl
+CFLAGS-s_ldexp.c += -fno-builtin-ldexpl
+CFLAGS-w_lgamma.c += -fno-builtin-lgammal
+CFLAGS-w_lgamma_r.c += -fno-builtin-lgammal_r
+CFLAGS-w_llogb.c += -fno-builtin-llogbl
+CFLAGS-s_llrint.c += -fno-builtin-llrintl
+CFLAGS-s_llround.c += -fno-builtin-llroundl
+CFLAGS-e_log.c += -fno-builtin-logl
+CFLAGS-w_log10.c += -fno-builtin-log10l
+CFLAGS-w_log1p.c += -fno-builtin-log1pl
+CFLAGS-e_log2.c += -fno-builtin-log2l
+CFLAGS-s_logb.c += -fno-builtin-logbl
+CFLAGS-s_lrint.c += -fno-builtin-lrintl
+CFLAGS-s_lround.c += -fno-builtin-lroundl
+CFLAGS-s_modf.c += -fno-builtin-modfl
+CFLAGS-s_nan.c += -fno-builtin-nanl
+CFLAGS-s_nearbyint.c += -fno-builtin-nearbyintl
+CFLAGS-s_nextafter.c += -fno-builtin-nextafterl
+CFLAGS-s_nextdown.c += -fno-builtin-nextdownl
+CFLAGS-s_nexttoward.c += -fno-builtin-nexttoward -fno-builtin-nexttowardl
+CFLAGS-s_nexttowardf.c += -fno-builtin-nexttowardf
+CFLAGS-s_nextup.c += -fno-builtin-nextupl
+CFLAGS-e_pow.c += -fno-builtin-powl
+CFLAGS-w_remainder.c += -fno-builtin-remainderl -fno-builtin-dreml
+CFLAGS-s_remquo.c += -fno-builtin-remquol
+CFLAGS-s_rint.c += -fno-builtin-rintl
+CFLAGS-s_round.c += -fno-builtin-roundl
+CFLAGS-s_roundeven.c += -fno-builtin-roundevenl
+CFLAGS-w_scalb.c += -fno-builtin-scalbl
+CFLAGS-w_scalbln.c += -fno-builtin-scalblnl
+CFLAGS-s_scalbn.c += -fno-builtin-scalbnl
+CFLAGS-s_setpayload.c += -fno-builtin-setpayloadl
+CFLAGS-s_setpayloadsig.c += -fno-builtin-setpayloadsigl
+CFLAGS-s_significand.c += -fno-builtin-significandl
+CFLAGS-s_sin.c += -fno-builtin-sinl
+CFLAGS-s_sincos.c += -fno-builtin-sincosl
+CFLAGS-w_sinh.c += -fno-builtin-sinhl
+CFLAGS-w_sqrt.c += -fno-builtin-sqrtl
+CFLAGS-s_tan.c += -fno-builtin-tanl
+CFLAGS-s_tanh.c += -fno-builtin-tanhl
+CFLAGS-w_tgamma.c += -fno-builtin-tgammal
+CFLAGS-s_totalorder.c += -fno-builtin-totalorderl
+CFLAGS-s_totalordermag.c += -fno-builtin-totalordermagl
+CFLAGS-s_trunc.c += -fno-builtin-truncl
+CFLAGS-s_ufromfp.c += -fno-builtin-ufromfpl
+CFLAGS-s_ufromfpx.c += -fno-builtin-ufromfpxl
+CFLAGS-s_y0.c += -fno-builtin-y0l
+CFLAGS-s_y1.c += -fno-builtin-y1l
+CFLAGS-s_yn.c += -fno-builtin-ynl
 endif
 
 # These files quiet sNaNs in a way that is optimized away without

@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1994-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@
    null terminator), or -1 on error or EOF.  */
 
 ssize_t
-_IO_getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
+__getdelim (char **lineptr, size_t *n, int delimiter, FILE *fp)
 {
   ssize_t result;
   ssize_t cur_len = 0;
@@ -122,6 +122,5 @@ unlock_return:
   _IO_release_lock (fp);
   return result;
 }
-
-weak_alias (_IO_getdelim, __getdelim)
-weak_alias (_IO_getdelim, getdelim)
+libc_hidden_def (__getdelim)
+weak_alias (__getdelim, getdelim)

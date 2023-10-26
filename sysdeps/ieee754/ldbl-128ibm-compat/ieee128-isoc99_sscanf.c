@@ -1,5 +1,5 @@
 /* Wrapper for __isoc99_sscanf.  IEEE128 version.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -37,3 +37,4 @@ ___ieee128_isoc99_sscanf (const char *string, const char *format, ...)
   return done;
 }
 strong_alias (___ieee128_isoc99_sscanf, __isoc99_sscanfieee128)
+hidden_def (___ieee128_isoc99_sscanf)

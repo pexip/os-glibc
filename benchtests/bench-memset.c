@@ -1,5 +1,5 @@
 /* Measure memset functions.
-   Copyright (C) 2013-2020 Free Software Foundation, Inc.
+   Copyright (C) 2013-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,7 +43,7 @@ static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, CHAR *s,
 	     int c __attribute ((unused)), size_t n)
 {
-  size_t i, iters = INNER_LOOP_ITERS;
+  size_t i, iters = INNER_LOOP_ITERS_LARGE;
   timing_t start, stop, cur;
 
   TIMING_NOW (start);
@@ -61,7 +61,7 @@ do_one_test (json_ctx_t *json_ctx, impl_t *impl, CHAR *s,
 static void
 do_test (json_ctx_t *json_ctx, size_t align, int c, size_t len)
 {
-  align &= 63;
+  align &= 4095;
   if ((align + len) * sizeof (CHAR) > page_size)
     return;
 
@@ -74,7 +74,6 @@ do_test (json_ctx_t *json_ctx, size_t align, int c, size_t len)
   FOR_EACH_IMPL (impl, 0)
     {
       do_one_test (json_ctx, impl, (CHAR *) (buf1) + align, c, len);
-      alloc_bufs ();
     }
 
   json_array_end (json_ctx);
@@ -88,8 +87,9 @@ test_main (void)
   size_t i;
   int c = 0;
 
-  test_init ();
 
+  test_init ();
+  alloc_bufs ();
   json_init (&json_ctx, 0, stdout);
 
   json_document_begin (&json_ctx);
@@ -97,7 +97,7 @@ test_main (void)
 
   json_attr_object_begin (&json_ctx, "functions");
   json_attr_object_begin (&json_ctx, TEST_NAME);
-  json_attr_string (&json_ctx, "bench-variant", "");
+  json_attr_string (&json_ctx, "bench-variant", "default");
 
   json_array_begin (&json_ctx, "ifuncs");
   FOR_EACH_IMPL (impl, 0)
@@ -110,13 +110,15 @@ test_main (void)
     {
       for (i = 0; i < 18; ++i)
 	do_test (&json_ctx, 0, c, 1 << i);
-      for (i = 1; i < 32; ++i)
+      for (i = 0; i < 64; ++i)
 	{
 	  do_test (&json_ctx, i, c, i);
+	  do_test (&json_ctx, 4096 - i, c, i);
+	  do_test (&json_ctx, 4095, c, i);
 	  if (i & (i - 1))
 	    do_test (&json_ctx, 0, c, i);
 	}
-      for (i = 32; i < 512; i+=32)
+      for (i = 32; i < 1024; i+=32)
 	{
 	  do_test (&json_ctx, 0, c, i);
 	  do_test (&json_ctx, i, c, i);

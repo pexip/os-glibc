@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,12 +16,20 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#include <pthread-errnos.h>
+#include <errno.h>
+#include <shlib-compat.h>
 
 	.text
-ENTRY(pthread_spin_trylock)
+ENTRY(__pthread_spin_trylock)
 	ldstub		[%o0], %o0
 	membar		#StoreLoad | #StoreStore
 	retl
 	 movrnz		%o0, EBUSY, %o0
-END(pthread_spin_trylock)
+END(__pthread_spin_trylock)
+versioned_symbol (libc, __pthread_spin_trylock, pthread_spin_trylock,
+		  GLIBC_2_34)
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_trylock, pthread_spin_trylock,
+	       GLIBC_2_2)
+#endif

@@ -1,5 +1,5 @@
 /* Create new context.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -160,7 +160,7 @@ L(exitcode):
 	li    r3,-1
 L(do_exit):
 #ifdef SHARED
-	b     JUMPTARGET(__GI_exit);
+	b     JUMPTARGET (NOTOC (__GI_exit));
 #else
 	b     JUMPTARGET(exit);
 	nop

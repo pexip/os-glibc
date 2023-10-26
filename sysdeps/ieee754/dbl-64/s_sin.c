@@ -1,7 +1,7 @@
 /*
  * IBM Accurate Mathematical Library
  * written by International Business Machines Corp.
- * Copyright (C) 2001-2020 Free Software Foundation, Inc.
+ * Copyright (C) 2001-2022 Free Software Foundation, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,6 @@
 #include "endian.h"
 #include "mydefs.h"
 #include "usncs.h"
-#include "MathLib.h"
 #include <math.h>
 #include <math_private.h>
 #include <fenv_private.h>
@@ -52,16 +51,16 @@
 #define POLYNOMIAL(xx) (POLYNOMIAL2 (xx) + s1)
 
 /* The computed polynomial is a variation of the Taylor series expansion for
-   sin(a):
+   sin(x):
 
-   a - a^3/3! + a^5/5! - a^7/7! + a^9/9! + (1 - a^2) * da / 2
+   x - x^3/3! + x^5/5! - x^7/7! + x^9/9! - dx*x^2/2 + dx
 
    The constants s1, s2, s3, etc. are pre-computed values of 1/3!, 1/5! and so
    on.  The result is returned to LHS.  */
-#define TAYLOR_SIN(xx, a, da) \
+#define TAYLOR_SIN(xx, x, dx) \
 ({									      \
-  double t = ((POLYNOMIAL (xx)  * (a) - 0.5 * (da))  * (xx) + (da));	      \
-  double res = (a) + t;							      \
+  double t = ((POLYNOMIAL (xx)  * (x) - 0.5 * (dx))  * (xx) + (dx));	      \
+  double res = (x) + t;							      \
   res;									      \
 })
 
@@ -192,8 +191,8 @@ do_sincos (double a, double da, int4 n)
 
 
 /*******************************************************************/
-/* An ultimate sin routine. Given an IEEE double machine number x   */
-/* it computes the correctly rounded (to nearest) value of sin(x)  */
+/* An ultimate sin routine. Given an IEEE double machine number x  */
+/* it computes the rounded value of sin(x).			   */
 /*******************************************************************/
 #ifndef IN_SINCOS
 double
@@ -256,8 +255,8 @@ __sin (double x)
 
 
 /*******************************************************************/
-/* An ultimate cos routine. Given an IEEE double machine number x   */
-/* it computes the correctly rounded (to nearest) value of cos(x)  */
+/* An ultimate cos routine. Given an IEEE double machine number x  */
+/* it computes the rounded value of cos(x).			   */
 /*******************************************************************/
 
 double

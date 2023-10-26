@@ -1,5 +1,5 @@
 /* Internal statvfs/statvfs64 function prototypes.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,9 @@
 
 #include <sys/statvfs.h>
 
-extern void __internal_statvfs (const char *name, struct statvfs *buf,
-				struct statfs *fsbuf, int fd)
+extern void __internal_statvfs (struct statvfs *buf,
+				const struct statfs *fsbuf)
       attribute_hidden;
-extern void __internal_statvfs64 (const char *name, struct statvfs64 *buf,
-				  struct statfs64 *fsbuf, int fd)
+extern void __internal_statvfs64 (struct statvfs64 *buf,
+				  const struct statfs64 *fsbuf)
       attribute_hidden;

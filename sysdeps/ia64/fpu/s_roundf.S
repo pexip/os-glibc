@@ -4,7 +4,6 @@
 // Copyright (c) 2000 - 2003, Intel Corporation
 // All rights reserved.
 //
-// Contributed 2000 by the Intel Numerics Group, Intel Corporation
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -105,7 +104,7 @@ fRem       = f13
 
 
 .section .text
-GLOBAL_LIBM_ENTRY(roundf)
+GLOBAL_LIBM_ENTRY(__roundf)
 
 { .mfi
       getf.exp         rSignexp  = f8        // Get signexp, recompute if unorm
@@ -230,5 +229,5 @@ ROUND_UNORM:
 }
 ;;
 
-GLOBAL_LIBM_END(roundf)
-libm_alias_float_other (round, round)
+GLOBAL_LIBM_END(__roundf)
+libm_alias_float (__round, round)

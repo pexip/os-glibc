@@ -1,6 +1,6 @@
 /* Machine-dependent ELF dynamic relocation inline functions.
    PowerPC64 version.
-   Copyright 1995-2020 Free Software Foundation, Inc.
+   Copyright 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,22 +28,13 @@
 #include <sysdep.h>
 #include <hwcapinfo.h>
 #include <cpu-features.c>
+#include <dl-static-tls.h>
+#include <dl-funcdesc.h>
+#include <dl-machine-rel.h>
 
 /* Translate a processor specific dynamic tag to the index
    in l_info array.  */
 #define DT_PPC64(x) (DT_PPC64_##x - DT_LOPROC + DT_NUM)
-
-#if _CALL_ELF != 2
-/* A PowerPC64 function descriptor.  The .plt (procedure linkage
-   table) and .opd (official procedure descriptor) sections are
-   arrays of these.  */
-typedef struct
-{
-  Elf64_Addr fd_func;
-  Elf64_Addr fd_toc;
-  Elf64_Addr fd_aux;
-} Elf64_FuncDesc;
-#endif
 
 #define ELF_MULT_MACHINES_SUPPORTED
 
@@ -116,8 +107,6 @@ elf_machine_dynamic (void)
   return runtime_dynamic - elf_machine_load_address() ;
 }
 
-#define ELF_MACHINE_BEFORE_RTLD_RELOC(dynamic_info) /* nothing */
-
 /* The PLT uses Elf64_Rela relocs.  */
 #define elf_machine_relplt elf_machine_rela
 
@@ -186,9 +175,12 @@ BODY_PREFIX "_dl_start_user:\n"						\
 /* the address of _start in r30.  */					\
 "	mr	30,3\n"							\
 /* &_dl_argc in 29, &_dl_argv in 27, and _dl_loaded in 28.  */		\
-"	ld	28,.LC__rtld_local@toc(2)\n"				\
-"	ld	29,.LC__dl_argc@toc(2)\n"				\
-"	ld	27,.LC__dl_argv@toc(2)\n"				\
+"	addis	28,2,.LC__rtld_local@toc@ha\n"				\
+"	ld	28,.LC__rtld_local@toc@l(28)\n"				\
+"	addis	29,2,.LC__dl_argc@toc@ha\n"				\
+"	ld	29,.LC__dl_argc@toc@l(29)\n"				\
+"	addis	27,2,.LC__dl_argv@toc@ha\n"				\
+"	ld	27,.LC__dl_argv@toc@l(27)\n"				\
 /* _dl_init (_dl_loaded, _dl_argc, _dl_argv, _dl_argv+_dl_argc+1).  */	\
 "	ld	3,0(28)\n"						\
 "	lwa	4,0(29)\n"						\
@@ -215,7 +207,8 @@ BODY_PREFIX "_dl_start_user:\n"						\
 "	addi	6,6,8\n"						\
 /* Pass a termination function pointer (in this case _dl_fini) in	\
    r7.  */								\
-"	ld	7,.LC__dl_fini@toc(2)\n"				\
+"	addis	7,2,.LC__dl_fini@toc@ha\n"				\
+"	ld	7,.LC__dl_fini@toc@l(7)\n"				\
 /* Pass the stack pointer in r1 (so far so good), pointing to a NULL	\
    value.  This lets our startup code distinguish between a program	\
    linked statically, which linux will call with argc on top of the	\
@@ -294,10 +287,6 @@ BODY_PREFIX "_dl_start_user:\n"						\
 /* A reloc type used for ld.so cmdline arg lookups to reject PLT entries.  */
 #define ELF_MACHINE_JMP_SLOT	R_PPC64_JMP_SLOT
 
-/* The PowerPC never uses REL relocations.  */
-#define ELF_MACHINE_NO_REL 1
-#define ELF_MACHINE_NO_RELA 0
-
 /* We define an initialization function to initialize HWCAP/HWCAP2 and
    platform data so it can be copied into the TCB later.  This is called
    very early in _dl_sysdep_start for dynamically linked binaries.  */
@@ -345,7 +334,8 @@ dl_platform_init (void)
 /* Set up the loaded object described by MAP so its unrelocated PLT
    entries will jump to the on-demand fixup code in dl-runtime.c.  */
 static inline int __attribute__ ((always_inline))
-elf_machine_runtime_setup (struct link_map *map, int lazy, int profile)
+elf_machine_runtime_setup (struct link_map *map, struct r_scope_elem *scope[],
+			   int lazy, int profile)
 {
   if (map->l_info[DT_JMPREL])
     {
@@ -551,36 +541,6 @@ elf_machine_fixup_plt (struct link_map *map, lookup_t sym_map,
   return finaladdr;
 }
 
-static inline void __attribute__ ((always_inline))
-elf_machine_plt_conflict (struct link_map *map, lookup_t sym_map,
-			  const ElfW(Sym) *refsym, const ElfW(Sym) *sym,
-			  const Elf64_Rela *reloc,
-			  Elf64_Addr *reloc_addr, Elf64_Addr finaladdr)
-{
-#if _CALL_ELF != 2
-  Elf64_FuncDesc *plt = (Elf64_FuncDesc *) reloc_addr;
-  Elf64_FuncDesc *rel = (Elf64_FuncDesc *) finaladdr;
-  Elf64_FuncDesc zero_fd = {0, 0, 0};
-
-  if (sym_map == NULL)
-    finaladdr = 0;
-
-  if (finaladdr == 0)
-    rel = &zero_fd;
-
-  plt->fd_func = rel->fd_func;
-  plt->fd_aux = rel->fd_aux;
-  plt->fd_toc = rel->fd_toc;
-  PPC_DCBST (&plt->fd_func);
-  PPC_DCBST (&plt->fd_aux);
-  PPC_DCBST (&plt->fd_toc);
-  PPC_SYNC;
-#else
-  finaladdr += ppc64_local_entry_offset (map, sym_map, refsym, sym);
-  *reloc_addr = finaladdr;
-#endif
-}
-
 /* Return the final value of a plt relocation.  */
 static inline Elf64_Addr
 elf_machine_plt_value (struct link_map *map, const Elf64_Rela *reloc,
@@ -598,6 +558,27 @@ elf_machine_plt_value (struct link_map *map, const Elf64_Rela *reloc,
 #define ARCH_LA_PLTENTER ppc64v2_gnu_pltenter
 #define ARCH_LA_PLTEXIT ppc64v2_gnu_pltexit
 #endif
+
+#if ENABLE_STATIC_PIE && !defined SHARED && !IS_IN (rtld)
+#include <libc-diag.h>
+#include <tcb-offsets.h>
+
+/* Set up r13 for _dl_relocate_static_pie so that libgcc ifuncs that
+   normally access the tcb copy of hwcap will see __tcb.hwcap.  */
+
+static inline void __attribute__ ((always_inline))
+ppc_init_fake_thread_pointer (void)
+{
+  DIAG_PUSH_NEEDS_COMMENT;
+  /* We are playing pointer tricks.  Silence gcc warning.  */
+  DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Warray-bounds");
+  __thread_register = (char *) &__tcb.hwcap - TCB_HWCAP;
+  DIAG_POP_NEEDS_COMMENT;
+}
+
+#define ELF_MACHINE_BEFORE_RTLD_RELOC(map, dynamic_info) \
+  ppc_init_fake_thread_pointer ();
+#endif /* ENABLE_STATIC_PIE && !defined SHARED && !IS_IN (rtld) */
 
 #endif /* dl_machine_h */
 
@@ -620,7 +601,7 @@ extern void attribute_hidden _dl_reloc_overflow (struct link_map *map,
 						 Elf64_Addr *const reloc_addr,
 						 const Elf64_Sym *refsym);
 
-auto inline void __attribute__ ((always_inline))
+static inline void __attribute__ ((always_inline))
 elf_machine_rela_relative (Elf64_Addr l_addr, const Elf64_Rela *reloc,
 			   void *const reloc_addr_arg)
 {
@@ -629,7 +610,7 @@ elf_machine_rela_relative (Elf64_Addr l_addr, const Elf64_Rela *reloc,
 }
 
 /* This computes the value used by TPREL* relocs.  */
-auto inline Elf64_Addr __attribute__ ((always_inline, const))
+static inline Elf64_Addr __attribute__ ((always_inline, const))
 elf_machine_tprel (struct link_map *map,
 		   struct link_map *sym_map,
 		   const Elf64_Sym *sym,
@@ -648,12 +629,11 @@ elf_machine_tprel (struct link_map *map,
 }
 
 /* Call function at address VALUE (an OPD entry) to resolve ifunc relocs.  */
-auto inline Elf64_Addr __attribute__ ((always_inline))
+static inline Elf64_Addr __attribute__ ((always_inline))
 resolve_ifunc (Elf64_Addr value,
 	       const struct link_map *map, const struct link_map *sym_map)
 {
 #if _CALL_ELF != 2
-#ifndef RESOLVE_CONFLICT_FIND_MAP
   /* The function we are calling may not yet have its opd entry relocated.  */
   Elf64_FuncDesc opd;
   if (map != sym_map
@@ -672,14 +652,13 @@ resolve_ifunc (Elf64_Addr value,
       asm ("" : "=r" (value) : "0" (&opd), "X" (opd));
     }
 #endif
-#endif
   return ((Elf64_Addr (*) (unsigned long int)) value) (GLRO(dl_hwcap));
 }
 
 /* Perform the relocation specified by RELOC and SYM (which is fully
    resolved).  MAP is the object containing the reloc.  */
-auto inline void __attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map,
+static inline void __attribute__ ((always_inline))
+elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
 		  const Elf64_Rela *reloc,
 		  const Elf64_Sym *sym,
 		  const struct r_found_version *version,
@@ -707,7 +686,7 @@ elf_machine_rela (struct link_map *map,
 
   /* We need SYM_MAP even in the absence of TLS, for elf_machine_fixup_plt
      and STT_GNU_IFUNC.  */
-  struct link_map *sym_map = RESOLVE_MAP (&sym, version, r_type);
+  struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version, r_type);
   Elf64_Addr value = SYMBOL_ADDRESS (sym_map, sym, true) + reloc->r_addend;
 
   if (sym != NULL
@@ -736,13 +715,8 @@ elf_machine_rela (struct link_map *map,
 	value = resolve_ifunc (value, map, sym_map);
       /* Fall thru */
     case R_PPC64_JMP_SLOT:
-#ifdef RESOLVE_CONFLICT_FIND_MAP
-      elf_machine_plt_conflict (map, sym_map, refsym, sym,
-				reloc, reloc_addr, value);
-#else
       elf_machine_fixup_plt (map, sym_map, refsym, sym,
 			     reloc, reloc_addr, value);
-#endif
       return;
 
     case R_PPC64_DTPMOD64:
@@ -1037,8 +1011,8 @@ elf_machine_rela (struct link_map *map,
   MODIFIED_CODE_NOQUEUE (reloc_addr);
 }
 
-auto inline void __attribute__ ((always_inline))
-elf_machine_lazy_rel (struct link_map *map,
+static inline void __attribute__ ((always_inline))
+elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
 		      Elf64_Addr l_addr, const Elf64_Rela *reloc,
 		      int skip_ifunc)
 {

@@ -1,5 +1,5 @@
 /* Run-time dynamic linker data structures for loaded ELF shared objects. MIPS.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,12 +22,6 @@
 #include_next <ldsodefs.h>
 
 /* Now define our stuff.  */
-
-/* We need special support to initialize DSO loaded for statically linked
-   binaries.  */
-extern void _dl_static_init (struct link_map *map);
-#undef DL_STATIC_INIT
-#define DL_STATIC_INIT(map) _dl_static_init (map)
 
 /* Allow ABIVERSION == 1, meaning PLTs and copy relocations are
    required, with ELFOSABI_SYSV, and ELFOSABI_GNU.  */

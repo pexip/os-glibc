@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License as
@@ -22,27 +21,29 @@
 #include <sysdep.h>
 #include <kernel-features.h>
 #include "kernel-posix-timers.h"
+#include <shlib-compat.h>
 
+#if !TIMER_T_WAS_INT_COMPAT
 int
-__timer_settime64 (timer_t timerid, int flags,
+___timer_settime64 (timer_t timerid, int flags,
                    const struct __itimerspec64 *value,
                    struct __itimerspec64 *ovalue)
 {
-  struct timer *kt = (struct timer *) timerid;
+  kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
 
-#ifdef __ASSUME_TIME64_SYSCALLS
-# ifndef __NR_timer_settime64
-#  define __NR_timer_settime64 __NR_timer_settime
-# endif
-  return INLINE_SYSCALL_CALL (timer_settime64, kt->ktimerid, flags, value,
+# ifdef __ASSUME_TIME64_SYSCALLS
+#  ifndef __NR_timer_settime64
+#   define __NR_timer_settime64 __NR_timer_settime
+#  endif
+  return INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
                               ovalue);
-#else
-# ifdef __NR_timer_settime64
-  int ret = INLINE_SYSCALL_CALL (timer_settime64, kt->ktimerid, flags, value,
+# else
+#  ifdef __NR_timer_settime64
+  int ret = INLINE_SYSCALL_CALL (timer_settime64, ktimerid, flags, value,
                                  ovalue);
   if (ret == 0 || errno != ENOSYS)
     return ret;
-# endif
+#  endif
   struct itimerspec its32, oits32;
 
   if (! in_time_t_range ((value->it_value).tv_sec)
@@ -55,7 +56,7 @@ __timer_settime64 (timer_t timerid, int flags,
   its32.it_interval = valid_timespec64_to_timespec (value->it_interval);
   its32.it_value = valid_timespec64_to_timespec (value->it_value);
 
-  int retval = INLINE_SYSCALL_CALL (timer_settime, kt->ktimerid, flags,
+  int retval = INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags,
                                     &its32, ovalue ? &oits32 : NULL);
   if (retval == 0 && ovalue)
     {
@@ -64,10 +65,19 @@ __timer_settime64 (timer_t timerid, int flags,
     }
 
   return retval;
-#endif
+# endif
 }
 
-#if __TIMESIZE != 64
+# if __TIMESIZE == 64
+versioned_symbol (libc, ___timer_settime64, timer_settime, GLIBC_2_34);
+#  if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (librt, ___timer_settime64, timer_settime, GLIBC_2_2);
+#  endif
+
+#else /* __TIMESIZE != 64 */
+libc_hidden_ver (___timer_settime64, __timer_settime64)
+versioned_symbol (libc, ___timer_settime64, __timer_settime64, GLIBC_2_34);
+
 int
 __timer_settime (timer_t timerid, int flags, const struct itimerspec *value,
                  struct itimerspec *ovalue)
@@ -87,6 +97,43 @@ __timer_settime (timer_t timerid, int flags, const struct itimerspec *value,
 
   return retval;
 }
-#endif
-weak_alias (__timer_settime, timer_settime)
-libc_hidden_def (timer_settime)
+versioned_symbol (libc, __timer_settime, timer_settime, GLIBC_2_34);
+
+#  if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (librt, __timer_settime, timer_settime, GLIBC_2_2);
+#  endif
+# endif /* __TIMESIZE != 64 */
+
+#else /* TIMER_T_WAS_INT_COMPAT */
+
+extern __typeof (timer_settime) __timer_settime_new;
+libc_hidden_proto (__timer_settime_new)
+
+int
+___timer_settime_new (timer_t timerid, int flags,
+                      const struct itimerspec *value,
+                      struct itimerspec *ovalue)
+{
+  kernel_timer_t ktimerid = timerid_to_kernel_timer (timerid);
+
+  return INLINE_SYSCALL_CALL (timer_settime, ktimerid, flags, value, ovalue);
+}
+versioned_symbol (libc, ___timer_settime_new, timer_settime, GLIBC_2_34);
+libc_hidden_ver (___timer_settime_new, __timer_settime_new)
+
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_3_3, GLIBC_2_34)
+compat_symbol (librt, ___timer_settime_new, timer_settime, GLIBC_2_3_3);
+# endif
+
+# if OTHER_SHLIB_COMPAT (librt, GLIBC_2_2, GLIBC_2_3_3)
+int
+__timer_settime_old (int timerid, int flags, const struct itimerspec *value,
+                     struct itimerspec *ovalue)
+{
+  return __timer_settime_new (__timer_compat_list[timerid], flags,
+                              value, ovalue);
+}
+compat_symbol (librt, __timer_settime_old, timer_settime, GLIBC_2_2);
+# endif
+
+#endif /* TIMER_T_WAS_INT_COMPAT */

@@ -1,5 +1,5 @@
 /* Error-checking wrappers for stdio functions.
-   Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   Copyright (C) 2016-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -26,6 +26,11 @@ __BEGIN_DECLS
 
 FILE *xfopen (const char *path, const char *mode);
 void xfclose (FILE *);
+
+/* Read a line from FP, using getline.  *BUFFER must be NULL, or a
+   heap-allocated pointer of *LENGTH bytes.  Return the number of
+   bytes in the line if a line was read, or 0 on EOF.  */
+size_t xgetline (char **lineptr, size_t *n, FILE *stream);
 
 __END_DECLS
 

@@ -1,5 +1,5 @@
 /* pthread_barrier_wait.  Generic version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,12 +24,14 @@
 int
 pthread_barrier_wait (pthread_barrier_t *barrier)
 {
-  __pthread_spin_lock (&barrier->__lock);
+  __pthread_spin_wait (&barrier->__lock);
   if (--barrier->__pending == 0)
     {
       barrier->__pending = barrier->__count;
 
-      if (barrier->__count > 1)
+      if (barrier->__count == 1)
+	__pthread_spin_unlock (&barrier->__lock);
+      else
 	{
 	  struct __pthread *wakeup;
 	  unsigned n = 0;

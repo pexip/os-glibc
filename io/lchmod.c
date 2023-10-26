@@ -1,5 +1,5 @@
-/* lchmod -- Change the protections of a file or symbolic link.  Stub version.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* lchmod -- Change the protections of a file or symbolic link.  Generic version.
+   Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,16 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
+#include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 
 /* Change the protections of FILE to MODE.  */
 int
 lchmod (const char *file, mode_t mode)
 {
-  __set_errno (ENOSYS);
-  return -1;
+  return fchmodat (AT_FDCWD, file, mode, AT_SYMLINK_NOFOLLOW);
 }
-
-stub_warning (lchmod)

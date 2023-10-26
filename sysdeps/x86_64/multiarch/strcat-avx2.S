@@ -1,6 +1,5 @@
 /* strcat with AVX2
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
-   Contributed by Intel Corporation.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,7 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#if IS_IN (libc)
+#include <isa-level.h>
+
+#if ISA_SHOULD_BUILD (3)
+
 
 # include <sysdep.h>
 
@@ -30,7 +32,11 @@
 /* Number of bytes in a vector register */
 # define VEC_SIZE	32
 
-	.section .text.avx,"ax",@progbits
+# ifndef SECTION
+#  define SECTION(p)	p##.avx
+# endif
+
+	.section SECTION(.text),"ax",@progbits
 ENTRY (STRCAT)
 	mov	%rdi, %r9
 # ifdef USE_AS_STRNCAT

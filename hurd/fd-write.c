@@ -1,5 +1,5 @@
 /* _hurd_fd_write -- write to a file descriptor; handles job control et al.
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ _hurd_fd_write (struct hurd_fd *fd,
       return __io_write (port, buf, *nbytes, offset, &wrote);
     }
 
-  err = HURD_FD_PORT_USE (fd, _hurd_ctty_output (port, ctty, writefd));
+  err = HURD_FD_PORT_USE_CANCEL (fd, _hurd_ctty_output (port, ctty, writefd));
 
   if (! err)
     *nbytes = wrote;

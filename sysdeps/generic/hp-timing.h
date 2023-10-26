@@ -1,7 +1,6 @@
 /* High precision, low overhead timing functions.  Generic version.
-   Copyright (C) 1998-2020 Free Software Foundation, Inc.
+   Copyright (C) 1998-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1998.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,11 +31,20 @@ typedef uint64_t hp_timing_t;
 /* The clock_gettime (CLOCK_MONOTONIC) has unspecified starting time,
    nano-second accuracy, and for some architectues is implemented as
    vDSO symbol.  */
-#define HP_TIMING_NOW(var) \
+#ifdef _ISOMAC
+# define HP_TIMING_NOW(var) \
 ({								\
   struct timespec tv;						\
-  __clock_gettime (CLOCK_MONOTONIC, &tv);			\
+  clock_gettime (CLOCK_MONOTONIC, &tv);				\
   (var) = (tv.tv_nsec + UINT64_C(1000000000) * tv.tv_sec);	\
 })
+#else
+# define HP_TIMING_NOW(var) \
+({								\
+  struct __timespec64 tv;						\
+  __clock_gettime64 (CLOCK_MONOTONIC, &tv);			\
+  (var) = (tv.tv_nsec + UINT64_C(1000000000) * tv.tv_sec);	\
+})
+#endif
 
 #endif	/* hp-timing.h */

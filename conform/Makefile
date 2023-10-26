@@ -1,4 +1,4 @@
-# Copyright (C) 1999-2020 Free Software Foundation, Inc.
+# Copyright (C) 1999-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -175,7 +175,11 @@ $(conformtest-header-tests): $(objpfx)%/conform.out: \
 			     conformtest.py $(conformtest-headers-data)
 	(set -e; std_hdr=$*; std=$${std_hdr%%/*}; hdr=$${std_hdr#*/}; \
 	 mkdir -p $(@D); \
-	 $(PYTHON) $< --cc='$(CC)' --flags='$(conformtest-cc-flags)' \
+	 $(PYTHON) $< --cc='$(CC) $(pie-default)' \
+		   --flags='$(conformtest-cc-flags)' \
+		   --ldflags='$(+link-tests-before-inputs)' \
+		   --libs='$(+link-tests-after-inputs)' \
+		   --run-program-prefix='$(run-program-prefix)' \
 		   --standard=$$std --header=$$hdr $(conformtest-xfail) \
 		   $(conformtest-cross) \
 		   > $@ 2>&1); \
@@ -189,14 +193,15 @@ $(linknamespace-symlists-tests): $(objpfx)symlist-%: list-header-symbols.py
 
 linknamespace-libs-isoc = $(common-objpfx)libc.a $(common-objpfx)math/libm.a
 linknamespace-libs-thr = $(linknamespace-libs-isoc) \
-			 $(common-objpfx)rt/librt.a $(static-thread-library)
+			 $(common-objpfx)rt/librt.a \
+			 $(filter-out %_syms.a,$(static-thread-library))
 linknamespace-libs-posix = $(linknamespace-libs-thr) \
 			   $(common-objpfx)dlfcn/libdl.a
 linknamespace-libs-xsi = $(linknamespace-libs-posix)
 linknamespace-libs-ISO = $(linknamespace-libs-isoc)
 linknamespace-libs-ISO99 = $(linknamespace-libs-isoc)
 linknamespace-libs-ISO11 = $(linknamespace-libs-isoc) \
-			   $(static-thread-library)
+			   $(filter-out %_syms.a,$(static-thread-library))
 linknamespace-libs-XPG4 = $(linknamespace-libs-isoc)
 linknamespace-libs-XPG42 = $(linknamespace-libs-XPG4)
 linknamespace-libs-POSIX = $(linknamespace-libs-thr)

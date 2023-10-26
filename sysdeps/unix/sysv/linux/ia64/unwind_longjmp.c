@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,8 +34,7 @@ __libc_unwind_longjmp (sigjmp_buf env, int val)
 
   if (env[0].__mask_was_saved)
     /* Restore the saved signal mask.  */
-    (void) __sigprocmask (SIG_SETMASK, &env[0].__saved_mask,
-			  (sigset_t *) NULL);
+    __sigprocmask (SIG_SETMASK, &env[0].__saved_mask, NULL);
 
   /* Call the machine-dependent function to restore machine state.  */
   __sigstack_longjmp (env[0].__jmpbuf, val ?: 1);

@@ -40,7 +40,7 @@ libc {
 
     # m*
     mblen; mbrlen; mbrtowc; mbsinit; mbsnrtowcs; mbsrtowcs; mbstowcs;
-    mbtowc; mcheck; mcount; mrand48; mrand48_r;
+    mbtowc; mcount; mrand48; mrand48_r;
 
     # n*
     nrand48; nrand48_r;
@@ -135,6 +135,11 @@ libc {
     strfromf32; strfromf64; strfromf32x;
     strtof32; strtof64; strtof32x;
     strtof32_l; strtof64_l; strtof32x_l;
+  }
+  GLIBC_2.36 {
+    arc4random;
+    arc4random_buf;
+    arc4random_uniform;
   }
   GLIBC_PRIVATE {
     # functions which have an additional interface since they are

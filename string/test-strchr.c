@@ -1,8 +1,6 @@
 /* Test STRCHR functions.
-   Copyright (C) 1999-2020 Free Software Foundation, Inc.
+   Copyright (C) 1999-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Written by Jakub Jelinek <jakub@redhat.com>, 1999.
-   Added wcschr support by Liubov Dmitrieva <liubov.dmitrieva@gmail.com>, 2011
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,7 +35,6 @@
 #ifndef WIDE
 # ifdef USE_FOR_STRCHRNUL
 #  define STRCHR strchrnul
-#  define stupid_STRCHR stupid_STRCHRNUL
 #  define simple_STRCHR simple_STRCHRNUL
 # else
 #  define STRCHR strchr
@@ -53,7 +50,6 @@
 # include <wchar.h>
 # ifdef USE_FOR_STRCHRNUL
 #  define STRCHR wcschrnul
-#  define stupid_STRCHR stupid_WCSCHRNUL
 #  define simple_STRCHR simple_WCSCHRNUL
 # else
 #  define STRCHR wcschr
@@ -76,17 +72,9 @@
 
 typedef CHAR *(*proto_t) (const CHAR *, int);
 
+/* Naive implementation to verify results.  */
 CHAR *
 simple_STRCHR (const CHAR *s, int c)
-{
-  for (; *s != (CHAR) c; ++s)
-    if (*s == '\0')
-      return NULLRET ((CHAR *) s);
-  return (CHAR *) s;
-}
-
-CHAR *
-stupid_STRCHR (const CHAR *s, int c)
 {
   size_t n = STRLEN (s) + 1;
 
@@ -96,8 +84,6 @@ stupid_STRCHR (const CHAR *s, int c)
   return NULLRET ((CHAR *) s - 1);
 }
 
-IMPL (stupid_STRCHR, 0)
-IMPL (simple_STRCHR, 0)
 IMPL (STRCHR, 1)
 
 static int
@@ -130,7 +116,7 @@ do_test (size_t align, size_t pos, size_t len, int seek_char, int max_char)
   size_t i;
   CHAR *result;
   CHAR *buf = (CHAR *) buf1;
-  align &= 15;
+  align &= 127;
   if ((align + len) * sizeof (CHAR) >= page_size)
     return;
 
@@ -233,7 +219,7 @@ check1 (void)
 {
   CHAR s[] __attribute__((aligned(16))) = L ("\xff");
   CHAR c = L ('\xfe');
-  CHAR *exp_result = stupid_STRCHR (s, c);
+  CHAR *exp_result = simple_STRCHR (s, c);
 
   FOR_EACH_IMPL (impl, 0)
     check_result (impl, s, c, exp_result);
@@ -261,8 +247,20 @@ test_main (void)
 
   for (i = 1; i < 8; ++i)
     {
+      do_test (0, 16 << i, 4096, SMALL_CHAR, MIDDLE_CHAR);
+      do_test (i, 16 << i, 4096, SMALL_CHAR, MIDDLE_CHAR);
+    }
+
+  for (i = 1; i < 8; ++i)
+    {
       do_test (i, 64, 256, SMALL_CHAR, MIDDLE_CHAR);
       do_test (i, 64, 256, SMALL_CHAR, BIG_CHAR);
+    }
+
+  for (i = 0; i < 8; ++i)
+    {
+      do_test (16 * i, 256, 512, SMALL_CHAR, MIDDLE_CHAR);
+      do_test (16 * i, 256, 512, SMALL_CHAR, BIG_CHAR);
     }
 
   for (i = 0; i < 32; ++i)
@@ -279,8 +277,20 @@ test_main (void)
 
   for (i = 1; i < 8; ++i)
     {
+      do_test (0, 16 << i, 4096, 0, MIDDLE_CHAR);
+      do_test (i, 16 << i, 4096, 0, MIDDLE_CHAR);
+    }
+
+  for (i = 1; i < 8; ++i)
+    {
       do_test (i, 64, 256, 0, MIDDLE_CHAR);
       do_test (i, 64, 256, 0, BIG_CHAR);
+    }
+
+  for (i = 0; i < 8; ++i)
+    {
+      do_test (16 * i, 256, 512, 0, MIDDLE_CHAR);
+      do_test (16 * i, 256, 512, 0, BIG_CHAR);
     }
 
   for (i = 0; i < 32; ++i)

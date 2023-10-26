@@ -1,5 +1,5 @@
 /* Call the termination functions of loaded shared objects.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <string.h>
 #include <ldsodefs.h>
+#include <elf-initfini.h>
 
 
 /* Type of the constructor functions.  */
@@ -63,6 +64,10 @@ _dl_fini (void)
 	__rtld_lock_unlock_recursive (GL(dl_load_lock));
       else
 	{
+#ifdef SHARED
+	  _dl_audit_activity_nsid (ns, LA_ACT_DELETE);
+#endif
+
 	  /* Now we can allocate an array to hold all the pointers and
 	     copy the pointers in.  */
 	  struct link_map *maps[nloaded];
@@ -91,8 +96,7 @@ _dl_fini (void)
 	  /* Now we have to do the sorting.  We can skip looking for the
 	     binary itself which is at the front of the search list for
 	     the main namespace.  */
-	  _dl_sort_maps (maps + (ns == LM_ID_BASE), nmaps - (ns == LM_ID_BASE),
-			 NULL, true);
+	  _dl_sort_maps (maps, nmaps, (ns == LM_ID_BASE), true);
 
 	  /* We do not rely on the linked list of loaded object anymore
 	     from this point on.  We have our own list here (maps).  The
@@ -117,7 +121,7 @@ _dl_fini (void)
 
 		  /* Is there a destructor function?  */
 		  if (l->l_info[DT_FINI_ARRAY] != NULL
-		      || l->l_info[DT_FINI] != NULL)
+		      || (ELF_INITFINI && l->l_info[DT_FINI] != NULL))
 		    {
 		      /* When debugging print a message first.  */
 		      if (__builtin_expect (GLRO(dl_debug_mask)
@@ -139,34 +143,24 @@ _dl_fini (void)
 			}
 
 		      /* Next try the old-style destructor.  */
-		      if (l->l_info[DT_FINI] != NULL)
+		      if (ELF_INITFINI && l->l_info[DT_FINI] != NULL)
 			DL_CALL_DT_FINI
 			  (l, l->l_addr + l->l_info[DT_FINI]->d_un.d_ptr);
 		    }
 
 #ifdef SHARED
 		  /* Auditing checkpoint: another object closed.  */
-		  if (!do_audit && __builtin_expect (GLRO(dl_naudit) > 0, 0))
-		    {
-		      struct audit_ifaces *afct = GLRO(dl_audit);
-		      for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
-			{
-			  if (afct->objclose != NULL)
-			    {
-			      struct auditstate *state
-				= link_map_audit_state (l, cnt);
-			      /* Return value is ignored.  */
-			      (void) afct->objclose (&state->cookie);
-			    }
-			  afct = afct->next;
-			}
-		    }
+		  _dl_audit_objclose (l);
 #endif
 		}
 
 	      /* Correct the previous increment.  */
 	      --l->l_direct_opencount;
 	    }
+
+#ifdef SHARED
+	  _dl_audit_activity_nsid (ns, LA_ACT_CONSISTENT);
+#endif
 	}
     }
 

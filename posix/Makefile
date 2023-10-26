@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2020 Free Software Foundation, Inc.
+# Copyright (C) 1991-2022 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -32,14 +32,14 @@ headers	:= sys/utsname.h sys/times.h sys/wait.h sys/types.h unistd.h	      \
 	   bits/waitflags.h bits/waitstatus.h sys/unistd.h sched.h	      \
 	   bits/sched.h bits/cpu-set.h re_comp.h wait.h bits/environments.h   \
 	   cpio.h spawn.h bits/unistd.h bits/types/struct_sched_param.h	      \
-	   bits/unistd_ext.h
+	   bits/unistd_ext.h bits/types/idtype_t.h bits/mman_ext.h
 
 routines :=								      \
 	uname								      \
 	times								      \
 	wait waitpid wait3 wait4 waitid					      \
 	alarm sleep pause nanosleep					      \
-	fork vfork _exit						      \
+	fork _Fork vfork _exit register-atfork				      \
 	execve fexecve execv execle execl execvp execlp execvpe		      \
 	getpid getppid							      \
 	getuid geteuid getgid getegid getgroups setuid setgid group_member    \
@@ -57,6 +57,8 @@ routines :=								      \
 	spawn_faction_init spawn_faction_destroy spawn_faction_addclose	      \
 	spawn_faction_addopen spawn_faction_adddup2 spawn_valid_fd	      \
 	spawn_faction_addchdir spawn_faction_addfchdir			      \
+	spawn_faction_addclosefrom					      \
+	spawn_faction_addtcsetpgrp_np					      \
 	spawnattr_init spawnattr_destroy				      \
 	spawnattr_getdefault spawnattr_setdefault			      \
 	spawnattr_getflags spawnattr_setflags				      \
@@ -65,7 +67,11 @@ routines :=								      \
 	spawnattr_setsigmask spawnattr_setschedpolicy spawnattr_setschedparam \
 	posix_madvise							      \
 	get_child_max sched_cpucount sched_cpualloc sched_cpufree \
-	streams-compat
+	streams-compat \
+	shm-directory                                                         \
+	execveat \
+	glob64-time64 \
+	globfree64-time64
 
 aux		:= init-posix environ
 tests		:= test-errno tstgetopt testfnm runtests runptests \
@@ -82,7 +88,8 @@ tests		:= test-errno tstgetopt testfnm runtests runptests \
 		   bug-regex29 bug-regex30 bug-regex31 bug-regex32 \
 		   tst-nice tst-nanosleep tst-regex2 \
 		   transbug tst-rxspencer tst-pcre tst-boost \
-		   bug-ga1 tst-vfork1 tst-vfork2 tst-vfork3 tst-waitid \
+		   bug-ga1 tst-vfork1 tst-vfork2 \
+		   tst-waitid tst-wait4 tst-wait3 \
 		   tst-getaddrinfo2 bug-glob2 bug-glob3 tst-sysconf \
 		   tst-execvp1 tst-execvp2 tst-execlp1 tst-execlp2 \
 		   tst-execv1 tst-execv2 tst-execl1 tst-execl2 \
@@ -95,23 +102,38 @@ tests		:= test-errno tstgetopt testfnm runtests runptests \
 		   bug-getopt5 tst-getopt_long1 bug-regex34 bug-regex35 \
 		   tst-pathconf tst-rxspencer-no-utf8 \
 		   tst-fnmatch3 bug-regex36 \
-		   tst-fnmatch4 tst-fnmatch5 \
+		   tst-fnmatch4 tst-fnmatch5 tst-fnmatch6 tst-fnmatch7 \
 		   tst-posix_spawn-fd tst-posix_spawn-setsid \
 		   tst-posix_fadvise tst-posix_fadvise64 \
 		   tst-sysconf-empty-chroot tst-glob_symlinks tst-fexecve \
 		   tst-glob-tilde test-ssize-max tst-spawn4 bug-regex37 \
 		   bug-regex38 tst-regcomp-truncated tst-spawn-chdir \
-		   tst-wordexp-nocmd
+		   tst-wordexp-nocmd tst-execveat tst-spawn5 \
+		   tst-sched_getaffinity tst-spawn6
+
+# Test for the glob symbol version that was replaced in glibc 2.27.
+ifeq ($(have-GLIBC_2.26)$(build-shared),yesyes)
+tests += tst-glob_lstat_compat
+endif
+
+# Test for the posix_spawn, posix_spawnp symbol versions replaced in
+# glibc 2.15.
+ifeq ($(have-GLIBC_2.14)$(build-shared),yesyes)
+tests += tst-spawn4-compat
+endif
+
 tests-internal	:= bug-regex5 bug-regex20 bug-regex33 \
-		   tst-rfc3484 tst-rfc3484-2 tst-rfc3484-3 \
-		   tst-glob_lstat_compat tst-spawn4-compat
-xtests		:= bug-ga2 tst-getaddrinfo4 tst-getaddrinfo5
+		   tst-rfc3484 tst-rfc3484-2 tst-rfc3484-3
+tests-container := bug-ga2 tst-vfork3
+tests-time64	:= tst-wait4-time64 tst-wait3-time64 tst-gnuglob64-time64
+xtests		:= tst-getaddrinfo4 tst-getaddrinfo5 tst-sched_rr_get_interval
+xtests-time64	:= tst-sched_rr_get_interval-time64
 ifeq (yes,$(build-shared))
 test-srcs	:= globtest
 tests           += wordexp-test tst-exec tst-spawn tst-spawn2 tst-spawn3
 endif
 ifeq (yesyes,$(build-shared)$(have-thread-library))
-tests		+= tst-getopt-cancel
+tests		+= tst-getopt-cancel tst-_Fork
 endif
 tests-static	= tst-exec-static tst-spawn-static
 tests		+= $(tests-static)
@@ -152,8 +174,7 @@ tests-special += $(objpfx)bug-regex2-mem.out $(objpfx)bug-regex14-mem.out \
 		 $(objpfx)tst-boost-mem.out $(objpfx)tst-getconf.out \
 		 $(objpfx)bug-glob2-mem.out $(objpfx)tst-vfork3-mem.out \
 		 $(objpfx)tst-fnmatch-mem.out $(objpfx)bug-regex36-mem.out \
-		 $(objpfx)tst-glob-tilde-mem.out
-xtests-special += $(objpfx)bug-ga2-mem.out
+		 $(objpfx)tst-glob-tilde-mem.out $(objpfx)bug-ga2-mem.out
 endif
 
 include ../Rules
@@ -163,17 +184,27 @@ ifeq ($(run-built-tests),yes)
 ifeq (yes,$(build-shared))
 $(objpfx)globtest.out: globtest.sh $(objpfx)globtest
 	$(SHELL) $< $(common-objpfx) '$(test-via-rtld-prefix)' \
-		'$(test-program-prefix)' '$(test-wrapper-env)' > $@; \
+		'$(test-program-prefix)' '$(test-wrapper-env)'; \
 	$(evaluate-test)
 $(objpfx)wordexp-tst.out: wordexp-tst.sh $(objpfx)wordexp-test
 	$(SHELL) $< $(common-objpfx) '$(test-program-prefix-before-env)' \
-		 '$(run-program-env)' '$(test-program-prefix-after-env)' > $@; \
+		 '$(run-program-env)' '$(test-program-prefix-after-env)'; \
 	$(evaluate-test)
 endif
 
-LOCALES := cs_CZ.UTF-8 da_DK.ISO-8859-1 de_DE.ISO-8859-1 de_DE.UTF-8 \
-	   en_US.UTF-8 es_US.ISO-8859-1 es_US.UTF-8 ja_JP.EUC-JP tr_TR.UTF-8 \
-	   cs_CZ.ISO-8859-2
+LOCALES := \
+	cs_CZ.ISO-8859-2 \
+	cs_CZ.UTF-8 \
+	C.UTF-8 \
+	da_DK.ISO-8859-1 \
+	de_DE.ISO-8859-1 \
+	de_DE.UTF-8 \
+	en_US.UTF-8 \
+	es_US.ISO-8859-1 \
+	es_US.UTF-8 \
+	ja_JP.EUC-JP \
+	tr_TR.UTF-8 \
+	# LOCALES
 include ../gen-locales.mk
 
 $(objpfx)bug-regex1.out: $(gen-locales)
@@ -196,6 +227,7 @@ $(objpfx)bug-regex35.out: $(gen-locales)
 $(objpfx)tst-fnmatch.out: $(gen-locales)
 $(objpfx)tst-fnmatch4.out: $(gen-locales)
 $(objpfx)tst-fnmatch5.out: $(gen-locales)
+$(objpfx)tst-fnmatch6.out: $(gen-locales)
 $(objpfx)tst-regex.out: $(gen-locales)
 $(objpfx)tst-regex2.out: $(gen-locales)
 $(objpfx)tst-regexloc.out: $(gen-locales)
@@ -247,6 +279,7 @@ CFLAGS-execl.os = -fomit-frame-pointer
 CFLAGS-execvp.os = -fomit-frame-pointer
 CFLAGS-execlp.os = -fomit-frame-pointer
 CFLAGS-nanosleep.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-fork.c = $(libio-mtsafe)
 
 tstgetopt-ARGS = -a -b -cfoobar --required foobar --optional=bazbug \
 		--none random --col --color --colour
@@ -256,6 +289,8 @@ tst-exec-static-ARGS = $(tst-exec-ARGS)
 tst-execvpe5-ARGS = -- $(host-test-program-cmd)
 tst-spawn-ARGS = -- $(host-test-program-cmd)
 tst-spawn-static-ARGS = $(tst-spawn-ARGS)
+tst-spawn5-ARGS = -- $(host-test-program-cmd)
+tst-spawn6-ARGS = -- $(host-test-program-cmd)
 tst-dir-ARGS = `pwd` `cd $(common-objdir)/$(subdir); pwd` `cd $(common-objdir); pwd` $(objpfx)tst-dir
 tst-chmod-ARGS = $(objdir)
 tst-vfork3-ARGS = --test-dir=$(objpfx)
@@ -279,6 +314,7 @@ $(objpfx)ptestcases.h: PTESTS PTESTS2C.sed
 $(objpfx)runptests.o: $(objpfx)ptestcases.h
 
 $(objpfx)tst-getopt-cancel: $(shared-thread-library)
+$(objpfx)tst-_Fork: $(shared-thread-library)
 
 test-xfail-annexc = yes
 $(objpfx)annexc.out: $(objpfx)annexc
@@ -290,84 +326,102 @@ annexc-CFLAGS = -O
 $(objpfx)annexc: annexc.c
 	$(native-compile)
 
-tst-fnmatch-ENV += MALLOC_TRACE=$(objpfx)tst-fnmatch.mtrace
+tst-fnmatch-ENV += MALLOC_TRACE=$(objpfx)tst-fnmatch.mtrace \
+		   LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)tst-fnmatch-mem.out: $(objpfx)tst-fnmatch.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-fnmatch.mtrace > $@; \
 	$(evaluate-test)
 
-bug-regex2-ENV = MALLOC_TRACE=$(objpfx)bug-regex2.mtrace
+bug-regex2-ENV = MALLOC_TRACE=$(objpfx)bug-regex2.mtrace \
+		 LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-regex2-mem.out: $(objpfx)bug-regex2.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-regex2.mtrace > $@; \
 	$(evaluate-test)
 
-bug-regex14-ENV = MALLOC_TRACE=$(objpfx)bug-regex14.mtrace
+bug-regex14-ENV = MALLOC_TRACE=$(objpfx)bug-regex14.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-regex14-mem.out: $(objpfx)bug-regex14.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-regex14.mtrace > $@; \
 	$(evaluate-test)
 
-bug-regex21-ENV = MALLOC_TRACE=$(objpfx)bug-regex21.mtrace
+bug-regex21-ENV = MALLOC_TRACE=$(objpfx)bug-regex21.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-regex21-mem.out: $(objpfx)bug-regex21.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-regex21.mtrace > $@; \
 	$(evaluate-test)
 
-bug-regex31-ENV = MALLOC_TRACE=$(objpfx)bug-regex31.mtrace
+bug-regex31-ENV = MALLOC_TRACE=$(objpfx)bug-regex31.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-regex31-mem.out: $(objpfx)bug-regex31.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-regex31.mtrace > $@; \
 	$(evaluate-test)
 
-bug-regex36-ENV = MALLOC_TRACE=$(objpfx)bug-regex36.mtrace
+bug-regex36-ENV = MALLOC_TRACE=$(objpfx)bug-regex36.mtrace \
+		  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-regex36-mem.out: $(objpfx)bug-regex36.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-regex36.mtrace > $@; \
 	$(evaluate-test)
 
-tst-vfork3-ENV = MALLOC_TRACE=$(objpfx)tst-vfork3.mtrace
+tst-vfork3-ENV = MALLOC_TRACE=$(objpfx)tst-vfork3.mtrace \
+		 LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)tst-vfork3-mem.out: $(objpfx)tst-vfork3.out
-	$(common-objpfx)malloc/mtrace $(objpfx)tst-vfork3.mtrace > $@; \
+	{ test -r $(objpfx)tst-vfork3.mtrace \
+	|| ( echo "tst-vfork3.mtrace does not exist"; exit 77; ) \
+	&& $(common-objpfx)malloc/mtrace $(objpfx)tst-vfork3.mtrace; } > $@; \
 	$(evaluate-test)
 
 # tst-rxspencer.mtrace is not generated, only
 # tst-rxspencer-no-utf8.mtrace, since otherwise the file has almost
 # 100M and takes very long time to process.
-tst-rxspencer-no-utf8-ENV += MALLOC_TRACE=$(objpfx)tst-rxspencer-no-utf8.mtrace
+tst-rxspencer-no-utf8-ENV += \
+  MALLOC_TRACE=$(objpfx)tst-rxspencer-no-utf8.mtrace \
+  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)tst-rxspencer-no-utf8-mem.out: $(objpfx)tst-rxspencer-no-utf8.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-rxspencer-no-utf8.mtrace \
 				      > $@; \
 	$(evaluate-test)
 
-tst-pcre-ENV = MALLOC_TRACE=$(objpfx)tst-pcre.mtrace
+tst-pcre-ENV = MALLOC_TRACE=$(objpfx)tst-pcre.mtrace \
+	       LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)tst-pcre-mem.out: $(objpfx)tst-pcre.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-pcre.mtrace > $@; \
 	$(evaluate-test)
 
-tst-boost-ENV = MALLOC_TRACE=$(objpfx)tst-boost.mtrace
+tst-boost-ENV = MALLOC_TRACE=$(objpfx)tst-boost.mtrace \
+		LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 $(objpfx)tst-boost-mem.out: $(objpfx)tst-boost.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-boost.mtrace > $@; \
 	$(evaluate-test)
 
 $(objpfx)tst-getconf.out: tst-getconf.sh $(objpfx)getconf
-	$(SHELL) $< $(common-objpfx) '$(built-program-cmd)' > $@; \
+	$(SHELL) $< $(common-objpfx) '$(built-program-cmd)'; \
 	$(evaluate-test)
 
 $(objpfx)bug-ga2-mem.out: $(objpfx)bug-ga2.out
-	$(common-objpfx)malloc/mtrace $(objpfx)bug-ga2.mtrace > $@; \
+	{ test -r $(objpfx)bug-ga2.mtrace \
+	|| ( echo "bug-ga2.mtrace does not exist"; exit 77; ) \
+	&& $(common-objpfx)malloc/mtrace $(objpfx)bug-ga2.mtrace; } > $@; \
 	$(evaluate-test)
 
-bug-ga2-ENV = MALLOC_TRACE=$(objpfx)bug-ga2.mtrace
+bug-ga2-ENV = MALLOC_TRACE=$(objpfx)bug-ga2.mtrace \
+	      LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
-bug-glob2-ENV = MALLOC_TRACE=$(objpfx)bug-glob2.mtrace
+bug-glob2-ENV = MALLOC_TRACE=$(objpfx)bug-glob2.mtrace \
+		LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)bug-glob2-mem.out: $(objpfx)bug-glob2.out
 	$(common-objpfx)malloc/mtrace $(objpfx)bug-glob2.mtrace > $@; \
 	$(evaluate-test)
 
-tst-glob-tilde-ENV = MALLOC_TRACE=$(objpfx)tst-glob-tilde.mtrace
+tst-glob-tilde-ENV = MALLOC_TRACE=$(objpfx)tst-glob-tilde.mtrace \
+		     LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 
 $(objpfx)tst-glob-tilde-mem.out: $(objpfx)tst-glob-tilde.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-glob-tilde.mtrace > $@; \

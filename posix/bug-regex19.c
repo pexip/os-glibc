@@ -1,7 +1,6 @@
 /* Regular expression tests.
-   Copyright (C) 2003-2020 Free Software Foundation, Inc.
+   Copyright (C) 2003-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Jakub Jelinek <jakub@redhat.com>, 2003.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,6 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <libc-diag.h>
+#include <support/support.h>
 
 #define BRE RE_SYNTAX_POSIX_BASIC
 #define ERE RE_SYNTAX_POSIX_EXTENDED
@@ -268,8 +269,17 @@ do_one_test (const struct test_s *test, const char *fail)
       return 1;
     }
 
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_PUSH_NEEDS_COMMENT;
+  /* Avoid GCC 10 false positive warning: specified size exceeds maximum
+     object size.  */
+  DIAG_IGNORE_NEEDS_COMMENT (10, "-Wstringop-overflow");
+#endif
   res = re_search (&regbuf, test->string, strlen (test->string),
 		   test->start, strlen (test->string) - test->start, NULL);
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_POP_NEEDS_COMMENT;
+#endif
   if (res != test->res)
     {
       printf ("%sre_search \"%s\" \"%s\" failed: %d (expected %d)\n",
@@ -280,8 +290,17 @@ do_one_test (const struct test_s *test, const char *fail)
 
   if (test->res > 0 && test->start == 0)
     {
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_PUSH_NEEDS_COMMENT;
+  /* Avoid GCC 10 false positive warning: specified size exceeds maximum
+     object size.  */
+  DIAG_IGNORE_NEEDS_COMMENT (10, "-Wstringop-overflow");
+#endif
       res = re_search (&regbuf, test->string, strlen (test->string),
 		       test->res, strlen (test->string) - test->res, NULL);
+#if __GNUC_PREREQ (10, 0) && !__GNUC_PREREQ (11, 0)
+  DIAG_POP_NEEDS_COMMENT;
+#endif
       if (res != test->res)
 	{
 	  printf ("%sre_search from expected \"%s\" \"%s\" failed: %d (expected %d)\n",
@@ -388,8 +407,8 @@ do_mb_tests (const struct test_s *test)
   return 0;
 }
 
-int
-main (void)
+static int
+do_test (void)
 {
   size_t i;
   int ret = 0;
@@ -398,20 +417,17 @@ main (void)
 
   for (i = 0; i < sizeof (tests) / sizeof (tests[0]); ++i)
     {
-      if (setlocale (LC_ALL, "de_DE.ISO-8859-1") == NULL)
-	{
-	  puts ("setlocale de_DE.ISO-8859-1 failed");
-	  ret = 1;
-	}
+      xsetlocale (LC_ALL, "de_DE.ISO-8859-1");
       ret |= do_one_test (&tests[i], "");
-      if (setlocale (LC_ALL, "de_DE.UTF-8") == NULL)
-	{
-	  puts ("setlocale de_DE.UTF-8 failed");
-	  ret = 1;
-	}
+      xsetlocale (LC_ALL, "de_DE.UTF-8");
+      ret |= do_one_test (&tests[i], "UTF-8 ");
+      ret |= do_mb_tests (&tests[i]);
+      xsetlocale (LC_ALL, "C.UTF-8");
       ret |= do_one_test (&tests[i], "UTF-8 ");
       ret |= do_mb_tests (&tests[i]);
     }
 
   return ret;
 }
+
+#include <support/test-driver.c>

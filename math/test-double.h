@@ -1,5 +1,5 @@
 /* Common definitions for libm tests for double.
-   Copyright (C) 1997-2020 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,6 @@
 #define LIT(x) (x)
 #define TYPE_STR "double"
 #define ULP_IDX ULP_DBL
-#define ULP_I_IDX ULP_I_DBL
 #define LITM(x) x
 #define FTOSTR strfromd
 #define snan_value_MACRO SNAN

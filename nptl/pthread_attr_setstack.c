@@ -1,6 +1,5 @@
-/* Copyright (C) 2002-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2002.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,6 +18,7 @@
 #include <errno.h>
 #include <limits.h>
 #include "pthreadP.h"
+#include <shlib-compat.h>
 
 
 #ifndef NEW_VERNUM
@@ -53,16 +53,21 @@ __pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
 
   return 0;
 }
+versioned_symbol (libc, __pthread_attr_setstack, pthread_attr_setstack,
+		  GLIBC_2_34);
 
 #if PTHREAD_STACK_MIN == 16384
-strong_alias (__pthread_attr_setstack, pthread_attr_setstack)
-#else
-# include <shlib-compat.h>
-versioned_symbol (libpthread, __pthread_attr_setstack, pthread_attr_setstack,
-		  NEW_VERNUM);
+# if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_attr_setstack, pthread_attr_setstack,
+	       GLIBC_2_2);
+# endif
+#else /* PTHREAD_STACK_MIN != 16384 */
+# if OTHER_SHLIB_COMPAT (libpthread, NEW_VERNUM, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_attr_setstack, pthread_attr_setstack,
+	       NEW_VERNUM);
+# endif
 
-# if SHLIB_COMPAT(libpthread, GLIBC_2_2, NEW_VERNUM)
-
+# if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, NEW_VERNUM)
 int
 __old_pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
 			     size_t stacksize)
@@ -80,11 +85,11 @@ __old_pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
 #  endif
 
   iattr->stacksize = stacksize;
-#if _STACK_GROWS_DOWN
+#  if _STACK_GROWS_DOWN
   iattr->stackaddr = (char *) stackaddr + stacksize;
-#else
+#  else
   iattr->stackaddr = (char *) stackaddr;
-#endif
+#  endif
   iattr->flags |= ATTR_FLAG_STACKADDR;
 
   return 0;
@@ -92,6 +97,5 @@ __old_pthread_attr_setstack (pthread_attr_t *attr, void *stackaddr,
 
 compat_symbol (libpthread, __old_pthread_attr_setstack, pthread_attr_setstack,
 	       GLIBC_2_2);
-# endif
-
-#endif
+# endif /* OTHER_SHLIB_COMPAT */
+#endif /* PTHREAD_STACK_MIN != 16384 */

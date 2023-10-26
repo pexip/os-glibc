@@ -1,7 +1,6 @@
 /* Cache handling for host lookup.
-   Copyright (C) 2004-2020 Free Software Foundation, Inc.
+   Copyright (C) 2004-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@redhat.com>, 2004.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published
@@ -31,12 +30,6 @@
 #include "nscd.h"
 
 #include "../nss/nsswitch.h"
-
-#ifdef LINK_OBSOLETE_NSL
-# define DEFAULT_CONFIG "compat [NOTFOUND=return] files"
-#else
-# define DEFAULT_CONFIG "files"
-#endif
 
 /* Type of the lookup function.  */
 typedef enum nss_status (*initgroups_dyn_function) (const char *, gid_t,
@@ -83,13 +76,12 @@ addinitgroupsX (struct database_dyn *db, int fd, request_header *req,
 	dbg_log (_("Reloading \"%s\" in group cache!"), (char *) key);
     }
 
-  static service_user *group_database;
-  service_user *nip;
+  static nss_action_list group_database;
+  nss_action_list nip;
   int no_more;
 
   if (group_database == NULL)
-    no_more = __nss_database_lookup2 ("group", NULL, DEFAULT_CONFIG,
-				      &group_database);
+    no_more = !__nss_database_get (nss_database_group, &group_database);
   else
     no_more = 0;
   nip = group_database;
@@ -167,10 +159,10 @@ addinitgroupsX (struct database_dyn *db, int fd, request_header *req,
 	  && nss_next_action (nip, status) == NSS_ACTION_RETURN)
 	 break;
 
-      if (nip->next == NULL)
+      if (nip[1].module == NULL)
 	no_more = -1;
       else
-	nip = nip->next;
+	++nip;
     }
 
   bool all_written;

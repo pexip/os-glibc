@@ -1,5 +1,5 @@
 /* Operating system support for run-time dynamic linker.  Hurd version.
-   Copyright (C) 1995-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@
 #include <sys/wait.h>
 #include <assert.h>
 #include <sysdep.h>
+#include <argz.h>
 #include <mach/mig_support.h>
 #include <mach/machine/vm_param.h>
 #include "hurdstartup.h"
@@ -47,6 +48,7 @@
 
 #include <dl-tunables.h>
 #include <not-errno.h>
+#include <not-cancel.h>
 
 extern void __mach_init (void);
 
@@ -56,8 +58,6 @@ extern char **_environ;
 
 int __libc_enable_secure = 0;
 rtld_hidden_data_def (__libc_enable_secure)
-int __libc_multiple_libcs = 0;	/* Defining this here avoids the inclusion
-				   of init-first.  */
 /* This variable contains the lowest stack address ever used.  */
 void *__libc_stack_end = NULL;
 rtld_hidden_data_def(__libc_stack_end)
@@ -66,37 +66,6 @@ rtld_hidden_data_def(__libc_stack_end)
 void *_dl_random attribute_relro = NULL;
 
 struct hurd_startup_data *_dl_hurd_data;
-
-#define FMH defined(__i386__)
-#if ! FMH
-# define fmh()		((void)0)
-# define unfmh()	((void)0)
-#else
-/* XXX loser kludge for vm_map kernel bug */
-#undef	ELF_MACHINE_USER_ADDRESS_MASK
-#define ELF_MACHINE_USER_ADDRESS_MASK	0
-static vm_address_t fmha;
-static vm_size_t fmhs;
-static void unfmh(void){
-__vm_deallocate(__mach_task_self(),fmha,fmhs);}
-static void fmh(void) {
-    error_t err;int x;vm_offset_t o;mach_port_t p;
-    vm_address_t a=0x08000000U,max=VM_MAX_ADDRESS;
-    while (!(err=__vm_region(__mach_task_self(),&a,&fmhs,&x,&x,&x,&x,&p,&o))){
-      __mach_port_deallocate(__mach_task_self(),p);
-      if (a+fmhs>=0x80000000U){
-	max=a; break;}
-      fmha=a+=fmhs;}
-    if (err) assert(err==KERN_NO_SPACE);
-    if (!fmha)fmhs=0;else{
-    fmhs=max-fmha;
-    err = __vm_map (__mach_task_self (),
-		    &fmha, fmhs, 0, 0, MACH_PORT_NULL, 0, 1,
-		    VM_PROT_NONE, VM_PROT_NONE, VM_INHERIT_COPY);
-    assert_perror(err);}
-  }
-/* XXX loser kludge for vm_map kernel bug */
-#endif
 
 
 ElfW(Addr)
@@ -107,6 +76,7 @@ _dl_sysdep_start (void **start_argptr,
 {
   void go (intptr_t *argdata)
     {
+      char *orig_argv0;
       char **p;
 
       /* Cache the information in various global variables.  */
@@ -114,6 +84,8 @@ _dl_sysdep_start (void **start_argptr,
       _dl_argv = 1 + (char **) argdata;
       _environ = &_dl_argv[_dl_argc + 1];
       for (p = _environ; *p++;); /* Skip environ pointers and terminator.  */
+
+      orig_argv0 = _dl_argv[0];
 
       if ((void *) p == _dl_argv[0])
 	{
@@ -124,15 +96,30 @@ _dl_sysdep_start (void **start_argptr,
       else
 	_dl_hurd_data = (void *) p;
 
+      GLRO(dl_platform) = NULL; /* Default to nothing known about the platform.  */
+
       __libc_enable_secure = _dl_hurd_data->flags & EXEC_SECURE;
 
       __tunables_init (_environ);
 
+      /* Initialize DSO sorting algorithm after tunables.  */
+      _dl_sort_maps_init ();
+
+#ifdef DL_SYSDEP_INIT
+      DL_SYSDEP_INIT;
+#endif
+
+#ifdef DL_PLATFORM_INIT
+      DL_PLATFORM_INIT;
+#endif
+
+      /* Determine the length of the platform name.  */
+      if (GLRO(dl_platform) != NULL)
+	GLRO(dl_platformlen) = strlen (GLRO(dl_platform));
+
       if (_dl_hurd_data->flags & EXEC_STACK_ARGS
 	  && _dl_hurd_data->user_entry == 0)
 	_dl_hurd_data->user_entry = (vm_address_t) ENTRY_POINT;
-
-unfmh();			/* XXX */
 
 #if 0				/* XXX make this work for real someday... */
       if (_dl_hurd_data->user_entry == (vm_address_t) ENTRY_POINT)
@@ -152,7 +139,6 @@ unfmh();			/* XXX */
 	    mach_port_t memobj;
 	    error_t err;
 
-	    ++_dl_skip_args;
 	    --_dl_argc;
 	    p = _dl_argv++[1] + 1;
 
@@ -189,30 +175,23 @@ unfmh();			/* XXX */
 
       /* The call above might screw a few things up.
 
-	 First of all, if _dl_skip_args is nonzero, we are ignoring
-	 the first few arguments.  However, if we have no Hurd startup
-	 data, it is the magical convention that ARGV[0] == P.  The
+	 P is the location after the terminating NULL of the list of
+	 environment variables.  It has to point to the Hurd startup
+	 data or if that's missing then P == ARGV[0] must hold. The
 	 startup code in init-first.c will get confused if this is not
 	 the case, so we must rearrange things to make it so.  We'll
-	 overwrite the origional ARGV[0] at P with ARGV[_dl_skip_args].
+	 recompute P and move the Hurd data or the new ARGV[0] there.
 
-	 Secondly, if we need to be secure, it removes some dangerous
-	 environment variables.  If we have no Hurd startup date this
-	 changes P (since that's the location after the terminating
-	 NULL in the list of environment variables).  We do the same
-	 thing as in the first case but make sure we recalculate P.
-	 If we do have Hurd startup data, we have to move the data
-	 such that it starts just after the terminating NULL in the
-	 environment list.
+	 Note: directly invoked ld.so can move arguments and env vars.
 
 	 We use memmove, since the locations might overlap.  */
-      if (__libc_enable_secure || _dl_skip_args)
+
+      char **newp;
+      for (newp = _environ; *newp++;);
+
+      if (newp != p || _dl_argv[0] != orig_argv0)
 	{
-	  char **newp;
-
-	  for (newp = _environ; *newp++;);
-
-	  if (_dl_argv[-_dl_skip_args] == (char *) p)
+	  if (orig_argv0 == (char *) p)
 	    {
 	      if ((char *) newp != _dl_argv[0])
 		{
@@ -241,8 +220,6 @@ unfmh();			/* XXX */
 
   /* Initialize frequently used global variable.  */
   GLRO(dl_pagesize) = __getpagesize ();
-
-fmh();				/* XXX */
 
   /* See hurd/hurdstartup.c; this deals with getting information
      from the exec server and slicing up the arguments.
@@ -310,7 +287,8 @@ open_file (const char *file_name, int flags,
       return MACH_PORT_NULL;
     }
 
-  assert (!(flags & ~(O_READ | O_CLOEXEC)));
+  assert (!(flags & ~(O_READ | O_EXEC | O_CLOEXEC)));
+  flags &= ~O_CLOEXEC;
 
   startdir = _dl_hurd_data->portarray[file_name[0] == '/'
 				      ? INIT_PORT_CRDIR : INIT_PORT_CWDIR];
@@ -318,7 +296,7 @@ open_file (const char *file_name, int flags,
   while (file_name[0] == '/')
     file_name++;
 
-  err = __dir_lookup (startdir, (char *)file_name, O_RDONLY, 0,
+  err = __dir_lookup (startdir, (char *)file_name, flags, 0,
 		      &doretry, retryname, port);
 
   if (!err)
@@ -337,6 +315,7 @@ open_file (const char *file_name, int flags,
 
 check_no_hidden(__open);
 check_no_hidden (__open64);
+check_no_hidden (__open_nocancel);
 int weak_function
 __open (const char *file_name, int mode, ...)
 {
@@ -348,8 +327,10 @@ __open (const char *file_name, int mode, ...)
     return (int)port;
 }
 weak_alias (__open, __open64)
+weak_alias (__open, __open_nocancel)
 
 check_no_hidden(__close);
+check_no_hidden(__close_nocancel);
 int weak_function
 __close (int fd)
 {
@@ -357,8 +338,10 @@ __close (int fd)
     __mach_port_deallocate (__mach_task_self (), (mach_port_t) fd);
   return 0;
 }
+weak_alias (__close, __close_nocancel)
 
 check_no_hidden(__pread64);
+check_no_hidden(__pread64_nocancel);
 __ssize_t weak_function
 __pread64 (int fd, void *buf, size_t nbytes, off64_t offset)
 {
@@ -381,16 +364,20 @@ __pread64 (int fd, void *buf, size_t nbytes, off64_t offset)
   return nread;
 }
 libc_hidden_weak (__pread64)
+weak_alias (__pread64, __pread64_nocancel)
 
 check_no_hidden(__read);
+check_no_hidden(__read_nocancel);
 __ssize_t weak_function
 __read (int fd, void *buf, size_t nbytes)
 {
   return __pread64 (fd, buf, nbytes, -1);
 }
 libc_hidden_weak (__read)
+weak_alias (__read, __read_nocancel)
 
 check_no_hidden(__write);
+check_no_hidden(__write_nocancel);
 __ssize_t weak_function
 __write (int fd, const void *buf, size_t nbytes)
 {
@@ -406,6 +393,7 @@ __write (int fd, const void *buf, size_t nbytes)
   return nwrote;
 }
 libc_hidden_weak (__write)
+  weak_alias (__write, __write_nocancel)
 
 /* This is only used for printing messages (see dl-misc.c).  */
 check_no_hidden(__writev);
@@ -486,7 +474,7 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   mapaddr = (vm_address_t) addr;
   err = __vm_map (__mach_task_self (),
-		  &mapaddr, (vm_size_t) len, ELF_MACHINE_USER_ADDRESS_MASK,
+		  &mapaddr, (vm_size_t) len, 0,
 		  !(flags & MAP_FIXED),
 		  memobj_rd,
 		  (vm_offset_t) offset,
@@ -501,7 +489,7 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
       if (! err)
 	err = __vm_map (__mach_task_self (),
 			&mapaddr, (vm_size_t) len,
-			ELF_MACHINE_USER_ADDRESS_MASK,
+			0,
 			!(flags & MAP_FIXED),
 			memobj_rd, (vm_offset_t) offset,
 			flags & (MAP_COPY|MAP_PRIVATE),
@@ -518,13 +506,11 @@ __mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset)
   return (void *) mapaddr;
 }
 
-check_no_hidden(__fxstat64);
+check_no_hidden(__fstat64);
 int weak_function
-__fxstat64 (int vers, int fd, struct stat64 *buf)
+__fstat64 (int fd, struct stat64 *buf)
 {
   error_t err;
-
-  assert (vers == _STAT_VER);
 
   err = __io_stat ((mach_port_t) fd, buf);
   if (err)
@@ -532,16 +518,14 @@ __fxstat64 (int vers, int fd, struct stat64 *buf)
 
   return 0;
 }
-libc_hidden_def (__fxstat64)
+libc_hidden_def (__fstat64)
 
-check_no_hidden(__xstat64);
+check_no_hidden(__stat64);
 int weak_function
-__xstat64 (int vers, const char *file, struct stat64 *buf)
+__stat64 (const char *file, struct stat64 *buf)
 {
   error_t err;
   mach_port_t port;
-
-  assert (vers == _STAT_VER);
 
   err = open_file (file, 0, &port, buf);
   if (err)
@@ -551,7 +535,7 @@ __xstat64 (int vers, const char *file, struct stat64 *buf)
 
   return 0;
 }
-libc_hidden_def (__xstat64)
+libc_hidden_def (__stat64)
 
 /* This function is called by the dynamic linker (rtld.c) to check
    whether debugging malloc is allowed even for SUID binaries.  This
@@ -569,6 +553,111 @@ int weak_function
 __access_noerrno (const char *file, int type)
 {
   return -1;
+}
+
+int
+__rtld_execve (const char *file_name, char *const argv[],
+               char *const envp[])
+{
+  file_t file;
+  error_t err;
+  char *args, *env;
+  size_t argslen, envlen;
+  mach_port_t *ports = _dl_hurd_data->portarray;
+  unsigned int portarraysize = _dl_hurd_data->portarraysize;
+  file_t *dtable = _dl_hurd_data->dtable;
+  unsigned int dtablesize = _dl_hurd_data->dtablesize;
+  int *intarray = _dl_hurd_data->intarray;
+  unsigned int i, j;
+  mach_port_t *please_dealloc, *pdp;
+  mach_port_t *portnames = NULL;
+  mach_msg_type_number_t nportnames = 0;
+  mach_port_type_t *porttypes = NULL;
+  mach_msg_type_number_t nporttypes = 0;
+  int flags;
+
+  err = open_file (file_name, O_EXEC, &file, NULL);
+  if (err)
+    goto out;
+
+  if (argv == NULL)
+    args = NULL, argslen = 0;
+  else if (err = __argz_create (argv, &args, &argslen))
+    goto outfile;
+  if (envp == NULL)
+    env = NULL, envlen = 0;
+  else if (err = __argz_create (envp, &env, &envlen))
+    goto outargs;
+
+  please_dealloc = __alloca ((portarraysize + dtablesize)
+			     * sizeof (mach_port_t));
+  pdp = please_dealloc;
+
+  /* Get all ports that we may not know about and we should thus destroy.  */
+  err = __mach_port_names (__mach_task_self (),
+			   &portnames, &nportnames,
+			   &porttypes, &nporttypes);
+  if (err)
+    goto outenv;
+  if (nportnames != nporttypes)
+    {
+      err = EGRATUITOUS;
+      goto outenv;
+    }
+
+  for (i = 0; i < portarraysize; ++i)
+    if (ports[i] != MACH_PORT_NULL)
+      {
+	*pdp++ = ports[i];
+	for (j = 0; j < nportnames; j++)
+	  if (portnames[j] == ports[i])
+	    portnames[j] = MACH_PORT_NULL;
+      }
+  for (i = 0; i < dtablesize; ++i)
+    if (dtable[i] != MACH_PORT_NULL)
+      {
+	*pdp++ = dtable[i];
+	for (j = 0; j < nportnames; j++)
+	  if (portnames[j] == dtable[i])
+	    portnames[j] = MACH_PORT_NULL;
+      }
+
+  /* Pack ports to be destroyed together.  */
+  for (i = 0, j = 0; i < nportnames; i++)
+    {
+      if (portnames[i] == MACH_PORT_NULL)
+	continue;
+      if (j != i)
+	portnames[j] = portnames[i];
+      j++;
+    }
+  nportnames = j;
+
+  flags = 0;
+#ifdef EXEC_SIGTRAP
+  if (__sigismember (&intarray[INIT_TRACEMASK], SIGKILL))
+    flags |= EXEC_SIGTRAP;
+#endif
+
+  err = __file_exec_paths (file, __mach_task_self (), flags,
+			   file_name, file_name[0] == '/' ? file_name : "",
+			   args, argslen,
+			   env, envlen,
+			   dtable, MACH_MSG_TYPE_COPY_SEND, dtablesize,
+			   ports, MACH_MSG_TYPE_COPY_SEND, portarraysize,
+			   intarray, INIT_INT_MAX,
+			   please_dealloc, pdp - please_dealloc,
+			   portnames, nportnames);
+
+  /* Oh well.  Might as well be tidy.  */
+outenv:
+  free (env);
+outargs:
+  free (args);
+outfile:
+  __mach_port_deallocate (__mach_task_self (), file);
+out:
+  return err;
 }
 
 check_no_hidden(__getpid);
@@ -614,7 +703,8 @@ __sbrk (intptr_t increment)
   return (void *) addr;
 }
 
-check_no_hidden(__strtoul_internal);
+/* This is only used by hurdlookup for the /dev/fd/nnn magic.
+ * We avoid pulling the whole libc implementation, and we can keep this hidden.  */
 unsigned long int weak_function
 __strtoul_internal (const char *nptr, char **endptr, int base, int group)
 {
@@ -671,7 +761,6 @@ abort (void)
 /* We need this alias to satisfy references from libc_pic.a objects
    that were affected by the libc_hidden_proto declaration for abort.  */
 strong_alias (abort, __GI_abort)
-strong_alias (abort, __GI___chk_fail)
 strong_alias (abort, __GI___fortify_fail)
 strong_alias (abort, __GI___assert_fail)
 strong_alias (abort, __GI___assert_perror_fail)

@@ -1,6 +1,5 @@
-/* Copyright (C) 2010-2020 Free Software Foundation, Inc.
+/* Copyright (C) 2010-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Maxim Kuvyrkov <maxim@codesourcery.com>, 2010.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,14 +18,14 @@
 /* Default stack size.  */
 #define ARCH_STACK_DEFAULT_SIZE	(2 * 1024 * 1024)
 
+/* Minimum guard size.  */
+#define ARCH_MIN_GUARD_SIZE 0
+
 /* Required stack pointer alignment at beginning.  */
 #define STACK_ALIGN		16
 
 /* Minimal stack size after allocating thread descriptor and guard size.  */
 #define MINIMAL_REST_STACK	2048
-
-/* Alignment requirement for TCB.  */
-#define TCB_ALIGNMENT		16
 
 
 /* Location of current stack frame.  */

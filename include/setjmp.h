@@ -20,50 +20,17 @@ extern int __sigjmp_save (jmp_buf __env, int __savemask);
 extern void _longjmp_unwind (jmp_buf env, int val);
 
 extern void __libc_siglongjmp (sigjmp_buf env, int val)
-	  __attribute__ ((noreturn));
+	  __attribute__ ((noreturn)) attribute_hidden;
 extern void __libc_longjmp (sigjmp_buf env, int val)
-     __attribute__ ((noreturn));
+     __attribute__ ((noreturn)) attribute_hidden;
 
 libc_hidden_proto (_setjmp)
 libc_hidden_proto (__sigsetjmp)
 
-# if IS_IN (rtld) && !defined NO_RTLD_HIDDEN
+# if IS_IN (rtld)
 extern __typeof (__sigsetjmp) __sigsetjmp attribute_hidden;
 # endif
 
-/* Check jmp_buf sizes, alignments and offsets.  */
-# include <stddef.h>
-# include <jmp_buf-macros.h>
-
-# define SJSTR_HELPER(x) #x
-# define SJSTR(x) SJSTR_HELPER(x)
-
-# define TEST_SIZE(type, size) \
-  _Static_assert (sizeof (type) == size, \
-		  "size of " #type " != " \
-		  SJSTR (size))
-# define TEST_ALIGN(type, align) \
-  _Static_assert (__alignof__ (type) == align , \
-		  "align of " #type " != " \
-		  SJSTR (align))
-# define TEST_OFFSET(type, member, offset) \
-  _Static_assert (offsetof (type, member) == offset, \
-		  "offset of " #member " field of " #type " != " \
-		  SJSTR (offset))
-
-/* Check if jmp_buf have the expected sizes.  */
-TEST_SIZE (jmp_buf, JMP_BUF_SIZE);
-TEST_SIZE (sigjmp_buf, SIGJMP_BUF_SIZE);
-
-/* Check if jmp_buf have the expected alignments.  */
-TEST_ALIGN (jmp_buf, JMP_BUF_ALIGN);
-TEST_ALIGN (sigjmp_buf, SIGJMP_BUF_ALIGN);
-
-/* Check if internal fields in jmp_buf have the expected offsets.  */
-TEST_OFFSET (struct __jmp_buf_tag, __mask_was_saved,
-	     MASK_WAS_SAVED_OFFSET);
-TEST_OFFSET (struct __jmp_buf_tag, __saved_mask,
-	     SAVED_MASK_OFFSET);
 #endif
 
 #endif

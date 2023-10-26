@@ -1,5 +1,5 @@
 /* pthread_spin_lock -- lock a spin lock.  Generic version.
-   Copyright (C) 2012-2020 Free Software Foundation, Inc.
+   Copyright (C) 2012-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,9 +18,10 @@
 
 #include <atomic.h>
 #include "pthreadP.h"
+#include <shlib-compat.h>
 
 int
-pthread_spin_lock (pthread_spinlock_t *lock)
+__pthread_spin_lock (pthread_spinlock_t *lock)
 {
   int val = 0;
 
@@ -78,3 +79,8 @@ pthread_spin_lock (pthread_spinlock_t *lock)
 
   return 0;
 }
+versioned_symbol (libc, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_34);
+
+#if OTHER_SHLIB_COMPAT (libpthread, GLIBC_2_2, GLIBC_2_34)
+compat_symbol (libpthread, __pthread_spin_lock, pthread_spin_lock, GLIBC_2_2);
+#endif

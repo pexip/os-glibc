@@ -1,5 +1,5 @@
 /* Memset for falkor.
-   Copyright (C) 2017-2020 Free Software Foundation, Inc.
+   Copyright (C) 2017-2022 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -17,6 +17,7 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <sysdep.h>
 #include <memset-reg.h>
 
 /* Reading dczid_el0 is expensive on falkor so move it into the ifunc

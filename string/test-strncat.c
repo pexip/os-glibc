@@ -1,6 +1,5 @@
 /* Test strncat functions.
-   Copyright (C) 2011-2020 Free Software Foundation, Inc.
-   Contributed by Intel Corporation.
+   Copyright (C) 2011-2022 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,7 +28,6 @@
 # define CHAR char
 # define UCHAR unsigned char
 # define SIMPLE_STRNCAT simple_strncat
-# define STUPID_STRNCAT stupid_strncat
 # define STRLEN strlen
 # define MEMSET memset
 # define MEMCPY memcpy
@@ -42,7 +40,6 @@
 # define CHAR wchar_t
 # define UCHAR wchar_t
 # define SIMPLE_STRNCAT simple_wcsncat
-# define STUPID_STRNCAT stupid_wcsncat
 # define STRLEN wcslen
 # define MEMSET wmemset
 # define MEMCPY wmemcpy
@@ -52,14 +49,12 @@
 #endif /* WIDE */
 
 typedef CHAR *(*proto_t) (CHAR *, const CHAR *, size_t);
-CHAR *STUPID_STRNCAT (CHAR *, const CHAR *, size_t);
-CHAR *SIMPLE_STRNCAT (CHAR *, const CHAR *, size_t);
 
-IMPL (STUPID_STRNCAT, 0)
 IMPL (STRNCAT, 2)
 
+/* Naive implementation to verify results.  */
 CHAR *
-STUPID_STRNCAT (CHAR *dst, const CHAR *src, size_t n)
+SIMPLE_STRNCAT (CHAR *dst, const CHAR *src, size_t n)
 {
   CHAR *ret = dst;
   while (*dst++ != '\0');
@@ -132,6 +127,66 @@ do_test (size_t align1, size_t align2, size_t len1, size_t len2,
       s2[len2] = '\0';
       do_one_test (impl, s2, s1, n);
     }
+}
+
+static void
+do_overflow_tests (void)
+{
+  size_t i, j, len;
+  const size_t one = 1;
+  CHAR *s1, *s2;
+  uintptr_t s1_addr;
+  s1 = (CHAR *) buf1;
+  s2 = (CHAR *) buf2;
+  s1_addr = (uintptr_t)s1;
+ for (j = 0; j < 200; ++j)
+      s2[j] = 32 + 23 * j % (BIG_CHAR - 32);
+ s2[200] = 0;
+  for (i = 0; i < 750; ++i) {
+    for (j = 0; j < i; ++j)
+      s1[j] = 32 + 23 * j % (BIG_CHAR - 32);
+    s1[i] = '\0';
+
+       FOR_EACH_IMPL (impl, 0)
+    {
+      s2[200] = '\0';
+      do_one_test (impl, s2, s1, SIZE_MAX - i);
+      s2[200] = '\0';
+      do_one_test (impl, s2, s1, i - s1_addr);
+      s2[200] = '\0';
+      do_one_test (impl, s2, s1, -s1_addr - i);
+      s2[200] = '\0';
+      do_one_test (impl, s2, s1, SIZE_MAX - s1_addr - i);
+      s2[200] = '\0';
+      do_one_test (impl, s2, s1, SIZE_MAX - s1_addr + i);
+    }
+
+    len = 0;
+    for (j = 8 * sizeof(size_t) - 1; j ; --j)
+      {
+        len |= one << j;
+        FOR_EACH_IMPL (impl, 0)
+          {
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, len - i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, len + i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, len - s1_addr - i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, len - s1_addr + i);
+
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, ~len - i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, ~len + i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, ~len - s1_addr - i);
+            s2[200] = '\0';
+            do_one_test (impl, s2, s1, ~len - s1_addr + i);
+          }
+      }
+  }
 }
 
 static void
@@ -316,6 +371,7 @@ test_main (void)
     }
 
   do_random_tests ();
+  do_overflow_tests ();
   return ret;
 }
 
