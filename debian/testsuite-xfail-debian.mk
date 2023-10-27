@@ -168,6 +168,9 @@ endif
 # arm64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),aarch64-linux-gnu)
+# https://sourceware.org/bugzilla/show_bug.cgi?id=25909
+# https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/2041188
+test-xfail-tst-support_descriptors = yes
 endif
 
 
