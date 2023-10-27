@@ -22,6 +22,12 @@ test-xfail-tst-clock2 = yes
 test-xfail-tst-adjtime = yes
 test-xfail-tst-ntp_gettime = yes
 test-xfail-tst-ntp_gettimex = yes
+# https://sourceware.org/bugzilla/show_bug.cgi?id=25909
+# https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/2041188
+test-xfail-tst-support_descriptors = yes
+# https://sourceware.org/bugzilla/show_bug.cgi?id=26823
+test-xfail-tst-cpu-features-cpuinfo = yes
+test-xfail-tst-cpu-features-cpuinfo-static = yes
 
 ######################################################################
 # alpha (including optimized flavours)
@@ -168,9 +174,6 @@ endif
 # arm64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),aarch64-linux-gnu)
-# https://sourceware.org/bugzilla/show_bug.cgi?id=25909
-# https://bugs.launchpad.net/ubuntu/+source/glibc/+bug/2041188
-test-xfail-tst-support_descriptors = yes
 endif
 
 
