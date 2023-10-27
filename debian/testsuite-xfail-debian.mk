@@ -23,32 +23,6 @@ test-xfail-tst-adjtime = yes
 test-xfail-tst-ntp_gettime = yes
 test-xfail-tst-ntp_gettimex = yes
 
-# As Pexos has moved to a newer kernel, these headers now expose fds_bit and
-# val.  The changes in upstream glibc to prevent this are too large to
-# risk backporting, so we just xfail the conform test cases for now.
-# These should be removed once we migrate Pexos to bullseye
-test-xfail-POSIX2008/arpa/inet.h/conform = yes
-test-xfail-POSIX2008/netdb.h/conform = yes
-test-xfail-POSIX2008/netinet/in.h/conform = yes
-test-xfail-POSIX2008/sys/socket.h/conform = yes
-test-xfail-UNIX98/arpa/inet.h/conform = yes
-test-xfail-UNIX98/netdb.h/conform = yes
-test-xfail-UNIX98/netinet/in.h/conform = yes
-test-xfail-UNIX98/sys/socket.h/conform = yes
-test-xfail-XOPEN2K/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/conform = yes
-test-xfail-XOPEN2K/netinet/in.h/conform = yes
-test-xfail-XOPEN2K/sys/socket.h/conform = yes
-test-xfail-XOPEN2K8/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K8/netdb.h/conform = yes
-test-xfail-XOPEN2K8/netinet/in.h/conform = yes
-test-xfail-XOPEN2K8/sys/socket.h/conform = yes
-test-xfail-XPG42/arpa/inet.h/conform = yes
-test-xfail-XPG42/netdb.h/conform = yes
-test-xfail-XPG42/netinet/in.h/conform = yes
-test-xfail-XPG42/sys/socket.h/conform = yes
-test-xfail-check-installed-headers-c = yes
-
 ######################################################################
 # alpha (including optimized flavours)
 ######################################################################
