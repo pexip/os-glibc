@@ -12,7 +12,7 @@
 
 --- a/sysdeps/m68k/dl-machine.h
 +++ b/sysdeps/m68k/dl-machine.h
-@@ -319,6 +319,8 @@
+@@ -312,6 +312,8 @@
    Elf32_Addr *const reloc_addr = (void *) (l_addr + reloc->r_offset);
    if (ELF32_R_TYPE (reloc->r_info) == R_68K_JMP_SLOT)
      *reloc_addr += l_addr;

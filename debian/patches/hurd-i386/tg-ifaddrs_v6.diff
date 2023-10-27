@@ -11,6 +11,9 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
  sysdeps/mach/hurd/ifaddrs.c | 310 ++++++++++++++++++++++++++++++++++++++++++++
  1 file changed, 310 insertions(+)
 
+diff --git a/sysdeps/mach/hurd/ifaddrs.c b/sysdeps/mach/hurd/ifaddrs.c
+new file mode 100644
+index 0000000000..a07bd97715
 --- /dev/null
 +++ b/sysdeps/mach/hurd/ifaddrs.c
 @@ -0,0 +1,310 @@
@@ -324,3 +327,5 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 +weak_alias (__freeifaddrs, freeifaddrs)
 +libc_hidden_def (__freeifaddrs)
 +libc_hidden_weak (freeifaddrs)
+-- 
+tg: (7bb5f8a836..) t/ifaddrs_v6 (depends on: baseline)

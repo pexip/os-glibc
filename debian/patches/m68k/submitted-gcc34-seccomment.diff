@@ -15,7 +15,7 @@ From: Andreas Schwab <schwab@suse.de>
 
 --- a/include/libc-symbols.h
 +++ b/include/libc-symbols.h
-@@ -226,12 +226,12 @@
+@@ -162,12 +162,12 @@
  #define __make_section_unallocated(section_string)	\
    asm (".section " section_string "\n\t.previous");
  

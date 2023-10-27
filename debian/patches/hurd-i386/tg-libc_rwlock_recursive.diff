@@ -40,7 +40,7 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 --- a/sysdeps/mach/libc-lock.h
 +++ b/sysdeps/mach/libc-lock.h
-@@ -150,15 +150,15 @@
+@@ -151,15 +151,15 @@ typedef cthread_key_t __libc_key_t;
    __libc_lock_unlock_recursive (NAME)
  
  /* XXX for now */

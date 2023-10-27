@@ -15,7 +15,7 @@ Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
 --- a/Makerules
 +++ b/Makerules
-@@ -581,6 +581,45 @@
+@@ -565,6 +565,45 @@
  		 PROVIDE(__start___libc_IO_vtables = .);\
  		 __libc_IO_vtables : { *(__libc_IO_vtables) }\
  		 PROVIDE(__stop___libc_IO_vtables = .);\

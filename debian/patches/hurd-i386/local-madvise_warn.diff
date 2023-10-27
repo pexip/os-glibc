@@ -3,7 +3,7 @@ semantic anyway, and that brings some -Werror FTBFS.
 
 --- a/misc/madvise.c
 +++ b/misc/madvise.c
-@@ -32,4 +32,4 @@
+@@ -32,4 +32,4 @@ __madvise (void *addr, size_t len, int a
  libc_hidden_def (__madvise)
  weak_alias (__madvise, madvise)
  
@@ -11,7 +11,7 @@ semantic anyway, and that brings some -Werror FTBFS.
 +/* stub_warning (madvise) */
 --- a/posix/posix_madvise.c
 +++ b/posix/posix_madvise.c
-@@ -27,4 +27,4 @@
+@@ -27,4 +27,4 @@ posix_madvise (__ptr_t addr, size_t len,
  {
    return ENOSYS;
  }

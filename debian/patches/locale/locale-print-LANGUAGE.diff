@@ -12,7 +12,7 @@ one.  Thus LANGUAGE is printed between them.
 
 --- a/locale/programs/locale.c
 +++ b/locale/programs/locale.c
-@@ -796,11 +796,15 @@
+@@ -793,11 +793,15 @@
  show_locale_vars (void)
  {
    const char *lcall = getenv ("LC_ALL") ?: "";
@@ -30,7 +30,7 @@ one.  Thus LANGUAGE is printed between them.
      if (cat_no != LC_ALL)
 --- a/locale/tst-locale-locpath.sh
 +++ b/locale/tst-locale-locpath.sh
-@@ -54,6 +54,7 @@
+@@ -56,6 +56,7 @@ EOF
  
  cat > "$testroot/stdout-expected" <<EOF
  LANG=

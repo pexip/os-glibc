@@ -22,6 +22,8 @@ on Debian/Hurd along the way.
  sysdeps/generic/paths.h |    2 +-
  2 files changed, 4 insertions(+), 1 deletion(-)
 
+diff --git a/sysdeps/generic/paths.h b/sysdeps/generic/paths.h
+index 893b4c2..6b8f440 100644
 --- a/sysdeps/generic/paths.h
 +++ b/sysdeps/generic/paths.h
 @@ -51,7 +51,7 @@
@@ -33,3 +35,7 @@ on Debian/Hurd along the way.
  #define	_PATH_NOLOGIN	"/etc/nologin"
  #define	_PATH_PRESERVE	"/var/lib"
  #define	_PATH_RWHODIR	"/var/spool/rwho"
+-- 
+1.7.10.4
+
+

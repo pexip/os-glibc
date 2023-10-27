@@ -43,7 +43,7 @@ Taken from EGLIBC, r1484 + r1525
 +   an empty stubs.h like this will do fine for GCC.  */
 --- a/Makefile
 +++ b/Makefile
-@@ -434,6 +434,14 @@
+@@ -177,6 +177,14 @@
  install-others-nosubdir: $(installed-stubs)
  endif
  
@@ -58,7 +58,7 @@ Taken from EGLIBC, r1484 + r1525
  
  # Since stubs.h is never needed when building the library, we simplify the
  # hairy installation process by producing it in place only as the last part
-@@ -441,6 +449,14 @@
+@@ -184,6 +192,14 @@
  # iterates over all the subdirs; subdir_install in each subdir depends on
  # the subdir's stubs file.  Having more direct dependencies would result in
  # extra iterations over the list for subdirs and many recursive makes.
@@ -73,7 +73,7 @@ Taken from EGLIBC, r1484 + r1525
  $(installed-stubs): include/stubs-prologue.h subdir_install
  	$(make-target-directory)
  	@rm -f $(objpfx)stubs.h
-@@ -449,6 +465,7 @@
+@@ -192,6 +208,7 @@
  	then echo 'stubs.h unchanged'; \
  	else $(INSTALL_DATA) $(objpfx)stubs.h $@; fi
  	rm -f $(objpfx)stubs.h
