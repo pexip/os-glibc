@@ -1,3 +1,9 @@
+glibc (2.36-9+deb12u3pexip3) pexip; urgency=medium
+
+  * Adjust breaks on libglib2.0-dev
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 30 Oct 2023 18:02:22 +0000
+
 glibc (2.36-9+deb12u3pexip2) pexip; urgency=medium
 
   * Remove breaks on old binutils -- currently fine for us
