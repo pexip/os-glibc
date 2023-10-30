@@ -1,3 +1,9 @@
+glibc (2.36-9+deb12u3pexip4) pexip; urgency=medium
+
+  * Adjust breaks on libglib2.0-dev (again)
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 30 Oct 2023 18:56:21 +0000
+
 glibc (2.36-9+deb12u3pexip3) pexip; urgency=medium
 
   * Adjust breaks on libglib2.0-dev
