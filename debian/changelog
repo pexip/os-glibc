@@ -1,3 +1,9 @@
+glibc (2.36-9+deb12u3pexip2) pexip; urgency=medium
+
+  * Remove breaks on old binutils -- currently fine for us
+
+ -- John-Mark Bell <jmb@pexip.com>  Mon, 30 Oct 2023 12:05:36 +0100
+
 glibc (2.36-9+deb12u3pexip1) pexip; urgency=medium
 
   * Migrate to Bookworm
