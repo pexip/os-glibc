@@ -1,3 +1,10 @@
+glibc (2.36-9+deb12u3pexip5) pexip-bookworm; urgency=medium
+
+  * Update for bookworm.
+  * Change compiler back to gcc-12 instead of 10.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 15 Nov 2023 09:17:40 +0000
+
 glibc (2.36-9+deb12u3pexip4) pexip; urgency=medium
 
   * Adjust breaks on libglib2.0-dev (again)
