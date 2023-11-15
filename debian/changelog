@@ -2,6 +2,7 @@ glibc (2.36-9+deb12u3pexip5) pexip-bookworm; urgency=medium
 
   * Update for bookworm.
   * Change compiler back to gcc-12 instead of 10.
+  * Use newer binutils (as we are now building for bookworm)
 
  -- Mark Hymers <mark.hymers@pexip.com>  Wed, 15 Nov 2023 09:17:40 +0000
 
