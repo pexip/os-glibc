@@ -1,3 +1,9 @@
+glibc (2.36-9+deb12u3pexip6) pexip-bookworm; urgency=medium
+
+  * Initial bookworm build
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Thu, 16 Nov 2023 10:00:20 +0000
+
 glibc (2.36-9+deb12u3pexip5) pexip-bookworm; urgency=medium
 
   * Update for bookworm.
