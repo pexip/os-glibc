@@ -1,3 +1,9 @@
+glibc (2.36-9+deb12u3pexip8) pexip-bookworm; urgency=medium
+
+  * Patch cdefs.h for use with ICC.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 13 Dec 2023 09:57:56 +0000
+
 glibc (2.36-9+deb12u3pexip7) pexip-bookworm; urgency=medium
 
   * Bookworm build for product distribution

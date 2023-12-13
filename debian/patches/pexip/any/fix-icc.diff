@@ -1,0 +1,22 @@
+Index: os-glibc/misc/sys/cdefs.h
+===================================================================
+--- os-glibc.orig/misc/sys/cdefs.h
++++ os-glibc/misc/sys/cdefs.h
+@@ -674,7 +674,7 @@ _Static_assert (0, "IEEE 128-bits long d
+ #  else
+ #    define __fortified_attr_access(a, o, s) __attr_access ((a, o, s))
+ #  endif
+-#  if __GNUC_PREREQ (11, 0)
++#  if __GNUC_PREREQ (11, 0) && !defined(__INTEL_COMPILER)
+ #    define __attr_access_none(argno) __attribute__ ((__access__ (__none__, argno)))
+ #  else
+ #    define __attr_access_none(argno)
+@@ -685,7 +685,7 @@ _Static_assert (0, "IEEE 128-bits long d
+ #  define __attr_access_none(argno)
+ #endif
+ 
+-#if __GNUC_PREREQ (11, 0)
++#if __GNUC_PREREQ (11, 0) && !defined(__INTEL_COMPILER)
+ /* Designates dealloc as a function to call to deallocate objects
+    allocated by the declared function.  */
+ # define __attr_dealloc(dealloc, argno) \
