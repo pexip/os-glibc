@@ -1,3 +1,22 @@
+glibc (2.36-9+deb12u4pexip1) pexip; urgency=medium
+
+  * New upstream release with security fixes
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Wed, 31 Jan 2024 12:24:37 +0000
+
+glibc (2.36-9+deb12u4) bookworm-security; urgency=medium
+
+  * debian/patches/any/local-CVE-2023-6246.patch: Fix a heap buffer overflow
+    in __vsyslog_internal (CVE-2023-6246).
+  * debian/patches/any/local-CVE-2023-6779.patch: Fix an off-by-one heap
+    buffer overflow in __vsyslog_internal (CVE-2023-6779).
+  * debian/patches/any/local-CVE-2023-6780.patch: Fix an integer overflow in
+    __vsyslog_internal (CVE-2023-6780).
+  * debian/patches/any/local-qsort-memory-corruption.patch: Fix a memory
+    corruption in qsort() when using nontransitive comparison functions.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 23 Jan 2024 21:57:06 +0100
+
 glibc (2.36-9+deb12u3pexip4) pexip; urgency=medium
 
   * Adjust breaks on libglib2.0-dev (again)
