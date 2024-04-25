@@ -1,4 +1,4 @@
-glibc (2.36-9+pexip24u1+deb12u6) pexip-bookworm; urgency=medium
+glibc (2.36-9+pexip24u1+deb12u6) pexip; urgency=medium
 
   * New upstream release with security fixes
 
