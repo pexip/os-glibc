@@ -1,3 +1,33 @@
+glibc (2.36-9+pexip24u1+deb12u6) pexip-bookworm; urgency=medium
+
+  * New upstream release with security fixes
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Thu, 25 Apr 2024 12:43:23 +0100
+
+glibc (2.36-9+deb12u6) bookworm-security; urgency=medium
+
+  * debian/patches/any/local-CVE-2024-2961-iso-2022-cn-ext.diff: Fix
+    out-of-bound writes when writing escape sequence in iconv ISO-2022-CN-EXT
+    module (CVE-2024-2961).  Closes: #1069191.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Fri, 19 Apr 2024 18:34:04 +0200
+
+glibc (2.36-9+deb12u5) bookworm; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - any/local-CVE-2023-4911.patch: upstreamed.
+    - any/local-CVE-2023-6246.patch: upstreamed.
+    - any/local-CVE-2023-6779.patch: upstreamed.
+    - any/local-CVE-2023-6780.patch: upstreamed.
+    - Revert fix to always call destructors in reverse constructor order due
+      to unforeseen application compatibility issues.
+    - Fix a DTV corruption due to a reuse of a TLS module ID following dlclose
+      with unused TLS.
+    - Fix the DTV field load on x32.
+    - Fix the TCB field load on x32.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 24 Mar 2024 13:07:31 +0100
+
 glibc (2.36-9+deb12u4+pexip24u3) pexip-bookworm; urgency=medium
 
   * New versioning scheme
