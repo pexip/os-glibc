@@ -1,3 +1,11 @@
+glibc (2.36-9+pexip24u1+deb12u7) pexip; urgency=medium
+
+  * locales.postinst: make compatible with posix sed.
+    This has the side effect of generating a locale twice if the first line
+    contains a locale and there duplicate later in the file.
+
+ -- Huw Jones <huw@pexip.com>  Fri, 17 May 2024 15:07:13 +0100
+
 glibc (2.36-9+pexip24u1+deb12u6) pexip; urgency=medium
 
   * New upstream release with security fixes
