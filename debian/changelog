@@ -1,3 +1,9 @@
+glibc (2.36-9+pexip24u3+deb12u8) pexip; urgency=medium
+
+  * Fix up patch series after merge failure.
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Tue, 03 Sep 2024 17:32:36 +0100
+
 glibc (2.36-9+pexip24u2+deb12u8) pexip; urgency=medium
 
   * New upstream release

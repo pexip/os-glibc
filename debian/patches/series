@@ -120,7 +120,6 @@ any/local-cross.patch
 any/git-floatn-gcc-13-support.diff
 any/local-disable-tst-bz29951.diff
 any/local-qsort-memory-corruption.patch
-any/local-CVE-2024-2961-iso-2022-cn-ext.diff
 # Pexip
 any/local-udp-syslog.diff
 pexip/any/fix-icc.diff
