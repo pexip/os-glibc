@@ -1,3 +1,21 @@
+glibc (2.36-9+deb12u10) bookworm; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Change ldconfig auxcache magic number.
+    - Ensure data passed to the rseq syscall are properly initialized.
+    - Avoid integer truncation when parsing CPUID data with large cache sizes,
+      fixing a memcpy/memmove when running under the FreeBSD's bhyve
+      hypervisor.
+    - Optimize log2/expm1/log1p math functions with FMA.
+    - Fix missing cache information when running under Azure TDX hypervisor.
+    - Fix TLS performance degradation after dlopen() usage.
+    - Fix memset performance for unaligned destinations causing additional
+      loop iterations.
+    - Fixes a buffer overflow when printing assertion failure message
+      (GLIBC-SA-2025-0001 / CVE-2025-0395).
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 06 Mar 2025 23:46:53 +0100
+
 glibc (2.36-9+deb12u9) bookworm; urgency=medium
 
   * debian/testsuite-xfail-debian.mk: mark tst-support_descriptors as XFAIL,
