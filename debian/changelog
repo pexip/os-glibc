@@ -1,3 +1,9 @@
+glibc (2.36-9+pexip24u4+deb12u10) pexip; urgency=medium
+
+  * New upstream release
+
+ -- Huw Jones <huw@pexip.com>  Mon, 17 Mar 2025 12:09:27 +0000
+
 glibc (2.36-9+deb12u10) bookworm; urgency=medium
 
   * debian/patches/git-updates.diff: update from upstream stable branch:
