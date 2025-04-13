@@ -1,5 +1,5 @@
 /* strcmp optimized with SSE2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,7 +75,7 @@ ENTRY2 (STRCASECMP)
 	movq	__libc_tsd_LOCALE@gottpoff(%rip),%rax
 	mov	%fs:(%rax),%RDX_LP
 
-	/* Either 1 or 5 bytes (dependeing if CET is enabled).  */
+	/* Either 1 or 5 bytes (depending if CET is enabled).  */
 	.p2align 4
 END2 (STRCASECMP)
 	/* FALLTHROUGH to strcasecmp_l.  */
@@ -89,7 +89,7 @@ ENTRY2 (STRCASECMP)
 	movq	__libc_tsd_LOCALE@gottpoff(%rip),%rax
 	mov	%fs:(%rax),%RCX_LP
 
-	/* Either 1 or 5 bytes (dependeing if CET is enabled).  */
+	/* Either 1 or 5 bytes (depending if CET is enabled).  */
 	.p2align 4
 END2 (STRCASECMP)
 	/* FALLTHROUGH to strncasecmp_l.  */
@@ -104,7 +104,7 @@ ENTRY (STRCMP)
 #  else
 	mov	(%rdx), %RAX_LP
 #  endif
-	testl	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
+	testb	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
 	jne	__strcasecmp_l_nonascii
 # elif defined USE_AS_STRNCASECMP_L
 	/* We have to fall back on the C implementation for locales
@@ -114,7 +114,7 @@ ENTRY (STRCMP)
 #  else
 	mov	(%rcx), %RAX_LP
 #  endif
-	testl	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
+	testb	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
 	jne	__strncasecmp_l_nonascii
 # endif
 
@@ -186,7 +186,7 @@ ENTRY (STRCMP)
 	jnz	LABEL(less16bytes)	/* If not, find different value or null char */
 # if defined USE_AS_STRNCMP || defined USE_AS_STRNCASECMP_L
 	sub	$16, %r11
-	jbe	LABEL(strcmp_exitz)	/* finish comparision */
+	jbe	LABEL(strcmp_exitz)	/* finish comparison */
 # endif
 	add	$16, %rsi		/* prepare to search next 16 bytes */
 	add	$16, %rdi		/* prepare to search next 16 bytes */
@@ -400,7 +400,7 @@ LABEL(nibble_ashr_1):
 # endif
 
 	pxor	%xmm0, %xmm0
-	sub	$0x1000, %r10		/* substract 4K from %r10 */
+	sub	$0x1000, %r10		/* subtract 4K from %r10 */
 	jmp	LABEL(gobble_ashr_1)
 
 	/*

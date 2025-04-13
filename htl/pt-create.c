@@ -1,5 +1,5 @@
 /* Thread creation.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -35,12 +35,6 @@
 #ifdef HAVE_USELOCALE
 # include <locale.h>
 #endif
-
-/* The total number of pthreads currently active.  This is defined
-   here since it would be really stupid to have a threads-using
-   program that doesn't call `pthread_create'.  */
-unsigned int __pthread_total;
-
 
 /* The entry-point for new threads.  */
 static void
@@ -136,8 +130,8 @@ __pthread_create_internal (struct __pthread **thread,
   if (stacksize == 0)
     {
       struct rlimit rlim;
-      __getrlimit (RLIMIT_STACK, &rlim);
-      if (rlim.rlim_cur != RLIM_INFINITY)
+      err = __getrlimit (RLIMIT_STACK, &rlim);
+      if (err == 0 && rlim.rlim_cur != RLIM_INFINITY)
 	stacksize = rlim.rlim_cur;
       if (stacksize == 0)
 	stacksize = PTHREAD_STACK_DEFAULT;
@@ -183,7 +177,9 @@ __pthread_create_internal (struct __pthread **thread,
       err = ENOMEM;
       goto failed_thread_tls_alloc;
     }
+#if TLS_TCB_AT_TP
   pthread->tcb->tcb = pthread->tcb;
+#endif
 
   /* And initialize the rest of the machine context.  This may include
      additional machine- and system-specific initializations that
@@ -205,7 +201,7 @@ __pthread_create_internal (struct __pthread **thread,
   /* Set the new thread's signal mask and set the pending signals to
      empty.  POSIX says: "The signal mask shall be inherited from the
      creating thread.  The set of signals pending for the new thread
-     shall be empty."  If the currnet thread is not a pthread then we
+     shall be empty."  If the current thread is not a pthread then we
      just inherit the process' sigmask.  */
   if (GL (dl_pthread_num_threads) == 1)
     err = __sigprocmask (0, 0, &pthread->init_sigset);
@@ -228,7 +224,7 @@ __pthread_create_internal (struct __pthread **thread,
      the number of threads from within the new thread isn't an option
      since this thread might return and call `pthread_exit' before the
      new thread runs.  */
-  atomic_increment (&__pthread_total);
+  atomic_fetch_add_relaxed (&__pthread_total, 1);
 
   /* Store a pointer to this thread in the thread ID lookup table.  We
      could use __thread_setid, however, we only lock for reading as no
@@ -262,7 +258,7 @@ failed_starting:
     }
 
   __pthread_setid (pthread->thread, NULL);
-  atomic_decrement (&__pthread_total);
+  atomic_fetch_add_relaxed (&__pthread_total, -1);
 failed_sigstate:
   __pthread_sigstate_destroy (pthread);
 failed_setup:

@@ -1,5 +1,5 @@
 /* Support for dynamic linking code in static libc.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -44,6 +44,8 @@
 #include <dl-auxv.h>
 #include <dl-find_object.h>
 #include <array_length.h>
+#include <dl-symbol-redir-ifunc.h>
+#include <dl-tunables.h>
 
 extern char *__progname;
 char **_dl_argv = &__progname;	/* This is checked for some error messages.  */
@@ -58,10 +60,6 @@ int _dl_dynamic_weak;
 
 /* If nonzero print warnings about problematic situations.  */
 int _dl_verbose;
-
-/* We never do profiling.  */
-const char *_dl_profile;
-const char *_dl_profile_output;
 
 /* Names of shared object for which the RUNPATHs and RPATHs should be
    ignored.  */
@@ -161,21 +159,13 @@ const ElfW(Phdr) *_dl_phdr;
 size_t _dl_phnum;
 uint64_t _dl_hwcap;
 uint64_t _dl_hwcap2;
+uint64_t _dl_hwcap3;
+uint64_t _dl_hwcap4;
 
 enum dso_sort_algorithm _dl_dso_sort_algo;
 
 /* The value of the FPU control word the kernel will preset in hardware.  */
 fpu_control_t _dl_fpu_control = _FPU_DEFAULT;
-
-#if !HAVE_TUNABLES
-/* This is not initialized to HWCAP_IMPORTANT, matching the definition
-   of _dl_important_hwcaps, below, where no hwcap strings are ever
-   used.  This mask is still used to mediate the lookups in the cache
-   file.  Since there is no way to set this nonzero (we don't grok the
-   LD_HWCAP_MASK environment variable here), there is no real point in
-   setting _dl_hwcap nonzero below, but we do anyway.  */
-uint64_t _dl_hwcap_mask;
-#endif
 
 /* Prevailing state of the stack.  Generally this includes PF_X, indicating it's
  * executable but this isn't true for all platforms.  */
@@ -189,10 +179,6 @@ size_t _dl_stack_cache_actsize;
 uintptr_t _dl_in_flight_stack;
 int _dl_stack_cache_lock;
 #else
-/* If loading a shared object requires that we make the stack executable
-   when it was not, we do it by calling this function.
-   It returns an errno code or zero on success.  */
-int (*_dl_make_stack_executable_hook) (void **) = _dl_make_stack_executable;
 void (*_dl_init_static_tls) (struct link_map *) = &_dl_nothread_init_static_tls;
 #endif
 struct dl_scope_free_list *_dl_scope_free_list;
@@ -215,7 +201,7 @@ struct link_map *_dl_sysinfo_map;
 #include <dl-vdso-setup.c>
 
 /* During the program run we must not modify the global data of
-   loaded shared object simultanously in two threads.  Therefore we
+   loaded shared object simultaneously in two threads.  Therefore we
    protect `_dl_open' and `_dl_close' in dl-close.c.
 
    This must be a recursive lock since the initializer function of
@@ -255,6 +241,25 @@ _dl_aux_init (ElfW(auxv_t) *av)
   for (int i = 0; i < array_length (auxv_values); ++i)
     auxv_values[i] = 0;
   _dl_parse_auxv (av, auxv_values);
+
+  _dl_phdr = (void*) auxv_values[AT_PHDR];
+  _dl_phnum = auxv_values[AT_PHNUM];
+
+  if (_dl_phdr == NULL)
+    {
+      /* Starting from binutils-2.23, the linker will define the
+         magic symbol __ehdr_start to point to our own ELF header
+         if it is visible in a segment that also includes the phdrs.
+         So we can set up _dl_phdr and _dl_phnum even without any
+         information from auxv.  */
+
+      extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
+      assert (__ehdr_start.e_phentsize == sizeof *GL(dl_phdr));
+      _dl_phdr = (const void *) &__ehdr_start + __ehdr_start.e_phoff;
+      _dl_phnum = __ehdr_start.e_phnum;
+    }
+
+  assert (_dl_phdr != NULL);
 }
 #endif
 
@@ -266,14 +271,28 @@ _dl_non_dynamic_init (void)
   _dl_main_map.l_phdr = GL(dl_phdr);
   _dl_main_map.l_phnum = GL(dl_phnum);
 
-  _dl_verbose = *(getenv ("LD_WARN") ?: "") == '\0' ? 0 : 1;
-
   /* Set up the data structures for the system-supplied DSO early,
      so they can influence _dl_init_paths.  */
   setup_vdso (NULL, NULL);
 
   /* With vDSO setup we can initialize the function pointers.  */
   setup_vdso_pointers ();
+
+  if (__libc_enable_secure)
+    {
+      static const char unsecure_envvars[] =
+	UNSECURE_ENVVARS
+	;
+      const char *cp = unsecure_envvars;
+
+      while (cp < unsecure_envvars + sizeof (unsecure_envvars))
+	{
+	  __unsetenv (cp);
+	  cp = strchr (cp, '\0') + 1;
+	}
+    }
+
+  _dl_verbose = *(getenv ("LD_WARN") ?: "") == '\0' ? 0 : 1;
 
   /* Initialize the data structures for the search paths for shared
      objects.  */
@@ -291,30 +310,6 @@ _dl_non_dynamic_init (void)
 
   _dl_dynamic_weak = *(getenv ("LD_DYNAMIC_WEAK") ?: "") == '\0';
 
-  _dl_profile_output = getenv ("LD_PROFILE_OUTPUT");
-  if (_dl_profile_output == NULL || _dl_profile_output[0] == '\0')
-    _dl_profile_output
-      = &"/var/tmp\0/var/profile"[__libc_enable_secure ? 9 : 0];
-
-  if (__libc_enable_secure)
-    {
-      static const char unsecure_envvars[] =
-	UNSECURE_ENVVARS
-	;
-      const char *cp = unsecure_envvars;
-
-      while (cp < unsecure_envvars + sizeof (unsecure_envvars))
-	{
-	  __unsetenv (cp);
-	  cp = (const char *) __rawmemchr (cp, '\0') + 1;
-	}
-
-#if !HAVE_TUNABLES
-      if (__access ("/etc/suid-debug", F_OK) != 0)
-	__unsetenv ("MALLOC_CHECK_");
-#endif
-    }
-
 #ifdef DL_PLATFORM_INIT
   DL_PLATFORM_INIT;
 #endif
@@ -323,33 +318,34 @@ _dl_non_dynamic_init (void)
   if (_dl_platform != NULL)
     _dl_platformlen = strlen (_dl_platform);
 
-  if (_dl_phdr != NULL)
-    for (const ElfW(Phdr) *ph = _dl_phdr; ph < &_dl_phdr[_dl_phnum]; ++ph)
-      switch (ph->p_type)
-	{
-	/* Check if the stack is nonexecutable.  */
-	case PT_GNU_STACK:
-	  _dl_stack_flags = ph->p_flags;
-	  break;
+  for (const ElfW(Phdr) *ph = _dl_phdr; ph < &_dl_phdr[_dl_phnum]; ++ph)
+    switch (ph->p_type)
+      {
+      /* Check if the stack is nonexecutable.  */
+      case PT_GNU_STACK:
+	_dl_stack_flags = ph->p_flags;
+	break;
 
-	case PT_GNU_RELRO:
-	  _dl_main_map.l_relro_addr = ph->p_vaddr;
-	  _dl_main_map.l_relro_size = ph->p_memsz;
-	  break;
-	}
+      case PT_GNU_RELRO:
+	_dl_main_map.l_relro_addr = ph->p_vaddr;
+	_dl_main_map.l_relro_size = ph->p_memsz;
+	break;
+      }
+
+  if ((__glibc_unlikely (GL(dl_stack_flags)) & PF_X)
+      && TUNABLE_GET (glibc, rtld, execstack, int32_t, NULL) == 0)
+    _dl_fatal_printf ("Fatal glibc error: executable stack is not allowed\n");
 
   call_function_static_weak (_dl_find_object_init);
 
   /* Setup relro on the binary itself.  */
-  if (_dl_main_map.l_relro_size != 0)
-    _dl_protect_relro (&_dl_main_map);
+  _dl_protect_relro (&_dl_main_map);
 }
 
 #ifdef DL_SYSINFO_IMPLEMENTATION
 DL_SYSINFO_IMPLEMENTATION
 #endif
 
-#if ENABLE_STATIC_PIE
 /* Since relocation to hidden _dl_main_map causes relocation overflow on
    aarch64, a function is used to get the address of _dl_main_map.  */
 
@@ -358,7 +354,6 @@ _dl_get_dl_main_map (void)
 {
   return &_dl_main_map;
 }
-#endif
 
 /* This is used by _dl_runtime_profile, not used on static code.  */
 void

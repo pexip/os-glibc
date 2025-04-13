@@ -1,5 +1,5 @@
 /* Measure strspn functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,41 +28,20 @@
 #define BIG_CHAR MAX_CHAR
 
 #ifndef WIDE
-# define SIMPLE_STRSPN simple_strspn
 # define SMALL_CHAR 127
 #else
-# define SIMPLE_STRSPN simple_wcsspn
 # define SMALL_CHAR 1273
 #endif /* WIDE */
 
 typedef size_t (*proto_t) (const CHAR *, const CHAR *);
-size_t SIMPLE_STRSPN (const CHAR *, const CHAR *);
 
-IMPL (SIMPLE_STRSPN, 0)
 IMPL (STRSPN, 1)
-
-size_t
-SIMPLE_STRSPN (const CHAR *s, const CHAR *acc)
-{
-  const CHAR *r, *str = s;
-  CHAR c;
-
-  while ((c = *s++) != '\0')
-    {
-      for (r = acc; *r != '\0'; ++r)
-	if (*r == c)
-	  break;
-      if (*r == '\0')
-	return s - str - 1;
-    }
-  return s - str - 1;
-}
 
 static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s,
              const CHAR *acc, size_t exp_res)
 {
-  size_t res = CALL (impl, s, acc), i, iters = INNER_LOOP_ITERS;
+  size_t res = CALL (impl, s, acc), i, iters = INNER_LOOP_ITERS8 / CHARBYTES;
   timing_t start, stop, cur;
 
   if (res != exp_res)

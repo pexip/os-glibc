@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,8 +48,7 @@ __libc_fcntl (int fd, int cmd, ...)
       error_t err;
 
     default:			/* Bad command.  */
-      errno = EINVAL;
-      result = -1;
+      result = __hurd_fail (EINVAL);
       break;
 
       /* First the descriptor-based commands, which do no RPCs.  */
@@ -109,7 +108,7 @@ __libc_fcntl (int fd, int cmd, ...)
 
       /* Set RESULT by evaluating EXPR with the descriptor locked.
 	 Check for an empty descriptor and return EBADF.  */
-#define LOCKED(expr)							      \
+#define LOCKED(expr) do {						      \
       HURD_CRITICAL_BEGIN;						      \
       __spin_lock (&d->port.lock);					      \
       if (d->port.port == MACH_PORT_NULL)				      \
@@ -117,7 +116,8 @@ __libc_fcntl (int fd, int cmd, ...)
       else								      \
 	result = (expr);						      \
       __spin_unlock (&d->port.lock);					      \
-      HURD_CRITICAL_END;
+      HURD_CRITICAL_END;						      \
+} while(0)
 
     case F_GETFD:		/* Get descriptor flags.  */
       LOCKED (d->flags);
@@ -148,8 +148,8 @@ __libc_fcntl (int fd, int cmd, ...)
 	    cmd = F_SETLKW64;
 	    break;
 	  default:
-	    errno = EINVAL;
-	    return -1;
+	    va_end (ap);
+	    return __hurd_fail (EINVAL);
 	  }
 
 	struct flock64 fl64 = {
@@ -182,8 +182,7 @@ __libc_fcntl (int fd, int cmd, ...)
 	    switch (cmd)
 	      {
 	      case F_GETLK64:
-		errno = ENOSYS;
-		return -1;
+		return __hurd_fail (ENOSYS);
 	      case F_SETLKW64:
 		wait = 1;
 		/* FALLTHROUGH */
@@ -191,8 +190,7 @@ __libc_fcntl (int fd, int cmd, ...)
 		return __f_setlk (fd, fl->l_type, fl->l_whence,
 				  fl->l_start, fl->l_len, wait);
 	      default:
-		errno = EINVAL;
-		return -1;
+		return __hurd_fail (EINVAL);
 	      }
 	  }
 	else if (cmd == F_GETLK64)
@@ -208,8 +206,8 @@ __libc_fcntl (int fd, int cmd, ...)
 	     || (sizeof fl->l_len != sizeof fl64.l_len
 		 && fl->l_len != fl64.l_len))
 	      {
-		errno = EOVERFLOW;
-		return -1;
+	        va_end (ap);
+	        return __hurd_fail (EOVERFLOW);
 	      }
 	  }
 
@@ -245,8 +243,7 @@ __libc_fcntl (int fd, int cmd, ...)
 	    switch (cmd)
 	      {
 	      case F_GETLK64:
-		errno = ENOSYS;
-		return -1;
+		return __hurd_fail (ENOSYS);
 	      case F_SETLKW64:
 		wait = 1;
 		/* FALLTHROUGH */
@@ -254,8 +251,7 @@ __libc_fcntl (int fd, int cmd, ...)
 		return __f_setlk (fd, fl->l_type, fl->l_whence,
 				  fl->l_start, fl->l_len, wait);
 	      default:
-		errno = EINVAL;
-		return -1;
+		return __hurd_fail (EINVAL);
 	      }
 	  }
 

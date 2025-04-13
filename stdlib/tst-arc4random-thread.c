@@ -1,5 +1,5 @@
 /* Test that threads generate distinct streams of randomness.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ static const int sizes[] = { 12, 15, 16, 17, 24, 31, max_size };
 struct blob
 {
   unsigned int size;
-  int thread_id;
+  int thread_id;		/* -1 means after fork.  */
   unsigned int index;
   unsigned char bytes[max_size];
 };
@@ -295,7 +295,7 @@ do_test_func (const char *fname, void (*func)(unsigned char *, size_t))
   run_outer_threads (func);
 
   /* The forking thread delivers a non-deterministic number of
-     results, which is why expected_blobs is only a minimun number of
+     results, which is why expected_blobs is only a minimum number of
      results.  */
   printf ("info: %s: %zu blob results observed\n", fname,
           dynarray_blob_size (&global_result));
@@ -321,6 +321,20 @@ do_test_func (const char *fname, void (*func)(unsigned char *, size_t))
                   p[0].thread_id, p[0].index);
           free (quoted);
         }
+    }
+
+  for (struct blob *p = dynarray_blob_begin (&global_result);
+       p < end; ++p)
+    {
+      unsigned int sum = 0;
+      for (unsigned int i = 0; i < p->size; ++i)
+	sum += p->bytes[i];
+      if (sum == 0)
+	{
+          support_record_failure ();
+	  printf ("error: all-zero result of length %u on thread %d\n",
+		  p->size, p->thread_id);
+	}
     }
 
   dynarray_blob_free (&global_result);

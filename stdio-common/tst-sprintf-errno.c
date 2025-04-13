@@ -1,5 +1,5 @@
 /* Test the %m, %#m printf specifiers via asprintf.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@
 
 /* GCC does not yet know about the %#m specifier.  */
 DIAG_PUSH_NEEDS_COMMENT;
-DIAG_IGNORE_NEEDS_COMMENT (11, "-Wformat=");
+DIAG_IGNORE_NEEDS_COMMENT_GCC (11, "-Wformat=");
 
 static int
 do_test (void)
@@ -49,8 +49,8 @@ do_test (void)
 
   errno = -1;
 #ifdef __GNU__
-  TEST_COMPARE (sprintf (buf, "%m"), 35);
-  TEST_COMPARE_STRING (buf, "Error in unknown error system: : -1");
+  TEST_COMPARE (sprintf (buf, "%m"), 39);
+  TEST_COMPARE_STRING (buf, "Error in unknown error system: FFFFFFFF");
 #else
   TEST_COMPARE (sprintf (buf, "%m"), 16);
   TEST_COMPARE_STRING (buf, "Unknown error -1");

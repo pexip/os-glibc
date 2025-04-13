@@ -16,9 +16,9 @@ test-xfail-tst-create-detached = yes
 test-xfail-tst-support_descriptors = yes
 
 ######################################################################
-# alpha (including optimized flavours)
+# alpha
 ######################################################################
-ifneq (,$(filter $(config-machine)-$(config-os), alpha-linux-gnu alphaev67-linux-gnu))
+ifeq ($(config-machine)-$(config-os),alpha-linux-gnu)
 test-xfail-tst-backtrace5 = yes
 test-xfail-tst-backtrace6 = yes
 test-xfail-tst-cancel19 = yes
@@ -218,13 +218,21 @@ test-xfail-tst-minsigstksz-5 = yes
 
 # See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106458
 test-xfail-tst-scratch_buffer = yes
+
+# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=111709
+test-xfail-test-double-fma = yes
+test-xfail-test-double-ldouble-fma = yes
+test-xfail-test-float32x-float64-fma = yes
+test-xfail-test-float32x-fma = yes
+test-xfail-test-float64-fma = yes
+test-xfail-test-ldouble-fma = yes
 endif
 
 
 ######################################################################
-# hurd-i386 (including optimized flavours)
+# hurd-i386 and hurd-amd64 (including optimized flavours)
 ######################################################################
-ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
+ifeq ($(config-os),gnu-gnu)
 # sysdeps/mach/hurd/dl-sysdep.c's open_file does not support the linker
 # creating files.
 test-xfail-tst-null-argv = yes
@@ -284,13 +292,6 @@ test-xfail-tst-sprofil = yes
 test-xfail-tst-timer4 = yes
 test-xfail-tst-timer5 = yes
 
-# This generates GiBs of data instead of sparse files, putting build box on its knees
-tests-unsupported += test-lfs
-
-# Needs LFS support
-#test-xfail-test-lfs = yes
-test-xfail-tst-tzset = yes
-
 # want /proc/self/fd
 # TODO: make them use FD_TO_FILENAME_PREFIX from <arch-fd_to_filename.h>
 test-xfail-tst-if_index-long = yes
@@ -302,10 +303,22 @@ test-xfail-tst-close_range = yes
 test-xfail-tst-support-open-dev-null-range = yes
 test-xfail-tst-spawn5 = yes
 test-xfail-tst-open-tmpfile = yes
+test-xfail-tst-closedir-leaks = yes
+test-xfail-tst-closedir-leaks-mem = yes
+
+# Missing RLIMIT_AS/overcommit enforcement
+tests-unsupported += tst-basic7
+tests-unsupported += test-lfs
+tests-unsupported += tst-asprintf-null
+tests-unsupported += bug18240
+tests-unsupported += tst-vfprintf-width-prec
+tests-unsupported += tst-vfprintf-width-prec-mem
+tests-unsupported += tst-vfprintf-width-prec-alloc
+tests-unsupported += test-bz22786 tst-strtod-overflow
+tests-unsupported += tst-tzset
 
 # new in 2.22
 test-xfail-tst-prelink = yes
-test-xfail-tst-tls-atexit = yes
 
 # new in 2.24
 test-xfail-tst-spawn2 = yes
@@ -319,7 +332,6 @@ test-xfail-tst-waitid = yes
 test-xfail-tst-wait4 = yes
 
 # new in 2.25
-test-xfail-tst-posix_fallocate64 = yes
 test-xfail-tst-posix_fadvise = yes
 test-xfail-tst-posix_fadvise64 = yes
 
@@ -360,40 +372,77 @@ test-xfail-tst-canon-bz26341 = yes
 test-xfail-tst-spawn4-compat = yes
 
 # new in 2.34
-test-xfail-test-cxa_atexit-race2 = yes
 test-xfail-tst-itimer = yes
 test-xfail-tst-wait3 = yes
 test-xfail-tst-nss-compat1 = yes
-test-xfail-test-fesetexcept-traps = yes
 test-xfail-tst-dlinfo-phdr = yes
-test-xfail-tst-tls-allocation-failure-static-patched = yes
 
 # new in 2.35
 test-xfail-tst-compathooks-on = yes
 test-xfail-tst-sched_getaffinity = yes
 test-xfail-tst-malloc-tcache-leak-malloc-hugetlb1 = yes
 test-xfail-tst-malloc-tcache-leak-malloc-hugetlb2 = yes
-test-xfail-tst-p_align3 = yes
-tests-unsupported += tst-spawn6
 
 # new in 2.36
 test-xfail-tst-arc4random-fork = yes
 test-xfail-tst-arc4random-thread = yes
 test-xfail-tst-nss-gai-actions = yes
 
-# upstreamed in 2.38
-tests-unsupported += tst-malloc-thread-fail
-tests-unsupported += tst-malloc-thread-fail-malloc-check
-tests-unsupported += tst-malloc-thread-fail-mcheck
-tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb1
-tests-unsupported += tst-malloc-thread-fail-malloc-hugetlb2
-tests-unsupported += tst-dynarray-fail
-tests-unsupported += tst-pthread_cancel-select-loop
-tests-unsupported += tst-audit14
-tests-unsupported += tst-audit14a
-tests-unsupported += tst-audit15
-tests-unsupported += tst-audit16
-tests-unsupported += tst-audit17
+# new in 2.37
+test-xfail-tst-fcntl-lock = yes
+test-xfail-tst-fcntl-lock-lfs = yes
+test-xfail-tst-nss-gai-hv2-canonname = yes
+
+# new in 2.38
+test-xfail-tst-sprof-basic = yes
+test-xfail-tst-nss-files-hosts-v4mapped = yes
+test-xfail-test-canon = yes
+
+# new in 2.39
+test-xfail-tst-initgroups1 = yes
+test-xfail-tst-initgroups2 = yes
+test-xfail-tst-sprintf-fortify-rdonly = yes
+test-xfail-tst-plt-rewrite1 = yes
+test-xfail-tst-tunables = yes
+test-xfail-tst-cancel11 = yes
+test-xfail-tst-cancelx11 = yes
+test-xfail-tst-mremap1 = yes
+test-xfail-tst-mremap2 = yes
+
+# new in 2.40
+test-xfail-tst-recursive-tls = yes
+test-xfail-tst-malloc-alternate-path = yes
+test-xfail-tst-malloc-alternate-path-malloc-check = yes
+test-xfail-tst-malloc-alternate-path-malloc-hugetlb1 = yes
+test-xfail-tst-malloc-alternate-path-malloc-hugetlb2 = yes
+test-xfail-tst-malloc-alternate-path-mcheck = yes
+test-xfail-tst-shutdown = yes
+test-xfail-tst-dlopen-tlsreinit3 = yes
+test-xfail-tst-dlopen-tlsreinit4 = yes
+test-xfail-tst-truncate64 = yes
+
+# new in 2.41
+test-xfail-tst-getrandom2 = yes
+test-xfail-tst-freopen2 = yes
+test-xfail-tst-freopen3 = yes
+test-xfail-tst-freopen5 = yes
+test-xfail-tst-freopen64-2 = yes
+test-xfail-tst-freopen64-3 = yes
+test-xfail-tst-freopen2-mem = yes
+test-xfail-tst-freopen3-mem = yes
+test-xfail-tst-freopen5-mem = yes
+test-xfail-tst-freopen64-2-mem = yes
+test-xfail-tst-freopen64-3-mem = yes
+test-xfail-tst-clock_gettime = yes
+test-xfail-tst-clock_nanosleep2 = yes
+test-xfail-tst-dlopen-auditdup = yes
+test-xfail-tst-rtld-no-malloc = yes
+test-xfail-tst-rtld-no-malloc-audit = yes
+test-xfail-tst-rtld-no-malloc-preload = yes
+test-xfail-tst-execstack-prog-noexecstack = yes
+test-xfail-tst-support-process_state = yes
+test-xfail-tst-audit12 = yes
+test-xfail-tst-audit28 = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
@@ -406,354 +455,74 @@ test-xfail-tst-lockf = yes
 # assumes that all st_mode flags (32bit) can exist in stx_mode flags (16bit)
 test-xfail-tst-statx = yes
 
+# Some issues with FPU flags
+test-xfail-test-fenv = yes
+test-xfail-test-fenv-sse-2 = yes
+
+# we don't actually set the secure flag when setgid doesn't actually increase permissions
+test-xfail-tst-env-setuid-static = yes
+test-xfail-tst-env-setuid-tunables = yes
 endif
 
 
 ######################################################################
-# i386 (including optimized flavours)
+# hurd-amd64
+######################################################################
+ifeq ($(config-machine)-$(config-os),x86_64-gnu-gnu)
+# TODO: fix default FPU config
+test-xfail-test-float64x-acos = yes
+test-xfail-test-float64x-log10 = yes
+test-xfail-test-float64x-log2 = yes
+test-xfail-test-float64x-y0 = yes
+test-xfail-test-float64x-y1 = yes
+test-xfail-test-ldouble-acos = yes
+test-xfail-test-ldouble-log10 = yes
+test-xfail-test-ldouble-log2 = yes
+test-xfail-test-ldouble-y0 = yes
+test-xfail-test-ldouble-y1 = yes
+
+# memory leak
+test-xfail-tst-vfprintf-width-prec-mem = yes
+test-xfail-tst-vfprintf-width-prec = yes
+
+# timeout
+test-xfail-tst-malloc-too-large = yes
+test-xfail-tst-malloc-too-large-malloc-check = yes
+test-xfail-tst-malloc-too-large-malloc-hugetlb1 = yes
+test-xfail-tst-malloc-too-large-malloc-hugetlb2 = yes
+
+# cmsg bug, fixed in glibc 2.41
+test-xfail-tst-cmsghdr = yes
+
+# missing support
+test-xfail-tst-map-32bit-1a = yes
+test-xfail-tst-map-32bit-1b = yes
+test-xfail-tst-map-32bit-2 = yes
+
+test-xfail-tst-platform-1 = yes
+test-xfail-tst-audit4 = yes
+test-xfail-tst-audit5 = yes
+test-xfail-tst-audit6 = yes
+test-xfail-tst-audit7 = yes
+test-xfail-tst-audit10 = yes
+endif
+
+
+######################################################################
+# hurd-i386
+######################################################################
+ifeq ($(config-machine)-$(config-os),i686-gnu-gnu)
+test-xfail-tst-posix_fallocate64 = yes
+
+# new in 2.34
+test-xfail-tst-tls-allocation-failure-static-patched = yes
+endif
+
+
+######################################################################
+# i386
 ######################################################################
 ifeq ($(config-machine)-$(config-os),i686-linux-gnu)
-# Probably a GCC bug: https://sourceware.org/ml/libc-alpha/2015-11/msg00533.html
-test-xfail-tst-cleanupx4 = yes
-
-# These failures happen on CPUs supporting AVX-512 due to a kernel bug:
-# https://bugzilla.kernel.org/show_bug.cgi?id=153531
-test-xfail-tst-minsigstksz-1 = yes
-test-xfail-tst-minsigstksz-2 = yes
-endif
-
-
-######################################################################
-# kfreebsd-*
-######################################################################
-ifeq ($(config-os),kfreebsd-gnu)
-
-# Most of these tests fail because fsid_t is defined as an union to
-# support both __val (POSIX) and val (BSD) name.
-test-xfail-ISO/ctype.h/conform = yes
-test-xfail-ISO/signal.h/conform = yes
-test-xfail-ISO/stdio.h/conform = yes
-test-xfail-ISO/math.h/conform = yes
-test-xfail-ISO/time.h/conform = yes
-test-xfail-ISO11/ctype.h/conform = yes
-test-xfail-ISO11/inttypes.h/conform = yes
-test-xfail-ISO11/math.h/conform = yes
-test-xfail-ISO11/signal.h/conform = yes
-test-xfail-ISO11/stdint.h/conform = yes
-test-xfail-ISO11/stdio.h/conform = yes
-test-xfail-ISO11/time.h/conform = yes
-test-xfail-ISO11/tgmath.h/conform = yes
-test-xfail-ISO11/wctype.h/conform = yes
-test-xfail-ISO99/ctype.h/conform = yes
-test-xfail-ISO99/inttypes.h/conform = yes
-test-xfail-ISO99/math.h/conform = yes
-test-xfail-ISO99/signal.h/conform = yes
-test-xfail-ISO99/stdint.h/conform = yes
-test-xfail-ISO99/stdio.h/conform = yes
-test-xfail-ISO99/time.h/conform = yes
-test-xfail-ISO99/tgmath.h/conform = yes
-test-xfail-ISO99/wctype.h/conform = yes
-test-xfail-POSIX/aio.h/conform = yes
-test-xfail-POSIX/ctype.h/conform = yes
-test-xfail-POSIX/dirent.h/conform = yes
-test-xfail-POSIX/fcntl.h/conform = yes
-test-xfail-POSIX/grp.h/conform = yes
-test-xfail-POSIX/math.h/conform = yes
-test-xfail-POSIX/mqueue.h/conform = yes
-test-xfail-POSIX/pthread.h/conform = yes
-test-xfail-POSIX/pwd.h/conform = yes
-test-xfail-POSIX/regex.h/conform = yes
-test-xfail-POSIX/sched.h/conform = yes
-test-xfail-POSIX/semaphore.h/conform = yes
-test-xfail-POSIX/signal.h/conform = yes
-test-xfail-POSIX/stdio.h/conform = yes
-test-xfail-POSIX/sys/mman.h/conform = yes
-test-xfail-POSIX/sys/stat.h/conform = yes
-test-xfail-POSIX/sys/times.h/conform = yes
-test-xfail-POSIX/sys/types.h/conform = yes
-test-xfail-POSIX/time.h/conform = yes
-test-xfail-POSIX/unistd.h/conform = yes
-test-xfail-POSIX/utime.h/conform = yes
-test-xfail-POSIX2008/aio.h/conform = yes
-test-xfail-POSIX2008/ctype.h/conform = yes
-test-xfail-POSIX2008/dirent.h/conform = yes
-test-xfail-POSIX2008/errno.h/conform = yes
-test-xfail-POSIX2008/fcntl.h/conform = yes
-test-xfail-POSIX2008/grp.h/conform = yes
-test-xfail-POSIX2008/inttypes.h/conform = yes
-test-xfail-POSIX2008/math.h/conform = yes
-test-xfail-POSIX2008/monetary.h/conform = yes
-test-xfail-POSIX2008/mqueue.h/conform = yes
-test-xfail-POSIX2008/net/if.h/conform = yes
-test-xfail-POSIX2008/netdb.h/linknamespace = yes
-test-xfail-POSIX2008/netinet/tcp.h/conform = yes
-test-xfail-POSIX2008/pthread.h/conform = yes
-test-xfail-POSIX2008/pwd.h/conform = yes
-test-xfail-POSIX2008/regex.h/conform = yes
-test-xfail-POSIX2008/sched.h/conform = yes
-test-xfail-POSIX2008/semaphore.h/conform = yes
-test-xfail-POSIX2008/stdint.h/conform = yes
-test-xfail-POSIX2008/spawn.h/conform = yes
-test-xfail-POSIX2008/stdio.h/conform = yes
-test-xfail-POSIX2008/stropts.h/conform = yes
-test-xfail-POSIX2008/sys/mman.h/conform = yes
-test-xfail-POSIX2008/sys/select.h/conform = yes
-test-xfail-POSIX2008/sys/stat.h/conform = yes
-test-xfail-POSIX2008/sys/statvfs.h/conform = yes
-test-xfail-POSIX2008/sys/times.h/conform = yes
-test-xfail-POSIX2008/sys/types.h/conform = yes
-test-xfail-POSIX2008/sys/un.h/conform = yes
-test-xfail-POSIX2008/termios.h/conform = yes
-test-xfail-POSIX2008/tgmath.h/conform = yes
-test-xfail-POSIX2008/time.h/conform = yes
-test-xfail-POSIX2008/unistd.h/conform = yes
-test-xfail-POSIX2008/utime.h/conform = yes
-test-xfail-POSIX2008/wctype.h/conform = yes
-test-xfail-UNIX98/aio.h/conform = yes
-test-xfail-UNIX98/ctype.h/conform = yes
-test-xfail-UNIX98/dirent.h/conform = yes
-test-xfail-UNIX98/errno.h/conform = yes
-test-xfail-UNIX98/fcntl.h/conform = yes
-test-xfail-UNIX98/ftw.h/conform = yes
-test-xfail-UNIX98/grp.h/conform = yes
-test-xfail-UNIX98/math.h/conform = yes
-test-xfail-UNIX98/monetary.h/conform = yes
-test-xfail-UNIX98/mqueue.h/conform = yes
-test-xfail-UNIX98/pthread.h/conform = yes
-test-xfail-UNIX98/pwd.h/conform = yes
-test-xfail-UNIX98/regex.h/conform = yes
-test-xfail-UNIX98/sched.h/conform = yes
-test-xfail-UNIX98/semaphore.h/conform = yes
-test-xfail-UNIX98/stdio.h/conform = yes
-test-xfail-UNIX98/stdlib.h/conform = yes
-test-xfail-UNIX98/stropts.h/conform = yes
-test-xfail-UNIX98/sys/ipc.h/conform = yes
-test-xfail-UNIX98/sys/mman.h/conform = yes
-test-xfail-UNIX98/sys/msg.h/conform = yes
-test-xfail-UNIX98/sys/resource.h/conform = yes
-test-xfail-UNIX98/sys/sem.h/conform = yes
-test-xfail-UNIX98/sys/shm.h/conform = yes
-test-xfail-UNIX98/sys/socket.h/conform = yes
-test-xfail-UNIX98/sys/stat.h/conform = yes
-test-xfail-UNIX98/sys/statvfs.h/conform = yes
-test-xfail-UNIX98/sys/time.h/conform = yes
-test-xfail-UNIX98/sys/timeb.h/conform = yes
-test-xfail-UNIX98/sys/times.h/conform = yes
-test-xfail-UNIX98/sys/types.h/conform = yes
-test-xfail-UNIX98/sys/uio.h/conform = yes
-test-xfail-UNIX98/sys/un.h/conform = yes
-test-xfail-UNIX98/termios.h/conform = yes
-test-xfail-UNIX98/time.h/conform = yes
-test-xfail-UNIX98/unistd.h/conform = yes
-test-xfail-UNIX98/utime.h/conform = yes
-test-xfail-UNIX98/utmpx.h/conform = yes
-test-xfail-UNIX98/wchar.h/conform = yes
-test-xfail-UNIX98/wctype.h/conform = yes
-test-xfail-XOPEN2K/aio.h/conform = yes
-test-xfail-XOPEN2K/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K/ctype.h/conform = yes
-test-xfail-XOPEN2K/dirent.h/conform = yes
-test-xfail-XOPEN2K/errno.h/conform = yes
-test-xfail-XOPEN2K/fcntl.h/conform = yes
-test-xfail-XOPEN2K/ftw.h/conform = yes
-test-xfail-XOPEN2K/grp.h/conform = yes
-test-xfail-XOPEN2K/inttypes.h/conform = yes
-test-xfail-XOPEN2K/math.h/conform = yes
-test-xfail-XOPEN2K/monetary.h/conform = yes
-test-xfail-XOPEN2K/mqueue.h/conform = yes
-test-xfail-XOPEN2K/net/if.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/conform = yes
-test-xfail-XOPEN2K/netdb.h/linknamespace = yes
-test-xfail-XOPEN2K/netinet/in.h/conform = yes
-test-xfail-XOPEN2K/netinet/tcp.h/conform = yes
-test-xfail-XOPEN2K/pthread.h/conform = yes
-test-xfail-XOPEN2K/pwd.h/conform = yes
-test-xfail-XOPEN2K/regex.h/conform = yes
-test-xfail-XOPEN2K/sched.h/conform = yes
-test-xfail-XOPEN2K/spawn.h/conform = yes
-test-xfail-XOPEN2K/stdio.h/conform = yes
-test-xfail-XOPEN2K/stdint.h/conform = yes
-test-xfail-XOPEN2K/stdlib.h/conform = yes
-test-xfail-XOPEN2K/stropts.h/conform = yes
-test-xfail-XOPEN2K/sys/ipc.h/conform = yes
-test-xfail-XOPEN2K/sys/mman.h/conform = yes
-test-xfail-XOPEN2K/sys/msg.h/conform = yes
-test-xfail-XOPEN2K/sys/resource.h/conform = yes
-test-xfail-XOPEN2K/sys/select.h/conform = yes
-test-xfail-XOPEN2K/sys/sem.h/conform = yes
-test-xfail-XOPEN2K/sys/shm.h/conform = yes
-test-xfail-XOPEN2K/sys/socket.h/conform = yes
-test-xfail-XOPEN2K/sys/stat.h/conform = yes
-test-xfail-XOPEN2K/sys/statvfs.h/conform = yes
-test-xfail-XOPEN2K/sys/time.h/conform = yes
-test-xfail-XOPEN2K/sys/timeb.h/conform = yes
-test-xfail-XOPEN2K/sys/times.h/conform = yes
-test-xfail-XOPEN2K/sys/types.h/conform = yes
-test-xfail-XOPEN2K/sys/uio.h/conform = yes
-test-xfail-XOPEN2K/sys/un.h/conform = yes
-test-xfail-XOPEN2K/termios.h/conform = yes
-test-xfail-XOPEN2K/time.h/conform = yes
-test-xfail-XOPEN2K/tgmath.h/conform = yes
-test-xfail-XOPEN2K/unistd.h/conform = yes
-test-xfail-XOPEN2K/utime.h/conform = yes
-test-xfail-XOPEN2K/utmpx.h/conform = yes
-test-xfail-XOPEN2K/wchar.h/conform = yes
-test-xfail-XOPEN2K/wctype.h/conform = yes
-test-xfail-XOPEN2K8/aio.h/conform = yes
-test-xfail-XOPEN2K8/arpa/inet.h/conform = yes
-test-xfail-XOPEN2K8/ctype.h/conform = yes
-test-xfail-XOPEN2K8/dirent.h/conform = yes
-test-xfail-XOPEN2K8/errno.h/conform = yes
-test-xfail-XOPEN2K8/fcntl.h/conform = yes
-test-xfail-XOPEN2K8/ftw.h/conform = yes
-test-xfail-XOPEN2K8/grp.h/conform = yes
-test-xfail-XOPEN2K8/inttypes.h/conform = yes
-test-xfail-XOPEN2K8/math.h/conform = yes
-test-xfail-XOPEN2K8/monetary.h/conform = yes
-test-xfail-XOPEN2K8/mqueue.h/conform = yes
-test-xfail-XOPEN2K8/net/if.h/conform = yes
-test-xfail-XOPEN2K8/netdb.h/conform = yes
-test-xfail-XOPEN2K8/netdb.h/linknamespace = yes
-test-xfail-XOPEN2K8/netinet/in.h/conform = yes
-test-xfail-XOPEN2K8/netinet/tcp.h/conform = yes
-test-xfail-XOPEN2K8/pthread.h/conform = yes
-test-xfail-XOPEN2K8/pwd.h/conform = yes
-test-xfail-XOPEN2K8/regex.h/conform = yes
-test-xfail-XOPEN2K8/sched.h/conform = yes
-test-xfail-XOPEN2K8/semaphore.h/conform = yes
-test-xfail-XOPEN2K8/spawn.h/conform = yes
-test-xfail-XOPEN2K8/stdio.h/conform = yes
-test-xfail-XOPEN2K8/stdint.h/conform = yes
-test-xfail-XOPEN2K8/stdlib.h/conform = yes
-test-xfail-XOPEN2K8/stropts.h/conform = yes
-test-xfail-XOPEN2K8/sys/ipc.h/conform = yes
-test-xfail-XOPEN2K8/sys/mman.h/conform = yes
-test-xfail-XOPEN2K8/sys/msg.h/conform = yes
-test-xfail-XOPEN2K8/sys/resource.h/conform = yes
-test-xfail-XOPEN2K8/sys/select.h/conform = yes
-test-xfail-XOPEN2K8/sys/sem.h/conform = yes
-test-xfail-XOPEN2K8/sys/shm.h/conform = yes
-test-xfail-XOPEN2K8/sys/socket.h/conform = yes
-test-xfail-XOPEN2K8/sys/stat.h/conform = yes
-test-xfail-XOPEN2K8/sys/statvfs.h/conform = yes
-test-xfail-XOPEN2K8/sys/time.h/conform = yes
-test-xfail-XOPEN2K8/sys/times.h/conform = yes
-test-xfail-XOPEN2K8/sys/types.h/conform = yes
-test-xfail-XOPEN2K8/sys/uio.h/conform = yes
-test-xfail-XOPEN2K8/sys/un.h/conform = yes
-test-xfail-XOPEN2K8/termios.h/conform = yes
-test-xfail-XOPEN2K8/tgmath.h/conform = yes
-test-xfail-XOPEN2K8/time.h/conform = yes
-test-xfail-XOPEN2K8/unistd.h/conform = yes
-test-xfail-XOPEN2K8/utime.h/conform = yes
-test-xfail-XOPEN2K8/utmpx.h/conform = yes
-test-xfail-XOPEN2K8/wchar.h/conform = yes
-test-xfail-XOPEN2K8/wctype.h/conform = yes
-test-xfail-XPG4/ctype.h/conform = yes
-test-xfail-XPG4/dirent.h/conform = yes
-test-xfail-XPG4/errno.h/conform = yes
-test-xfail-XPG4/fcntl.h/conform = yes
-test-xfail-XPG4/ftw.h/conform = yes
-test-xfail-XPG4/grp.h/conform = yes
-test-xfail-XPG4/math.h/conform = yes
-test-xfail-XPG4/monetary.h/conform = yes
-test-xfail-XPG4/pwd.h/conform = yes
-test-xfail-XPG4/regex.h/conform = yes
-test-xfail-XPG4/stdio.h/conform = yes
-test-xfail-XPG4/stdlib.h/conform = yes
-test-xfail-XPG4/stropts.h/conform = yes
-test-xfail-XPG4/sys/ipc.h/conform = yes
-test-xfail-XPG4/sys/mman.h/conform = yes
-test-xfail-XPG4/sys/msg.h/conform = yes
-test-xfail-XPG4/sys/sem.h/conform = yes
-test-xfail-XPG4/sys/shm.h/conform = yes
-test-xfail-XPG4/sys/socket.h/conform = yes
-test-xfail-XPG4/sys/stat.h/conform = yes
-test-xfail-XPG4/sys/time.h/conform = yes
-test-xfail-XPG4/sys/timeb.h/conform = yes
-test-xfail-XPG4/sys/times.h/conform = yes
-test-xfail-XPG4/sys/types.h/conform = yes
-test-xfail-XPG4/sys/uio.h/conform = yes
-test-xfail-XPG4/termios.h/conform = yes
-test-xfail-XPG4/time.h/conform = yes
-test-xfail-XPG4/unistd.h/conform = yes
-test-xfail-XPG4/utime.h/conform = yes
-test-xfail-XPG4/utmpx.h/conform = yes
-
-# Most of these failures are due to headers provided by kfreebsd-kernel-headers
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-cxx = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-cxx = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-cxx = yes
-test-xfail-check-installed-headers-c = yes
-test-xfail-check-installed-headers-cxx = yes
-
-# will expectedly SIGSEGV on kfreebsd 10.0 and later, due to having
-# nxstack=1 by default (bug #762404)
-test-xfail-tst-execstack = yes
-test-xfail-tst-execstack-needed = yes
-test-xfail-tst-execstack-prog = =yes
-endif
-
-
-######################################################################
-# kfreebsd-amd64
-######################################################################
-ifeq ($(config-machine)-$(config-os),x86_64-kfreebsd-gnu)
-test-xfail-check-local-headers = yes
-test-xfail-test-sysvsem = yes
-test-xfail-test-sysvshm = yes
-test-xfail-tst-aio10 = yes
-test-xfail-tst-aio9 = yes
-test-xfail-tst-attr2 = yes
-test-xfail-tst-attr3 = yes
-test-xfail-tst-cancel7 = yes
-test-xfail-tst-cancelx7 = yes
-test-xfail-tst-default-attr = yes
-test-xfail-tst-getpid1 = yes
-test-xfail-tst-getpid2 = yes
-test-xfail-tst-longjmp_chk = yes
-test-xfail-tst-renameat = yes
-test-xfail-tst-setcontext2 = yes
-test-xfail-tst-shm = yes
-test-xfail-tst-spawn2 = yes
-test-xfail-tst-spawn3 = yes
-test-xfail-tst-udp-error = yes
-test-xfail-tst-waitid = yes
-test-xfail-tst-writev = yes
-endif
-
-
-######################################################################
-# kfreebsd-i386 (including optimized flavours)
-######################################################################
-ifeq ($(config-machine)-$(config-os),i686-kfreebsd-gnu)
-test-xfail-check-local-headers = yes
-test-xfail-test-sysvsem = yes
-test-xfail-test-sysvshm = yes
-test-xfail-tst-aio10 = yes
-test-xfail-tst-aio9 = yes
-test-xfail-tst-attr2 = yes
-test-xfail-tst-attr3 = yes
-test-xfail-tst-cancel7 = yes
-test-xfail-tst-cancelx7 = yes
-test-xfail-tst-cleanupx4 = yes
-test-xfail-tst-default-attr = yes
-test-xfail-tst-getpid1 = yes
-test-xfail-tst-getpid2 = yes
-test-xfail-tst-longjmp_chk = yes
-test-xfail-tst-renameat = yes
-test-xfail-tst-setcontext2 = yes
-test-xfail-tst-shm = yes
-test-xfail-tst-spawn2 = yes
-test-xfail-tst-spawn3 = yes
-test-xfail-tst-udp-error = yes
-test-xfail-tst-waitid = yes
 endif
 
 
@@ -832,6 +601,9 @@ test-xfail-tst-audit24c = yes
 test-xfail-tst-audit24d = yes
 test-xfail-tst-audit25a = yes
 test-xfail-tst-audit25b = yes
+
+# dl_profile is not supported on mips*
+test-xfail-tst-sprof-basic = yes
 endif
 
 
@@ -898,6 +670,10 @@ test-xfail-tst-waitid = yes
 
 # The 32-bit protection key behavior is somewhat unclear on 32-bit powerpc.
 test-xfail-tst-pkey = yes
+
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67771
+test-xfail-test-float-log10 = yes
+test-xfail-test-float32-log10 = yes
 endif
 
 
@@ -905,32 +681,6 @@ endif
 # riscv64
 ######################################################################
 ifeq ($(config-machine)-$(config-os),riscv64-linux-gnu)
-test-xfail-tst-cond-except = yes
-test-xfail-tst-cond24 = yes
-test-xfail-tst-cond25 = yes
-test-xfail-tst-malloc-usable-tunables = yes
-test-xfail-tst-resolv-res_init = yes
-test-xfail-tst-resolv-res_init-thread = yes
-test-xfail-tst-resolv-threads = yes
-test-xfail-tst-robust-fork = yes
-test-xfail-tst-strfrom = yes
-test-xfail-tst-strfrom-locale = yes
-test-xfail-tst-tls12 = yes
-
-# Those tests fail due to a kernel bug. See:
-# http://lists.infradead.org/pipermail/linux-riscv/2018-December/002512.html
-test-xfail-test-fenv = yes
-test-xfail-test-fpucw = yes
-test-xfail-test-fpucw-ieee = yes
-test-xfail-test-fpucw-ieee-static = yes
-test-xfail-test-fpucw-static = yes
-
-# Those tests sometimes fail in a QEMU VM, but not on a HiFive Unleashed board
-test-xfail-test-at_quick_exit-race = yes
-test-xfail-test-on_exit-race = yes
-test-xfail-tst-cond16 = yes
-test-xfail-tst-malloc-thread-fail = yes
-test-xfail-tst-stack4 = yes
 endif
 
 
@@ -938,8 +688,6 @@ endif
 # s390x
 ######################################################################
 ifeq ($(config-machine)-$(config-os),s390x-linux-gnu)
-test-xfail-tst-protected1a = yes
-test-xfail-tst-protected1b = yes
 endif
 
 
@@ -960,7 +708,7 @@ test-xfail-tst-waitid = yes
 # on sparc64 defaults to 64-bit doubles, causing the failure below. This
 # should be fixed by the following gcc patch:
 # http://gcc.gnu.org/ml/gcc-patches/2013-12/msg00318.html
-test-xfail-stdlib/isomac = yes
+test-xfail-isomac = yes
 endif
 
 
@@ -982,12 +730,16 @@ test-xfail-XOPEN2K/setjmp.h/conform = yes
 test-xfail-XOPEN2K8/pthread.h/conform = yes
 test-xfail-XOPEN2K8/setjmp.h/conform = yes
 test-xfail-XPG4/setjmp.h/conform = yes
+test-xfail-isomac = yes
+test-xfail-tst-cancel24-static = yes
 test-xfail-tst-cond8-static = yes
 test-xfail-tst-mutex8-static = yes
 test-xfail-tst-mutexpi8-static = yes
 test-xfail-tst-protected1a = yes
 test-xfail-tst-protected1b = yes
 test-xfail-tst-realloc = yes
+test-xfail-tst-rtld-run-static = yes
+test-xfail-tst-socket-timestamp = yes
 test-xfail-tst-waitid = yes
 test-xfail-test-float64x-float128-mul=yes
 endif

@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function. s390/s390x version.
-   Copyright (C) 2015-2022 Free Software Foundation, Inc.
+   Copyright (C) 2015-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <string.h>
 #include <wchar.h>
+#include <cpu-features.h>
 #include <ifunc-impl-list.h>
 #include <ifunc-resolve.h>
 #include <ifunc-memset.h>
@@ -73,17 +74,15 @@ size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			size_t max)
 {
-  size_t i = max;
+  /* If the architecture level set is high enough, no IFUNCs are used at all
+     and the variable i would be unused.  */
+  size_t i __attribute__ ((unused)) = max;
 
   /* Get hardware information.  */
-  unsigned long int dl_hwcap = GLRO (dl_hwcap);
-  unsigned long long stfle_bits = 0ULL;
-  if ((dl_hwcap & HWCAP_S390_STFLE)
-	&& (dl_hwcap & HWCAP_S390_ZARCH)
-	&& (dl_hwcap & HWCAP_S390_HIGH_GPRS))
-    {
-      S390_STORE_STFLE (stfle_bits);
-    }
+  const struct cpu_features *features = &GLRO(dl_s390_cpu_features);
+  unsigned long int dl_hwcap __attribute__ ((unused)) = features->hwcap;
+  const unsigned long long * __attribute__((unused)) stfle_bits
+    = features->stfle_bits;
 
 #if HAVE_MEMSET_IFUNC
   IFUNC_IMPL (i, name, memset,

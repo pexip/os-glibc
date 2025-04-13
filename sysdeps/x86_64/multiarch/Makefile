@@ -5,6 +5,7 @@ sysdep_routines += \
   memchr-avx2-rtm \
   memchr-evex \
   memchr-evex-rtm \
+  memchr-evex512 \
   memchr-sse2 \
   memcmp-avx2-movbe \
   memcmp-avx2-movbe-rtm \
@@ -37,6 +38,7 @@ sysdep_routines += \
   rawmemchr-avx2-rtm \
   rawmemchr-evex \
   rawmemchr-evex-rtm \
+  rawmemchr-evex512 \
   rawmemchr-sse2 \
   stpcpy-avx2 \
   stpcpy-avx2-rtm \
@@ -60,11 +62,13 @@ sysdep_routines += \
   strchr-avx2 \
   strchr-avx2-rtm \
   strchr-evex \
+  strchr-evex512 \
   strchr-sse2 \
   strchr-sse2-no-bsf \
   strchrnul-avx2 \
   strchrnul-avx2-rtm \
   strchrnul-evex \
+  strchrnul-evex512 \
   strchrnul-sse2 \
   strcmp-avx2 \
   strcmp-avx2-rtm \
@@ -110,9 +114,9 @@ sysdep_routines += \
   strrchr-avx2 \
   strrchr-avx2-rtm \
   strrchr-evex \
+  strrchr-evex512 \
   strrchr-sse2 \
   strspn-sse4 \
-  strstr-avx512 \
   strstr-sse2-unaligned \
   varshift \
 # sysdep_routines
@@ -120,20 +124,31 @@ sysdep_routines += \
 CFLAGS-strcspn-sse4.c += -msse4
 CFLAGS-strpbrk-sse4.c += -msse4
 CFLAGS-strspn-sse4.c += -msse4
-
-CFLAGS-strstr-avx512.c += -mavx512f -mavx512vl -mavx512dq -mavx512bw -mbmi -mbmi2 -O3
 endif
 
 ifeq ($(subdir),wcsmbs)
 sysdep_routines += \
+  wcpcpy-avx2 \
+  wcpcpy-evex \
+  wcpcpy-generic \
+  wcpncpy-avx2 \
+  wcpncpy-evex \
+  wcpncpy-generic \
+  wcscat-avx2 \
+  wcscat-evex \
+  wcscat-generic \
   wcschr-avx2 \
   wcschr-avx2-rtm \
   wcschr-evex \
+  wcschr-evex512 \
   wcschr-sse2 \
   wcscmp-avx2 \
   wcscmp-avx2-rtm \
   wcscmp-evex \
   wcscmp-sse2 \
+  wcscpy-avx2 \
+  wcscpy-evex \
+  wcscpy-generic \
   wcscpy-ssse3 \
   wcslen-avx2 \
   wcslen-avx2-rtm \
@@ -141,9 +156,15 @@ sysdep_routines += \
   wcslen-evex512 \
   wcslen-sse2 \
   wcslen-sse4_1 \
+  wcsncat-avx2 \
+  wcsncat-evex \
+  wcsncat-generic \
   wcsncmp-avx2 \
   wcsncmp-avx2-rtm \
   wcsncmp-evex \
+  wcsncpy-avx2 \
+  wcsncpy-evex \
+  wcsncpy-generic \
   wcsnlen-avx2 \
   wcsnlen-avx2-rtm \
   wcsnlen-evex \
@@ -152,11 +173,13 @@ sysdep_routines += \
   wcsrchr-avx2 \
   wcsrchr-avx2-rtm \
   wcsrchr-evex \
+  wcsrchr-evex512 \
   wcsrchr-sse2 \
   wmemchr-avx2 \
   wmemchr-avx2-rtm \
   wmemchr-evex \
   wmemchr-evex-rtm \
+  wmemchr-evex512 \
   wmemchr-sse2 \
   wmemcmp-avx2-movbe \
   wmemcmp-avx2-movbe-rtm \

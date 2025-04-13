@@ -1,5 +1,5 @@
 /* Enumerate available IFUNC implementations of a function.  PowerPC32 version.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <wchar.h>
 #include <ldsodefs.h>
 #include <ifunc-impl-list.h>
+#include <cpu-features.h>
 
 size_t
 __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
@@ -28,7 +29,8 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 {
   size_t i = max;
 
-  unsigned long int hwcap = GLRO(dl_hwcap);
+  const struct cpu_features *features = &GLRO(dl_powerpc_cpu_features);
+  unsigned long int hwcap = features->hwcap;
   /* hwcap contains only the latest supported ISA, the code checks which is
      and fills the previous supported ones.  */
   if (hwcap & PPC_FEATURE_ARCH_2_06)
@@ -81,13 +83,6 @@ __libc_ifunc_impl_list (const char *name, struct libc_ifunc_impl *array,
 			      __strnlen_power7)
 	      IFUNC_IMPL_ADD (array, i, strnlen, 1,
 			      __strnlen_ppc))
-
-  /* Support sysdeps/powerpc/powerpc32/multiarch/strncmp.c.  */
-  IFUNC_IMPL (i, name, strncmp,
-	      IFUNC_IMPL_ADD (array, i, strncmp, hwcap & PPC_FEATURE_HAS_VSX,
-			      __strncmp_power7)
-	      IFUNC_IMPL_ADD (array, i, strncmp, 1,
-			      __strncmp_ppc))
 #endif
 
   /* Support sysdeps/powerpc/powerpc32/power4/multiarch/memcmp.c.  */

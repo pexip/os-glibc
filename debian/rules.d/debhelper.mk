@@ -30,6 +30,14 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_ARCH_REGULAR_PACKAGES) $(DEB_INDEP_REGUL
 	dh_installsystemd -p$(curpass)
 	dh_installdocs -p$(curpass) 
 	dh_lintian -p $(curpass)
+
+	# Ensure that symlinks resolve even when /usr is unmerged.
+	set -e; \
+	find "debian/$(curpass)" \( -lname "*../lib*" -o -lname "/lib*" \) -printf "%p*%l\n" | \
+	while IFS='*' read -r p l; do \
+	  ln -svf "$${l%%/lib*}/usr/lib$${l#*/lib}" "$$p"; \
+	done
+
 	dh_link -p$(curpass)
 	dh_bugfiles -p$(curpass)
 
@@ -65,7 +73,7 @@ endif
 	sh ./debian/shlibs-add-udebs $(curpass)
 
 	dh_installdeb -p$(curpass)
-	dh_shlibdeps -p$(curpass)
+	dh_shlibdeps -p$(curpass) $(foreach path,$($(lastword $(subst -, ,$(curpass)))_slibdir),-l/usr$(path))
 	dh_gencontrol -p$(curpass)
 	dh_md5sums -p$(curpass)
 
@@ -89,6 +97,14 @@ $(patsubst %,$(stamp)binaryinst_%,$(DEB_UDEB_PACKAGES)): debhelper $(patsubst %,
 	dh_installdirs -p$(curpass)
 	dh_install -p$(curpass)
 	dh_strip -p$(curpass)
+
+	# Ensure that symlinks resolve even when /usr is unmerged.
+	set -e; \
+	find "debian/$(curpass)" \( -lname "*../lib*" -o -lname "/lib*" \) -printf "%p*%l\n" | \
+	while IFS='*' read -r p l; do \
+	  ln -svf "$${l%%/lib*}/usr/lib$${l#*/lib}" "$$p"; \
+	done
+
 	dh_link -p$(curpass)
 	
 	# when you want to install extra packages, use extra_pkg_install.
@@ -111,7 +127,6 @@ $(stamp)debhelper-common:
 	  y=debian/`basename $$x`; \
 	  perl -p \
 	      -e 'BEGIN {local $$/=undef; open(IN, "debian/script.in/nsscheck.sh"); $$j=<IN>;} s/__NSS_CHECK__/$$j/g;' \
-	      -e 'BEGIN {local $$/=undef; open(IN, "debian/script.in/nohwcap.sh"); $$k=<IN>;} s/__NOHWCAP__/$$k/g;' \
 	      -e 'BEGIN {open(IN, "debian/tmp/usr/share/i18n/SUPPORTED"); $$l = join("", grep { !/^C\.UTF-8/ } grep { /UTF-8/ } <IN>);} s/__PROVIDED_LOCALES__/$$l/g;' \
 	      -e 's#DEB_VERSION_UPSTREAM#$(DEB_VERSION_UPSTREAM)#g;' \
 	      -e 's#CURRENT_VER#$(DEB_VERSION)#g;' \
@@ -136,7 +151,6 @@ endif
 ifeq ($(filter stage1 stage2,$(DEB_BUILD_PROFILES)),)
 	echo 'libgcc:Depends=libgcc-s1 [!hppa !m68k], libgcc-s2 [m68k], libgcc-s4 [hppa]' >> tmp.substvars
 	echo 'libcrypt-dev:Depends=libcrypt-dev' >> tmp.substvars
-	echo 'libnsl-dev:Depends=libnsl-dev' >> tmp.substvars
 	echo 'rpcsvc-proto:Depends=rpcsvc-proto' >> tmp.substvars
 	echo 'libc-dev:Breaks=$(libc)-dev-$(DEB_HOST_ARCH)-cross (<< $(DEB_VERSION_UPSTREAM)~)' >> tmp.substvars
 endif
@@ -154,6 +168,8 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	slibdir=$(call xx,slibdir) ; \
 	rtlddir=$(call xx,rtlddir) ; \
 	curpass=$(curpass) ; \
+	rtld_so=$(rtld_so) ; \
+	rtld_target=$(rtld_target) ; \
 	templates="libc-dev" ;\
 	pass="" ; \
 	suffix="" ;\
@@ -182,6 +198,8 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 		-e "s#RTLDDIR#$$rtlddir#g" \
 		-e "s#SLIBDIR#$$slibdir#g" \
 		-e "s#LIBDIR#$$libdir#g" \
+	        -e "s#RTLD_SO#$$rtld_so#g" \
+	        -e "s#RTLD_TARGET#$$rtld_target#g" \
 		-e "/gdb/d" \
 		-e "/audit/d" \
 	      $$t; \
@@ -195,6 +213,7 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	rtlddir=$(call xx,rtlddir) ; \
 	curpass=$(curpass) ; \
 	rtld_so=$(rtld_so) ; \
+	rtld_target=$(rtld_target) ; \
 	case "$$curpass:$$slibdir" in \
 	  libc:*) \
 	    templates="libc libc-dev libc-udeb" \
@@ -204,11 +223,6 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	  *:/lib32 | *:/lib64 | *:/libo32 | *:/libx32) \
 	    templates="libc libc-dev" \
 	    pass="-alt" \
-	    suffix="-$(curpass)" \
-	    ;; \
-	  *:*) \
-	    templates="libc" \
-	    pass="-otherbuild" \
 	    suffix="-$(curpass)" \
 	    ;; \
 	esac ; \
@@ -223,7 +237,12 @@ $(stamp)debhelper_%: $(stamp)debhelper-common $(stamp)install_%
 	    sed -e "s#SLIBDIR#$$slibdir#g" -i $$t; \
 	    sed -e "s#LIBDIR#$$libdir#g" -i $$t; \
 	    sed -e "s#RTLD_SO#$$rtld_so#g" -i $$t ; \
-	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" -e "/libm-\*\.a/d" -i $$t ;) \
+	    sed -e "s#RTLD_TARGET#$$rtld_target#g" -i $$t ; \
+	    $(if $(filter $(call xx,mvec),no),sed -e "/libmvec/d" \
+	                                          -e "/libm-\*\.a/d" \
+	                                          -e "/lacks-unversioned-link-to-shared-library.*libm\.so/d" \
+	                                          -e "/unpack-message-for-deb-data.*libm\.a/d" \
+	                                          -i $$t ;) \
 	    $(if $(filter-out $(DEB_HOST_ARCH_OS),linux),sed -e "/gdb/d" -i $$t ;) \
 	  done ; \
 	done

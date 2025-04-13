@@ -1,5 +1,5 @@
 /* Invoke the brk system call.  Alpha version.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,8 +21,7 @@ __brk_call (void *addr)
 {
   unsigned long int result = INTERNAL_SYSCALL_CALL (brk, addr);
   if (result == -ENOMEM)
-    /* Mimic the default error reporting behavior.  */
-    return addr;
-  else
-    return (void *) result;
+    /* Mimic the generic error reporting behavior.  */
+    result = INTERNAL_SYSCALL_CALL (brk, 0);
+  return (void *) result;
 }

@@ -1,5 +1,5 @@
 /* Return the canonical absolute name of a given file.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -74,7 +74,6 @@
 # endif
 # define __mempcpy mempcpy
 # define __pathconf pathconf
-# define __rawmemchr rawmemchr
 # define __readlink readlink
 # define __stat stat
 #endif
@@ -232,7 +231,7 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
 	    return NULL;
           rname = bufs->rname.data;
         }
-      dest = __rawmemchr (rname, '\0');
+      dest = strchr (rname, '\0');
       start = name;
       prefix_len = FILE_SYSTEM_PREFIX_LEN (rname);
     }

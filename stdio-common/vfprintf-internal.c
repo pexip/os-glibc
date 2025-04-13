@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
+#include <assert.h>
 #include <ctype.h>
 #include <limits.h>
 #include <printf.h>
@@ -29,9 +30,12 @@
 #include <sys/param.h>
 #include <_itoa.h>
 #include <locale/localeinfo.h>
+#include <grouping_iterator.h>
 #include <stdio.h>
 #include <scratch_buffer.h>
 #include <intprops.h>
+#include <printf_buffer.h>
+#include <printf_buffer_to_file.h>
 
 /* This code is shared between the standard stdio implementation found
    in GNU C library and the libio implementation originally found in
@@ -47,21 +51,21 @@
 #endif
 
 #define ARGCHECK(S, Format) \
-  do									      \
-    {									      \
-      /* Check file argument for consistence.  */			      \
-      CHECK_FILE (S, -1);						      \
-      if (S->_flags & _IO_NO_WRITES)					      \
-	{								      \
-	  S->_flags |= _IO_ERR_SEEN;					      \
-	  __set_errno (EBADF);						      \
-	  return -1;							      \
-	}								      \
-      if (Format == NULL)						      \
-	{								      \
-	  __set_errno (EINVAL);						      \
-	  return -1;							      \
-	}								      \
+  do									     \
+    {									     \
+      /* Check file argument for consistence.  */			     \
+      CHECK_FILE (S, -1);						     \
+      if (S->_flags & _IO_NO_WRITES)					     \
+       {								     \
+	 S->_flags |= _IO_ERR_SEEN;					     \
+	 __set_errno (EBADF);						     \
+	 return -1;							     \
+       }								     \
+      if (Format == NULL)						     \
+       {								     \
+	 __set_errno (EINVAL);						     \
+	 return -1;							     \
+       }								     \
     } while (0)
 #define UNBUFFERED_P(S) ((S)->_flags & _IO_UNBUFFERED)
 
@@ -116,37 +120,9 @@
   while (0)
 #endif
 
-/* Add LENGTH to DONE.  Return the new value of DONE, or -1 on
-   overflow (and set errno accordingly).  */
-static inline int
-done_add_func (size_t length, int done)
-{
-  if (done < 0)
-    return done;
-  int ret;
-  if (INT_ADD_WRAPV (done, length, &ret))
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-  return ret;
-}
-
-#define done_add(val)							\
-  do									\
-    {									\
-      /* Ensure that VAL has a type similar to int.  */			\
-      _Static_assert (sizeof (val) == sizeof (int), "value int size");	\
-      _Static_assert ((__typeof__ (val)) -1 < 0, "value signed");	\
-      done = done_add_func ((val), done);				\
-      if (done < 0)							\
-	goto all_done;							\
-    }									\
-  while (0)
-
 #ifndef COMPILE_WPRINTF
+# include "printf_buffer-char.h"
 # define vfprintf	__vfprintf_internal
-# define CHAR_T		char
 # define OTHER_CHAR_T   wchar_t
 # define UCHAR_T	unsigned char
 # define INT_T		int
@@ -155,14 +131,12 @@ typedef const char *THOUSANDS_SEP_T;
 # define ISDIGIT(Ch)	((unsigned int) ((Ch) - '0') < 10)
 # define STR_LEN(Str)	strlen (Str)
 
-# define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
-# define PUTC(C, F)	_IO_putc_unlocked (C, F)
 # define ORIENT		if (_IO_vtable_offset (s) == 0 && _IO_fwide (s, -1) != -1)\
 			  return -1
 # define CONVERT_FROM_OTHER_STRING __wcsrtombs
 #else
+# include "printf_buffer-wchar_t.h"
 # define vfprintf	__vfwprintf_internal
-# define CHAR_T		wchar_t
 # define OTHER_CHAR_T   char
 /* This is a hack!!!  There should be a type uwchar_t.  */
 # define UCHAR_T	unsigned int /* uwchar_t */
@@ -174,8 +148,6 @@ typedef wchar_t THOUSANDS_SEP_T;
 
 # include <_itowa.h>
 
-# define PUT(F, S, N)	_IO_sputn ((F), (S), (N))
-# define PUTC(C, F)	_IO_putwc_unlocked (C, F)
 # define ORIENT		if (_IO_fwide (s, 1) != 1) return -1
 # define CONVERT_FROM_OTHER_STRING __mbsrtowcs
 
@@ -186,76 +158,16 @@ typedef wchar_t THOUSANDS_SEP_T;
 # define EOF WEOF
 #endif
 
-static inline int
-pad_func (FILE *s, CHAR_T padchar, int width, int done)
-{
-  if (width > 0)
-    {
-      ssize_t written;
-#ifndef COMPILE_WPRINTF
-      written = _IO_padn (s, padchar, width);
-#else
-      written = _IO_wpadn (s, padchar, width);
-#endif
-      if (__glibc_unlikely (written != width))
-	return -1;
-      return done_add_func (width, done);
-    }
-  return done;
-}
-
-#define PAD(Padchar)							\
-  do									\
-    {									\
-      done = pad_func (s, (Padchar), width, done);			\
-      if (done < 0)							\
-	goto all_done;							\
-    }									\
-  while (0)
-
-#include "_i18n_number.h"
-
 /* Include the shared code for parsing the format string.  */
 #include "printf-parse.h"
 
 
-#define	outchar(Ch)							      \
-  do									      \
-    {									      \
-      const INT_T outc = (Ch);						      \
-      if (PUTC (outc, s) == EOF || done == INT_MAX)			      \
-	{								      \
-	  done = -1;							      \
-	  goto all_done;						      \
-	}								      \
-      ++done;								      \
-    }									      \
-  while (0)
-
-static inline int
-outstring_func (FILE *s, const UCHAR_T *string, size_t length, int done)
-{
-  assert ((size_t) done <= (size_t) INT_MAX);
-  if ((size_t) PUT (s, string, length) != (size_t) (length))
-    return -1;
-  return done_add_func (length, done);
-}
-
-#define outstring(String, Len)						\
-  do									\
-    {									\
-      const void *string_ = (String);					\
-      done = outstring_func (s, string_, (Len), done);			\
-      if (done < 0)							\
-	goto all_done;							\
-    }									\
-   while (0)
-
 /* Write the string SRC to S.  If PREC is non-negative, write at most
    PREC bytes.  If LEFT is true, perform left justification.  */
-static int
-outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
-				 int width, bool left, int done)
+static void
+outstring_converted_wide_string (struct Xprintf_buffer *target,
+				 const OTHER_CHAR_T *src, int prec,
+				 int width, bool left)
 {
   /* Use a small buffer to combine processing of multiple characters.
      CONVERT_FROM_OTHER_STRING expects the buffer size in (wide)
@@ -290,7 +202,10 @@ outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
 	      size_t written = CONVERT_FROM_OTHER_STRING
 		(buf, &src_copy, write_limit, &mbstate);
 	      if (written == (size_t) -1)
-		return -1;
+		{
+		  Xprintf_buffer_mark_failed (target);
+		  return;
+		}
 	      if (written == 0)
 		break;
 	      total_written += written;
@@ -299,12 +214,9 @@ outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
 	}
 
       /* Output initial padding.  */
-      if (total_written < width)
-	{
-	  done = pad_func (s, L_(' '), width - total_written, done);
-	  if (done < 0)
-	    return done;
-	}
+      Xprintf_buffer_pad (target, L_(' '), width - total_written);
+      if (Xprintf_buffer_has_failed (target))
+	return;
     }
 
   /* Convert the input string, piece by piece.  */
@@ -324,12 +236,13 @@ outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
 	size_t written = CONVERT_FROM_OTHER_STRING
 	  (buf, &src, write_limit, &mbstate);
 	if (written == (size_t) -1)
-	  return -1;
+	  {
+	    Xprintf_buffer_mark_failed (target);
+	    return;
+	  }
 	if (written == 0)
 	  break;
-	done = outstring_func (s, (const UCHAR_T *) buf, written, done);
-	if (done < 0)
-	  return done;
+	Xprintf_buffer_write (target, buf, written);
 	total_written += written;
 	if (prec >= 0)
 	  remaining -= written;
@@ -337,21 +250,20 @@ outstring_converted_wide_string (FILE *s, const OTHER_CHAR_T *src, int prec,
   }
 
   /* Add final padding.  */
-  if (width > 0 && left && total_written < width)
-    return pad_func (s, L_(' '), width - total_written, done);
-  return done;
+  if (width > 0 && left)
+    Xprintf_buffer_pad (target, L_(' '), width - total_written);
 }
 
 /* Calls __printf_fp or __printf_fphex based on the value of the
    format specifier INFO->spec.  */
-static inline int
-__printf_fp_spec (FILE *fp, const struct printf_info *info,
-		  const void *const *args)
+static inline void
+__printf_fp_spec (struct Xprintf_buffer *target,
+		  const struct printf_info *info, const void *const *args)
 {
   if (info->spec == 'a' || info->spec == 'A')
-    return __printf_fphex (fp, info, args);
+    Xprintf (fphex_l_buffer) (target, _NL_CURRENT_LOCALE, info, args);
   else
-    return __printf_fp (fp, info, args);
+    Xprintf (fp_l_buffer) (target, _NL_CURRENT_LOCALE, info, args);
 }
 
 /* For handling long_double and longlong we use the same flag.  If
@@ -403,7 +315,7 @@ static const uint8_t jump_table[] =
     /* 'h' */ 10, /* 'i' */ 15, /* 'j' */ 28,            0,
     /* 'l' */ 11, /* 'm' */ 24, /* 'n' */ 23, /* 'o' */ 17,
     /* 'p' */ 22, /* 'q' */ 12,            0, /* 's' */ 21,
-    /* 't' */ 27, /* 'u' */ 16,            0,            0,
+    /* 't' */ 27, /* 'u' */ 16,            0, /* 'w' */ 31,
     /* 'x' */ 18,            0, /* 'z' */ 13
   };
 
@@ -444,7 +356,7 @@ static const uint8_t jump_table[] =
 
 #define STEP0_3_TABLE							      \
     /* Step 0: at the beginning.  */					      \
-    static JUMP_TABLE_TYPE step0_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step0_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (flag_space),		/* for ' ' */				      \
@@ -477,9 +389,10 @@ static const uint8_t jump_table[] =
       REF (mod_intmax_t),       /* for 'j' */				      \
       REF (flag_i18n),		/* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (mod_bitwidth),	/* for 'w' */				      \
     };									      \
     /* Step 1: after processing width.  */				      \
-    static JUMP_TABLE_TYPE step1_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step1_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -512,9 +425,10 @@ static const uint8_t jump_table[] =
       REF (mod_intmax_t),       /* for 'j' */				      \
       REF (form_unknown),       /* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (mod_bitwidth),	/* for 'w' */				      \
     };									      \
     /* Step 2: after processing precision.  */				      \
-    static JUMP_TABLE_TYPE step2_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step2_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -547,9 +461,10 @@ static const uint8_t jump_table[] =
       REF (mod_intmax_t),       /* for 'j' */				      \
       REF (form_unknown),       /* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (mod_bitwidth),	/* for 'w' */				      \
     };									      \
     /* Step 3a: after processing first 'h' modifier.  */		      \
-    static JUMP_TABLE_TYPE step3a_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step3a_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -582,9 +497,10 @@ static const uint8_t jump_table[] =
       REF (form_unknown),       /* for 'j' */				      \
       REF (form_unknown),       /* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (form_unknown),	/* for 'w' */				      \
     };									      \
     /* Step 3b: after processing first 'l' modifier.  */		      \
-    static JUMP_TABLE_TYPE step3b_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step3b_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -617,11 +533,12 @@ static const uint8_t jump_table[] =
       REF (form_unknown),       /* for 'j' */				      \
       REF (form_unknown),       /* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (form_unknown),	/* for 'w' */				      \
     }
 
 #define STEP4_TABLE							      \
     /* Step 4: processing format specifier.  */				      \
-    static JUMP_TABLE_TYPE step4_jumps[31] =				      \
+    static JUMP_TABLE_TYPE step4_jumps[32] =				      \
     {									      \
       REF (form_unknown),						      \
       REF (form_unknown),	/* for ' ' */				      \
@@ -654,42 +571,38 @@ static const uint8_t jump_table[] =
       REF (form_unknown),       /* for 'j' */				      \
       REF (form_unknown),       /* for 'I' */				      \
       REF (form_binary),	/* for 'B', 'b' */			      \
+      REF (form_unknown),	/* for 'w' */				      \
     }
 
-/* Helper function to provide temporary buffering for unbuffered streams.  */
-static int buffered_vfprintf (FILE *stream, const CHAR_T *fmt, va_list,
-			      unsigned int)
-     __THROW __attribute__ ((noinline));
-
 /* Handle positional format specifiers.  */
-static int printf_positional (FILE *s,
-			      const CHAR_T *format, int readonly_format,
-			      va_list ap, va_list *ap_savep, int done,
-			      int nspecs_done, const UCHAR_T *lead_str_end,
-			      CHAR_T *work_buffer, int save_errno,
-			      const char *grouping,
-			      THOUSANDS_SEP_T thousands_sep,
-			      unsigned int mode_flags);
+static void printf_positional (struct Xprintf_buffer *buf,
+			       const CHAR_T *format, int readonly_format,
+			       va_list ap, va_list *ap_savep,
+			       int nspecs_done, const UCHAR_T *lead_str_end,
+			       CHAR_T *work_buffer, int save_errno,
+			       const char *grouping,
+			       THOUSANDS_SEP_T thousands_sep,
+			       unsigned int mode_flags);
 
 /* Handle unknown format specifier.  */
-static int printf_unknown (FILE *, const struct printf_info *) __THROW;
+static void printf_unknown (struct Xprintf_buffer *,
+			    const struct printf_info *) __THROW;
 
-/* Group digits of number string.  */
-static CHAR_T *group_number (CHAR_T *, CHAR_T *, CHAR_T *, const char *,
-			     THOUSANDS_SEP_T);
+static void group_number (struct Xprintf_buffer *buf,
+			  struct grouping_iterator *iter,
+			  CHAR_T *from, CHAR_T *to,
+			  THOUSANDS_SEP_T thousands_sep, bool i18n);
 
-/* The function itself.  */
-int
-vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
+/* The buffer-based function itself.  */
+void
+Xprintf_buffer (struct Xprintf_buffer *buf, const CHAR_T *format,
+		  va_list ap, unsigned int mode_flags)
 {
   /* The character used as thousands separator.  */
   THOUSANDS_SEP_T thousands_sep = 0;
 
   /* The string describing the size of groups of digits.  */
   const char *grouping;
-
-  /* Place to accumulate the result.  */
-  int done;
 
   /* Current character in format string.  */
   const UCHAR_T *f;
@@ -717,30 +630,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
      0 if unknown.  */
   int readonly_format = 0;
 
-  /* Orient the stream.  */
-#ifdef ORIENT
-  ORIENT;
-#endif
-
-  /* Sanity check of arguments.  */
-  ARGCHECK (s, format);
-
-#ifdef ORIENT
-  /* Check for correct orientation.  */
-  if (_IO_vtable_offset (s) == 0
-      && _IO_fwide (s, sizeof (CHAR_T) == 1 ? -1 : 1)
-      != (sizeof (CHAR_T) == 1 ? -1 : 1))
-    /* The stream is already oriented otherwise.  */
-    return EOF;
-#endif
-
-  if (UNBUFFERED_P (s))
-    /* Use a helper function which will allocate a local temporary buffer
-       for the stream and then call us again.  */
-    return buffered_vfprintf (s, format, ap, mode_flags);
-
   /* Initialize local variables.  */
-  done = 0;
   grouping = (const char *) -1;
 #ifdef __va_copy
   /* This macro will be available soon in gcc's <stdarg.h>.  We need it
@@ -759,17 +649,15 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
   f = lead_str_end = __find_specmb ((const UCHAR_T *) format);
 #endif
 
-  /* Lock stream.  */
-  _IO_cleanup_region_start ((void (*) (void *)) &_IO_funlockfile, s);
-  _IO_flockfile (s);
-
   /* Write the literal text before the first format.  */
-  outstring ((const UCHAR_T *) format,
-	     lead_str_end - (const UCHAR_T *) format);
+  Xprintf_buffer_write (buf, format,
+			  lead_str_end - (const UCHAR_T *) format);
+  if (Xprintf_buffer_has_failed (buf))
+    return;
 
   /* If we only have to print a simple string, return now.  */
   if (*f == L_('\0'))
-    goto all_done;
+    return;
 
   /* Use the slow path in case any printf handler is registered.  */
   if (__glibc_unlikely (__printf_function_table != NULL
@@ -885,7 +773,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	    if (pos == -1)
 	      {
 		__set_errno (EOVERFLOW);
-		done = -1;
+		Xprintf_buffer_mark_failed (buf);
 		goto all_done;
 	      }
 
@@ -912,7 +800,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       if (__glibc_unlikely (width == -1))
 	{
 	  __set_errno (EOVERFLOW);
-	  done = -1;
+	  Xprintf_buffer_mark_failed (buf);
 	  goto all_done;
 	}
 
@@ -935,7 +823,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	      if (pos == -1)
 		{
 		  __set_errno (EOVERFLOW);
-		  done = -1;
+		  Xprintf_buffer_mark_failed (buf);
 		  goto all_done;
 		}
 
@@ -958,7 +846,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	  if (prec == -1)
 	    {
 	      __set_errno (EOVERFLOW);
-	      done = -1;
+	      Xprintf_buffer_mark_failed (buf);
 	      goto all_done;
 	    }
 	}
@@ -1003,6 +891,56 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
       is_long_double = sizeof (intmax_t) > sizeof (unsigned long int);
       is_long = sizeof (intmax_t) > sizeof (unsigned int);
       JUMP (*++f, step4_jumps);
+
+      /* Process 'wN' or 'wfN' modifier.  */
+    LABEL (mod_bitwidth):
+      ++f;
+      bool is_fast = false;
+      if (*f == L_('f'))
+	{
+	  ++f;
+	  is_fast = true;
+	}
+      int bitwidth = 0;
+      if (ISDIGIT (*f))
+	bitwidth = read_int (&f);
+      if (is_fast)
+	switch (bitwidth)
+	  {
+	  case 8:
+	    bitwidth = INT_FAST8_WIDTH;
+	    break;
+	  case 16:
+	    bitwidth = INT_FAST16_WIDTH;
+	    break;
+	  case 32:
+	    bitwidth = INT_FAST32_WIDTH;
+	    break;
+	  case 64:
+	    bitwidth = INT_FAST64_WIDTH;
+	    break;
+	  }
+      switch (bitwidth)
+	{
+	case 8:
+	  is_char = 1;
+	  break;
+	case 16:
+	  is_short = 1;
+	  break;
+	case 32:
+	  break;
+	case 64:
+	  is_long_double = 1;
+	  is_long = 1;
+	  break;
+	default:
+	  /* ISO C requires this error to be detected.  */
+	  __set_errno (EINVAL);
+	  Xprintf_buffer_mark_failed (buf);
+	  goto all_done;
+	}
+      JUMP (*f, step4_jumps);
 
       /* Process current format.  */
       while (1)
@@ -1058,13 +996,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	    PARSE_FLOAT_VA_ARG_EXTENDED (info);
 	    const void *ptr = &the_arg;
 
-	    int function_done = __printf_fp_spec (s, &info, &ptr);
-	    if (function_done < 0)
-	      {
-		done = -1;
-		goto all_done;
-	      }
-	    done_add (function_done);
+	    __printf_fp_spec (buf, &info, &ptr);
 	  }
 	  break;
 
@@ -1073,7 +1005,7 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 	    {
 	      /* The format string ended before the specifier is complete.  */
 	      __set_errno (EINVAL);
-	      done = -1;
+	      Xprintf_buffer_mark_failed (buf);
 	      goto all_done;
 	    }
 
@@ -1093,30 +1025,28 @@ vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 #endif
 
       /* Write the following constant string.  */
-      outstring (end_of_spec, f - end_of_spec);
+      Xprintf_buffer_write (buf, (const CHAR_T *) end_of_spec,
+			      f - end_of_spec);
     }
-  while (*f != L_('\0'));
+  while (*f != L_('\0') && !Xprintf_buffer_has_failed (buf));
 
-  /* Unlock stream and return.  */
-  goto all_done;
+ all_done:
+  /* printf_positional performs cleanup under its all_done label, so
+     vfprintf-process-arg.c uses it for this function and
+     printf_positional below.  */
+  return;
 
   /* Hand off processing for positional parameters.  */
 do_positional:
-  done = printf_positional (s, format, readonly_format, ap, &ap_save,
-			    done, nspecs_done, lead_str_end, work_buffer,
-			    save_errno, grouping, thousands_sep, mode_flags);
-
- all_done:
-  /* Unlock the stream.  */
-  _IO_funlockfile (s);
-  _IO_cleanup_region_end (0);
-
-  return done;
+  printf_positional (buf, format, readonly_format, ap, &ap_save,
+		     nspecs_done, lead_str_end, work_buffer,
+		     save_errno, grouping, thousands_sep, mode_flags);
 }
 
-static int
-printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
-		   va_list ap, va_list *ap_savep, int done, int nspecs_done,
+static void
+printf_positional (struct Xprintf_buffer * buf, const CHAR_T *format,
+		   int readonly_format,
+		   va_list ap, va_list *ap_savep, int nspecs_done,
 		   const UCHAR_T *lead_str_end,
 		   CHAR_T *work_buffer, int save_errno,
 		   const char *grouping, THOUSANDS_SEP_T thousands_sep,
@@ -1171,7 +1101,7 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	{
 	  if (!scratch_buffer_grow_preserve (&specsbuf))
 	    {
-	      done = -1;
+	      Xprintf_buffer_mark_failed (buf);
 	      goto all_done;
 	    }
 	  specs = specsbuf.data;
@@ -1179,11 +1109,19 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	}
 
       /* Parse the format specifier.  */
+      bool failed;
 #ifdef COMPILE_WPRINTF
-      nargs += __parse_one_specwc (f, nargs, &specs[nspecs], &max_ref_arg);
+      nargs += __parse_one_specwc (f, nargs, &specs[nspecs], &max_ref_arg,
+				   &failed);
 #else
-      nargs += __parse_one_specmb (f, nargs, &specs[nspecs], &max_ref_arg);
+      nargs += __parse_one_specmb (f, nargs, &specs[nspecs], &max_ref_arg,
+				   &failed);
 #endif
+      if (failed)
+	{
+	  Xprintf_buffer_mark_failed (buf);
+	  goto all_done;
+	}
     }
 
   /* Determine the number of arguments the format string consumes.  */
@@ -1192,6 +1130,8 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
   union printf_arg *args_value;
   int *args_size;
   int *args_type;
+  void *args_pa_user;
+  size_t args_pa_user_offset;
   {
     /* Calculate total size needed to represent a single argument
        across all three argument-related arrays.  */
@@ -1199,7 +1139,7 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
       = sizeof (*args_value) + sizeof (*args_size) + sizeof (*args_type);
     if (!scratch_buffer_set_array_size (&argsbuf, nargs, bytes_per_arg))
       {
-	done = -1;
+	Xprintf_buffer_mark_failed (buf);
 	goto all_done;
       }
     args_value = argsbuf.data;
@@ -1208,6 +1148,7 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
        now.  */
     args_size = &args_value[nargs].pa_int;
     args_type = &args_size[nargs];
+    args_pa_user = &args_type[nargs];
     memset (args_type, (mode_flags & PRINTF_FORTIFY) != 0 ? '\xff' : '\0',
 	    nargs * sizeof (*args_type));
   }
@@ -1297,7 +1238,25 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	else if (__glibc_unlikely (__printf_va_arg_table != NULL)
 		 && __printf_va_arg_table[args_type[cnt] - PA_LAST] != NULL)
 	  {
-	    args_value[cnt].pa_user = alloca (args_size[cnt]);
+	    while (args_pa_user + args_size[cnt] >
+		argsbuf.data + argsbuf.length)
+	      {
+		args_pa_user_offset = args_pa_user - (void *) &args_type[nargs];
+	        if (!scratch_buffer_grow_preserve (&argsbuf))
+	          {
+	            Xprintf_buffer_mark_failed (buf);
+	            goto all_done;
+	          }
+                args_value = argsbuf.data;
+                /* Set up the remaining two arrays to each point past the end of
+                   the prior array, since space for all three has been allocated
+                   now.  */
+                args_size = &args_value[nargs].pa_int;
+                args_type = &args_size[nargs];
+                args_pa_user = (void *) &args_type[nargs] + args_pa_user_offset;
+	      }
+	    args_value[cnt].pa_user = args_pa_user;
+	    args_pa_user += args_size[cnt];
 	    (*__printf_va_arg_table[args_type[cnt] - PA_LAST])
 	      (args_value[cnt].pa_user, ap_savep);
 	  }
@@ -1312,7 +1271,8 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
       }
 
   /* Now walk through all format specifiers and process them.  */
-  for (; (size_t) nspecs_done < nspecs; ++nspecs_done)
+  for (; (size_t) nspecs_done < nspecs && !Xprintf_buffer_has_failed (buf);
+       ++nspecs_done)
     {
       STEP4_TABLE;
 
@@ -1376,26 +1336,19 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	}
 
       /* Process format specifiers.  */
-      while (1)
+      do
 	{
-	  int function_done;
-
 	  if (spec <= UCHAR_MAX
 	      && __printf_function_table != NULL
 	      && __printf_function_table[(size_t) spec] != NULL)
 	    {
-	      const void **ptr = alloca (specs[nspecs_done].ndata_args
-					 * sizeof (const void *));
-
-	      /* Fill in an array of pointers to the argument values.  */
-	      for (unsigned int i = 0; i < specs[nspecs_done].ndata_args;
-		   ++i)
-		ptr[i] = &args_value[specs[nspecs_done].data_arg + i];
-
-	      /* Call the function.  */
-	      function_done = __printf_function_table[(size_t) spec]
-		(s, &specs[nspecs_done].info, ptr);
-
+	      int function_done
+		= Xprintf (function_invoke) (buf,
+					     __printf_function_table[(size_t) spec],
+					     &args_value[specs[nspecs_done]
+							 .data_arg],
+					     specs[nspecs_done].ndata_args,
+					     &specs[nspecs_done].info);
 	      if (function_done != -2)
 		{
 		  /* If an error occurred we don't have information
@@ -1403,11 +1356,9 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 		  if (function_done < 0)
 		    {
 		      /* Function has set errno.  */
-		      done = -1;
+		      Xprintf_buffer_mark_failed (buf);
 		      goto all_done;
 		    }
-
-		  done_add (function_done);
 		  break;
 		}
 	    }
@@ -1450,327 +1401,167 @@ printf_positional (FILE *s, const CHAR_T *format, int readonly_format,
 	      }
 	    SETUP_FLOAT128_INFO (specs[nspecs_done].info);
 
-	    int function_done
-	      = __printf_fp_spec (s, &specs[nspecs_done].info, &ptr);
-	    if (function_done < 0)
-	      {
-		/* Error in print handler; up to handler to set errno.  */
-		done = -1;
-		goto all_done;
-	      }
-	    done_add (function_done);
+	    __printf_fp_spec (buf, &specs[nspecs_done].info, &ptr);
 	  }
 	  break;
 
 	  LABEL (form_unknown):
 	  {
-	    int function_done = printf_unknown (s, &specs[nspecs_done].info);
-
-	    /* If an error occurred we don't have information about #
-	       of chars.  */
-	    if (function_done < 0)
-	      {
-		/* Function has set errno.  */
-		done = -1;
-		goto all_done;
-	      }
-
-	    done_add (function_done);
+	    printf_unknown (buf, &specs[nspecs_done].info);
 	  }
 	  break;
 	}
+      while (Xprintf_buffer_has_failed (buf));
 
       /* Write the following constant string.  */
-      outstring (specs[nspecs_done].end_of_fmt,
-		 specs[nspecs_done].next_fmt
-		 - specs[nspecs_done].end_of_fmt);
+      Xprintf_buffer_write (buf,
+			      (const CHAR_T *) specs[nspecs_done].end_of_fmt,
+			      (specs[nspecs_done].next_fmt
+			       - specs[nspecs_done].end_of_fmt));
     }
  all_done:
   scratch_buffer_free (&argsbuf);
   scratch_buffer_free (&specsbuf);
-  return done;
 }
 
 /* Handle an unknown format specifier.  This prints out a canonicalized
    representation of the format spec itself.  */
-static int
-printf_unknown (FILE *s, const struct printf_info *info)
+static void
+printf_unknown (struct Xprintf_buffer *buf, const struct printf_info *info)
 {
-  int done = 0;
   CHAR_T work_buffer[MAX (sizeof (info->width), sizeof (info->prec)) * 3];
   CHAR_T *const workend
     = &work_buffer[sizeof (work_buffer) / sizeof (CHAR_T)];
   CHAR_T *w;
 
-  outchar (L_('%'));
+  Xprintf_buffer_putc (buf, L_('%'));
 
   if (info->alt)
-    outchar (L_('#'));
+    Xprintf_buffer_putc (buf, L_('#'));
   if (info->group)
-    outchar (L_('\''));
+    Xprintf_buffer_putc (buf, L_('\''));
   if (info->showsign)
-    outchar (L_('+'));
+    Xprintf_buffer_putc (buf, L_('+'));
   else if (info->space)
-    outchar (L_(' '));
+    Xprintf_buffer_putc (buf, L_(' '));
   if (info->left)
-    outchar (L_('-'));
+    Xprintf_buffer_putc (buf, L_('-'));
   if (info->pad == L_('0'))
-    outchar (L_('0'));
+    Xprintf_buffer_putc (buf, L_('0'));
   if (info->i18n)
-    outchar (L_('I'));
+    Xprintf_buffer_putc (buf, L_('I'));
 
   if (info->width != 0)
     {
       w = _itoa_word (info->width, workend, 10, 0);
       while (w < workend)
-	outchar (*w++);
+	Xprintf_buffer_putc (buf, *w++);
     }
 
   if (info->prec != -1)
     {
-      outchar (L_('.'));
+      Xprintf_buffer_putc (buf, L_('.'));
       w = _itoa_word (info->prec, workend, 10, 0);
       while (w < workend)
-	outchar (*w++);
+	Xprintf_buffer_putc (buf, *w++);
     }
 
   if (info->spec != L_('\0'))
-    outchar (info->spec);
-
- all_done:
-  return done;
+    Xprintf_buffer_putc (buf, info->spec);
 }
-
-/* Group the digits from W to REAR_PTR according to the grouping rules
-   of the current locale.  The interpretation of GROUPING is as in
-   `struct lconv' from <locale.h>.  The grouped number extends from
-   the returned pointer until REAR_PTR.  FRONT_PTR to W is used as a
-   scratch area.  */
-static CHAR_T *
-group_number (CHAR_T *front_ptr, CHAR_T *w, CHAR_T *rear_ptr,
-	      const char *grouping, THOUSANDS_SEP_T thousands_sep)
+
+static void
+group_number (struct Xprintf_buffer *buf,
+	      struct grouping_iterator *iter,
+	      CHAR_T *from, CHAR_T *to, THOUSANDS_SEP_T thousands_sep,
+	      bool i18n)
 {
-  /* Length of the current group.  */
-  int len;
-#ifndef COMPILE_WPRINTF
-  /* Length of the separator (in wide mode, the separator is always a
-     single wide character).  */
-  int tlen = strlen (thousands_sep);
-#endif
-
-  /* We treat all negative values like CHAR_MAX.  */
-
-  if (*grouping == CHAR_MAX || *grouping <= 0)
-    /* No grouping should be done.  */
-    return w;
-
-  len = *grouping++;
-
-  /* Copy existing string so that nothing gets overwritten.  */
-  memmove (front_ptr, w, (rear_ptr - w) * sizeof (CHAR_T));
-  CHAR_T *s = front_ptr + (rear_ptr - w);
-
-  w = rear_ptr;
-
-  /* Process all characters in the string.  */
-  while (s > front_ptr)
-    {
-      *--w = *--s;
-
-      if (--len == 0 && s > front_ptr)
-	{
-	  /* A new group begins.  */
+  if (!i18n)
+    for (CHAR_T *cp = from; cp != to; ++cp)
+      {
+	if (__grouping_iterator_next (iter))
+	  {
 #ifdef COMPILE_WPRINTF
-	  if (w != s)
-	    *--w = thousands_sep;
-	  else
-	    /* Not enough room for the separator.  */
-	    goto copy_rest;
+	    __wprintf_buffer_putc (buf, thousands_sep);
 #else
-	  int cnt = tlen;
-	  if (tlen < w - s)
-	    do
-	      *--w = thousands_sep[--cnt];
-	    while (cnt > 0);
-	  else
-	    /* Not enough room for the separator.  */
-	    goto copy_rest;
+	    __printf_buffer_puts (buf, thousands_sep);
 #endif
-
-	  if (*grouping == CHAR_MAX
-#if CHAR_MIN < 0
-		   || *grouping < 0
-#endif
-		   )
+	  }
+	Xprintf_buffer_putc (buf, *cp);
+      }
+  else
+    {
+      /* Apply digit translation and grouping.  */
+      for (CHAR_T *cp = from; cp != to; ++cp)
+	{
+	  if (__grouping_iterator_next (iter))
 	    {
-	    copy_rest:
-	      /* No further grouping to be done.  Copy the rest of the
-		 number.  */
-	      w -= s - front_ptr;
-	      memmove (w, front_ptr, (s - front_ptr) * sizeof (CHAR_T));
-	      break;
+#ifdef COMPILE_WPRINTF
+	      __wprintf_buffer_putc (buf, thousands_sep);
+#else
+	      __printf_buffer_puts (buf, thousands_sep);
+#endif
 	    }
-	  else if (*grouping != '\0')
-	    len = *grouping++;
-	  else
-	    /* The previous grouping repeats ad infinitum.  */
-	    len = grouping[-1];
+	  int digit = *cp - '0';
+#ifdef COMPILE_WPRINTF
+	  __wprintf_buffer_putc
+	    (buf, _NL_CURRENT_WORD (LC_CTYPE,
+				    _NL_CTYPE_OUTDIGIT0_WC + digit));
+#else
+	  __printf_buffer_puts
+	    (buf, _NL_CURRENT (LC_CTYPE, _NL_CTYPE_OUTDIGIT0_MB + digit));
+#endif
 	}
     }
-  return w;
-}
-
-/* Helper "class" for `fprintf to unbuffered': creates a temporary buffer.  */
-struct helper_file
-  {
-    struct _IO_FILE_plus _f;
-#ifdef COMPILE_WPRINTF
-    struct _IO_wide_data _wide_data;
-#endif
-    FILE *_put_stream;
-#ifdef _IO_MTSAFE_IO
-    _IO_lock_t lock;
-#endif
-  };
-
-static int
-_IO_helper_overflow (FILE *s, int c)
-{
-  FILE *target = ((struct helper_file*) s)->_put_stream;
-#ifdef COMPILE_WPRINTF
-  int used = s->_wide_data->_IO_write_ptr - s->_wide_data->_IO_write_base;
-  if (used)
-    {
-      size_t written = _IO_sputn (target, s->_wide_data->_IO_write_base, used);
-      if (written == 0 || written == WEOF)
-	return WEOF;
-      __wmemmove (s->_wide_data->_IO_write_base,
-		  s->_wide_data->_IO_write_base + written,
-		  used - written);
-      s->_wide_data->_IO_write_ptr -= written;
-    }
-#else
-  int used = s->_IO_write_ptr - s->_IO_write_base;
-  if (used)
-    {
-      size_t written = _IO_sputn (target, s->_IO_write_base, used);
-      if (written == 0 || written == EOF)
-	return EOF;
-      memmove (s->_IO_write_base, s->_IO_write_base + written,
-	       used - written);
-      s->_IO_write_ptr -= written;
-    }
-#endif
-  return PUTC (c, s);
 }
 
-#ifdef COMPILE_WPRINTF
-static const struct _IO_jump_t _IO_helper_jumps libio_vtable =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT (finish, _IO_wdefault_finish),
-  JUMP_INIT (overflow, _IO_helper_overflow),
-  JUMP_INIT (underflow, _IO_default_underflow),
-  JUMP_INIT (uflow, _IO_default_uflow),
-  JUMP_INIT (pbackfail, (_IO_pbackfail_t) _IO_wdefault_pbackfail),
-  JUMP_INIT (xsputn, _IO_wdefault_xsputn),
-  JUMP_INIT (xsgetn, _IO_wdefault_xsgetn),
-  JUMP_INIT (seekoff, _IO_default_seekoff),
-  JUMP_INIT (seekpos, _IO_default_seekpos),
-  JUMP_INIT (setbuf, _IO_default_setbuf),
-  JUMP_INIT (sync, _IO_default_sync),
-  JUMP_INIT (doallocate, _IO_wdefault_doallocate),
-  JUMP_INIT (read, _IO_default_read),
-  JUMP_INIT (write, _IO_default_write),
-  JUMP_INIT (seek, _IO_default_seek),
-  JUMP_INIT (close, _IO_default_close),
-  JUMP_INIT (stat, _IO_default_stat)
-};
-#else
-static const struct _IO_jump_t _IO_helper_jumps libio_vtable =
-{
-  JUMP_INIT_DUMMY,
-  JUMP_INIT (finish, _IO_default_finish),
-  JUMP_INIT (overflow, _IO_helper_overflow),
-  JUMP_INIT (underflow, _IO_default_underflow),
-  JUMP_INIT (uflow, _IO_default_uflow),
-  JUMP_INIT (pbackfail, _IO_default_pbackfail),
-  JUMP_INIT (xsputn, _IO_default_xsputn),
-  JUMP_INIT (xsgetn, _IO_default_xsgetn),
-  JUMP_INIT (seekoff, _IO_default_seekoff),
-  JUMP_INIT (seekpos, _IO_default_seekpos),
-  JUMP_INIT (setbuf, _IO_default_setbuf),
-  JUMP_INIT (sync, _IO_default_sync),
-  JUMP_INIT (doallocate, _IO_default_doallocate),
-  JUMP_INIT (read, _IO_default_read),
-  JUMP_INIT (write, _IO_default_write),
-  JUMP_INIT (seek, _IO_default_seek),
-  JUMP_INIT (close, _IO_default_close),
-  JUMP_INIT (stat, _IO_default_stat)
-};
-#endif
 
-static int
-buffered_vfprintf (FILE *s, const CHAR_T *format, va_list args,
-		   unsigned int mode_flags)
+/* The FILE-based function.  */
+int
+vfprintf (FILE *s, const CHAR_T *format, va_list ap, unsigned int mode_flags)
 {
-  CHAR_T buf[BUFSIZ];
-  struct helper_file helper;
-  FILE *hp = (FILE *) &helper._f;
-  int result, to_flush;
-
   /* Orient the stream.  */
 #ifdef ORIENT
   ORIENT;
 #endif
 
-  /* Initialize helper.  */
-  helper._put_stream = s;
-#ifdef COMPILE_WPRINTF
-  hp->_wide_data = &helper._wide_data;
-  _IO_wsetp (hp, buf, buf + sizeof buf / sizeof (CHAR_T));
-  hp->_mode = 1;
-#else
-  _IO_setp (hp, buf, buf + sizeof buf);
-  hp->_mode = -1;
-#endif
-  hp->_flags = _IO_MAGIC|_IO_NO_READS|_IO_USER_LOCK;
-#if _IO_JUMPS_OFFSET
-  hp->_vtable_offset = 0;
-#endif
-#ifdef _IO_MTSAFE_IO
-  hp->_lock = NULL;
-#endif
-  hp->_flags2 = s->_flags2;
-  _IO_JUMPS (&helper._f) = (struct _IO_jump_t *) &_IO_helper_jumps;
+  /* Sanity check of arguments.  */
+  ARGCHECK (s, format);
 
-  /* Now print to helper instead.  */
-  result = vfprintf (hp, format, args, mode_flags);
+#ifdef ORIENT
+  /* Check for correct orientation.  */
+  if (_IO_vtable_offset (s) == 0
+      && _IO_fwide (s, sizeof (CHAR_T) == 1 ? -1 : 1)
+      != (sizeof (CHAR_T) == 1 ? -1 : 1))
+    /* The stream is already oriented otherwise.  */
+    return EOF;
+#endif
+
+  if (!_IO_need_lock (s))
+    {
+      struct Xprintf (buffer_to_file) wrap;
+      Xprintf (buffer_to_file_init) (&wrap, s);
+      Xprintf_buffer (&wrap.base, format, ap, mode_flags);
+      return Xprintf (buffer_to_file_done) (&wrap);
+    }
+
+  int done;
 
   /* Lock stream.  */
-  __libc_cleanup_region_start (1, (void (*) (void *)) &_IO_funlockfile, s);
+  _IO_cleanup_region_start ((void (*) (void *)) &_IO_funlockfile, s);
   _IO_flockfile (s);
 
-  /* Now flush anything from the helper to the S. */
-#ifdef COMPILE_WPRINTF
-  if ((to_flush = (hp->_wide_data->_IO_write_ptr
-		   - hp->_wide_data->_IO_write_base)) > 0)
-    {
-      if ((int) _IO_sputn (s, hp->_wide_data->_IO_write_base, to_flush)
-	  != to_flush)
-	result = -1;
-    }
-#else
-  if ((to_flush = hp->_IO_write_ptr - hp->_IO_write_base) > 0)
-    {
-      if ((int) _IO_sputn (s, hp->_IO_write_base, to_flush) != to_flush)
-	result = -1;
-    }
-#endif
+  /* Set up the wrapping buffer.  */
+  struct Xprintf (buffer_to_file) wrap;
+  Xprintf (buffer_to_file_init) (&wrap, s);
+
+  /* Perform the printing operation on the buffer.  */
+  Xprintf_buffer (&wrap.base, format, ap, mode_flags);
+  done = Xprintf (buffer_to_file_done) (&wrap);
 
   /* Unlock the stream.  */
   _IO_funlockfile (s);
-  __libc_cleanup_region_end (0);
+  _IO_cleanup_region_end (0);
 
-  return result;
+  return done;
 }

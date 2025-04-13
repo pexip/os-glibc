@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  ARM version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -65,7 +65,6 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 {
   Elf32_Addr *got;
   extern void _dl_runtime_resolve (Elf32_Word);
-  extern void _dl_runtime_profile (Elf32_Word);
 
   if (l->l_info[DT_JMPREL] && lazy)
     {
@@ -88,6 +87,8 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 to intercept the calls to collect information.  In this case we
 	 don't store the address in the GOT so that all future calls also
 	 end in this function.  */
+#ifdef SHARED
+      extern void _dl_runtime_profile (Elf32_Word);
       if (profile)
 	{
 	  got[2] = (Elf32_Addr) &_dl_runtime_profile;
@@ -99,6 +100,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	/* This function will get called to fix up the GOT entry indicated by
 	   the offset on the stack, and then jump to the resolved address.  */
 	got[2] = (Elf32_Addr) &_dl_runtime_resolve;
@@ -137,7 +139,6 @@ _start:\n\
 _dl_start_user:\n\
 	adr	r6, .L_GET_GOT\n\
 	add	sl, sl, r6\n\
-	ldr	r4, [sl, r4]\n\
 	@ save the entry point in another register\n\
 	mov	r6, r0\n\
 	@ get the original arg count\n\
@@ -227,6 +228,16 @@ elf_machine_plt_value (struct link_map *map, const Elf32_Rel *reloc,
 #define ARCH_LA_PLTEXIT arm_gnu_pltexit
 
 #ifdef RESOLVE_MAP
+/* Set NEW_VALUE based on V, and return true iff it overflows 24 bits.  */
+static inline bool set_new_value (Elf32_Addr *new_value, Elf32_Addr v,
+				  Elf32_Addr *const reloc_addr,
+				  Elf32_Sword addend)
+{
+  *new_value = v + addend - (Elf32_Addr) reloc_addr;
+  Elf32_Addr topbits = *new_value & 0xfe000000;
+  return topbits != 0xfe000000 && topbits != 0x00000000;
+}
+
 /* Handle a PC24 reloc, including the out-of-range case.  */
 static void
 relocate_pc24 (struct link_map *map, Elf32_Addr value,
@@ -234,15 +245,7 @@ relocate_pc24 (struct link_map *map, Elf32_Addr value,
 {
   Elf32_Addr new_value;
 
-  /* Set NEW_VALUE based on V, and return true iff it overflows 24 bits.  */
-  inline bool set_new_value (Elf32_Addr v)
-  {
-    new_value = v + addend - (Elf32_Addr) reloc_addr;
-    Elf32_Addr topbits = new_value & 0xfe000000;
-    return topbits != 0xfe000000 && topbits != 0x00000000;
-  }
-
-  if (set_new_value (value))
+  if (set_new_value (&new_value, value, reloc_addr, addend))
     {
       /* The PC-relative address doesn't fit in 24 bits!  */
 
@@ -271,7 +274,8 @@ relocate_pc24 (struct link_map *map, Elf32_Addr value,
           fix_offset = 0;
         }
 
-      if (set_new_value ((Elf32_Addr) fix_address))
+      if (set_new_value (&new_value, (Elf32_Addr) fix_address, reloc_addr,
+			 addend))
         _dl_signal_error (0, map->l_name, NULL,
                           "R_ARM_PC24 relocation out of range");
     }
@@ -345,21 +349,9 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
 	  break;
 	case R_ARM_ABS32:
 	  {
-	    struct unaligned
-	      {
-		Elf32_Addr x;
-	      } __attribute__ ((packed, may_alias));
+	    ElfW(Addr) tmp;
 # ifndef RTLD_BOOTSTRAP
-	   /* This is defined in rtld.c, but nowhere in the static
-	      libc.a; make the reference weak so static programs can
-	      still link.  This declaration cannot be done when
-	      compiling rtld.c (i.e.  #ifdef RTLD_BOOTSTRAP) because
-	      rtld.c contains the common defn for _dl_rtld_map, which
-	      is incompatible with a weak decl in the same file.  */
-#  ifndef SHARED
-	    weak_extern (_dl_rtld_map);
-#  endif
-	    if (map == &GL(dl_rtld_map))
+	    if (is_rtld_link_map (map))
 	      /* Undo the relocation done here during bootstrapping.
 		 Now we will relocate it anew, possibly using a
 		 binding found in the user program or a loaded library
@@ -368,7 +360,9 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
 	      value -= SYMBOL_ADDRESS (map, refsym, true);
 # endif
 	    /* Support relocations on mis-aligned offsets.  */
-	    ((struct unaligned *) reloc_addr)->x += value;
+	    memcpy (&tmp, reloc_addr, sizeof tmp);
+	    tmp += value;
+	    memcpy (reloc_addr, &tmp, sizeof tmp);
 	    break;
 	  }
 	case R_ARM_TLS_DESC:
@@ -447,96 +441,6 @@ elf_machine_rel (struct link_map *map, struct r_scope_elem *scope[],
     }
 }
 
-# ifndef RTLD_BOOTSTRAP
-static inline void
-__attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
-                  const Elf32_Rela *reloc, const Elf32_Sym *sym,
-                  const struct r_found_version *version,
-		  void *const reloc_addr_arg, int skip_ifunc)
-{
-  Elf32_Addr *const reloc_addr = reloc_addr_arg;
-  const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-
-  if (__builtin_expect (r_type == R_ARM_RELATIVE, 0))
-    *reloc_addr = map->l_addr + reloc->r_addend;
-  else if (__builtin_expect (r_type == R_ARM_NONE, 0))
-    return;
-  else
-    {
-      const Elf32_Sym *const refsym = sym;
-      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version, r_type);
-      Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
-
-      if (sym != NULL
-	  && __builtin_expect (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC, 0)
-	  && __builtin_expect (sym->st_shndx != SHN_UNDEF, 1)
-	  && __builtin_expect (!skip_ifunc, 1))
-	value = elf_ifunc_invoke (value);
-
-      switch (r_type)
-	{
-	  /* Not needed for dl-conflict.c.  */
-	case R_ARM_COPY:
-	  if (sym == NULL)
-	    /* This can happen in trace mode if an object could not be
-	       found.  */
-	    break;
-	  if (sym->st_size > refsym->st_size
-	      || (GLRO(dl_verbose) && sym->st_size < refsym->st_size))
-	    {
-	      const char *strtab;
-
-	      strtab = (const void *) D_PTR (map, l_info[DT_STRTAB]);
-	      _dl_error_printf ("\
-%s: Symbol `%s' has different size in shared object, consider re-linking\n",
-				RTLD_PROGNAME, strtab + refsym->st_name);
-	    }
-	  memcpy (reloc_addr_arg, (void *) value,
-		  MIN (sym->st_size, refsym->st_size));
-	  break;
-	case R_ARM_GLOB_DAT:
-	case R_ARM_JUMP_SLOT:
-	case R_ARM_ABS32:
-	  *reloc_addr = value + reloc->r_addend;
-	  break;
-	case R_ARM_PC24:
-          relocate_pc24 (map, value, reloc_addr, reloc->r_addend);
-	  break;
-#if !defined RTLD_BOOTSTRAP
-	case R_ARM_TLS_DTPMOD32:
-	  /* Get the information from the link map returned by the
-	     resolv function.  */
-	  if (sym_map != NULL)
-	    *reloc_addr = sym_map->l_tls_modid;
-	  break;
-
-	case R_ARM_TLS_DTPOFF32:
-	  *reloc_addr = (sym == NULL ? 0 : sym->st_value) + reloc->r_addend;
-	  break;
-
-	case R_ARM_TLS_TPOFF32:
-	  if (sym != NULL)
-	    {
-	      CHECK_STATIC_TLS (map, sym_map);
-	      *reloc_addr = (sym->st_value + sym_map->l_tls_offset
-			     + reloc->r_addend);
-	    }
-	  break;
-	case R_ARM_IRELATIVE:
-	  value = map->l_addr + reloc->r_addend;
-	  if (__glibc_likely (!skip_ifunc))
-	    value = ((Elf32_Addr (*) (int)) value) (GLRO(dl_hwcap));
-	  *reloc_addr = value;
-	  break;
-#endif
-	default:
-	  _dl_reloc_bad_type (map, r_type, 0);
-	  break;
-	}
-    }
-}
-# endif
 
 static inline void
 __attribute__ ((always_inline))
@@ -547,16 +451,6 @@ elf_machine_rel_relative (Elf32_Addr l_addr, const Elf32_Rel *reloc,
   *reloc_addr += l_addr;
 }
 
-# ifndef RTLD_BOOTSTRAP
-static inline void
-__attribute__ ((always_inline))
-elf_machine_rela_relative (Elf32_Addr l_addr, const Elf32_Rela *reloc,
-			   void *const reloc_addr_arg)
-{
-  Elf32_Addr *const reloc_addr = reloc_addr_arg;
-  *reloc_addr = l_addr + reloc->r_addend;
-}
-# endif
 
 static inline void
 __attribute__ ((always_inline))

@@ -1,5 +1,5 @@
 /* memset with unaligned store and rep stosb
-   Copyright (C) 2016-2022 Free Software Foundation, Inc.
+   Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,8 +21,13 @@
    2. If size is less than VEC, use integer register stores.
    3. If size is from VEC_SIZE to 2 * VEC_SIZE, use 2 VEC stores.
    4. If size is from 2 * VEC_SIZE to 4 * VEC_SIZE, use 4 VEC stores.
-   5. If size is more to 4 * VEC_SIZE, align to 4 * VEC_SIZE with
-      4 VEC stores and store 4 * VEC at a time until done.  */
+   5. If size is more to 4 * VEC_SIZE, align to 1 * VEC_SIZE with
+      4 VEC stores and store 4 * VEC at a time until done.
+   6. On machines ERMS feature, if size is range
+	  [__x86_rep_stosb_threshold, __x86_memset_non_temporal_threshold)
+	  then REP STOSB will be used.
+   7. If size >= __x86_memset_non_temporal_threshold, use a
+	  non-temporal stores.  */
 
 #include <sysdep.h>
 
@@ -32,14 +37,6 @@
 
 #ifndef WMEMSET_CHK_SYMBOL
 # define WMEMSET_CHK_SYMBOL(p,s)	WMEMSET_SYMBOL(p, s)
-#endif
-
-#ifndef XMM0
-# define XMM0				xmm0
-#endif
-
-#ifndef YMM0
-# define YMM0				ymm0
 #endif
 
 #ifndef VZEROUPPER
@@ -150,9 +147,44 @@ L(entry_from_wmemset):
 	cmpq	$(VEC_SIZE * 2), %rdx
 	ja	L(more_2x_vec)
 	/* From VEC and to 2 * VEC.  No branch when size == VEC_SIZE.  */
-	VMOVU	%VEC(0), -VEC_SIZE(%rdi,%rdx)
-	VMOVU	%VEC(0), (%rdi)
+	VMOVU	%VMM(0), -VEC_SIZE(%rdi,%rdx)
+	VMOVU	%VMM(0), (%rdi)
 	VZEROUPPER_RETURN
+
+	/* If have AVX512 mask instructions put L(less_vec) close to
+	   entry as it doesn't take much space and is likely a hot target.  */
+#ifdef USE_LESS_VEC_MASK_STORE
+    /* Align to ensure the L(less_vec) logic all fits in 1x cache lines.  */
+	.p2align 6,, 47
+	.p2align 4
+L(less_vec):
+L(less_vec_from_wmemset):
+	/* Less than 1 VEC.  */
+# if VEC_SIZE != 16 && VEC_SIZE != 32 && VEC_SIZE != 64
+#  error Unsupported VEC_SIZE!
+# endif
+	/* Clear high bits from edi. Only keeping bits relevant to page
+	   cross check. Note that we are using rax which is set in
+	   MEMSET_VDUP_TO_VEC0_AND_SET_RETURN as ptr from here on out.  */
+	andl	$(PAGE_SIZE - 1), %edi
+	/* Check if VEC_SIZE store cross page. Mask stores suffer
+	   serious performance degradation when it has to fault suppress.  */
+	cmpl	$(PAGE_SIZE - VEC_SIZE), %edi
+	/* This is generally considered a cold target.  */
+	ja	L(cross_page)
+# if VEC_SIZE > 32
+	movq	$-1, %rcx
+	bzhiq	%rdx, %rcx, %rcx
+	kmovq	%rcx, %k1
+# else
+	movl	$-1, %ecx
+	bzhil	%edx, %ecx, %ecx
+	kmovd	%ecx, %k1
+# endif
+	vmovdqu8 %VMM(0), (%rax){%k1}
+	VZEROUPPER_RETURN
+#endif
+
 #if defined USE_MULTIARCH && IS_IN (libc)
 END (MEMSET_SYMBOL (__memset, unaligned))
 
@@ -175,69 +207,21 @@ ENTRY_P2ALIGN (MEMSET_SYMBOL (__memset, unaligned_erms), 6)
 	cmp	$(VEC_SIZE * 2), %RDX_LP
 	ja	L(stosb_more_2x_vec)
 	/* From VEC and to 2 * VEC.  No branch when size == VEC_SIZE.  */
-	VMOVU	%VEC(0), (%rdi)
-	VMOVU	%VEC(0), (VEC_SIZE * -1)(%rdi, %rdx)
+	VMOVU	%VMM(0), (%rdi)
+	VMOVU	%VMM(0), (VEC_SIZE * -1)(%rdi, %rdx)
 	VZEROUPPER_RETURN
 #endif
 
 	.p2align 4,, 4
 L(last_2x_vec):
 #ifdef USE_LESS_VEC_MASK_STORE
-	VMOVU	%VEC(0), (VEC_SIZE * -2)(%rdi, %rdx)
-	VMOVU	%VEC(0), (VEC_SIZE * -1)(%rdi, %rdx)
+	VMOVU	%VMM(0), (VEC_SIZE * -2)(%rdi, %rdx)
+	VMOVU	%VMM(0), (VEC_SIZE * -1)(%rdi, %rdx)
 #else
-	VMOVU	%VEC(0), (VEC_SIZE * -2)(%rdi)
-	VMOVU	%VEC(0), (VEC_SIZE * -1)(%rdi)
+	VMOVU	%VMM(0), (VEC_SIZE * -2)(%rdi)
+	VMOVU	%VMM(0), (VEC_SIZE * -1)(%rdi)
 #endif
 	VZEROUPPER_RETURN
-
-	/* If have AVX512 mask instructions put L(less_vec) close to
-	   entry as it doesn't take much space and is likely a hot target.
-	 */
-#ifdef USE_LESS_VEC_MASK_STORE
-	.p2align 4,, 10
-L(less_vec):
-L(less_vec_from_wmemset):
-	/* Less than 1 VEC.  */
-# if VEC_SIZE != 16 && VEC_SIZE != 32 && VEC_SIZE != 64
-#  error Unsupported VEC_SIZE!
-# endif
-	/* Clear high bits from edi. Only keeping bits relevant to page
-	   cross check. Note that we are using rax which is set in
-	   MEMSET_VDUP_TO_VEC0_AND_SET_RETURN as ptr from here on out.  */
-	andl	$(PAGE_SIZE - 1), %edi
-	/* Check if VEC_SIZE store cross page. Mask stores suffer
-	   serious performance degradation when it has to fault supress.
-	 */
-	cmpl	$(PAGE_SIZE - VEC_SIZE), %edi
-	/* This is generally considered a cold target.  */
-	ja	L(cross_page)
-# if VEC_SIZE > 32
-	movq	$-1, %rcx
-	bzhiq	%rdx, %rcx, %rcx
-	kmovq	%rcx, %k1
-# else
-	movl	$-1, %ecx
-	bzhil	%edx, %ecx, %ecx
-	kmovd	%ecx, %k1
-# endif
-	vmovdqu8 %VEC(0), (%rax){%k1}
-	VZEROUPPER_RETURN
-
-# if defined USE_MULTIARCH && IS_IN (libc)
-	/* Include L(stosb_local) here if including L(less_vec) between
-	   L(stosb_more_2x_vec) and ENTRY. This is to cache align the
-	   L(stosb_more_2x_vec) target.  */
-	.p2align 4,, 10
-L(stosb_local):
-	movzbl	%sil, %eax
-	mov	%RDX_LP, %RCX_LP
-	mov	%RDI_LP, %RDX_LP
-	rep	stosb
-	mov	%RDX_LP, %RAX_LP
-	VZEROUPPER_RETURN
-# endif
-#endif
 
 #if defined USE_MULTIARCH && IS_IN (libc)
 	.p2align 4
@@ -249,8 +233,8 @@ L(stosb_more_2x_vec):
 	   and (4x, 8x] jump to target.  */
 L(more_2x_vec):
 	/* Store next 2x vec regardless.  */
-	VMOVU	%VEC(0), (%rdi)
-	VMOVU	%VEC(0), (VEC_SIZE * 1)(%rdi)
+	VMOVU	%VMM(0), (%rdi)
+	VMOVU	%VMM(0), (VEC_SIZE * 1)(%rdi)
 
 
 	/* Two different methods of setting up pointers / compare. The two
@@ -278,8 +262,8 @@ L(more_2x_vec):
 #endif
 
 	/* Store next 2x vec regardless.  */
-	VMOVU	%VEC(0), (VEC_SIZE * 2)(%rax)
-	VMOVU	%VEC(0), (VEC_SIZE * 3)(%rax)
+	VMOVU	%VMM(0), (VEC_SIZE * 2)(%rax)
+	VMOVU	%VMM(0), (VEC_SIZE * 3)(%rax)
 
 
 #if defined USE_WITH_EVEX || defined USE_WITH_AVX512
@@ -301,44 +285,56 @@ L(more_2x_vec):
 	leaq	(VEC_SIZE * 4)(%rax), %LOOP_REG
 #endif
 	/* Align dst for loop.  */
-	andq	$(VEC_SIZE * -2), %LOOP_REG
+	andq	$(VEC_SIZE * -1), %LOOP_REG
 	.p2align 4
 L(loop):
-	VMOVA	%VEC(0), LOOP_4X_OFFSET(%LOOP_REG)
-	VMOVA	%VEC(0), (VEC_SIZE + LOOP_4X_OFFSET)(%LOOP_REG)
-	VMOVA	%VEC(0), (VEC_SIZE * 2 + LOOP_4X_OFFSET)(%LOOP_REG)
-	VMOVA	%VEC(0), (VEC_SIZE * 3 + LOOP_4X_OFFSET)(%LOOP_REG)
+	VMOVA	%VMM(0), LOOP_4X_OFFSET(%LOOP_REG)
+	VMOVA	%VMM(0), (VEC_SIZE + LOOP_4X_OFFSET)(%LOOP_REG)
+	VMOVA	%VMM(0), (VEC_SIZE * 2 + LOOP_4X_OFFSET)(%LOOP_REG)
+	VMOVA	%VMM(0), (VEC_SIZE * 3 + LOOP_4X_OFFSET)(%LOOP_REG)
 	subq	$-(VEC_SIZE * 4), %LOOP_REG
 	cmpq	%END_REG, %LOOP_REG
 	jb	L(loop)
 	.p2align 4,, MOV_SIZE
 L(last_4x_vec):
-	VMOVU	%VEC(0), LOOP_4X_OFFSET(%END_REG)
-	VMOVU	%VEC(0), (VEC_SIZE + LOOP_4X_OFFSET)(%END_REG)
-	VMOVU	%VEC(0), (VEC_SIZE * 2 + LOOP_4X_OFFSET)(%END_REG)
-	VMOVU	%VEC(0), (VEC_SIZE * 3 + LOOP_4X_OFFSET)(%END_REG)
-L(return):
+	VMOVU	%VMM(0), LOOP_4X_OFFSET(%END_REG)
+	VMOVU	%VMM(0), (VEC_SIZE + LOOP_4X_OFFSET)(%END_REG)
+	VMOVU	%VMM(0), (VEC_SIZE * 2 + LOOP_4X_OFFSET)(%END_REG)
+	VMOVU	%VMM(0), (VEC_SIZE * 3 + LOOP_4X_OFFSET)(%END_REG)
+L(return_vzeroupper):
 #if VEC_SIZE > 16
 	ZERO_UPPER_VEC_REGISTERS_RETURN
 #else
 	ret
 #endif
 
-	.p2align 4,, 10
-#ifndef USE_LESS_VEC_MASK_STORE
-# if defined USE_MULTIARCH && IS_IN (libc)
+#ifdef USE_WITH_AVX2
+	.p2align 4
+#else
+	.p2align 4,, 4
+#endif
+
+#if defined USE_MULTIARCH && IS_IN (libc)
 	/* If no USE_LESS_VEC_MASK put L(stosb_local) here. Will be in
 	   range for 2-byte jump encoding.  */
 L(stosb_local):
+	cmp	__x86_memset_non_temporal_threshold(%rip), %RDX_LP
+	jae	L(nt_memset)
 	movzbl	%sil, %eax
 	mov	%RDX_LP, %RCX_LP
 	mov	%RDI_LP, %RDX_LP
 	rep	stosb
+# if (defined USE_WITH_SSE2) || (defined USE_WITH_AVX512)
+	/* Use xchg to save 1-byte (this helps align targets below).  */
+	xchg	%RDX_LP, %RAX_LP
+# else
 	mov	%RDX_LP, %RAX_LP
-	VZEROUPPER_RETURN
 # endif
+	VZEROUPPER_RETURN
+#endif
+#ifndef USE_LESS_VEC_MASK_STORE
 	/* Define L(less_vec) only if not otherwise defined.  */
-	.p2align 4
+	.p2align 4,, 12
 L(less_vec):
 	/* Broadcast esi to partial register (i.e VEC_SIZE == 32 broadcast to
 	   xmm). This is only does anything for AVX2.  */
@@ -355,7 +351,7 @@ L(cross_page):
 	jge	L(between_16_31)
 #endif
 #ifndef USE_XMM_LESS_VEC
-	MOVQ	%XMM0, %SET_REG64
+	MOVQ	%VMM_128(0), %SET_REG64
 #endif
 	cmpl	$8, %edx
 	jge	L(between_8_15)
@@ -374,8 +370,8 @@ L(between_0_0):
 	.p2align 4,, SMALL_MEMSET_ALIGN(MOV_SIZE, RET_SIZE)
 	/* From 32 to 63.  No branch when size == 32.  */
 L(between_32_63):
-	VMOVU	%YMM0, (%LESS_VEC_REG)
-	VMOVU	%YMM0, -32(%LESS_VEC_REG, %rdx)
+	VMOVU	%VMM_256(0), (%LESS_VEC_REG)
+	VMOVU	%VMM_256(0), -32(%LESS_VEC_REG, %rdx)
 	VZEROUPPER_RETURN
 #endif
 
@@ -383,8 +379,8 @@ L(between_32_63):
 	.p2align 4,, SMALL_MEMSET_ALIGN(MOV_SIZE, 1)
 L(between_16_31):
 	/* From 16 to 31.  No branch when size == 16.  */
-	VMOVU	%XMM0, (%LESS_VEC_REG)
-	VMOVU	%XMM0, -16(%LESS_VEC_REG, %rdx)
+	VMOVU	%VMM_128(0), (%LESS_VEC_REG)
+	VMOVU	%VMM_128(0), -16(%LESS_VEC_REG, %rdx)
 	ret
 #endif
 
@@ -394,8 +390,8 @@ L(between_16_31):
 L(between_8_15):
 	/* From 8 to 15.  No branch when size == 8.  */
 #ifdef USE_XMM_LESS_VEC
-	MOVQ	%XMM0, (%rdi)
-	MOVQ	%XMM0, -8(%rdi, %rdx)
+	MOVQ	%VMM_128(0), (%rdi)
+	MOVQ	%VMM_128(0), -8(%rdi, %rdx)
 #else
 	movq	%SET_REG64, (%LESS_VEC_REG)
 	movq	%SET_REG64, -8(%LESS_VEC_REG, %rdx)
@@ -408,8 +404,8 @@ L(between_8_15):
 L(between_4_7):
 	/* From 4 to 7.  No branch when size == 4.  */
 #ifdef USE_XMM_LESS_VEC
-	MOVD	%XMM0, (%rdi)
-	MOVD	%XMM0, -4(%rdi, %rdx)
+	MOVD	%VMM_128(0), (%rdi)
+	MOVD	%VMM_128(0), -4(%rdi, %rdx)
 #else
 	movl	%SET_REG32, (%LESS_VEC_REG)
 	movl	%SET_REG32, -4(%LESS_VEC_REG, %rdx)
@@ -429,4 +425,35 @@ L(between_2_3):
 	movb	%SET_REG8, -1(%LESS_VEC_REG, %rdx)
 #endif
 	ret
-END (MEMSET_SYMBOL (__memset, unaligned_erms))
+
+#if defined USE_MULTIARCH && IS_IN (libc)
+# ifdef USE_WITH_AVX512
+	/* Force align so the loop doesn't cross a cache-line.  */
+	.p2align 4
+# endif
+	.p2align 4,, 7
+    /* Memset using non-temporal stores.  */
+L(nt_memset):
+	VMOVU	%VMM(0), (VEC_SIZE * 0)(%rdi)
+	leaq	(VEC_SIZE * -4)(%rdi, %rdx), %rdx
+    /* Align DST.  */
+	orq	$(VEC_SIZE * 1 - 1), %rdi
+	incq	%rdi
+	.p2align 4,, 7
+L(nt_loop):
+	VMOVNT	%VMM(0), (VEC_SIZE * 0)(%rdi)
+	VMOVNT	%VMM(0), (VEC_SIZE * 1)(%rdi)
+	VMOVNT	%VMM(0), (VEC_SIZE * 2)(%rdi)
+	VMOVNT	%VMM(0), (VEC_SIZE * 3)(%rdi)
+	subq	$(VEC_SIZE * -4), %rdi
+	cmpq	%rdx, %rdi
+	jb	L(nt_loop)
+	sfence
+	VMOVU	%VMM(0), (VEC_SIZE * 0)(%rdx)
+	VMOVU	%VMM(0), (VEC_SIZE * 1)(%rdx)
+	VMOVU	%VMM(0), (VEC_SIZE * 2)(%rdx)
+	VMOVU	%VMM(0), (VEC_SIZE * 3)(%rdx)
+	VZEROUPPER_RETURN
+#endif
+
+END(MEMSET_SYMBOL(__memset, unaligned_erms))

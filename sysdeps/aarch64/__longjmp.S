@@ -1,4 +1,4 @@
-/* Copyright (C) 1997-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1997-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <pointer_guard.h>
 #include <jmpbuf-offsets.h>
 #include <stap-probe.h>
 
@@ -48,6 +49,28 @@ ENTRY (__longjmp)
 
 	PTR_ARG (0)
 
+#if IS_IN(libc)
+	/* Disable ZA state of SME in libc.a and libc.so, but not in ld.so.  */
+# if HAVE_AARCH64_PAC_RET
+	PACIASP
+	cfi_window_save
+# endif
+	stp	x29, x30, [sp, -16]!
+	cfi_adjust_cfa_offset (16)
+	cfi_rel_offset (x29, 0)
+	cfi_rel_offset (x30, 8)
+	mov	x29, sp
+	bl	__libc_arm_za_disable
+	ldp	x29, x30, [sp], 16
+	cfi_adjust_cfa_offset (-16)
+	cfi_restore (x29)
+	cfi_restore (x30)
+# if HAVE_AARCH64_PAC_RET
+	AUTIASP
+	cfi_window_save
+# endif
+#endif
+
 	ldp	x19, x20, [x0, #JB_X19<<3]
 	ldp	x21, x22, [x0, #JB_X21<<3]
 	ldp	x23, x24, [x0, #JB_X23<<3]
@@ -67,6 +90,36 @@ ENTRY (__longjmp)
 	ldp	d10, d11, [x0, #JB_D10<<3]
 	ldp	d12, d13, [x0, #JB_D12<<3]
 	ldp	d14, d15, [x0, #JB_D14<<3]
+
+	/* GCS support.  */
+	mov	x16, 1
+	CHKFEAT_X16
+	tbnz	x16, 0, L(gcs_done)
+	MRS_GCSPR (x2)
+	ldr	x3, [x0, #JB_GCSPR]
+	mov	x4, x3
+	/* x2: GCSPR now.  x3, x4: target GCSPR.  x5, x6: tmp regs.  */
+L(gcs_scan):
+	cmp	x2, x4
+	b.eq	L(gcs_pop)
+	sub	x4, x4, 8
+	/* Check for a cap token.  */
+	ldr	x5, [x4]
+	and	x6, x4, 0xfffffffffffff000
+	orr	x6, x6, 1
+	cmp	x5, x6
+	b.ne	L(gcs_scan)
+L(gcs_switch):
+	add	x2, x4, 8
+	GCSSS1 (x4)
+	GCSSS2 (xzr)
+L(gcs_pop):
+	cmp	x2, x3
+	b.eq	L(gcs_done)
+	GCSPOPM (xzr)
+	add	x2, x2, 8
+	b	L(gcs_pop)
+L(gcs_done):
 
         /* Originally this was implemented with a series of
 	   .cfi_restore() directives.

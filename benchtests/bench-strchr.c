@@ -1,5 +1,5 @@
 /* Measure STRCHR functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -39,7 +39,6 @@
 # ifdef USE_FOR_STRCHRNUL
 #  undef STRCHR
 #  define STRCHR strchrnul
-#  define simple_STRCHR simple_STRCHRNUL
 # endif /* !USE_FOR_STRCHRNUL */
 # define MIDDLE_CHAR 127
 # define SMALL_CHAR 23
@@ -47,7 +46,6 @@
 # ifdef USE_FOR_STRCHRNUL
 #  undef STRCHR
 #  define STRCHR wcschrnul
-#  define simple_STRCHR simple_WCSCHRNUL
 # endif /* !USE_FOR_STRCHRNUL */
 # define MIDDLE_CHAR 1121
 # define SMALL_CHAR 851
@@ -67,17 +65,18 @@
 
 typedef CHAR *(*proto_t) (const CHAR *, int);
 
-CHAR *
-simple_STRCHR (const CHAR *s, int c)
-{
-  for (; *s != (CHAR) c; ++s)
-    if (*s == '\0')
-      return NULLRET ((CHAR *) s);
-  return (CHAR *) s;
-}
-
-IMPL (simple_STRCHR, 0)
 IMPL (STRCHR, 1)
+
+#ifndef WIDE
+char *generic_strchr (const char *, int);
+char *generic_strchrnul (const char *, int);
+
+# ifndef USE_FOR_STRCHRNUL
+IMPL (generic_strchr, 0)
+# else
+IMPL (generic_strchrnul, 0)
+# endif
+#endif
 
 #ifndef USE_FOR_STRCHRNUL
 /* Random benchmarks for strchr (if return is CHAR or NULL).  The
@@ -93,11 +92,11 @@ IMPL (STRCHR, 1)
    branch coming we want to test the case where a potential branch in
    strchr can be used to skip a later mispredict because of the
    relationship between the two branches. */
-static void __attribute__ ((noinline, noclone))
+static void __attribute_optimization_barrier__
 do_one_rand_plus_branch_test (json_ctx_t *json_ctx, impl_t *impl,
                               const CHAR *s, const CHAR *c)
 {
-  size_t i, iters = INNER_LOOP_ITERS_LARGE;
+  size_t i, iters = INNER_LOOP_ITERS8;
   int must_execute = 0;
   timing_t start, stop, cur;
   TIMING_NOW (start);
@@ -118,11 +117,11 @@ do_one_rand_plus_branch_test (json_ctx_t *json_ctx, impl_t *impl,
   json_element_double (json_ctx, (double)cur / (double)iters);
 }
 
-static void __attribute__ ((noinline, noclone))
+static void __attribute_optimization_barrier__
 do_one_rand_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s,
                   const CHAR *c)
 {
-  size_t i, iters = INNER_LOOP_ITERS_LARGE;
+  size_t i, iters = INNER_LOOP_ITERS8;
   timing_t start, stop, cur;
   TIMING_NOW (start);
   for (i = 0; i < iters; ++i)
@@ -210,7 +209,7 @@ static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s, int c,
              const CHAR *exp_res)
 {
-  size_t i, iters = INNER_LOOP_ITERS_LARGE;
+  size_t i, iters = INNER_LOOP_ITERS8;
   timing_t start, stop, cur;
   const CHAR *res = CALL (impl, s, c);
   if (res != exp_res)
@@ -287,8 +286,8 @@ int
 test_main (void)
 {
   json_ctx_t json_ctx;
-  size_t i;
 
+  size_t i, j;
   test_init ();
 
   json_init (&json_ctx, 0, stdout);
@@ -367,15 +366,30 @@ test_main (void)
       do_test (&json_ctx, 0, i, i + 1, 0, BIG_CHAR);
     }
 
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.0);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.1);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.25);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.33);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.5);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.66);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.75);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 0.9);
-  DO_RAND_TEST(&json_ctx, 0, 15, 16, 1.0);
+  for (i = 16 / sizeof (CHAR); i <= 8192 / sizeof (CHAR); i += i)
+    {
+      for (j = 32 / sizeof (CHAR); j <= 320 / sizeof (CHAR);
+	   j += 32 / sizeof (CHAR))
+	{
+	  do_test (&json_ctx, 0, i, i + j, 0, MIDDLE_CHAR);
+	  do_test (&json_ctx, 0, i + j, i, 0, MIDDLE_CHAR);
+	  if (i > j)
+	    {
+	      do_test (&json_ctx, 0, i, i - j, 0, MIDDLE_CHAR);
+	      do_test (&json_ctx, 0, i - j, i, 0, MIDDLE_CHAR);
+	    }
+	}
+    }
+
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.0);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.1);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.25);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.33);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.5);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.66);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.75);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 0.9);
+  DO_RAND_TEST (&json_ctx, 0, 15, 16, 1.0);
 
   json_array_end (&json_ctx);
   json_attr_object_end (&json_ctx);
@@ -386,3 +400,12 @@ test_main (void)
 }
 
 #include <support/test-driver.c>
+
+#ifndef WIDE
+# undef STRCHRNUL
+# define STRCHRNUL generic_strchrnul
+# undef STRCHR
+# define STRCHR generic_strchr
+# include <string/strchrnul.c>
+# include <string/strchr.c>
+#endif

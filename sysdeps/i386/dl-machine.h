@@ -1,5 +1,5 @@
 /* Machine-dependent ELF dynamic relocation inline functions.  i386 version.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -65,9 +65,6 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
   extern void _dl_runtime_profile (Elf32_Word) attribute_hidden;
   extern void _dl_runtime_resolve_shstk (Elf32_Word) attribute_hidden;
   extern void _dl_runtime_profile_shstk (Elf32_Word) attribute_hidden;
-  /* Check if SHSTK is enabled by kernel.  */
-  bool shstk_enabled
-    = (GL(dl_x86_feature_1) & GNU_PROPERTY_X86_FEATURE_1_SHSTK) != 0;
 
   if (l->l_info[DT_JMPREL] && lazy)
     {
@@ -92,11 +89,10 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 to intercept the calls to collect information.  In this case we
 	 don't store the address in the GOT so that all future calls also
 	 end in this function.  */
+#ifdef SHARED
       if (__glibc_unlikely (profile))
 	{
-	  got[2] = (shstk_enabled
-		    ? (Elf32_Addr) &_dl_runtime_profile_shstk
-		    : (Elf32_Addr) &_dl_runtime_profile);
+	  got[2] = (Elf32_Addr) &_dl_runtime_profile;
 
 	  if (GLRO(dl_profile) != NULL
 	      && _dl_name_match_p (GLRO(dl_profile), l))
@@ -105,11 +101,10 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	/* This function will get called to fix up the GOT entry indicated by
 	   the offset on the stack, and then jump to the resolved address.  */
-	got[2] = (shstk_enabled
-		  ? (Elf32_Addr) &_dl_runtime_resolve_shstk
-		  : (Elf32_Addr) &_dl_runtime_resolve);
+	got[2] = (Elf32_Addr) &_dl_runtime_resolve;
     }
 
   return lazy;
@@ -352,7 +347,7 @@ and creates an unsatisfiable circular dependency.\n",
 		  {
 		    td->arg = _dl_make_tlsdesc_dynamic
 		      (sym_map, sym->st_value + (ElfW(Word))td->arg);
-		    td->entry = _dl_tlsdesc_dynamic;
+		    td->entry = GLRO(dl_x86_tlsdesc_dynamic);
 		  }
 		else
 #  endif
@@ -437,153 +432,6 @@ and creates an unsatisfiable circular dependency.\n",
     }
 }
 
-# ifndef RTLD_BOOTSTRAP
-static inline void
-__attribute__ ((always_inline))
-elf_machine_rela (struct link_map *map, struct r_scope_elem *scope[],
-		  const Elf32_Rela *reloc, const Elf32_Sym *sym,
-		  const struct r_found_version *version,
-		  void *const reloc_addr_arg, int skip_ifunc)
-{
-  Elf32_Addr *const reloc_addr = reloc_addr_arg;
-  const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-
-  if (ELF32_R_TYPE (reloc->r_info) == R_386_RELATIVE)
-    *reloc_addr = map->l_addr + reloc->r_addend;
-  else if (r_type != R_386_NONE)
-    {
-      const Elf32_Sym *const refsym = sym;
-      struct link_map *sym_map = RESOLVE_MAP (map, scope, &sym, version,
-					      r_type);
-      Elf32_Addr value = SYMBOL_ADDRESS (sym_map, sym, true);
-
-      if (sym != NULL
-	  && __glibc_likely (sym->st_shndx != SHN_UNDEF)
-	  && __glibc_unlikely (ELFW(ST_TYPE) (sym->st_info) == STT_GNU_IFUNC)
-	  && __glibc_likely (!skip_ifunc))
-	value = ((Elf32_Addr (*) (void)) value) ();
-
-      switch (ELF32_R_TYPE (reloc->r_info))
-	{
-	case R_386_SIZE32:
-	  /* Set to symbol size plus addend.  */
-	  value = sym->st_size;
-	  /* Fall through.  */
-	case R_386_GLOB_DAT:
-	case R_386_JMP_SLOT:
-	case R_386_32:
-	  *reloc_addr = value + reloc->r_addend;
-	  break;
-	  /* Not needed for dl-conflict.c.  */
-	case R_386_PC32:
-	  *reloc_addr = (value + reloc->r_addend - (Elf32_Addr) reloc_addr);
-	  break;
-
-	case R_386_TLS_DTPMOD32:
-	  /* Get the information from the link map returned by the
-	     resolv function.  */
-	  if (sym_map != NULL)
-	    *reloc_addr = sym_map->l_tls_modid;
-	  break;
-	case R_386_TLS_DTPOFF32:
-	  /* During relocation all TLS symbols are defined and used.
-	     Therefore the offset is already correct.  */
-	  *reloc_addr = (sym == NULL ? 0 : sym->st_value) + reloc->r_addend;
-	  break;
-	case R_386_TLS_DESC:
-	  {
-	    struct tlsdesc volatile *td =
-	      (struct tlsdesc volatile *)reloc_addr;
-
-#  ifndef RTLD_BOOTSTRAP
-	    if (!sym)
-	      {
-		td->arg = (void*)reloc->r_addend;
-		td->entry = _dl_tlsdesc_undefweak;
-	      }
-	    else
-#  endif
-	      {
-#  ifndef RTLD_BOOTSTRAP
-#   ifndef SHARED
-		CHECK_STATIC_TLS (map, sym_map);
-#   else
-		if (!TRY_STATIC_TLS (map, sym_map))
-		  {
-		    td->arg = _dl_make_tlsdesc_dynamic
-		      (sym_map, sym->st_value + reloc->r_addend);
-		    td->entry = _dl_tlsdesc_dynamic;
-		  }
-		else
-#   endif
-#  endif
-		  {
-		    td->arg = (void*)(sym->st_value - sym_map->l_tls_offset
-				      + reloc->r_addend);
-		    td->entry = _dl_tlsdesc_return;
-		  }
-	      }
-	  }
-	  break;
-	case R_386_TLS_TPOFF32:
-	  /* The offset is positive, backward from the thread pointer.  */
-	  /* We know the offset of object the symbol is contained in.
-	     It is a positive value which will be subtracted from the
-	     thread pointer.  To get the variable position in the TLS
-	     block we subtract the offset from that of the TLS block.  */
-	  if (sym != NULL)
-	    {
-	      CHECK_STATIC_TLS (map, sym_map);
-	      *reloc_addr = sym_map->l_tls_offset - sym->st_value
-			    + reloc->r_addend;
-	    }
-	  break;
-	case R_386_TLS_TPOFF:
-	  /* The offset is negative, forward from the thread pointer.  */
-	  /* We know the offset of object the symbol is contained in.
-	     It is a negative value which will be added to the
-	     thread pointer.  */
-	  if (sym != NULL)
-	    {
-	      CHECK_STATIC_TLS (map, sym_map);
-	      *reloc_addr = sym->st_value - sym_map->l_tls_offset
-			    + reloc->r_addend;
-	    }
-	  break;
-	case R_386_COPY:
-	  if (sym == NULL)
-	    /* This can happen in trace mode if an object could not be
-	       found.  */
-	    break;
-	  if (__glibc_unlikely (sym->st_size > refsym->st_size)
-	      || (__glibc_unlikely (sym->st_size < refsym->st_size)
-		  && GLRO(dl_verbose)))
-	    {
-	      const char *strtab;
-
-	      strtab = (const char *) D_PTR (map, l_info[DT_STRTAB]);
-	      _dl_error_printf ("\
-%s: Symbol `%s' has different size in shared object, consider re-linking\n",
-				RTLD_PROGNAME, strtab + refsym->st_name);
-	    }
-	  memcpy (reloc_addr_arg, (void *) value,
-		  MIN (sym->st_size, refsym->st_size));
-	  break;
-	case R_386_IRELATIVE:
-	  value = map->l_addr + reloc->r_addend;
-	  if (__glibc_likely (!skip_ifunc))
-	    value = ((Elf32_Addr (*) (void)) value) ();
-	  *reloc_addr = value;
-	  break;
-	default:
-	  /* We add these checks in the version to relocate ld.so only
-	     if we are still debugging.  */
-	  _dl_reloc_bad_type (map, r_type, 0);
-	  break;
-	}
-    }
-}
-# endif	/* !RTLD_BOOTSTRAP */
 
 static inline void
 __attribute ((always_inline))
@@ -663,49 +511,5 @@ elf_machine_lazy_rel (struct link_map *map, struct r_scope_elem *scope[],
   else
     _dl_reloc_bad_type (map, r_type, 1);
 }
-
-# ifndef RTLD_BOOTSTRAP
-
-static inline void
-__attribute__ ((always_inline))
-elf_machine_lazy_rela (struct link_map *map, struct r_scope_elem *scope[],
-		       Elf32_Addr l_addr, const Elf32_Rela *reloc,
-		       int skip_ifunc)
-{
-  Elf32_Addr *const reloc_addr = (void *) (l_addr + reloc->r_offset);
-  const unsigned int r_type = ELF32_R_TYPE (reloc->r_info);
-  if (__glibc_likely (r_type == R_386_JMP_SLOT))
-    ;
-  else if (__glibc_likely (r_type == R_386_TLS_DESC))
-    {
-      const Elf_Symndx symndx = ELFW (R_SYM) (reloc->r_info);
-      const ElfW (Sym) *symtab = (const void *)D_PTR (map, l_info[DT_SYMTAB]);
-      const ElfW (Sym) *sym = &symtab[symndx];
-      const struct r_found_version *version = NULL;
-
-      if (map->l_info[VERSYMIDX (DT_VERSYM)] != NULL)
-	{
-	  const ElfW (Half) *vernum =
-	    (const void *)D_PTR (map, l_info[VERSYMIDX (DT_VERSYM)]);
-	  version = &map->l_versions[vernum[symndx] & 0x7fff];
-	}
-
-      /* Always initialize TLS descriptors completely at load time, in
-	 case static TLS is allocated for it that requires locking.  */
-      elf_machine_rela (map, scope, reloc, sym, version, reloc_addr,
-			skip_ifunc);
-    }
-  else if (__glibc_unlikely (r_type == R_386_IRELATIVE))
-    {
-      Elf32_Addr value = map->l_addr + reloc->r_addend;
-      if (__glibc_likely (!skip_ifunc))
-	value = ((Elf32_Addr (*) (void)) value) ();
-      *reloc_addr = value;
-    }
-  else
-    _dl_reloc_bad_type (map, r_type, 1);
-}
-
-# endif	/* !RTLD_BOOTSTRAP */
 
 #endif /* RESOLVE_MAP */

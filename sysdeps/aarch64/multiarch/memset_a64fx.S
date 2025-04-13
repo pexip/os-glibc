@@ -1,5 +1,5 @@
 /* Optimized memset for Fujitsu A64FX processor.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -18,7 +18,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
-#include <sysdeps/aarch64/memset-reg.h>
 
 /* Assumptions:
  *
@@ -33,10 +32,16 @@
 #define vector_length	x9
 
 #if HAVE_AARCH64_SVE_ASM
-# if IS_IN (libc)
-#  define MEMSET __memset_a64fx
 
 	.arch armv8.2-a+sve
+
+#define dstin   x0
+#define valw    w1
+#define count   x2
+#define dst     x3
+#define dstend  x4
+#define tmp1    x5
+#define tmp2    x6
 
 	.macro st1b_unroll first=0, last=7
 	st1b	z0.b, p0, [dst, \first, mul vl]
@@ -49,7 +54,7 @@
 #undef BTI_C
 #define BTI_C
 
-ENTRY (MEMSET)
+ENTRY (__memset_a64fx)
 	PTR_ARG (0)
 	SIZE_ARG (2)
 
@@ -166,8 +171,6 @@ L(L2):
 	add	count, count, CACHE_LINE_SIZE
 	b	L(last)
 
-END (MEMSET)
-libc_hidden_builtin_def (MEMSET)
+END (__memset_a64fx)
 
-#endif /* IS_IN (libc) */
 #endif /* HAVE_AARCH64_SVE_ASM */

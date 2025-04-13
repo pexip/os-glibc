@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -33,6 +33,8 @@
 #include <nptl-stack.h>
 #include <libc-lock.h>
 #include <tls-internal.h>
+#include <intprops.h>
+#include <setvmaname.h>
 
 /* Default alignment of stack.  */
 #ifndef STACK_ALIGN
@@ -130,6 +132,8 @@ get_cached_stack (size_t *sizep, void **memp)
   __libc_lock_init (result->exit_lock);
   memset (&result->tls_state, 0, sizeof result->tls_state);
 
+  result->getrandom_buf = NULL;
+
   /* Clear the DTV.  */
   dtv_t *dtv = GET_DTV (TLS_TPADJ (result));
   for (size_t cnt = 0; cnt < dtv[-1].counter; ++cnt)
@@ -137,7 +141,7 @@ get_cached_stack (size_t *sizep, void **memp)
   memset (dtv, '\0', (dtv[-1].counter + 1) * sizeof (dtv_t));
 
   /* Re-initialize the TLS.  */
-  _dl_allocate_tls_init (TLS_TPADJ (result), true);
+  _dl_allocate_tls_init (TLS_TPADJ (result), false);
 
   return result;
 }
@@ -148,9 +152,7 @@ __attribute ((always_inline))
 guard_position (void *mem, size_t size, size_t guardsize, struct pthread *pd,
 		size_t pagesize_m1)
 {
-#ifdef NEED_SEPARATE_REGISTER_STACK
-  return mem + (((size - guardsize) / 2) & ~pagesize_m1);
-#elif _STACK_GROWS_DOWN
+#if _STACK_GROWS_DOWN
   return mem;
 #elif _STACK_GROWS_UP
   return (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
@@ -164,7 +166,7 @@ setup_stack_prot (char *mem, size_t size, char *guard, size_t guardsize,
 		  const int prot)
 {
   char *guardend = guard + guardsize;
-#if _STACK_GROWS_DOWN && !defined(NEED_SEPARATE_REGISTER_STACK)
+#if _STACK_GROWS_DOWN
   /* As defined at guard_position, for architectures with downward stack
      the guard page is always at start of the allocated area.  */
   if (__mprotect (guardend, size - guardsize, prot) != 0)
@@ -187,7 +189,7 @@ advise_stack_range (void *mem, size_t size, uintptr_t pd, size_t guardsize)
 {
   uintptr_t sp = (uintptr_t) CURRENT_STACK_FRAME;
   size_t pagesize_m1 = __getpagesize () - 1;
-#if _STACK_GROWS_DOWN && !defined(NEED_SEPARATE_REGISTER_STACK)
+#if _STACK_GROWS_DOWN
   size_t freesize = (sp - (uintptr_t) mem) & ~pagesize_m1;
   assert (freesize < size);
   if (freesize > PTHREAD_STACK_MIN)
@@ -369,6 +371,12 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	  if (__glibc_unlikely (mem == MAP_FAILED))
 	    return errno;
 
+	  /* Do madvise in case the tunable glibc.pthread.stack_hugetlb is
+	     set to 0, disabling hugetlb.  */
+	  if (__glibc_unlikely (__nptl_stack_hugetlb == 0)
+	      && __madvise (mem, size, MADV_NOHUGEPAGE) != 0)
+	    return errno;
+
 	  /* SIZE is guaranteed to be greater than zero.
 	     So we can never get a null pointer back from mmap.  */
 	  assert (mem != NULL);
@@ -440,25 +448,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	  lll_unlock (GL (dl_stack_cache_lock), LLL_PRIVATE);
 
-
-	  /* There might have been a race.  Another thread might have
-	     caused the stacks to get exec permission while this new
-	     stack was prepared.  Detect if this was possible and
-	     change the permission if necessary.  */
-	  if (__builtin_expect ((GL(dl_stack_flags) & PF_X) != 0
-				&& (prot & PROT_EXEC) == 0, 0))
-	    {
-	      int err = __nptl_change_stack_perm (pd);
-	      if (err != 0)
-		{
-		  /* Free the stack memory we just allocated.  */
-		  (void) __munmap (mem, size);
-
-		  return err;
-		}
-	    }
-
-
 	  /* Note that all of the stack and the thread descriptor is
 	     zeroed.  This means we do not have to initialize fields
 	     with initial value zero.  This is specifically true for
@@ -502,19 +491,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	{
 	  /* The old guard area is too large.  */
 
-#ifdef NEED_SEPARATE_REGISTER_STACK
-	  char *guard = mem + (((size - guardsize) / 2) & ~pagesize_m1);
-	  char *oldguard = mem + (((size - pd->guardsize) / 2) & ~pagesize_m1);
-
-	  if (oldguard < guard
-	      && __mprotect (oldguard, guard - oldguard, prot) != 0)
-	    goto mprot_error;
-
-	  if (__mprotect (guard + guardsize,
-			oldguard + pd->guardsize - guard - guardsize,
-			prot) != 0)
-	    goto mprot_error;
-#elif _STACK_GROWS_DOWN
+#if _STACK_GROWS_DOWN
 	  if (__mprotect ((char *) mem + guardsize, pd->guardsize - guardsize,
 			prot) != 0)
 	    goto mprot_error;
@@ -570,4 +547,42 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   *stack = pd->stackblock;
 
   return 0;
+}
+
+/* Maximum supported name from initial kernel support, not exported
+   by user API.  */
+#define ANON_VMA_NAME_MAX_LEN 80
+
+#define SET_STACK_NAME(__prefix, __stack, __stacksize, __tid)		\
+  ({									\
+     char __stack_name[sizeof (__prefix) +				\
+		       INT_BUFSIZE_BOUND (unsigned int)];		\
+     _Static_assert (sizeof __stack_name <= ANON_VMA_NAME_MAX_LEN,	\
+		     "VMA name size larger than maximum supported");	\
+     __snprintf (__stack_name, sizeof (__stack_name), __prefix "%u",	\
+		 (unsigned int) __tid);					\
+     __set_vma_name (__stack, __stacksize, __stack_name);		\
+   })
+
+/* Add or remove an associated name to the PD VMA stack.  */
+static void
+name_stack_maps (struct pthread *pd, bool set)
+{
+#if _STACK_GROWS_DOWN
+  void *stack = pd->stackblock + pd->guardsize;
+#else
+  void *stack = pd->stackblock;
+#endif
+  size_t stacksize = pd->stackblock_size - pd->guardsize;
+
+  if (!set)
+    __set_vma_name (stack, stacksize, NULL);
+  else
+    {
+      unsigned int tid = pd->tid;
+      if (pd->user_stack)
+	SET_STACK_NAME (" glibc: pthread user stack: ", stack, stacksize, tid);
+      else
+	SET_STACK_NAME (" glibc: pthread stack: ", stack, stacksize, tid);
+    }
 }

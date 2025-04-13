@@ -1,5 +1,5 @@
 /* Function tanhf vectorized with AVX-512.
-   Copyright (C) 2021-2022 Free Software Foundation, Inc.
+   Copyright (C) 2021-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@
 #define TANHF_DATA(x)			((x)+__svml_stanh_data_internal_al64)
 #define TANHF_DATA_UNALIGNED(x)		((x)+__svml_stanh_data_internal)
 
-	.section .text.exex512, "ax", @progbits
+	.section .text.evex512, "ax", @progbits
 ENTRY(_ZGVeN16v_tanhf_skx)
 	/* Here huge arguments, INF and NaNs are filtered out to callout. */
 	vpandd	TANHF_DATA_UNALIGNED(_iExpMantMask_UISA)(%rip){1to16}, %zmm0, %zmm1
@@ -220,7 +220,7 @@ L(SPECIAL_VALUES_LOOP):
 	xorl	%ebp, %ebp
 	tzcntl	%ebx, %ebp
 
-	/* Scalar math fucntion call to process special input.  */
+	/* Scalar math function call to process special input.  */
 	vmovss	64(%rsp, %rbp, 4), %xmm0
 	call	tanhf@PLT
 
