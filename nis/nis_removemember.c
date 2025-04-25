@@ -1,4 +1,4 @@
-/* Copyright (c) 1997-2022 Free Software Foundation, Inc.
+/* Copyright (c) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ nis_removemember (const_nis_name member, const_nis_name group)
       nis_error status;
       char *cp, *cp2;
 
-      cp = rawmemchr (nis_leaf_of_r (group, buf, sizeof (buf) - 1), '\0');
+      cp = strchr (nis_leaf_of_r (group, buf, sizeof (buf) - 1), '\0');
       cp = stpcpy (cp, ".groups_dir");
       cp2 = nis_domain_of_r (group, domainbuf, sizeof (domainbuf) - 1);
       if (cp2 != NULL && cp2[0] != '\0')

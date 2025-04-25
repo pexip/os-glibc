@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@
 #include <version.h>
 #include <clone_internal.h>
 #include <futex-internal.h>
+#include <getrandom-internal.h>
 
 #include <shlib-compat.h>
 
@@ -45,13 +46,15 @@
 
 
 /* Globally enabled events.  */
-td_thr_events_t __nptl_threads_events;
+extern td_thr_events_t __nptl_threads_events;
 libc_hidden_proto (__nptl_threads_events)
+td_thr_events_t __nptl_threads_events;
 libc_hidden_data_def (__nptl_threads_events)
 
 /* Pointer to descriptor with the last event.  */
-struct pthread *__nptl_last_event;
+extern struct pthread *__nptl_last_event;
 libc_hidden_proto (__nptl_last_event)
+struct pthread *__nptl_last_event;
 libc_hidden_data_def (__nptl_last_event)
 
 #ifdef SHARED
@@ -216,7 +219,7 @@ late_init (void)
    __pthread_current_priority reuse the same lock, PD->lock, for a
    similar purpose e.g. synchronizing the setting of similar thread
    attributes.  These functions are never called before the thread is
-   created, so don't participate in startup syncronization, but given
+   created, so don't participate in startup synchronization, but given
    that the lock is present already and in the unlocked state, reusing
    it saves space.
 
@@ -236,7 +239,7 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
      stopped since we have to set the scheduling parameters or set the
      affinity.  */
   bool need_setaffinity = (attr != NULL && attr->extension != NULL
-			   && attr->extension->cpuset != 0);
+			   && attr->extension->cpuset != NULL);
   if (attr != NULL
       && (__glibc_unlikely (need_setaffinity)
 	  || __glibc_unlikely ((attr->flags & ATTR_FLAG_NOTINHERITSCHED) != 0)))
@@ -367,6 +370,9 @@ start_thread (void *arg)
   /* Initialize pointers to locale data.  */
   __ctype_init ();
 
+  /* Name the thread stack if kernel supports it.  */
+  name_stack_maps (pd, true);
+
   /* Register rseq TLS to the kernel.  */
   {
     bool do_rseq = THREAD_GETMEM (pd, flags) & ATTR_FLAG_DO_RSEQ;
@@ -415,7 +421,7 @@ start_thread (void *arg)
   unwind_buf.priv.data.cleanup = NULL;
 
   /* Allow setxid from now onwards.  */
-  if (__glibc_unlikely (atomic_exchange_acq (&pd->setxid_futex, 0) == -2))
+  if (__glibc_unlikely (atomic_exchange_acquire (&pd->setxid_futex, 0) == -2))
     futex_wake (&pd->setxid_futex, 1, FUTEX_PRIVATE);
 
   if (__glibc_likely (! not_first_call))
@@ -444,10 +450,7 @@ start_thread (void *arg)
     }
 
   /* Call destructors for the thread_local TLS variables.  */
-#ifndef SHARED
-  if (&__call_tls_dtors != NULL)
-#endif
-    __call_tls_dtors ();
+  call_function_static_weak (__call_tls_dtors);
 
   /* Run the destructor for the thread-local data.  */
   __nptl_deallocate_tsd ();
@@ -487,9 +490,9 @@ start_thread (void *arg)
   /* The thread is exiting now.  Don't set this bit until after we've hit
      the event-reporting breakpoint, so that td_thr_get_info on us while at
      the breakpoint reports TD_THR_RUN state rather than TD_THR_ZOMBIE.  */
-  atomic_bit_set (&pd->cancelhandling, EXITING_BIT);
+  atomic_fetch_or_relaxed (&pd->cancelhandling, EXITING_BITMASK);
 
-  if (__glibc_unlikely (atomic_decrement_and_test (&__nptl_nthreads)))
+  if (__glibc_unlikely (atomic_fetch_add_relaxed (&__nptl_nthreads, -1) == 1))
     /* This was the last thread.  */
     exit (0);
 
@@ -539,13 +542,17 @@ start_thread (void *arg)
 # endif
 	  this->__list.__next = NULL;
 
-	  atomic_or (&this->__lock, FUTEX_OWNER_DIED);
+	  atomic_fetch_or_acquire (&this->__lock, FUTEX_OWNER_DIED);
 	  futex_wake ((unsigned int *) &this->__lock, 1,
 		      /* XYZ */ FUTEX_SHARED);
 	}
       while (robust != (void *) &pd->robust_head);
     }
 #endif
+
+  /* Release the vDSO getrandom per-thread buffer with all signal blocked,
+     to avoid creating a new free-state block during thread release.  */
+  __getrandom_vdso_release (pd);
 
   if (!pd->user_stack)
     advise_stack_range (pd->stackblock, pd->stackblock_size, (uintptr_t) pd,
@@ -571,6 +578,9 @@ start_thread (void *arg)
   if (IS_DETACHED (pd))
     /* Free the TCB.  */
     __nptl_free_tcb (pd);
+
+  /* Remove the associated name from the thread stack.  */
+  name_stack_maps (pd, false);
 
 out:
   /* We cannot call '_exit' here.  '_exit' will terminate the process.
@@ -686,7 +696,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 
   /* Inherit rseq registration state.  Without seccomp filters, rseq
      registration will either always fail or always succeed.  */
-  if ((int) THREAD_GETMEM_VOLATILE (self, rseq_area.cpu_id) >= 0)
+  if ((int) RSEQ_GETMEM_ONCE (cpu_id) >= 0)
     pd->flags |= ATTR_FLAG_DO_RSEQ;
 
   /* Initialize the field for the ID of the thread which is waiting
@@ -759,7 +769,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
      we momentarily store a false value; this doesn't matter because there
      is no kosher thing a signal handler interrupting us right here can do
      that cares whether the thread count is correct.  */
-  atomic_increment (&__nptl_nthreads);
+  atomic_fetch_add_relaxed (&__nptl_nthreads, 1);
 
   /* Our local value of stopped_start and thread_ran can be accessed at
      any time. The PD->stopped_start may only be accessed if we have
@@ -861,7 +871,7 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
 	 NOTES above).  */
 
       /* Oops, we lied for a second.  */
-      atomic_decrement (&__nptl_nthreads);
+      atomic_fetch_add_relaxed (&__nptl_nthreads, -1);
 
       /* Free the resources.  */
       __nptl_deallocate_stack (pd);

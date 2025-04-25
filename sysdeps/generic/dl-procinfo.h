@@ -1,5 +1,5 @@
 /* Stub version of processor capability information handling macros.
-   Copyright (C) 1998-2022 Free Software Foundation, Inc.
+   Copyright (C) 1998-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -25,17 +25,7 @@
 /* There are no hardware capabilities defined.  */
 #define _dl_hwcap_string(idx) ""
 
-/* By default there is no important hardware capability.  */
-#define HWCAP_IMPORTANT (0)
-
-/* There're no platforms to filter out.  */
-#define _DL_HWCAP_PLATFORM 0
-
 /* We don't have any hardware capabilities.  */
 #define _DL_HWCAP_COUNT 0
-
-#define _dl_string_hwcap(str) (-1)
-
-#define _dl_string_platform(str) (-1)
 
 #endif /* dl-procinfo.h */

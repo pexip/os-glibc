@@ -1,5 +1,5 @@
 /* strcpy/stpcpy implementation for x86-64.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 
 # include <sysdep.h>
 
-# ifndef STPCPY
+# ifndef STRCPY
 #  define STRCPY __strcpy_sse2
 # endif
 
@@ -50,7 +50,7 @@ ENTRY (STRCPY)
 5:
 	movq $0xfefefefefefefeff,%r8
 
-	/* Now the sources is aligned.  Unfortunatly we cannot force
+	/* Now the sources is aligned.  Unfortunately we cannot force
 	   to have both source and destination aligned, so ignore the
 	   alignment of the destination.  */
 	.p2align 4

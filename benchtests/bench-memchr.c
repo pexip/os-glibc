@@ -1,5 +1,5 @@
 /* Measure memchr functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,8 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include "json-lib.h"
+
 #ifndef WIDE
 # define SMALL_CHAR 127
 #else
@@ -31,35 +33,25 @@
 # endif /* WIDE */
 # include "bench-string.h"
 
-# ifndef WIDE
-#  define SIMPLE_MEMCHR simple_memchr
-# else
-#  define SIMPLE_MEMCHR simple_wmemchr
-# endif /* WIDE */
+typedef void *(*proto_t) (const void *, int, size_t);
 
-typedef CHAR *(*proto_t) (const CHAR *, int, size_t);
-CHAR *SIMPLE_MEMCHR (const CHAR *, int, size_t);
+void *
+generic_memchr (const void *, int, size_t);
 
-IMPL (SIMPLE_MEMCHR, 0)
 IMPL (MEMCHR, 1)
 
-CHAR *
-SIMPLE_MEMCHR (const CHAR *s, int c, size_t n)
-{
-  while (n--)
-    if (*s++ == (CHAR) c)
-      return (CHAR *) s - 1;
-  return NULL;
-}
+# ifndef WIDE
+IMPL (generic_memchr, 0)
+# endif
+
 #endif /* !USE_AS_MEMRCHR */
 
-#include "json-lib.h"
 
 static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s, int c,
 	     size_t n)
 {
-  size_t i, iters = INNER_LOOP_ITERS_LARGE;
+  size_t i, iters = INNER_LOOP_ITERS8 / 2;
   timing_t start, stop, cur;
 
   TIMING_NOW (start);
@@ -126,7 +118,7 @@ do_test (json_ctx_t *json_ctx, size_t align, size_t pos, size_t len,
 int
 test_main (void)
 {
-  size_t i;
+  size_t i, j, al, al_max;
   int repeats;
   json_ctx_t json_ctx;
   test_init ();
@@ -147,35 +139,46 @@ test_main (void)
 
   json_array_begin (&json_ctx, "results");
 
+  al_max = 0;
+#ifdef USE_AS_MEMRCHR
+  al_max = getpagesize () / 2;
+#endif
+
   for (repeats = 0; repeats < 2; ++repeats)
     {
-      for (i = 1; i < 8; ++i)
+      for (al = 0; al <= al_max; al += getpagesize () / 2)
 	{
-	  do_test (&json_ctx, 0, 16 << i, 2048, 23, repeats);
-	  do_test (&json_ctx, i, 64, 256, 23, repeats);
-	  do_test (&json_ctx, 0, 16 << i, 2048, 0, repeats);
-	  do_test (&json_ctx, i, 64, 256, 0, repeats);
+	  for (i = 1; i < 8; ++i)
+	    {
+	      do_test (&json_ctx, al, 16 << i, 2048, 23, repeats);
+	      do_test (&json_ctx, al + i, 64, 256, 23, repeats);
+	      do_test (&json_ctx, al, 16 << i, 2048, 0, repeats);
+	      do_test (&json_ctx, al + i, 64, 256, 0, repeats);
 
-	  do_test (&json_ctx, getpagesize () - 15, 64, 256, 0, repeats);
+	      do_test (&json_ctx, al + getpagesize () - 15, 64, 256, 0,
+		       repeats);
 #ifdef USE_AS_MEMRCHR
-	  /* Also test the position close to the beginning for memrchr.  */
-	  do_test (&json_ctx, 0, i, 256, 23, repeats);
-	  do_test (&json_ctx, 0, i, 256, 0, repeats);
-	  do_test (&json_ctx, i, i, 256, 23, repeats);
-	  do_test (&json_ctx, i, i, 256, 0, repeats);
+	      /* Also test the position close to the beginning for memrchr.  */
+	      do_test (&json_ctx, al, i, 256, 23, repeats);
+	      do_test (&json_ctx, al, i, 256, 0, repeats);
+	      do_test (&json_ctx, al + i, i, 256, 23, repeats);
+	      do_test (&json_ctx, al + i, i, 256, 0, repeats);
 #endif
-	}
-      for (i = 1; i < 8; ++i)
-	{
-	  do_test (&json_ctx, i, i << 5, 192, 23, repeats);
-	  do_test (&json_ctx, i, i << 5, 192, 0, repeats);
-	  do_test (&json_ctx, i, i << 5, 256, 23, repeats);
-	  do_test (&json_ctx, i, i << 5, 256, 0, repeats);
-	  do_test (&json_ctx, i, i << 5, 512, 23, repeats);
-	  do_test (&json_ctx, i, i << 5, 512, 0, repeats);
+	    }
+	  for (i = 1; i < 8; ++i)
+	    {
+	      do_test (&json_ctx, al + i, i << 5, 192, 23, repeats);
+	      do_test (&json_ctx, al + i, i << 5, 192, 0, repeats);
+	      do_test (&json_ctx, al + i, i << 5, 256, 23, repeats);
+	      do_test (&json_ctx, al + i, i << 5, 256, 0, repeats);
+	      do_test (&json_ctx, al + i, i << 5, 512, 23, repeats);
+	      do_test (&json_ctx, al + i, i << 5, 512, 0, repeats);
 
-	  do_test (&json_ctx, getpagesize () - 15, i << 5, 256, 23, repeats);
+	      do_test (&json_ctx, al + getpagesize () - 15, i << 5, 256, 23,
+		       repeats);
+	    }
 	}
+
       for (i = 1; i < 32; ++i)
 	{
 	  do_test (&json_ctx, 0, i, i + 1, 23, repeats);
@@ -207,6 +210,24 @@ test_main (void)
 	  do_test (&json_ctx, 0, 2, i + 1, 0, repeats);
 #endif
 	}
+      for (al = 0; al <= al_max; al += getpagesize () / 2)
+	{
+	  for (i = (16 / sizeof (CHAR)); i <= (8192 / sizeof (CHAR)); i += i)
+	    {
+	      for (j = 0; j <= (384 / sizeof (CHAR));
+		   j += (32 / sizeof (CHAR)))
+		{
+		  do_test (&json_ctx, al, i + j, i, 23, repeats);
+		  do_test (&json_ctx, al, i, i + j, 23, repeats);
+		  if (j < i)
+		    {
+		      do_test (&json_ctx, al, i - j, i, 23, repeats);
+		      do_test (&json_ctx, al, i, i - j, 23, repeats);
+		    }
+		}
+	    }
+	}
+
 #ifndef USE_AS_MEMRCHR
       break;
 #endif
@@ -221,3 +242,15 @@ test_main (void)
 }
 
 #include <support/test-driver.c>
+
+#ifndef WIDE
+# ifndef USE_AS_MEMRCHR
+#  undef MEMCHR
+#  define MEMCHR generic_memchr
+#  include <string/memchr.c>
+# else
+#  undef MEMRCHR
+#  define MEMRCHR generic_memrchr
+#  include <string/memrchr.c>
+# endif
+#endif

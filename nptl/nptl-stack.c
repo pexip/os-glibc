@@ -1,5 +1,5 @@
 /* Stack cache management for NPTL.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 #include <pthreadP.h>
 
 size_t __nptl_stack_cache_maxsize = 40 * 1024 * 1024;
+int32_t __nptl_stack_hugetlb = 1;
 
 void
 __nptl_stack_list_del (list_t *elem)

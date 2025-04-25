@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # Generate testcase files and Makefile fragments for DSO sorting test
-# Copyright (C) 2021-2022 Free Software Foundation, Inc.
+# Copyright (C) 2021-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 #
 # The GNU C Library is free software; you can redistribute it and/or
@@ -707,13 +707,12 @@ def process_testcase(t):
                 "\t$(compile.c) $(OUTPUT_OPTION)\n")
         makefile.write (rule)
 
-        not_depended_objs = find_objs_not_depended_on(test_descr)
-        if not_depended_objs:
-            depstr = ""
-            for dep in not_depended_objs:
-                depstr += (" $(objpfx)" + test_subdir + "/"
-                           + test_name + "-" + dep + ".so")
-            makefile.write("$(objpfx)%s.out:%s\n" % (base_test_name, depstr))
+        # Ensure that all shared objects are built before running the
+        # test, whether there link-time dependencies or not.
+        depobjs = ["$(objpfx){}/{}-{}.so".format(test_subdir, test_name, dep)
+                   for dep in test_descr.objs]
+        makefile.write("$(objpfx){}.out: {}\n".format(
+            base_test_name, " ".join(depobjs)))
 
         # Add main executable to test-srcs
         makefile.write("test-srcs += %s/%s\n" % (test_subdir, test_name))
@@ -746,7 +745,7 @@ def process_testcase(t):
                                  if tunable_env else "")
                 # Write out fragment of shell script for this single test.
                 test_descr.sh.write \
-                    ("%s${test_wrapper_env} ${run_program_env} \\\n"
+                    ("${test_wrapper_env} ${run_program_env} %s\\\n"
                      "${common_objpfx}support/test-run-command \\\n"
                      "${common_objpfx}elf/ld.so \\\n"
                      "--library-path ${common_objpfx}elf/%s:"
@@ -1070,7 +1069,7 @@ def process_testcase(t):
                           t.test_name))
     t.sh.close()
 
-# Decription file parsing
+# Description file parsing
 def parse_description_file(filename):
     global default_tunable_options
     global current_input_lineno

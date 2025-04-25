@@ -1,5 +1,5 @@
 /* longjmp.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,11 +17,19 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdep.h>
+#include <pointer_guard.h>
 #include <sys/asm.h>
 
 ENTRY (__longjmp)
+#ifdef PTR_MANGLE
+	REG_L t0, a0, 0*SZREG
+	PTR_DEMANGLE (ra, t0, t1)
+	REG_L t0, a0, 1*SZREG
+	PTR_DEMANGLE2 (sp, t0, t1)
+#else
 	REG_L ra, a0, 0*SZREG
 	REG_L sp, a0, 1*SZREG
+#endif
 	REG_L x,  a0, 2*SZREG
 	REG_L fp, a0, 3*SZREG
 	REG_L s0, a0, 4*SZREG
@@ -34,17 +42,19 @@ ENTRY (__longjmp)
 	REG_L s7, a0, 11*SZREG
 	REG_L s8, a0, 12*SZREG
 
-	FREG_L $f24, a0, 13*SZREG + 0*SZFREG
-	FREG_L $f25, a0, 13*SZREG + 1*SZFREG
-	FREG_L $f26, a0, 13*SZREG + 2*SZFREG
-	FREG_L $f27, a0, 13*SZREG + 3*SZFREG
-	FREG_L $f28, a0, 13*SZREG + 4*SZFREG
-	FREG_L $f29, a0, 13*SZREG + 5*SZFREG
-	FREG_L $f30, a0, 13*SZREG + 6*SZFREG
-	FREG_L $f31, a0, 13*SZREG + 7*SZFREG
+#ifndef __loongarch_soft_float
+	FREG_L fs0, a0, 13*SZREG + 0*SZFREG
+	FREG_L fs1, a0, 13*SZREG + 1*SZFREG
+	FREG_L fs2, a0, 13*SZREG + 2*SZFREG
+	FREG_L fs3, a0, 13*SZREG + 3*SZFREG
+	FREG_L fs4, a0, 13*SZREG + 4*SZFREG
+	FREG_L fs5, a0, 13*SZREG + 5*SZFREG
+	FREG_L fs6, a0, 13*SZREG + 6*SZFREG
+	FREG_L fs7, a0, 13*SZREG + 7*SZFREG
+#endif
 
-	sltui	a0,a1,1
+	sltui	a0, a1, 1
 	ADD	a0, a0, a1	 # a0 = (a1 == 0) ? 1 : a1
-	jirl	zero,ra,0
+	jirl	zero, ra, 0
 
 END (__longjmp)

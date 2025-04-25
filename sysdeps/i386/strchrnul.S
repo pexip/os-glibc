@@ -1,7 +1,7 @@
 /* strchrnul (str, chr) -- Return pointer to first occurrence of CHR in STR
    or the final NUL byte.
    For Intel 80x86, x>=3.
-   Copyright (C) 1994-2022 Free Software Foundation, Inc.
+   Copyright (C) 1994-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -273,4 +273,5 @@ L(6):	popl %edi		/* restore saved register content */
 	ret
 END (__strchrnul)
 
+libc_hidden_def (__strchrnul)
 weak_alias (__strchrnul, strchrnul)

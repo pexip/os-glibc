@@ -1,5 +1,5 @@
 /* Stack executability handling for GNU dynamic linker.  Hurd version.
-   Copyright (C) 2004-2022 Free Software Foundation, Inc.
+   Copyright (C) 2004-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,4 +47,3 @@ _dl_make_stack_executable (void **stack_endp)
   return ENOSYS;
 #endif
 }
-rtld_hidden_def (_dl_make_stack_executable)

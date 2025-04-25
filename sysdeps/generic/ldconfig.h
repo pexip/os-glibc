@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@
 #define FLAG_ELF_LIBC6			0x0003
 #define FLAG_REQUIRED_MASK		0xff00
 #define FLAG_SPARC_LIB64		0x0100
-#define FLAG_IA64_LIB64			0x0200
 #define FLAG_X8664_LIB64		0x0300
 #define FLAG_S390_LIB64			0x0400
 #define FLAG_POWERPC_LIB64		0x0500
@@ -45,6 +44,8 @@
 #define FLAG_MIPS64_LIBN64_NAN2008	0x0e00
 #define FLAG_RISCV_FLOAT_ABI_SOFT	0x0f00
 #define FLAG_RISCV_FLOAT_ABI_DOUBLE	0x1000
+#define FLAG_LARCH_FLOAT_ABI_SOFT	0x1100
+#define FLAG_LARCH_FLOAT_ABI_DOUBLE	0x1200
 
 /* Name of auxiliary cache.  */
 #define _PATH_LDCONFIG_AUX_CACHE "/var/cache/ldconfig/aux-cache"
@@ -70,7 +71,7 @@ const char *glibc_hwcaps_subdirectory_name
 
 extern void add_to_cache (const char *path, const char *filename,
 			  const char *soname, int flags,
-			  unsigned int isa_level, uint64_t hwcap,
+			  unsigned int isa_level,
 			  struct glibc_hwcaps_subdirectory *);
 
 extern void init_aux_cache (void);
@@ -89,8 +90,6 @@ extern void save_aux_cache (const char *aux_cache_name);
 extern int process_file (const char *real_file_name, const char *file_name,
 			 const char *lib, int *flag, unsigned int *isa_level,
 			 char **soname, int is_link, struct stat *stat_buf);
-
-extern char *implicit_soname (const char *lib, int flag);
 
 /* Declared in readelflib.c.  */
 extern int process_elf_file (const char *file_name, const char *lib,

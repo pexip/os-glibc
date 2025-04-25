@@ -8,12 +8,12 @@
 # Dimitriy Ryazantcev <DJm00n@mail.ru>, 2009.
 # Pavel Maryanov <acid_jack@ukr.net>, 2009.
 # Dmitry V. Levin <ldv@altlinux.org>, 2012.
-# Yuri Kozlov <yuray@komyakino.ru>, 2009, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021.
+# Yuri Kozlov <yuray@komyakino.ru>, 2009, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024.
 msgid ""
 msgstr ""
-"Project-Id-Version: libc 2.33.9000\n"
-"POT-Creation-Date: 2022-01-29 17:34-0500\n"
-"PO-Revision-Date: 2021-08-10 06:55+0300\n"
+"Project-Id-Version: libc 2.38.9000\n"
+"POT-Creation-Date: 2025-01-28 12:35+0100\n"
+"PO-Revision-Date: 2024-06-07 18:04+0300\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <gnu@d07.ru>\n"
 "Language: ru\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Bugs: Report translation errors to the Language-Team address.\n"
 "Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 20.12.0\n"
+"X-Generator: Lokalize 22.12.3\n"
 
 #: argp/argp-help.c:229
 #, c-format
@@ -65,80 +65,62 @@ msgstr "Попробуйте «%s --help» или «%s --usage» для полу
 msgid "Report bugs to %s.\n"
 msgstr "Сообщения об ошибках отправляйте по адресу %s.\n"
 
-#: argp/argp-parse.c:101
+#: argp/argp-parse.c:86
 msgid "Give this help list"
 msgstr "Выдает этот справочный список"
 
-#: argp/argp-parse.c:102
+#: argp/argp-parse.c:87
 msgid "Give a short usage message"
 msgstr "Выдает краткую информацию об использовании"
 
-#: argp/argp-parse.c:103 catgets/gencat.c:108 catgets/gencat.c:112
-#: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:106 nscd/nscd.c:110
-#: nss/makedb.c:120
+#: argp/argp-parse.c:88 catgets/gencat.c:110 catgets/gencat.c:114
+#: iconv/iconv_prog.c:61 iconv/iconv_prog.c:62 nscd/nscd.c:106 nscd/nscd.c:110
+#: nss/makedb.c:122
 msgid "NAME"
 msgstr "ИМЯ"
 
-#: argp/argp-parse.c:104
+#: argp/argp-parse.c:89
 msgid "Set the program name"
 msgstr "Устанавливает имя программы"
 
-#: argp/argp-parse.c:105
+#: argp/argp-parse.c:90
 msgid "SECS"
 msgstr "СЕКУНД"
 
-#: argp/argp-parse.c:106
+#: argp/argp-parse.c:91
 msgid "Hang for SECS seconds (default 3600)"
 msgstr "Висит указанное число СЕКУНД (по умолчанию 3600)"
 
-#: argp/argp-parse.c:167
+#: argp/argp-parse.c:152
 msgid "Print program version"
 msgstr "Печатает версию программы"
 
-#: argp/argp-parse.c:183
+#: argp/argp-parse.c:168
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(ОШИБКА ПРОГРАММЫ) Версия неизвестна!?"
 
-#: argp/argp-parse.c:623
+#: argp/argp-parse.c:608
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s: Слишком много аргументов\n"
 
-#: argp/argp-parse.c:766
+#: argp/argp-parse.c:751
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(ОШИБКА ПРОГРАММЫ) Ключ должен быть распознан!?"
 
-#: assert/assert-perr.c:35
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sUnexpected error: %s.\n"
-"%n"
-msgstr ""
-"%s%s%s:%u: %s%sНеожиданная ошибка: %s.\n"
-"%n"
-
-#: assert/assert.c:101
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sAssertion `%s' failed.\n"
-"%n"
-msgstr ""
-"%s%s%s:%u: %s%sПроверочное утверждение «%s» не выполнено.\n"
-"%n"
-
-#: catgets/gencat.c:109
+#: catgets/gencat.c:111
 msgid "Create C header file NAME containing symbol definitions"
 msgstr "Создает заголовочный файл с ИМЕНЕМ на Си, содержащий определения символов."
 
-#: catgets/gencat.c:111
+#: catgets/gencat.c:113
 msgid "Do not use existing catalog, force new output file"
 msgstr "Не использовать существующий каталог, принудительно создать новый выходной файл"
 
-#: catgets/gencat.c:112 nss/makedb.c:120
+#: catgets/gencat.c:114 nss/makedb.c:122
 msgid "Write output to file NAME"
 msgstr "Записать вывод в файл с ИМЕНЕМ"
 
-#: catgets/gencat.c:117
+#: catgets/gencat.c:119
 msgid ""
 "Generate message catalog.\vIf INPUT-FILE is -, input is read from standard input.  If OUTPUT-FILE\n"
 "is -, output is written to standard output.\n"
@@ -146,7 +128,7 @@ msgstr ""
 "Генерирует каталог сообщений.\vЕсли ВХОДНОЙ-ФАЙЛ задан как -, читает стандартный ввод.  Если\n"
 "ВЫХОДНОЙ-ФАЙЛ задан как -, результат печатается на стандартный вывод.\n"
 
-#: catgets/gencat.c:122
+#: catgets/gencat.c:124
 msgid ""
 "-o OUTPUT-FILE [INPUT-FILE]...\n"
 "[OUTPUT-FILE [INPUT-FILE]...]"
@@ -154,12 +136,12 @@ msgstr ""
 "-o ВЫХОДНОЙ-ФАЙЛ [ВХОДНОЙ-ФАЙЛ]…\n"
 "[ВЫХОДНОЙ-ФАЙЛ [ВХОДНОЙ-ФАЙЛ]…]"
 
-#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:311
-#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:387
+#: catgets/gencat.c:230 debug/pcprofiledump.c:219 elf/ldconfig.c:217
+#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:374
 #: iconv/iconvconfig.c:380 locale/programs/locale.c:275
 #: locale/programs/localedef.c:437 login/programs/pt_chown.c:88
-#: malloc/memusagestat.c:562 nss/getent.c:952 nss/makedb.c:369
-#: posix/getconf.c:503 sysdeps/unix/sysv/linux/lddlibc4.c:60
+#: malloc/memusagestat.c:564 nss/getent.c:961 nss/makedb.c:371
+#: posix/getconf.c:505
 #, c-format
 msgid ""
 "For bug reporting instructions, please see:\n"
@@ -168,13 +150,12 @@ msgstr ""
 "О том, как сообщить об ошибке смотрите на\n"
 "%s.\n"
 
-#: catgets/gencat.c:244 debug/pcprofiledump.c:224 debug/xtrace.sh:63
-#: elf/ldconfig.c:327 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
-#: elf/sprof.c:388 iconv/iconv_prog.c:404 iconv/iconvconfig.c:397
+#: catgets/gencat.c:246 debug/pcprofiledump.c:235 debug/xtrace.sh:63
+#: elf/ldconfig.c:233 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
+#: elf/sprof.c:388 iconv/iconv_prog.c:391 iconv/iconvconfig.c:397
 #: locale/programs/locale.c:292 locale/programs/localedef.c:459
-#: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:580
-#: nscd/nscd.c:521 nss/getent.c:87 nss/makedb.c:385 posix/getconf.c:485
-#: sysdeps/unix/sysv/linux/lddlibc4.c:67
+#: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:582
+#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:387 posix/getconf.c:487
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -186,96 +167,101 @@ msgstr ""
 "смотрите в исходном тексте.  Мы НЕ предоставляем гарантий; даже гарантий\n"
 "КОММЕРЧЕСКОЙ ПРИГОДНОСТИ или ПРИГОДНОСТИ ДЛЯ КАКОЙ-ЛИБО ЦЕЛИ.\n"
 
-#: catgets/gencat.c:249 debug/pcprofiledump.c:229 debug/xtrace.sh:67
-#: elf/ldconfig.c:332 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
+#: catgets/gencat.c:251 debug/pcprofiledump.c:240 debug/xtrace.sh:67
+#: elf/ldconfig.c:238 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:396
 #: iconv/iconvconfig.c:402 locale/programs/locale.c:297
 #: locale/programs/localedef.c:464 malloc/memusage.sh:74
-#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:92 nss/makedb.c:390
-#: posix/getconf.c:490
+#: malloc/memusagestat.c:587 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:392
+#: posix/getconf.c:492
 #, c-format
 msgid "Written by %s.\n"
 msgstr "Автор программы — %s.\n"
 
-#: catgets/gencat.c:280
+#: catgets/gencat.c:282
 msgid "*standard input*"
 msgstr "*стандартный ввод*"
 
-#: catgets/gencat.c:286 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:272
-#: nss/makedb.c:246
+#: catgets/gencat.c:288 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:279
+#: iconv/iconv_prog.c:432 nss/makedb.c:248
 #, c-format
 msgid "cannot open input file `%s'"
 msgstr "невозможно открыть входной файл «%s»"
 
-#: catgets/gencat.c:415 catgets/gencat.c:490
+#: catgets/gencat.c:417 catgets/gencat.c:492
 msgid "illegal set number"
 msgstr "неверный номер множества"
 
-#: catgets/gencat.c:442
+#: catgets/gencat.c:444
 msgid "duplicate set definition"
 msgstr "повторное определение множества"
 
-#: catgets/gencat.c:444 catgets/gencat.c:616 catgets/gencat.c:668
+#: catgets/gencat.c:446 catgets/gencat.c:618 catgets/gencat.c:670
 msgid "this is the first definition"
 msgstr "это первое определение"
 
-#: catgets/gencat.c:515
+#: catgets/gencat.c:517
 #, c-format
 msgid "unknown set `%s'"
 msgstr "неизвестное множество «%s»"
 
-#: catgets/gencat.c:556
+#: catgets/gencat.c:558
 msgid "invalid quote character"
 msgstr "неверный экранирующий знак"
 
-#: catgets/gencat.c:569
+#: catgets/gencat.c:571
 #, c-format
 msgid "unknown directive `%s': line ignored"
 msgstr "неизвестная директива «%s»: строка проигнорирована"
 
-#: catgets/gencat.c:614
+#: catgets/gencat.c:616
 msgid "duplicated message number"
 msgstr "повторный номер сообщения"
 
-#: catgets/gencat.c:665
+#: catgets/gencat.c:667
 msgid "duplicated message identifier"
 msgstr "повторный идентификатор сообщения"
 
-#: catgets/gencat.c:722
+#: catgets/gencat.c:724
 msgid "invalid character: message ignored"
 msgstr "недопустимый знак: сообщение проигнорировано"
 
-#: catgets/gencat.c:765
+#: catgets/gencat.c:767
 msgid "invalid line"
 msgstr "неверная строка"
 
-#: catgets/gencat.c:819
+#: catgets/gencat.c:821
 msgid "malformed line ignored"
 msgstr "неправильная строка проигнорирована"
 
-#: catgets/gencat.c:983 catgets/gencat.c:1024
+#: catgets/gencat.c:939 catgets/gencat.c:947
+#, c-format
+msgid "cannot allocate memory"
+msgstr "невозможно выделить память"
+
+#: catgets/gencat.c:1000 catgets/gencat.c:1045
 #, c-format
 msgid "cannot open output file `%s'"
 msgstr "невозможно открыть выходной файл «%s»"
 
-#: catgets/gencat.c:1186 locale/programs/linereader.c:559
+#: catgets/gencat.c:1210 locale/programs/linereader.c:588
 msgid "invalid escape sequence"
 msgstr "неверная управляющая последовательность"
 
-#: catgets/gencat.c:1210
+#: catgets/gencat.c:1234
 msgid "unterminated message"
 msgstr "незавершенное сообщение"
 
-#: catgets/gencat.c:1234
+#: catgets/gencat.c:1258
 #, c-format
 msgid "while opening old catalog file"
 msgstr "при открытии старого файла каталога"
 
-#: catgets/gencat.c:1325
+#: catgets/gencat.c:1349
 #, c-format
 msgid "conversion modules not available"
 msgstr "модули преобразования недоступны"
 
-#: catgets/gencat.c:1351
+#: catgets/gencat.c:1375
 #, c-format
 msgid "cannot determine escape character"
 msgstr "невозможно определить знак выхода"
@@ -292,17 +278,17 @@ msgstr "Сбрасывает информацию, собранную при п�
 msgid "[FILE]"
 msgstr "[ФАЙЛ]"
 
-#: debug/pcprofiledump.c:107
-#, c-format
-msgid "cannot open input file"
-msgstr "невозможно открыть входной файл"
-
-#: debug/pcprofiledump.c:114
+#: debug/pcprofiledump.c:97
 #, c-format
 msgid "cannot read header"
 msgstr "невозможно считать заголовок"
 
-#: debug/pcprofiledump.c:178
+#: debug/pcprofiledump.c:145
+#, c-format
+msgid "cannot open input file"
+msgstr "невозможно открыть входной файл"
+
+#: debug/pcprofiledump.c:189
 #, c-format
 msgid "invalid pointer size"
 msgstr "неверный размер указателя"
@@ -369,7 +355,7 @@ msgstr "исполняемый файл «$program» не найден\\n"
 msgid "\\`$program' is no executable\\n"
 msgstr "«$program» не является исполняемым файлом\\n"
 
-#: dlfcn/dlinfo.c:43
+#: dlfcn/dlinfo.c:48
 msgid "unsupported dlinfo request"
 msgstr "неподдерживаемый запрос dlinfo"
 
@@ -385,288 +371,267 @@ msgstr "неверный режим"
 msgid "invalid mode parameter"
 msgstr "неверный параметр режима"
 
-#: elf/cache.c:179
-msgid "unknown"
-msgstr "неизвестно"
+#: elf/cache.c:174
+msgid "unknown or unsupported flag"
+msgstr "неизвестный или неподдерживаемый флаг"
 
-#: elf/cache.c:253
-msgid "Unknown OS"
-msgstr "Неизвестная ОС"
-
-#: elf/cache.c:258
-#, c-format
-msgid ", OS ABI: %s %d.%d.%d"
-msgstr ", ABI ОС: %s %d.%d.%d"
-
-#: elf/cache.c:296
+#: elf/cache.c:273
 #, c-format
 msgid "Cache file has wrong endianness.\n"
 msgstr "В кэш-файле некорректный порядок следования байт.\n"
 
-#: elf/cache.c:305
+#: elf/cache.c:282
 msgid "Cache generated by: "
 msgstr "Кэш сгенерирован: "
 
-#: elf/cache.c:319 elf/ldconfig.c:1437
+#: elf/cache.c:296 elf/ldconfig.c:1239
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "Невозможно открыть кэш-файл %s\n"
 
-#: elf/cache.c:333
+#: elf/cache.c:310
 #, c-format
 msgid "mmap of cache file failed.\n"
 msgstr "отображение кэш-файла в память не удалось.\n"
 
-#: elf/cache.c:337 elf/cache.c:351 elf/cache.c:362
+#: elf/cache.c:314 elf/cache.c:328 elf/cache.c:339
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "Это не кэш-файл.\n"
 
-#: elf/cache.c:391 elf/cache.c:406
+#: elf/cache.c:368 elf/cache.c:383
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "%d библиотек найдено в кэше «%s»\n"
 
-#: elf/cache.c:404
+#: elf/cache.c:381
 #, c-format
 msgid "Malformed extension data in cache file %s\n"
 msgstr "В кэш-файле искажённые данные расширения %s\n"
 
-#: elf/cache.c:547
+#: elf/cache.c:510
 #, c-format
 msgid "Writing of cache extension data failed"
 msgstr "Запись данных расширения кэша завершилась неудачно"
 
-#: elf/cache.c:558
+#: elf/cache.c:521
 #, c-format
 msgid "%s: ISA level is too high (%d > %d)"
 msgstr "%s: слишком большой уровень ISA (%d > %d)"
 
-#: elf/cache.c:725
+#: elf/cache.c:685
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "Невозможно создать временный кэш-файл %s"
 
-#: elf/cache.c:733 elf/cache.c:743 elf/cache.c:747 elf/cache.c:752
-#: elf/cache.c:770
+#: elf/cache.c:693 elf/cache.c:703 elf/cache.c:707 elf/cache.c:712
+#: elf/cache.c:731
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "Запись данных кэша завершилась неудачно"
 
-#: elf/cache.c:765
+#: elf/cache.c:726
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "Изменение прав доступа для %s на %#o завершилось неудачно"
 
-#: elf/cache.c:774
+#: elf/cache.c:735
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "Переименование %s в %s завершилось неудачно"
 
-#: elf/cache.c:805
+#: elf/cache.c:765
 #, c-format
 msgid "Could not create library path"
 msgstr "Не удалось создать путь библиотеки"
 
-#: elf/dl-close.c:386 elf/dl-open.c:298
+#: elf/dl-catch.c:85
+msgid "error while loading shared libraries"
+msgstr "ошибка при загрузке разделяемых библиотек"
+
+#: elf/dl-catch.c:118
+msgid "DYNAMIC LINKER BUG!!!"
+msgstr "ОШИБКА ДИНАМИЧЕСКОГО КОМПОНОВЩИКА!!!"
+
+#: elf/dl-close.c:363 elf/dl-open.c:298
 msgid "cannot create scope list"
 msgstr "невозможно создать список областей"
 
-#: elf/dl-close.c:815
+#: elf/dl-close.c:792
 msgid "shared object not open"
 msgstr "разделяемый объект не открыт"
 
-#: elf/dl-deps.c:112
+#: elf/dl-deps.c:96
 msgid "DST not allowed in SUID/SGID programs"
 msgstr "DST не допускается в программах с SUID/SGID"
 
-#: elf/dl-deps.c:125
+#: elf/dl-deps.c:109
 msgid "empty dynamic string token substitution"
 msgstr "пустое вхождение динамического строкового токена"
 
-#: elf/dl-deps.c:131
+#: elf/dl-deps.c:115
 #, c-format
 msgid "cannot load auxiliary `%s' because of empty dynamic string token substitution\n"
 msgstr "невозможно загрузить вспомогательное  «%s» из-за вхождения пустого динамического строкового токена\n"
 
-#: elf/dl-deps.c:220
+#: elf/dl-deps.c:204
 msgid "cannot allocate dependency buffer"
 msgstr "невозможно выделить память под буфер зависимостей"
 
-#: elf/dl-deps.c:443
+#: elf/dl-deps.c:427
 msgid "cannot allocate dependency list"
 msgstr "невозможно выделить память под список зависимостей"
 
-#: elf/dl-deps.c:483 elf/dl-deps.c:548
+#: elf/dl-deps.c:467
 msgid "cannot allocate symbol search list"
 msgstr "невозможно выделить память под список поиска символов"
-
-#: elf/dl-deps.c:528
-msgid "Filters not supported with LD_TRACE_PRELINKING"
-msgstr "Фильтры не поддерживаются с LD_TRACE_PRELINKING"
-
-#: elf/dl-error-skeleton.c:80
-msgid "error while loading shared libraries"
-msgstr "ошибка при загрузке разделяемых библиотек"
-
-#: elf/dl-error-skeleton.c:113
-msgid "DYNAMIC LINKER BUG!!!"
-msgstr "ОШИБКА ДИНАМИЧЕСКОГО КОМПОНОВЩИКА!!!"
-
-#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:95
-msgid "cannot map pages for fdesc table"
-msgstr "невозможно отобразить страницы для таблицы fdesc"
-
-#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:213
-msgid "cannot map pages for fptr table"
-msgstr "невозможно отобразить страницы для таблицы fptr"
-
-#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:242
-msgid "internal error: symidx out of range of fptr table"
-msgstr "внутренняя ошибка: symidx выходит за пределы таблицы fptr"
 
 #: elf/dl-hwcaps.c:104
 msgid "cannot create HWCAP priorities"
 msgstr "невозможно создать приоритеты HWCAP"
 
-#: elf/dl-hwcaps.c:247 elf/dl-hwcaps.c:262
+#: elf/dl-hwcaps.c:196
 msgid "cannot create capability list"
 msgstr "невозможно создать capability list"
 
-#: elf/dl-load.c:434
+#: elf/dl-load.c:424
 msgid "cannot allocate name record"
 msgstr "невозможно выделить память под запись имени"
 
-#: elf/dl-load.c:536 elf/dl-load.c:649 elf/dl-load.c:743 elf/dl-load.c:840
+#: elf/dl-load.c:510 elf/dl-load.c:623 elf/dl-load.c:717 elf/dl-load.c:814
 msgid "cannot create cache for search path"
 msgstr "невозможно создать кэш для путей поиска"
 
-#: elf/dl-load.c:632
+#: elf/dl-load.c:606
 msgid "cannot create RUNPATH/RPATH copy"
 msgstr "невозможно создать копию RUNPATH/RPATH"
 
-#: elf/dl-load.c:729
+#: elf/dl-load.c:703
 msgid "cannot create search path array"
 msgstr "невозможно создать массив путей поиска"
 
-#: elf/dl-load.c:970
+#: elf/dl-load.c:973
 msgid "cannot stat shared object"
 msgstr "невозможно выполнить stat для разделяемого объекта"
 
-#: elf/dl-load.c:1069 elf/dl-load.c:2282
+#: elf/dl-load.c:1066 elf/dl-load.c:2155
 msgid "cannot create shared object descriptor"
 msgstr "невозможно создать дескриптор разделяемого объекта"
 
-#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1763
+#: elf/dl-load.c:1085 elf/dl-load.c:1604 elf/dl-load.c:1710
 msgid "cannot read file data"
 msgstr "невозможно прочитать данные файла"
 
-#: elf/dl-load.c:1223
+#: elf/dl-load.c:1138 elf/dl-map-segments.h:117
+msgid "ELF load command address/offset not page-aligned"
+msgstr "адрес/смещение команды загрузки ELF не выровнен по странице"
+
+#: elf/dl-load.c:1230
 msgid "object file has no loadable segments"
 msgstr "в объектном файле нет загружаемых сегментов"
 
-#: elf/dl-load.c:1240
+#: elf/dl-load.c:1247
 msgid "cannot dynamically load executable"
 msgstr "невозможно динамически загрузить исполняемый файл"
 
-#: elf/dl-load.c:1247
+#: elf/dl-load.c:1254
 msgid "object file has no dynamic section"
 msgstr "в объектном файле нет динамической секции"
 
-#: elf/dl-load.c:1282
+#: elf/dl-load.c:1289
 msgid "cannot dynamically load position-independent executable"
 msgstr "невозможно динамически загрузить независимый от расположения исполняемый файл"
 
-#: elf/dl-load.c:1284
+#: elf/dl-load.c:1291
 msgid "shared object cannot be dlopen()ed"
 msgstr "невозможно применить dlopen() к разделяемому объекту"
 
-#: elf/dl-load.c:1297
+#: elf/dl-load.c:1304
 msgid "cannot allocate memory for program header"
 msgstr "невозможно выделить память под заголовок программы"
 
-#: elf/dl-load.c:1330 elf/dl-load.h:131
-msgid "cannot change memory protections"
-msgstr "невозможно изменить защиту памяти"
-
-#: elf/dl-load.c:1354
+#: elf/dl-load.c:1329
 msgid "cannot enable executable stack as shared object requires"
 msgstr "невозможно задействовать исполняемый стек, как требует разделяемый объект"
 
-#: elf/dl-load.c:1382
+#: elf/dl-load.c:1357
 msgid "cannot close file descriptor"
 msgstr "невозможно закрыть дескриптор файла"
 
-#: elf/dl-load.c:1661
+#: elf/dl-load.c:1604
 msgid "file too short"
 msgstr "файл слишком мал"
 
-#: elf/dl-load.c:1697
+#: elf/dl-load.c:1638
 msgid "invalid ELF header"
 msgstr "неверный заголовок ELF"
 
-#: elf/dl-load.c:1709
+#: elf/dl-load.c:1653
 msgid "ELF file data encoding not big-endian"
 msgstr "кодировка данных в ELF-файле не тупоконечная"
 
-#: elf/dl-load.c:1711
+#: elf/dl-load.c:1655
 msgid "ELF file data encoding not little-endian"
 msgstr "кодировка данных в ELF-файле не остроконечная"
 
-#: elf/dl-load.c:1715
+#: elf/dl-load.c:1659
 msgid "ELF file version ident does not match current one"
 msgstr "идентификатор версии ELF-файла не соответствует текущей версии"
 
-#: elf/dl-load.c:1719
+#: elf/dl-load.c:1663
 msgid "ELF file OS ABI invalid"
 msgstr "неверный ABI ОС ELF-файла"
 
-#: elf/dl-load.c:1722
+#: elf/dl-load.c:1666
 msgid "ELF file ABI version invalid"
 msgstr "неверная версия ABI ELF-файла"
 
-#: elf/dl-load.c:1725
+#: elf/dl-load.c:1669
 msgid "nonzero padding in e_ident"
 msgstr "заполнение в e_ident не равно нулю"
 
-#: elf/dl-load.c:1728
+#: elf/dl-load.c:1672
 msgid "internal error"
 msgstr "внутренняя ошибка"
 
-#: elf/dl-load.c:1735
+#: elf/dl-load.c:1679
 msgid "ELF file version does not match current one"
 msgstr "версия ELF-файла не соответствует текущей версии"
 
-#: elf/dl-load.c:1743
+#: elf/dl-load.c:1691
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "можно загрузить только ET_DYN и ET_EXEC"
 
 # ???
-#: elf/dl-load.c:1748
+#: elf/dl-load.c:1696
 msgid "ELF file's phentsize not the expected size"
 msgstr "phentsize ELF-файла не совпадает с ожидаемым размером"
 
-#: elf/dl-load.c:2301
+#: elf/dl-load.c:2174
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "неправильный класс ELF: ELFCLASS64"
 
-#: elf/dl-load.c:2302
+#: elf/dl-load.c:2175
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "неправильный класс ELF: ELFCLASS32"
 
-#: elf/dl-load.c:2305
+#: elf/dl-load.c:2178
 msgid "cannot open shared object file"
 msgstr "невозможно открыть разделяемый объектный файл"
 
-#: elf/dl-load.h:129
+#: elf/dl-load.h:126
 msgid "failed to map segment from shared object"
 msgstr "сбой отображения сегмента из разделяемого объекта"
 
-#: elf/dl-load.h:133
+#: elf/dl-load.h:128
+msgid "cannot change memory protections"
+msgstr "невозможно изменить защиту памяти"
+
+#: elf/dl-load.h:130
 msgid "cannot map zero-fill pages"
 msgstr "невозможно отобразить страницы заполнения нулями"
 
-#: elf/dl-lookup.c:881
+#: elf/dl-lookup.c:800
 msgid "symbol lookup error"
 msgstr "ошибка поиска символа"
 
@@ -674,40 +639,44 @@ msgstr "ошибка поиска символа"
 msgid "cannot extend global scope"
 msgstr "невозможно расширить глобальную область"
 
-#: elf/dl-open.c:405
+#: elf/dl-open.c:382
 msgid "TLS generation counter wrapped!  Please report this."
 msgstr "Переполнение счетчика поколений TLS!  Пожалуйста, сообщите об этом."
 
-#: elf/dl-open.c:827
+#: elf/dl-open.c:716
+msgid "cannot allocate address lookup data"
+msgstr "невозможно выделить память под данные поиска по адресу"
+
+#: elf/dl-open.c:817
 msgid "invalid mode for dlopen()"
 msgstr "неверный режим для dlopen()"
 
-#: elf/dl-open.c:844
+#: elf/dl-open.c:834
 msgid "no more namespaces available for dlmopen()"
 msgstr "больше нет доступных пространств имен для dlmopen()"
 
-#: elf/dl-open.c:868
+#: elf/dl-open.c:859
 msgid "invalid target namespace in dlmopen()"
 msgstr "неверное целевое пространство имен в dlmopen()"
 
-#: elf/dl-reloc.c:139
+#: elf/dl-reloc.c:140
 msgid "cannot allocate memory in static TLS block"
 msgstr "невозможно выделить память в статичном блоке TLS"
 
-#: elf/dl-reloc.c:275
+#: elf/dl-reloc.c:283
 msgid "cannot make segment writable for relocation"
 msgstr "невозможно сделать сегмент записываемым для перемещения"
 
-#: elf/dl-reloc.c:306
+#: elf/dl-reloc.c:313
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s: недостаточно памяти для записи результатов перемещения %s\n"
 
-#: elf/dl-reloc.c:322
+#: elf/dl-reloc.c:328
 msgid "cannot restore segment prot after reloc"
 msgstr "невозможно восстановить защиту сегмента после перемещения"
 
-#: elf/dl-reloc.c:353
+#: elf/dl-reloc.c:366
 msgid "cannot apply additional memory protection after relocation"
 msgstr "невозможно применить дополнительную защиту памяти после релокации"
 
@@ -715,7 +684,7 @@ msgstr "невозможно применить дополнительную з�
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "RTLD_NEXT использовано в не динамически загруженном коде"
 
-#: elf/dl-tls.c:1039
+#: elf/dl-tls.c:1196
 msgid "cannot create TLS data structures"
 msgstr "невозможно создать структуры данных TLS"
 
@@ -723,230 +692,224 @@ msgstr "невозможно создать структуры данных TLS"
 msgid "version lookup error"
 msgstr "ошибка поиска версии"
 
-#: elf/dl-version.c:278
+#: elf/dl-version.c:285
 msgid "cannot allocate version reference table"
 msgstr "невозможно выделить память под таблицу ссылок на версии"
 
-#: elf/ldconfig.c:150
+#: elf/dl-version.c:380
+msgid "DT_RELR without GLIBC_ABI_DT_RELR dependency"
+msgstr "DT_RELR без зависимости GLIBC_ABI_DT_RELR"
+
+#: elf/ldconfig.c:125
 msgid "Print cache"
 msgstr "Напечатать кэш"
 
-#: elf/ldconfig.c:151
+#: elf/ldconfig.c:126
 msgid "Generate verbose messages"
 msgstr "Генерировать подробные сообщения"
 
-#: elf/ldconfig.c:152
+#: elf/ldconfig.c:127
 msgid "Don't build cache"
 msgstr "Не строить кэш"
 
-#: elf/ldconfig.c:153
+#: elf/ldconfig.c:128
 msgid "Don't update symbolic links"
 msgstr "Не обновлять символьные ссылки"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:129
 msgid "Change to and use ROOT as root directory"
 msgstr "Перейти в КОРЕНЬ и использовать его как корневой каталог"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:129
 msgid "ROOT"
 msgstr "КОРЕНЬ"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:130
 msgid "CACHE"
 msgstr "КЭШ"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:130
 msgid "Use CACHE as cache file"
 msgstr "Использовать КЭШ в качестве кэш-файла"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:131
 msgid "CONF"
 msgstr "КОНФИГУРАЦИЯ"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:131
 msgid "Use CONF as configuration file"
 msgstr "Использовать КОНФИГУРАЦИЯ в качестве конфигурационного файла"
 
-#: elf/ldconfig.c:157
+#: elf/ldconfig.c:132
 msgid "Only process directories specified on the command line.  Don't build cache."
 msgstr "Обработать только каталоги, указанные в командной строке.  Не строить кэш."
 
-#: elf/ldconfig.c:158
+#: elf/ldconfig.c:133
 msgid "Manually link individual libraries."
 msgstr "Вручную скомпоновать отдельные библиотеки."
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:134
 msgid "FORMAT"
 msgstr "FORMAT"
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:134
 msgid "Format to use: new (default), old, or compat"
 msgstr "Используемый формат: new (по умолчанию), old или compat"
 
-#: elf/ldconfig.c:160
+#: elf/ldconfig.c:135
 msgid "Ignore auxiliary cache file"
 msgstr "Игнорирование вспомогательного файла кэша"
 
-#: elf/ldconfig.c:168
+#: elf/ldconfig.c:143
 msgid "Configure Dynamic Linker Run Time Bindings."
 msgstr "Настраивает связи времени выполнения для динамического компоновщика."
 
-#: elf/ldconfig.c:371
+#: elf/ldconfig.c:277
 #, c-format
 msgid "Path `%s' given more than once"
 msgstr "Путь «%s» задан несколько раз"
 
-#: elf/ldconfig.c:372
+#: elf/ldconfig.c:278
 #, c-format
 msgid "(from %s:%d and %s:%d)\n"
 msgstr "(из %s:%d и %s:%d)\n"
 
-#: elf/ldconfig.c:404 elf/ldconfig.c:445
+#: elf/ldconfig.c:310 elf/ldconfig.c:351
 #, c-format
 msgid "Could not form glibc-hwcaps path"
 msgstr "Не удалось сформировать путь glibc-hwcaps"
 
-#: elf/ldconfig.c:418
+#: elf/ldconfig.c:324
 #, c-format
 msgid "Listing directory %s"
 msgstr "Просмотр каталога %s"
 
-#: elf/ldconfig.c:487
-#, c-format
-msgid "%s is not a known library type"
-msgstr "%s не является известным типом библиотеки"
-
-#: elf/ldconfig.c:519
+#: elf/ldconfig.c:406
 #, c-format
 msgid "Can't stat %s"
 msgstr "Невозможно выполнить stat %s"
 
-#: elf/ldconfig.c:600
+#: elf/ldconfig.c:487
 #, c-format
 msgid "Can't stat %s\n"
 msgstr "Невозможно выполнить stat %s\n"
 
-#: elf/ldconfig.c:610
+#: elf/ldconfig.c:497
 #, c-format
 msgid "%s is not a symbolic link\n"
 msgstr "%s не является символьной ссылкой\n"
 
-#: elf/ldconfig.c:629
+#: elf/ldconfig.c:516
 #, c-format
 msgid "Can't unlink %s"
 msgstr "Невозможно удалить ссылку %s"
 
-#: elf/ldconfig.c:635
+#: elf/ldconfig.c:522
 #, c-format
 msgid "Can't link %s to %s"
 msgstr "Невозможно создать ссылку с %s на %s"
 
-#: elf/ldconfig.c:641
+#: elf/ldconfig.c:528
 msgid " (changed)\n"
 msgstr " (изменено)\n"
 
-#: elf/ldconfig.c:643
+#: elf/ldconfig.c:530
 msgid " (SKIPPED)\n"
 msgstr " (ПРОПУЩЕНО)\n"
 
-#: elf/ldconfig.c:699
+#: elf/ldconfig.c:585
 #, c-format
 msgid "Can't find %s"
 msgstr "Невозможно найти %s"
 
-#: elf/ldconfig.c:715 elf/ldconfig.c:895 elf/ldconfig.c:955 elf/ldconfig.c:987
+#: elf/ldconfig.c:601 elf/ldconfig.c:760 elf/ldconfig.c:827
 #, c-format
 msgid "Cannot lstat %s"
 msgstr "Невозможно выполнить lstat %s"
 
-#: elf/ldconfig.c:721
+#: elf/ldconfig.c:607
 #, c-format
 msgid "Ignored file %s since it is not a regular file."
 msgstr "Файл %s проигнорирован, поскольку не является обычным файлом"
 
-#: elf/ldconfig.c:729
+#: elf/ldconfig.c:615
 #, c-format
 msgid "No link created since soname could not be found for %s"
 msgstr "Ссылка не создана, поскольку для %s не было найдено soname"
 
-#: elf/ldconfig.c:804
+#: elf/ldconfig.c:701
 #, c-format
 msgid " (from %s:%d)\n"
 msgstr " (из %s:%d)\n"
 
-#: elf/ldconfig.c:828
+#: elf/ldconfig.c:716
 #, c-format
 msgid "Can't open directory %s"
 msgstr "Невозможно открыть каталог %s"
 
-#: elf/ldconfig.c:913 elf/ldconfig.c:975 elf/readlib.c:96
+#: elf/ldconfig.c:743 elf/ldconfig.c:748
+#, c-format
+msgid "Could not form library path"
+msgstr "Не удалось сконструировать путь библиотеки"
+
+#: elf/ldconfig.c:777 elf/ldconfig.c:815 elf/readlib.c:81
 #, c-format
 msgid "Input file %s not found.\n"
 msgstr "Входной файл %s не найден.\n"
 
-#: elf/ldconfig.c:920
+#: elf/ldconfig.c:784
 #, c-format
 msgid "Cannot stat %s"
 msgstr "Невозможно выполнить stat %s"
 
-#: elf/ldconfig.c:1073
-#, c-format
-msgid "libc5 library %s in wrong directory"
-msgstr "libc5-библиотека %s в неправильном каталоге"
-
-#: elf/ldconfig.c:1076
+#: elf/ldconfig.c:903
 #, c-format
 msgid "libc6 library %s in wrong directory"
 msgstr "libc6-библиотека %s в неправильном каталоге"
 
-#: elf/ldconfig.c:1079
-#, c-format
-msgid "libc4 library %s in wrong directory"
-msgstr "libc4-библиотека %s в неправильном каталоге"
-
-#: elf/ldconfig.c:1107
+#: elf/ldconfig.c:922
 #, c-format
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "библиотеки %s и %s в каталоге %s имеют одинаковый soname, но разные типы."
 
-#: elf/ldconfig.c:1237
+#: elf/ldconfig.c:1051
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "Предупреждение: файл настройки игнорируется, так как не может быть открыт: %s"
 
-#: elf/ldconfig.c:1285
+#: elf/ldconfig.c:1099
 #, c-format
 msgid "%s:%u: hwcap directive ignored"
 msgstr "%s:%u: директива hwcap игнорируется"
 
-#: elf/ldconfig.c:1304
+#: elf/ldconfig.c:1118
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "при использовании -r необходимо задавать абсолютное имя для конфигурационного файла"
 
-#: elf/ldconfig.c:1311 locale/programs/xasprintf.c:31
+#: elf/ldconfig.c:1125 locale/programs/xasprintf.c:31
 #: locale/programs/xmalloc.c:63 malloc/obstack.c:416 malloc/obstack.c:418
-#: posix/getconf.c:458 posix/getconf.c:697
+#: posix/getconf.c:460 posix/getconf.c:699
 #, c-format
 msgid "memory exhausted"
 msgstr "память исчерпана"
 
-#: elf/ldconfig.c:1344
+#: elf/ldconfig.c:1158
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s:%u: невозможно прочитать каталог %s"
 
-#: elf/ldconfig.c:1392
+#: elf/ldconfig.c:1196
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "для построения кэша использован относительный путь «%s»"
 
-#: elf/ldconfig.c:1416
+#: elf/ldconfig.c:1218
 #, c-format
 msgid "Can't chdir to /"
 msgstr "Невозможно перейти в каталог /"
 
-#: elf/ldconfig.c:1457
+#: elf/ldconfig.c:1259
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "Невозможно открыть каталог кэш-файла %s\n"
@@ -996,7 +959,7 @@ msgstr "отсутствуют аргументы, задающие файлы"
 msgid "No such file or directory"
 msgstr "Нет такого файла или каталога"
 
-#: elf/ldd.bash.in:150 inet/rcmd.c:481
+#: elf/ldd.bash.in:150 inet/rcmd.c:483
 msgid "not regular file"
 msgstr "не обычный файл"
 
@@ -1016,42 +979,42 @@ msgstr "завершено с неизвестным выходным кодом
 msgid "error: you do not have read permission for"
 msgstr "ошибка: у вас нет разрешения на чтение"
 
-#: elf/pldd-xx.c:101
+#: elf/pldd-xx.c:103
 #, c-format
 msgid "cannot find program header of process"
 msgstr "не удалось найти программный заголовок в процессе"
 
-#: elf/pldd-xx.c:105
+#: elf/pldd-xx.c:107
 #, c-format
 msgid "cannot read program header"
 msgstr "не удалось прочитать программный заголовок"
 
-#: elf/pldd-xx.c:127
+#: elf/pldd-xx.c:129
 #, c-format
 msgid "cannot read dynamic section"
 msgstr "не удалось прочитать динамический раздел"
 
-#: elf/pldd-xx.c:136
+#: elf/pldd-xx.c:141
 #, c-format
 msgid "cannot read r_debug"
 msgstr "не удалось прочитать r_debug"
 
-#: elf/pldd-xx.c:153
+#: elf/pldd-xx.c:159
 #, c-format
 msgid "cannot read program interpreter"
 msgstr "не удалось прочитать программный интерпретатор"
 
-#: elf/pldd-xx.c:182
+#: elf/pldd-xx.c:188
 #, c-format
 msgid "cannot read link map"
 msgstr "не удалось прочитать карту ссылок"
 
-#: elf/pldd-xx.c:189
+#: elf/pldd-xx.c:195
 #, c-format
 msgid "cannot read object name"
 msgstr "не удалось прочитать имя объекта"
 
-#: elf/pldd-xx.c:196
+#: elf/pldd-xx.c:202
 #, c-format
 msgid "cannot allocate buffer for object name"
 msgstr "невозможно выделить буфер под имя объекта"
@@ -1119,52 +1082,52 @@ msgstr "процесс %lu не является программой в фор�
 msgid "file %s is truncated\n"
 msgstr "файл %s усечён\n"
 
-#: elf/readelflib.c:65
+#: elf/readelflib.c:63
 #, c-format
 msgid "%s is a 32 bit ELF file.\n"
 msgstr "%s является 32-битным ELF-файлом.\n"
 
-#: elf/readelflib.c:67
+#: elf/readelflib.c:65
 #, c-format
 msgid "%s is a 64 bit ELF file.\n"
 msgstr "%s является 64-битным ELF-файлом.\n"
 
-#: elf/readelflib.c:69
+#: elf/readelflib.c:67
 #, c-format
 msgid "Unknown ELFCLASS in file %s.\n"
 msgstr "Неизвестный ELFCLASS в файле %s.\n"
 
-#: elf/readelflib.c:76
+#: elf/readelflib.c:74
 #, c-format
 msgid "%s is not a shared object file (Type: %d).\n"
 msgstr "%s не является разделяемым объектным файлом (Тип: %d).\n"
 
-#: elf/readelflib.c:104
+#: elf/readelflib.c:101
 #, c-format
 msgid "more than one dynamic segment\n"
 msgstr "более одного динамических сегментов\n"
 
-#: elf/readlib.c:102
+#: elf/readlib.c:87
 #, c-format
 msgid "Cannot fstat file %s.\n"
 msgstr "Невозможно выполнить fstat для файла %s.\n"
 
-#: elf/readlib.c:113
+#: elf/readlib.c:98
 #, c-format
 msgid "File %s is empty, not checked."
 msgstr "Файл %s пуст; не был проверен."
 
-#: elf/readlib.c:119
+#: elf/readlib.c:104
 #, c-format
 msgid "File %s is too small, not checked."
 msgstr "Файл %s слишком мал; не был проверен."
 
-#: elf/readlib.c:129
+#: elf/readlib.c:114
 #, c-format
 msgid "Cannot mmap file %s.\n"
 msgstr "Невозможно отобразить в память файл %s.\n"
 
-#: elf/readlib.c:168
+#: elf/readlib.c:152
 #, c-format
 msgid "%s is not an ELF file - it has the wrong magic bytes at the start.\n"
 msgstr "%s не является файлом в формате ELF — неправильная сигнатура в начале.\n"
@@ -1394,143 +1357,132 @@ msgstr "В таблице строк содержится слишком мно�
 msgid "String table is too large"
 msgstr "Слишком большая таблица строк"
 
-#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:427
+#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:426
 #, c-format
 msgid "cannot open output file"
 msgstr "невозможно открыть выходной файл"
 
-#: iconv/iconv_charmap.c:192 iconv/iconv_prog.c:290
+#: iconv/iconv_charmap.c:192
 #, c-format
 msgid "error while closing input `%s'"
 msgstr "ошибка при закрытии входного файла «%s»"
 
 #: iconv/iconv_charmap.c:443
 #, c-format
-msgid "illegal input sequence at position %Zd"
-msgstr "недопустимая входная последовательность в позиции %Zd"
+msgid "illegal input sequence at position %zd"
+msgstr "недопустимая входная последовательность в позиции %zd"
 
-#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:518
+#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:728
 #, c-format
 msgid "incomplete character or shift sequence at end of buffer"
 msgstr "неполный знак или последовательность сдвига в конце буфера"
 
-#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:561
-#: iconv/iconv_prog.c:597
+#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:736
 #, c-format
 msgid "error while reading the input"
 msgstr "ошибка при чтении входного файла"
 
-#: iconv/iconv_charmap.c:525 iconv/iconv_prog.c:579
+#: iconv/iconv_charmap.c:525
 #, c-format
 msgid "unable to allocate buffer for input"
 msgstr "невозможно получить буфер для ввода"
 
-#: iconv/iconv_prog.c:59
+#: iconv/iconv_prog.c:60
 msgid "Input/Output format specification:"
 msgstr "Спецификация формата ввода/вывода:"
 
-#: iconv/iconv_prog.c:60
+#: iconv/iconv_prog.c:61
 msgid "encoding of original text"
 msgstr "кодировка оригинального текста"
 
-#: iconv/iconv_prog.c:61
+#: iconv/iconv_prog.c:62
 msgid "encoding for output"
 msgstr "кодировка для вывода"
 
-#: iconv/iconv_prog.c:62
+#: iconv/iconv_prog.c:63
 msgid "Information:"
 msgstr "Информация:"
 
-#: iconv/iconv_prog.c:63
+#: iconv/iconv_prog.c:64
 msgid "list all known coded character sets"
 msgstr "перечислить все известные встроенные кодировки"
 
-#: iconv/iconv_prog.c:64 locale/programs/localedef.c:123
+#: iconv/iconv_prog.c:65 locale/programs/localedef.c:123
 msgid "Output control:"
 msgstr "Управление выводом:"
 
-#: iconv/iconv_prog.c:65
+#: iconv/iconv_prog.c:66
 msgid "omit invalid characters from output"
 msgstr "пропускать на выводе недопустимые знаки"
 
-#: iconv/iconv_prog.c:66 iconv/iconvconfig.c:128
+#: iconv/iconv_prog.c:67 iconv/iconvconfig.c:128
 #: locale/programs/localedef.c:116 locale/programs/localedef.c:118
 #: locale/programs/localedef.c:120 locale/programs/localedef.c:149
-#: malloc/memusagestat.c:55
+#: malloc/memusagestat.c:56
 msgid "FILE"
 msgstr "ФАЙЛ"
 
-#: iconv/iconv_prog.c:66
+#: iconv/iconv_prog.c:67
 msgid "output file"
 msgstr "выходной файл"
 
-#: iconv/iconv_prog.c:67
+#: iconv/iconv_prog.c:68
 msgid "suppress warnings"
 msgstr "не печатать предупреждения"
 
-#: iconv/iconv_prog.c:68
+#: iconv/iconv_prog.c:69
 msgid "print progress information"
 msgstr "печатать информацию о ходе работы"
 
-#: iconv/iconv_prog.c:73
+#: iconv/iconv_prog.c:78
 msgid "Convert encoding of given files from one encoding to another."
 msgstr "Преобразует указанные файлы из одной кодировки в другую."
 
-#: iconv/iconv_prog.c:77
+#: iconv/iconv_prog.c:82
 msgid "[FILE...]"
 msgstr "[ФАЙЛ…]"
 
-#: iconv/iconv_prog.c:176 iconv/iconv_prog.c:238
+#: iconv/iconv_prog.c:189 iconv/iconv_prog.c:251
 #, c-format
 msgid "failed to start conversion processing"
 msgstr "не удалось начать преобразование"
 
-#: iconv/iconv_prog.c:212
+#: iconv/iconv_prog.c:225
 #, c-format
 msgid "conversions from `%s' and to `%s' are not supported"
 msgstr "преобразования из «%s» и в «%s» не поддерживаются"
 
-#: iconv/iconv_prog.c:217
+#: iconv/iconv_prog.c:230
 #, c-format
 msgid "conversion from `%s' is not supported"
 msgstr "преобразование из «%s» не поддерживается"
 
-#: iconv/iconv_prog.c:224
+#: iconv/iconv_prog.c:237
 #, c-format
 msgid "conversion to `%s' is not supported"
 msgstr "преобразование в «%s» не поддерживается"
 
-#: iconv/iconv_prog.c:228
+#: iconv/iconv_prog.c:241
 #, c-format
 msgid "conversion from `%s' to `%s' is not supported"
 msgstr "преобразование из «%s» в «%s» не поддерживается"
 
-#: iconv/iconv_prog.c:336
-#, c-format
-msgid "error while closing output file"
-msgstr "ошибка при закрытии выходного файла"
-
-#: iconv/iconv_prog.c:437
+#: iconv/iconv_prog.c:540
 #, c-format
 msgid "conversion stopped due to problem in writing the output"
 msgstr "преобразование остановлено из-за проблемы при записи вывода"
 
-#: iconv/iconv_prog.c:514
-#, c-format
-msgid "illegal input sequence at position %ld"
-msgstr "недопустимая входная последовательность в позиции %ld"
-
-#: iconv/iconv_prog.c:522
+#: iconv/iconv_prog.c:693
 #, c-format
 msgid "internal error (illegal descriptor)"
 msgstr "внутренняя ошибка (неверный дескриптор)"
 
-#: iconv/iconv_prog.c:525
+#: iconv/iconv_prog.c:696
 #, c-format
 msgid "unknown iconv() error %d"
 msgstr "неизвестная ошибка iconv() %d"
 
-#: iconv/iconv_prog.c:768
+#: iconv/iconv_prog.c:909
 msgid ""
 "The following list contains all the coded character sets known.  This does\n"
 "not necessarily mean that all combinations of these names can be used for\n"
@@ -1590,68 +1542,83 @@ msgstr "при вставке в дерево поиска"
 msgid "cannot generate output file"
 msgstr "невозможно сгенерировать выходной файл"
 
-#: inet/rcmd.c:158
+#: include/unistd_ext.h:38
+#, c-format
+msgid "write of %zu bytes failed after %td: %m"
+msgstr "запись %zu байт завершилась ошибкой после %td: %m"
+
+#: include/unistd_ext.h:43
+#, c-format
+msgid "write returned 0 after writing %td bytes of %zu"
+msgstr "процесс записи вернул 0 после записи %td байт из %zu"
+
+#: include/unistd_ext.h:59
+#, c-format
+msgid "read of %zu bytes failed after %td: %m"
+msgstr "чтение %zu байт завершилась ошибкой после %td: %m"
+
+#: inet/rcmd.c:160
 msgid "rcmd: Cannot allocate memory\n"
 msgstr "rcmd: Невозможно выделить память\n"
 
-#: inet/rcmd.c:175
+#: inet/rcmd.c:177
 msgid "rcmd: socket: All ports in use\n"
 msgstr "rcmd: socket: Все порты используются\n"
 
-#: inet/rcmd.c:203
+#: inet/rcmd.c:205
 #, c-format
 msgid "connect to address %s: "
 msgstr "соединение с адресом %s: "
 
-#: inet/rcmd.c:216
+#: inet/rcmd.c:218
 #, c-format
 msgid "Trying %s...\n"
 msgstr "Попытка %s…\n"
 
-#: inet/rcmd.c:252
+#: inet/rcmd.c:254
 #, c-format
 msgid "rcmd: write (setting up stderr): %m\n"
 msgstr "rcmd: write (настройка stderr): %m\n"
 
-#: inet/rcmd.c:268
+#: inet/rcmd.c:270
 #, c-format
 msgid "rcmd: poll (setting up stderr): %m\n"
 msgstr "rcmd: poll (настройка stderr): %m\n"
 
-#: inet/rcmd.c:271
+#: inet/rcmd.c:273
 msgid "poll: protocol failure in circuit setup\n"
 msgstr "poll: сбой протокола при настройке цепи\n"
 
-#: inet/rcmd.c:303
+#: inet/rcmd.c:305
 msgid "socket: protocol failure in circuit setup\n"
 msgstr "socket: сбой протокола при настройке цепи\n"
 
-#: inet/rcmd.c:327
+#: inet/rcmd.c:329
 #, c-format
 msgid "rcmd: %s: short read"
 msgstr "rcmd: %s: неполное чтение"
 
-#: inet/rcmd.c:479
+#: inet/rcmd.c:481
 msgid "lstat failed"
 msgstr "lstat завершился неудачно"
 
-#: inet/rcmd.c:486
+#: inet/rcmd.c:488
 msgid "cannot open"
 msgstr "невозможно открыть"
 
-#: inet/rcmd.c:488
+#: inet/rcmd.c:490
 msgid "fstat failed"
 msgstr "fstat завершился неудачно"
 
-#: inet/rcmd.c:490
+#: inet/rcmd.c:492
 msgid "bad owner"
 msgstr "неправильный владелец"
 
-#: inet/rcmd.c:492
+#: inet/rcmd.c:494
 msgid "writeable by other than owner"
 msgstr "может записываться не владельцем"
 
-#: inet/rcmd.c:494
+#: inet/rcmd.c:496
 msgid "hard linked somewhere"
 msgstr "имеется жесткая ссылка"
 
@@ -1767,10 +1734,10 @@ msgid "no symbolic name given for end of range"
 msgstr "не задано символьное имя для конца диапазона"
 
 #: locale/programs/charmap.c:614 locale/programs/ld-address.c:523
-#: locale/programs/ld-collate.c:2642 locale/programs/ld-collate.c:3806
+#: locale/programs/ld-collate.c:2635 locale/programs/ld-collate.c:3799
 #: locale/programs/ld-ctype.c:2117 locale/programs/ld-ctype.c:2829
 #: locale/programs/ld-identification.c:396 locale/programs/ld-measurement.c:212
-#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:747
+#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:855
 #: locale/programs/ld-name.c:261 locale/programs/ld-numeric.c:324
 #: locale/programs/ld-paper.c:211 locale/programs/ld-telephone.c:275
 #: locale/programs/ld-time.c:958 locale/programs/repertoire.c:311
@@ -1793,10 +1760,10 @@ msgid "%s: error in state machine"
 msgstr "%s: ошибка в автомате"
 
 #: locale/programs/charmap.c:855 locale/programs/ld-address.c:539
-#: locale/programs/ld-collate.c:2639 locale/programs/ld-collate.c:3999
+#: locale/programs/ld-collate.c:2632 locale/programs/ld-collate.c:3992
 #: locale/programs/ld-ctype.c:2114 locale/programs/ld-ctype.c:2846
 #: locale/programs/ld-identification.c:412 locale/programs/ld-measurement.c:228
-#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:763
+#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:871
 #: locale/programs/ld-name.c:277 locale/programs/ld-numeric.c:340
 #: locale/programs/ld-paper.c:227 locale/programs/ld-telephone.c:291
 #: locale/programs/ld-time.c:989 locale/programs/locfile.c:1009
@@ -1815,7 +1782,7 @@ msgstr "неизвестный знак «%s»"
 msgid "number of bytes for byte sequence of beginning and end of range not the same: %d vs %d"
 msgstr "число байт для последовательности байт начала и конца диапазона не совпадают: %d и %d"
 
-#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2923
+#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2916
 #: locale/programs/repertoire.c:417
 msgid "invalid names for character range"
 msgstr "недопустимые имена для диапазона знаков"
@@ -1837,7 +1804,7 @@ msgstr "верхняя граница диапазона меньше нижне
 msgid "resulting bytes for range not representable."
 msgstr "результирующие байты для диапазона невозможно машинно представить."
 
-#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1570
+#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1569
 #: locale/programs/ld-ctype.c:429 locale/programs/ld-identification.c:130
 #: locale/programs/ld-measurement.c:91 locale/programs/ld-messages.c:95
 #: locale/programs/ld-monetary.c:191 locale/programs/ld-name.c:92
@@ -1851,14 +1818,13 @@ msgstr "Не найдено определения для категории %s"
 #: locale/programs/ld-address.c:198 locale/programs/ld-address.c:227
 #: locale/programs/ld-address.c:299 locale/programs/ld-address.c:318
 #: locale/programs/ld-address.c:330 locale/programs/ld-identification.c:143
-#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:203
-#: locale/programs/ld-monetary.c:257 locale/programs/ld-monetary.c:273
-#: locale/programs/ld-monetary.c:285 locale/programs/ld-name.c:103
-#: locale/programs/ld-name.c:140 locale/programs/ld-numeric.c:110
-#: locale/programs/ld-numeric.c:124 locale/programs/ld-paper.c:99
-#: locale/programs/ld-paper.c:108 locale/programs/ld-telephone.c:102
-#: locale/programs/ld-telephone.c:159 locale/programs/ld-time.c:179
-#: locale/programs/ld-time.c:200
+#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:291
+#: locale/programs/ld-monetary.c:368 locale/programs/ld-monetary.c:389
+#: locale/programs/ld-name.c:103 locale/programs/ld-name.c:140
+#: locale/programs/ld-numeric.c:110 locale/programs/ld-numeric.c:124
+#: locale/programs/ld-paper.c:99 locale/programs/ld-paper.c:108
+#: locale/programs/ld-telephone.c:102 locale/programs/ld-telephone.c:159
+#: locale/programs/ld-time.c:179 locale/programs/ld-time.c:200
 #, c-format
 msgid "%s: field `%s' not defined"
 msgstr "%s: поле «%s» не определено"
@@ -1904,8 +1870,8 @@ msgstr "%s: неверный числовой код страны «%d»"
 #: locale/programs/ld-address.c:431 locale/programs/ld-address.c:468
 #: locale/programs/ld-address.c:506 locale/programs/ld-ctype.c:2478
 #: locale/programs/ld-identification.c:308 locale/programs/ld-measurement.c:195
-#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:502
-#: locale/programs/ld-monetary.c:537 locale/programs/ld-monetary.c:578
+#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:610
+#: locale/programs/ld-monetary.c:645 locale/programs/ld-monetary.c:686
 #: locale/programs/ld-name.c:234 locale/programs/ld-numeric.c:216
 #: locale/programs/ld-paper.c:194 locale/programs/ld-telephone.c:250
 #: locale/programs/ld-time.c:863 locale/programs/ld-time.c:905
@@ -1915,7 +1881,7 @@ msgstr "%s: поле «%s» объявлено несколько раз"
 
 #: locale/programs/ld-address.c:435 locale/programs/ld-address.c:473
 #: locale/programs/ld-identification.c:312 locale/programs/ld-messages.c:273
-#: locale/programs/ld-monetary.c:506 locale/programs/ld-monetary.c:541
+#: locale/programs/ld-monetary.c:614 locale/programs/ld-monetary.c:649
 #: locale/programs/ld-name.c:238 locale/programs/ld-numeric.c:220
 #: locale/programs/ld-telephone.c:254 locale/programs/ld-time.c:755
 #: locale/programs/ld-time.c:826 locale/programs/ld-time.c:868
@@ -1923,10 +1889,10 @@ msgstr "%s: поле «%s» объявлено несколько раз"
 msgid "%s: unknown character in field `%s'"
 msgstr "%s: неизвестный знак в поле «%s»"
 
-#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3804
+#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3797
 #: locale/programs/ld-ctype.c:2826 locale/programs/ld-identification.c:393
 #: locale/programs/ld-measurement.c:209 locale/programs/ld-messages.c:292
-#: locale/programs/ld-monetary.c:745 locale/programs/ld-name.c:259
+#: locale/programs/ld-monetary.c:853 locale/programs/ld-name.c:259
 #: locale/programs/ld-numeric.c:322 locale/programs/ld-paper.c:209
 #: locale/programs/ld-telephone.c:273 locale/programs/ld-time.c:956
 #, c-format
@@ -1935,12 +1901,12 @@ msgstr "%s: незавершенная строка «END»"
 
 #: locale/programs/ld-address.c:530 locale/programs/ld-collate.c:553
 #: locale/programs/ld-collate.c:605 locale/programs/ld-collate.c:901
-#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2608
-#: locale/programs/ld-collate.c:2629 locale/programs/ld-collate.c:3989
+#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2601
+#: locale/programs/ld-collate.c:2622 locale/programs/ld-collate.c:3982
 #: locale/programs/ld-ctype.c:1846 locale/programs/ld-ctype.c:2104
 #: locale/programs/ld-ctype.c:2676 locale/programs/ld-ctype.c:2837
 #: locale/programs/ld-identification.c:403 locale/programs/ld-measurement.c:219
-#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:754
+#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:862
 #: locale/programs/ld-name.c:268 locale/programs/ld-numeric.c:331
 #: locale/programs/ld-paper.c:218 locale/programs/ld-telephone.c:282
 #: locale/programs/ld-time.c:980
@@ -2006,8 +1972,8 @@ msgstr "%s: слишком много значений"
 
 #: locale/programs/ld-collate.c:1062 locale/programs/ld-collate.c:1237
 #, c-format
-msgid "order for `%.*s' already defined at %s:%Zu"
-msgstr "порядок для «%.*s» уже определен в %s:%Zu"
+msgid "order for `%.*s' already defined at %s:%zu"
+msgstr "порядок для «%.*s» уже определён в %s:%zu"
 
 #: locale/programs/ld-collate.c:1112
 #, c-format
@@ -2039,166 +2005,166 @@ msgstr "%s: после эллипсиса символьного диапазо�
 msgid "`%s' and `%.*s' are not valid names for symbolic range"
 msgstr "«%s» и «%.*s» не являются верными именами символьного диапазона"
 
-#: locale/programs/ld-collate.c:1380 locale/programs/ld-collate.c:3738
+#: locale/programs/ld-collate.c:1380 locale/programs/ld-collate.c:3731
 #, c-format
-msgid "%s: order for `%.*s' already defined at %s:%Zu"
-msgstr "%s: порядок для «%.*s» уже определён в %s:%Zu"
+msgid "%s: order for `%.*s' already defined at %s:%zu"
+msgstr "%s: порядок для «%.*s» уже определён в %s:%zu"
 
 #: locale/programs/ld-collate.c:1389
 #, c-format
 msgid "%s: `%s' must be a character"
 msgstr "%s: «%s» должно быть знаком"
 
-#: locale/programs/ld-collate.c:1591
+#: locale/programs/ld-collate.c:1590
 #, c-format
 msgid "%s: `position' must be used for a specific level in all sections or none"
 msgstr "%s: «position» должно использоваться для одного конкретного уровня либо во всех секциях, либо ни в одной"
 
-#: locale/programs/ld-collate.c:1615
+#: locale/programs/ld-collate.c:1614
 #, c-format
 msgid "symbol `%s' not defined"
 msgstr "символ «%s» не определен"
 
-#: locale/programs/ld-collate.c:1691 locale/programs/ld-collate.c:1796
+#: locale/programs/ld-collate.c:1690 locale/programs/ld-collate.c:1789
 #, c-format
 msgid "symbol `%s' has the same encoding as"
 msgstr "символ «%s» имеет такую же кодировку как"
 
-#: locale/programs/ld-collate.c:1695 locale/programs/ld-collate.c:1800
+#: locale/programs/ld-collate.c:1694 locale/programs/ld-collate.c:1793
 #, c-format
 msgid "symbol `%s'"
 msgstr "символ «%s»"
 
-#: locale/programs/ld-collate.c:1863
+#: locale/programs/ld-collate.c:1856
 msgid "too many errors; giving up"
 msgstr "слишком много ошибок; конец"
 
-#: locale/programs/ld-collate.c:2534 locale/programs/ld-collate.c:3928
+#: locale/programs/ld-collate.c:2527 locale/programs/ld-collate.c:3921
 #, c-format
 msgid "%s: nested conditionals not supported"
 msgstr "%s: вложенные условия не поддерживаются"
 
-#: locale/programs/ld-collate.c:2552
+#: locale/programs/ld-collate.c:2545
 #, c-format
 msgid "%s: more than one 'else'"
 msgstr "%s: больше одного «else»"
 
-#: locale/programs/ld-collate.c:2731
+#: locale/programs/ld-collate.c:2724
 #, c-format
 msgid "%s: duplicate definition of `%s'"
 msgstr "%s: повторное определение «%s»"
 
-#: locale/programs/ld-collate.c:2767
+#: locale/programs/ld-collate.c:2760
 #, c-format
 msgid "%s: duplicate declaration of section `%s'"
 msgstr "%s: повторное объявление секции «%s»"
 
-#: locale/programs/ld-collate.c:2903
+#: locale/programs/ld-collate.c:2896
 #, c-format
 msgid "%s: unknown character in collating symbol name"
 msgstr "%s: неизвестный знак в имени символа сортировки"
 
-#: locale/programs/ld-collate.c:3032
+#: locale/programs/ld-collate.c:3025
 #, c-format
 msgid "%s: unknown character in equivalent definition name"
 msgstr "%s: неизвестный знак в имени определения эквивалентности"
 
-#: locale/programs/ld-collate.c:3043
+#: locale/programs/ld-collate.c:3036
 #, c-format
 msgid "%s: unknown character in equivalent definition value"
 msgstr "%s: неизвестный знак в эквиваленте определяемого значения"
 
-#: locale/programs/ld-collate.c:3053
+#: locale/programs/ld-collate.c:3046
 #, c-format
 msgid "%s: unknown symbol `%s' in equivalent definition"
 msgstr "%s: неизвестный символ «%s» в определении эквивалентности"
 
-#: locale/programs/ld-collate.c:3062
+#: locale/programs/ld-collate.c:3055
 msgid "error while adding equivalent collating symbol"
 msgstr "ошибка при добавлении эквивалентного символа сортировки"
 
-#: locale/programs/ld-collate.c:3100
+#: locale/programs/ld-collate.c:3093
 #, c-format
 msgid "duplicate definition of script `%s'"
 msgstr "повторное определение системы письма «%s»"
 
-#: locale/programs/ld-collate.c:3148
+#: locale/programs/ld-collate.c:3141
 #, c-format
 msgid "%s: unknown section name `%.*s'"
 msgstr "%s: неизвестное имя секции «%.*s»"
 
-#: locale/programs/ld-collate.c:3177
+#: locale/programs/ld-collate.c:3170
 #, c-format
 msgid "%s: multiple order definitions for section `%s'"
 msgstr "%s: повторное определение порядка для секции «%s»"
 
-#: locale/programs/ld-collate.c:3205
+#: locale/programs/ld-collate.c:3198
 #, c-format
 msgid "%s: invalid number of sorting rules"
 msgstr "%s: неверное число правил сортировки"
 
-#: locale/programs/ld-collate.c:3232
+#: locale/programs/ld-collate.c:3225
 #, c-format
 msgid "%s: multiple order definitions for unnamed section"
 msgstr "%s: повторное определение порядка для безымянной секции"
 
-#: locale/programs/ld-collate.c:3287 locale/programs/ld-collate.c:3417
-#: locale/programs/ld-collate.c:3782
+#: locale/programs/ld-collate.c:3280 locale/programs/ld-collate.c:3410
+#: locale/programs/ld-collate.c:3775
 #, c-format
 msgid "%s: missing `order_end' keyword"
 msgstr "%s: пропущено ключевое слово «order_end»"
 
-#: locale/programs/ld-collate.c:3350
+#: locale/programs/ld-collate.c:3343
 #, c-format
 msgid "%s: order for collating symbol %.*s not yet defined"
 msgstr "%s: порядок для символа сортировки %.*s еще не определен"
 
-#: locale/programs/ld-collate.c:3368
+#: locale/programs/ld-collate.c:3361
 #, c-format
 msgid "%s: order for collating element %.*s not yet defined"
 msgstr "%s: порядок для элемента сортировки %.*s еще не определен"
 
-#: locale/programs/ld-collate.c:3379
+#: locale/programs/ld-collate.c:3372
 #, c-format
 msgid "%s: cannot reorder after %.*s: symbol not known"
 msgstr "%s: невозможно поменять порядок после %.*s: символ неизвестен"
 
-#: locale/programs/ld-collate.c:3431 locale/programs/ld-collate.c:3794
+#: locale/programs/ld-collate.c:3424 locale/programs/ld-collate.c:3787
 #, c-format
 msgid "%s: missing `reorder-end' keyword"
 msgstr "%s: пропущено ключевое слово «reorder-end»"
 
-#: locale/programs/ld-collate.c:3465 locale/programs/ld-collate.c:3663
+#: locale/programs/ld-collate.c:3458 locale/programs/ld-collate.c:3656
 #, c-format
 msgid "%s: section `%.*s' not known"
 msgstr "%s: секция «%.*s» неизвестна"
 
-#: locale/programs/ld-collate.c:3530
+#: locale/programs/ld-collate.c:3523
 #, c-format
 msgid "%s: bad symbol <%.*s>"
 msgstr "%s: неправильный символ <%.*s>"
 
-#: locale/programs/ld-collate.c:3726
+#: locale/programs/ld-collate.c:3719
 #, c-format
 msgid "%s: cannot have `%s' as end of ellipsis range"
 msgstr "%s: «%s» не может быть концом диапазона с эллипсисом"
 
-#: locale/programs/ld-collate.c:3778
+#: locale/programs/ld-collate.c:3771
 #, c-format
 msgid "%s: empty category description not allowed"
 msgstr "%s: пустые описания категорий недопустимы"
 
-#: locale/programs/ld-collate.c:3797
+#: locale/programs/ld-collate.c:3790
 #, c-format
 msgid "%s: missing `reorder-sections-end' keyword"
 msgstr "%s: пропущено ключевое слово «reorder-sections-end»"
 
-#: locale/programs/ld-collate.c:3961
+#: locale/programs/ld-collate.c:3954
 #, c-format
 msgid "%s: '%s' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: '%s' без соответствующего 'ifdef' или 'ifndef'"
 
-#: locale/programs/ld-collate.c:3979
+#: locale/programs/ld-collate.c:3972
 #, c-format
 msgid "%s: 'endif' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: 'endif' без соответствующего 'ifdef' или 'ifndef'"
@@ -2389,22 +2355,22 @@ msgstr "%s: знак «%s» нужен как значение по умолча
 msgid "no output digits defined and none of the standard names in the charmap"
 msgstr "не указаны выходные цифры или стандартные имена в таблице символов"
 
-#: locale/programs/ld-ctype.c:3572
+#: locale/programs/ld-ctype.c:3545
 #, c-format
 msgid "%s: transliteration data from locale `%s' not available"
 msgstr "%s: нет данных для транслитерации из локали «%s»"
 
-#: locale/programs/ld-ctype.c:3671
+#: locale/programs/ld-ctype.c:3644
 #, c-format
 msgid "%s: table for class \"%s\": %lu bytes"
 msgstr "%s: таблица для класса «%s»: %lu байт"
 
-#: locale/programs/ld-ctype.c:3735
+#: locale/programs/ld-ctype.c:3708
 #, c-format
 msgid "%s: table for map \"%s\": %lu bytes"
 msgstr "%s: таблица для отображения «%s»: %lu байт"
 
-#: locale/programs/ld-ctype.c:3859
+#: locale/programs/ld-ctype.c:3832
 #, c-format
 msgid "%s: table for width: %lu bytes"
 msgstr "%s: таблица для ширины: %lu байт"
@@ -2435,7 +2401,7 @@ msgid "%s: field `%s' undefined"
 msgstr "%s: поле «%s» не определено"
 
 #: locale/programs/ld-messages.c:118 locale/programs/ld-messages.c:151
-#: locale/programs/ld-monetary.c:263 locale/programs/ld-numeric.c:116
+#: locale/programs/ld-numeric.c:116
 #, c-format
 msgid "%s: value for field `%s' must not be an empty string"
 msgstr "%s: значение поля «%s» не должно быть пустой строкой"
@@ -2445,37 +2411,42 @@ msgstr "%s: значение поля «%s» не должно быть пуст
 msgid "%s: no correct regular expression for field `%s': %s"
 msgstr "%s: нет правильного регулярного выражения для поля «%s»: %s"
 
-#: locale/programs/ld-monetary.c:227
+#: locale/programs/ld-monetary.c:310
 #, c-format
 msgid "%s: value of field `int_curr_symbol' has wrong length"
 msgstr "%s: значение поля «int_curr_symbol» имеет неправильную длину"
 
-#: locale/programs/ld-monetary.c:244
+#: locale/programs/ld-monetary.c:327
 #, c-format
 msgid "%s: value of field `int_curr_symbol' does not correspond to a valid name in ISO 4217 [--no-warnings=intcurrsym]"
 msgstr "%s: значение поля «int_curr_symbol» не соответствует ни одному верному имени из ISO 4217 [--no-warnings=intcurrsym]"
 
-#: locale/programs/ld-monetary.c:292 locale/programs/ld-monetary.c:321
+#: locale/programs/ld-monetary.c:348 locale/programs/ld-monetary.c:358
+#, c-format
+msgid "%s: field `%s' not defined, using defaults"
+msgstr "%s: поле «%s» не определено, используются значения по умолчанию"
+
+#: locale/programs/ld-monetary.c:396 locale/programs/ld-monetary.c:420
 #, c-format
 msgid "%s: value for field `%s' must be in range %d...%d"
 msgstr "%s: значение поля «%s» должно быть в диапазоне %d…%d"
 
-#: locale/programs/ld-monetary.c:548 locale/programs/ld-numeric.c:227
+#: locale/programs/ld-monetary.c:656 locale/programs/ld-numeric.c:227
 #, c-format
 msgid "%s: value for field `%s' must be a single character"
 msgstr "%s: значение поля «%s» должно быть одним знаком"
 
-#: locale/programs/ld-monetary.c:645 locale/programs/ld-numeric.c:271
+#: locale/programs/ld-monetary.c:753 locale/programs/ld-numeric.c:271
 #, c-format
 msgid "%s: `-1' must be last entry in `%s' field"
 msgstr "%s: «-1» должно быть последним вхождение в поле «%s»"
 
-#: locale/programs/ld-monetary.c:667 locale/programs/ld-numeric.c:288
+#: locale/programs/ld-monetary.c:775 locale/programs/ld-numeric.c:288
 #, c-format
 msgid "%s: values for field `%s' must be smaller than 127"
 msgstr "%s: значения поля «%s» должны быть меньше 127"
 
-#: locale/programs/ld-monetary.c:713
+#: locale/programs/ld-monetary.c:821
 msgid "conversion rate value cannot be zero"
 msgstr "значение обменного курса не может быть нулем"
 
@@ -2565,36 +2536,49 @@ msgstr "лишнее двоеточие в конце"
 msgid "%s: too many values for field `%s'"
 msgstr "%s: слишком много значений для поля «%s»"
 
-#: locale/programs/linereader.c:129
+#: locale/programs/linereader.c:130
 msgid "trailing garbage at end of line"
 msgstr "мусор в конце строки"
 
-#: locale/programs/linereader.c:297
+#: locale/programs/linereader.c:298
 msgid "garbage at end of number"
 msgstr "мусор в конце числа"
 
-#: locale/programs/linereader.c:409
+#: locale/programs/linereader.c:423
 msgid "garbage at end of character code specification"
 msgstr "мусор в конце спецификации кода знака"
 
-#: locale/programs/linereader.c:495
+#: locale/programs/linereader.c:531
 msgid "unterminated symbolic name"
 msgstr "незавершенное символьное имя"
 
-#: locale/programs/linereader.c:622
+#: locale/programs/linereader.c:716
+#, c-format
+msgid "invalid UTF-8 sequence %s"
+msgstr "неверная последовательность UTF-8 %s"
+
+#: locale/programs/linereader.c:796
+msgid "illegal 8-bit character in untranslated string"
+msgstr "неверный 8-битный символ в непереведённой строке"
+
+#: locale/programs/linereader.c:804
 msgid "illegal escape sequence at end of string"
 msgstr "неверная управляющая последовательность в конце строки"
 
-#: locale/programs/linereader.c:626 locale/programs/linereader.c:846
+#: locale/programs/linereader.c:808 locale/programs/linereader.c:979
 msgid "unterminated string"
 msgstr "незавершенная строка"
 
-#: locale/programs/linereader.c:807
+#: locale/programs/linereader.c:841
+msgid "illegal 8-bit escape sequence"
+msgstr "неверная 8-битная управляющая последовательность"
+
+#: locale/programs/linereader.c:940
 #, c-format
 msgid "symbol `%.*s' not in charmap"
 msgstr "символ «%.*s» отсутствует в отображении знаков"
 
-#: locale/programs/linereader.c:828
+#: locale/programs/linereader.c:961
 #, c-format
 msgid "symbol `%.*s' not in repertoire map"
 msgstr "символ «%.*s» отсутствует в отображении репертуара"
@@ -2897,6 +2881,11 @@ msgstr "невозможно заблокировать архив локали 
 msgid "cannot read archive header"
 msgstr "невозможно считать заголовок архива"
 
+#: locale/programs/locarchive.c:661
+#, c-format
+msgid "bad magic value in archive header"
+msgstr "некорректное значение идентификатора в заголовке архива"
+
 #: locale/programs/locarchive.c:734
 #, c-format
 msgid "locale '%s' already exists"
@@ -2909,42 +2898,42 @@ msgstr "локаль «%s» уже существует"
 msgid "cannot add to locale archive"
 msgstr "невозможно добавить к архиву локали"
 
-#: locale/programs/locarchive.c:1209
+#: locale/programs/locarchive.c:1217
 #, c-format
 msgid "locale alias file `%s' not found"
 msgstr "файл псевдонимов локалей «%s» не найден"
 
-#: locale/programs/locarchive.c:1357
+#: locale/programs/locarchive.c:1365
 #, c-format
 msgid "Adding %s\n"
 msgstr "Добавление %s\n"
 
-#: locale/programs/locarchive.c:1363
+#: locale/programs/locarchive.c:1371
 #, c-format
 msgid "stat of \"%s\" failed: %s: ignored"
 msgstr "операция stat для «%s» завершилась неудачно: %s: проигнорировано"
 
-#: locale/programs/locarchive.c:1369
+#: locale/programs/locarchive.c:1377
 #, c-format
 msgid "\"%s\" is no directory; ignored"
 msgstr "«%s» не является каталогом; проигнорировано"
 
-#: locale/programs/locarchive.c:1376
+#: locale/programs/locarchive.c:1384
 #, c-format
 msgid "cannot open directory \"%s\": %s: ignored"
 msgstr "невозможно открыть каталог «%s»: %s: проигнорировано"
 
-#: locale/programs/locarchive.c:1444
+#: locale/programs/locarchive.c:1452
 #, c-format
 msgid "incomplete set of locale files in \"%s\""
 msgstr "неполный набор файлов локали в «%s»"
 
-#: locale/programs/locarchive.c:1508
+#: locale/programs/locarchive.c:1516
 #, c-format
 msgid "cannot read all files in \"%s\": ignored"
 msgstr "невозможно прочитать все файлы в «%s»: проигнорировано"
 
-#: locale/programs/locarchive.c:1578
+#: locale/programs/locarchive.c:1586
 #, c-format
 msgid "locale \"%s\" not in archive"
 msgstr "локаль «%s» отсутствует в архиве"
@@ -3137,43 +3126,43 @@ msgstr "memusage: нераспознанный ключ «$1»"
 msgid "No program name given"
 msgstr "Не задано имя программы"
 
-#: malloc/memusagestat.c:55
+#: malloc/memusagestat.c:56
 msgid "Name output file"
 msgstr "Имя выходного файла"
 
-#: malloc/memusagestat.c:56
+#: malloc/memusagestat.c:57
 msgid "STRING"
 msgstr "СТРОКА"
 
-#: malloc/memusagestat.c:56
+#: malloc/memusagestat.c:57
 msgid "Title string used in output graphic"
 msgstr "Заголовок для выходного графика"
 
-#: malloc/memusagestat.c:57
+#: malloc/memusagestat.c:58
 msgid "Generate output linear to time (default is linear to number of function calls)"
 msgstr "Генерировать вывод линейно относительно времени (по умолчанию линейно относительно числу вызовов функций)"
 
-#: malloc/memusagestat.c:61
+#: malloc/memusagestat.c:62
 msgid "Also draw graph for total memory consumption"
 msgstr "Построить также график итогового потребления памяти"
 
-#: malloc/memusagestat.c:62
+#: malloc/memusagestat.c:63
 msgid "VALUE"
 msgstr "ЗНАЧЕНИЕ"
 
-#: malloc/memusagestat.c:63
+#: malloc/memusagestat.c:64
 msgid "Make output graphic VALUE pixels wide"
 msgstr "Рисовать график шириной в VALUE пикселов"
 
-#: malloc/memusagestat.c:64
+#: malloc/memusagestat.c:65
 msgid "Make output graphic VALUE pixels high"
 msgstr "Рисовать график высотой в VALUE пикселов"
 
-#: malloc/memusagestat.c:69
+#: malloc/memusagestat.c:70
 msgid "Generate graphic from memory profiling data"
 msgstr "Сгенерировать график по данным профилирования памяти"
 
-#: malloc/memusagestat.c:72
+#: malloc/memusagestat.c:73
 msgid "DATAFILE [OUTFILE]"
 msgstr "ФАЙЛ-ДАННЫХ [ВЫХОДНОЙ-ФАЙЛ]"
 
@@ -3186,7 +3175,7 @@ msgid "unable to free arguments"
 msgstr "не удалось высвободить занятую аргументами память"
 
 #: nis/nis_error.h:1 nis/ypclnt.c:832 nis/ypclnt.c:921 posix/regcomp.c:135
-#: sysdeps/gnu/errlist.h:1
+#: sysdeps/gnu/errlist.h:1 sysdeps/posix/gai_strerror-strs.h:1
 msgid "Success"
 msgstr "Выполнено"
 
@@ -3388,119 +3377,119 @@ msgstr "Запись LOCAL для UID %d в каталоге %s не уника�
 msgid "UNKNOWN"
 msgstr "НЕИЗВЕСТНО"
 
-#: nis/nis_print.c:109
-msgid "BOGUS OBJECT\n"
-msgstr "НЕАДЕКВАТНЫЙ ОБЪЕКТ\n"
+#: nis/nis_print.c:61
+msgid "BOGUS OBJECT"
+msgstr "НЕАДЕКВАТНЫЙ ОБЪЕКТ"
 
-#: nis/nis_print.c:112
-msgid "NO OBJECT\n"
-msgstr "НЕТ ОБЪЕКТА\n"
+#: nis/nis_print.c:63
+msgid "NO OBJECT"
+msgstr "НЕТ ОБЪЕКТА"
 
-#: nis/nis_print.c:115
-msgid "DIRECTORY\n"
-msgstr "КАТАЛОГ\n"
+#: nis/nis_print.c:65
+msgid "DIRECTORY"
+msgstr "КАТАЛОГ"
 
-#: nis/nis_print.c:118
-msgid "GROUP\n"
-msgstr "ГРУППА\n"
+#: nis/nis_print.c:67
+msgid "GROUP"
+msgstr "ГРУППА"
 
-#: nis/nis_print.c:121
-msgid "TABLE\n"
-msgstr "ТАБЛИЦА\n"
+#: nis/nis_print.c:69 nscd/nscd.c:117
+msgid "TABLE"
+msgstr "ТАБЛИЦА"
 
-#: nis/nis_print.c:124
-msgid "ENTRY\n"
-msgstr "ЗАПИСЬ\n"
+#: nis/nis_print.c:71
+msgid "ENTRY"
+msgstr "ЗАПИСЬ"
 
-#: nis/nis_print.c:127
-msgid "LINK\n"
-msgstr "ССЫЛКА\n"
+#: nis/nis_print.c:73
+msgid "LINK"
+msgstr "ССЫЛКА"
 
-#: nis/nis_print.c:130
+#: nis/nis_print.c:75
 msgid "PRIVATE\n"
 msgstr "ПРИВАТНОЕ\n"
 
-#: nis/nis_print.c:133
-msgid "(Unknown object)\n"
-msgstr "(Неизвестный объект)\n"
+#: nis/nis_print.c:77
+msgid "(Unknown object"
+msgstr "(Неизвестный объект"
 
-#: nis/nis_print.c:167
+#: nis/nis_print.c:164
 #, c-format
 msgid "Name : `%s'\n"
 msgstr "Имя : «%s»\n"
 
-#: nis/nis_print.c:168
+#: nis/nis_print.c:165
 #, c-format
 msgid "Type : %s\n"
 msgstr "Тип : %s\n"
 
-#: nis/nis_print.c:173
+#: nis/nis_print.c:170
 msgid "Master Server :\n"
 msgstr "Мастер-сервер :\n"
 
-#: nis/nis_print.c:175
+#: nis/nis_print.c:172
 msgid "Replicate :\n"
 msgstr "Реплика :\n"
 
-#: nis/nis_print.c:176
+#: nis/nis_print.c:173
 #, c-format
 msgid "\tName       : %s\n"
 msgstr "\tИмя       : %s\n"
 
-#: nis/nis_print.c:177
+#: nis/nis_print.c:174
 msgid "\tPublic Key : "
 msgstr "\tПубличный ключ : "
 
-#: nis/nis_print.c:181
+#: nis/nis_print.c:178
 msgid "None.\n"
 msgstr "Нет.\n"
 
-#: nis/nis_print.c:184
+#: nis/nis_print.c:181
 #, c-format
 msgid "Diffie-Hellmann (%d bits)\n"
 msgstr "Диффи-Хелман (%d бит)\n"
 
-#: nis/nis_print.c:189
+#: nis/nis_print.c:186
 #, c-format
 msgid "RSA (%d bits)\n"
 msgstr "RSA (%d бит)\n"
 
-#: nis/nis_print.c:192
+#: nis/nis_print.c:189
 msgid "Kerberos.\n"
 msgstr "Kerberos.\n"
 
-#: nis/nis_print.c:195
+#: nis/nis_print.c:192
 #, c-format
 msgid "Unknown (type = %d, bits = %d)\n"
 msgstr "Неизвестно (тип = %d, биты = %d)\n"
 
-#: nis/nis_print.c:206
+#: nis/nis_print.c:203
 #, c-format
 msgid "\tUniversal addresses (%u)\n"
 msgstr "\tУниверсальные адреса (%u)\n"
 
-#: nis/nis_print.c:228
+#: nis/nis_print.c:225
 msgid "Time to live : "
 msgstr "Время жизни : "
 
-#: nis/nis_print.c:230
+#: nis/nis_print.c:227
 msgid "Default Access rights :\n"
 msgstr "Права доступа по умолчанию :\n"
 
-#: nis/nis_print.c:239
+#: nis/nis_print.c:236
 #, c-format
 msgid "\tType         : %s\n"
 msgstr "\tТип         : %s\n"
 
-#: nis/nis_print.c:240
+#: nis/nis_print.c:237
 msgid "\tAccess rights: "
 msgstr "\tПрава доступа: "
 
-#: nis/nis_print.c:254
+#: nis/nis_print.c:251
 msgid "Group Flags :"
 msgstr "Флаги группы :"
 
-#: nis/nis_print.c:257
+#: nis/nis_print.c:254
 msgid ""
 "\n"
 "Group Members :\n"
@@ -3508,96 +3497,96 @@ msgstr ""
 "\n"
 "Члены группы :\n"
 
-#: nis/nis_print.c:269
+#: nis/nis_print.c:266
 #, c-format
 msgid "Table Type          : %s\n"
 msgstr "Тип таблицы          : %s\n"
 
-#: nis/nis_print.c:270
+#: nis/nis_print.c:267
 #, c-format
 msgid "Number of Columns   : %d\n"
 msgstr "Число столбцов   : %d\n"
 
-#: nis/nis_print.c:271
+#: nis/nis_print.c:268
 #, c-format
 msgid "Character Separator : %c\n"
 msgstr "Знак-разделитель : %c\n"
 
-#: nis/nis_print.c:272
+#: nis/nis_print.c:269
 #, c-format
 msgid "Search Path         : %s\n"
 msgstr "Путь поиска         : %s\n"
 
-#: nis/nis_print.c:273
+#: nis/nis_print.c:270
 msgid "Columns             :\n"
 msgstr "Столбцы             :\n"
 
-#: nis/nis_print.c:276
+#: nis/nis_print.c:273
 #, c-format
 msgid "\t[%d]\tName          : %s\n"
 msgstr "\t[%d]\tИмя          : %s\n"
 
-#: nis/nis_print.c:278
+#: nis/nis_print.c:275
 msgid "\t\tAttributes    : "
 msgstr "\t\tАтрибуты    : "
 
-#: nis/nis_print.c:280
+#: nis/nis_print.c:277
 msgid "\t\tAccess Rights : "
 msgstr "\t\tПрава доступа : "
 
-#: nis/nis_print.c:290
+#: nis/nis_print.c:287
 msgid "Linked Object Type : "
 msgstr "Тип объекта по ссылке : "
 
-#: nis/nis_print.c:292
+#: nis/nis_print.c:289
 #, c-format
 msgid "Linked to : %s\n"
 msgstr "Ссылка на : %s\n"
 
-#: nis/nis_print.c:302
+#: nis/nis_print.c:299
 #, c-format
 msgid "\tEntry data of type %s\n"
 msgstr "\tДанные записи типа %s\n"
 
-#: nis/nis_print.c:305
+#: nis/nis_print.c:302
 #, c-format
 msgid "\t[%u] - [%u bytes] "
 msgstr "\t[%u] - [%u байт] "
 
-#: nis/nis_print.c:308
+#: nis/nis_print.c:305
 msgid "Encrypted data\n"
 msgstr "Зашифрованные данные\n"
 
-#: nis/nis_print.c:310
+#: nis/nis_print.c:307
 msgid "Binary data\n"
 msgstr "Бинарные данные\n"
 
-#: nis/nis_print.c:326
+#: nis/nis_print.c:323
 #, c-format
 msgid "Object Name   : %s\n"
 msgstr "Имя объекта   : %s\n"
 
-#: nis/nis_print.c:327
+#: nis/nis_print.c:324
 #, c-format
 msgid "Directory     : %s\n"
 msgstr "Каталог     : %s\n"
 
-#: nis/nis_print.c:328
+#: nis/nis_print.c:325
 #, c-format
 msgid "Owner         : %s\n"
 msgstr "Владелец         : %s\n"
 
-#: nis/nis_print.c:329
+#: nis/nis_print.c:326
 #, c-format
 msgid "Group         : %s\n"
 msgstr "Группа         : %s\n"
 
 # ??? здесь, ниже и выше -- расставить пробелы как надо
-#: nis/nis_print.c:330
+#: nis/nis_print.c:327
 msgid "Access Rights : "
 msgstr "Права доступа : "
 
-#: nis/nis_print.c:332
+#: nis/nis_print.c:329
 #, c-format
 msgid ""
 "\n"
@@ -3606,36 +3595,36 @@ msgstr ""
 "\n"
 "Время жизни  : "
 
-#: nis/nis_print.c:335
+#: nis/nis_print.c:332
 #, c-format
 msgid "Creation Time : %s"
 msgstr "Время создания : %s"
 
-#: nis/nis_print.c:337
+#: nis/nis_print.c:334
 #, c-format
 msgid "Mod. Time     : %s"
 msgstr "Время модификации     : %s"
 
-#: nis/nis_print.c:338
+#: nis/nis_print.c:335
 msgid "Object Type   : "
 msgstr "Тип объекта   : "
 
-#: nis/nis_print.c:358
+#: nis/nis_print.c:355
 #, c-format
 msgid "    Data Length = %u\n"
 msgstr "    Длина данных = %u\n"
 
-#: nis/nis_print.c:372
+#: nis/nis_print.c:369
 #, c-format
 msgid "Status            : %s\n"
 msgstr "Статус            : %s\n"
 
-#: nis/nis_print.c:373
+#: nis/nis_print.c:370
 #, c-format
 msgid "Number of objects : %u\n"
 msgstr "Число объектов : %u\n"
 
-#: nis/nis_print.c:377
+#: nis/nis_print.c:374
 #, c-format
 msgid "Object #%d:\n"
 msgstr "Объект #%d:\n"
@@ -3829,259 +3818,259 @@ msgstr " - все данные: "
 msgid " - remaining data %p: "
 msgstr " - оставшиеся данные %p: "
 
-#: nscd/connections.c:519
+#: nscd/connections.c:530
 #, c-format
 msgid "invalid persistent database file \"%s\": %s"
 msgstr "неверный файл с постоянной базой данных «%s»: %s"
 
-#: nscd/connections.c:527
+#: nscd/connections.c:538
 msgid "uninitialized header"
 msgstr "неинициализированный заголовок"
 
-#: nscd/connections.c:532
+#: nscd/connections.c:543
 msgid "header size does not match"
 msgstr "размер заголовка не совпадает"
 
-#: nscd/connections.c:542
+#: nscd/connections.c:553
 msgid "file size does not match"
 msgstr "не совпадает размер файла"
 
-#: nscd/connections.c:559
+#: nscd/connections.c:570
 msgid "verification failed"
 msgstr "верификация не удалась"
 
-#: nscd/connections.c:573
+#: nscd/connections.c:584
 #, c-format
 msgid "suggested size of table for database %s larger than the persistent database's table"
 msgstr "предлагаемый размер таблицы для базы данных %s больше чем таблица у постоянной базы данных"
 
-#: nscd/connections.c:584 nscd/connections.c:668
+#: nscd/connections.c:595 nscd/connections.c:679
 #, c-format
 msgid "cannot create read-only descriptor for \"%s\"; no mmap"
 msgstr "невозможно создать дескриптор только для чтения для «%s»; отсутствует mmap"
 
-#: nscd/connections.c:600
+#: nscd/connections.c:611
 #, c-format
 msgid "cannot access '%s'"
 msgstr "нет доступа к «%s»"
 
-#: nscd/connections.c:648
+#: nscd/connections.c:659
 #, c-format
 msgid "database for %s corrupted or simultaneously used; remove %s manually if necessary and restart"
 msgstr "база данных для %s повреждена или параллельно используется; удалите %s вручную, если необходимо, и перезапустите"
 
-#: nscd/connections.c:654
+#: nscd/connections.c:665
 #, c-format
 msgid "cannot create %s; no persistent database used"
 msgstr "невозможно создать %s; постоянные базы данных не использованы"
 
-#: nscd/connections.c:657
+#: nscd/connections.c:668
 #, c-format
 msgid "cannot create %s; no sharing possible"
 msgstr "невозможно создать %s; разделение невозможно"
 
-#: nscd/connections.c:728
+#: nscd/connections.c:739
 #, c-format
 msgid "cannot write to database file %s: %s"
 msgstr "невозможно записать в файл базы данных %s: %s "
 
-#: nscd/connections.c:784
+#: nscd/connections.c:795
 #, c-format
 msgid "cannot open socket: %s"
 msgstr "невозможно открыть сокет: %s"
 
-#: nscd/connections.c:803
+#: nscd/connections.c:814
 #, c-format
 msgid "cannot enable socket to accept connections: %s"
 msgstr "невозможно сделать сокет принимающим соединения: %s"
 
-#: nscd/connections.c:860
+#: nscd/connections.c:871
 #, c-format
 msgid "disabled inotify-based monitoring for file `%s': %s"
 msgstr "выключение слежения за файлом «%s» с помощью inotify: %s"
 
-#: nscd/connections.c:864
+#: nscd/connections.c:875
 #, c-format
 msgid "monitoring file `%s` (%d)"
 msgstr "слежение за файлом «%s» (%d)"
 
-#: nscd/connections.c:877
+#: nscd/connections.c:888
 #, c-format
 msgid "disabled inotify-based monitoring for directory `%s': %s"
 msgstr "выключение слежения за каталогом «%s» с помощью inotify: %s"
 
-#: nscd/connections.c:881
+#: nscd/connections.c:892
 #, c-format
 msgid "monitoring directory `%s` (%d)"
 msgstr "слежение за каталогом «%s» (%d)"
 
-#: nscd/connections.c:909
+#: nscd/connections.c:920
 #, c-format
 msgid "monitoring file %s for database %s"
 msgstr "слежение за файлом %s базы данных %s"
 
-#: nscd/connections.c:919
+#: nscd/connections.c:930
 #, c-format
 msgid "stat failed for file `%s'; will try again later: %s"
 msgstr "ошибка при выполнении stat над файлом «%s»; попытка будет повторена позже: %s"
 
-#: nscd/connections.c:1038
+#: nscd/connections.c:1049
 #, c-format
 msgid "provide access to FD %d, for %s"
 msgstr "предоставить доступ FD %d, для %s"
 
-#: nscd/connections.c:1050
+#: nscd/connections.c:1061
 #, c-format
 msgid "cannot handle old request version %d; current version is %d"
 msgstr "невозможно обработать запрос старой версии %d; текущая версия %d"
 
-#: nscd/connections.c:1073
+#: nscd/connections.c:1084
 #, c-format
 msgid "request from %ld not handled due to missing permission"
 msgstr "запрос от %ld не обработан из-за нехватки прав"
 
-#: nscd/connections.c:1078
+#: nscd/connections.c:1089
 #, c-format
 msgid "request from '%s' [%ld] not handled due to missing permission"
 msgstr "запрос от '%s' [%ld] не обработан из-за нехватки прав"
 
-#: nscd/connections.c:1083
+#: nscd/connections.c:1094
 msgid "request not handled due to missing permission"
 msgstr "запрос не обработан из-за нехватки прав"
 
-#: nscd/connections.c:1121 nscd/connections.c:1147
+#: nscd/connections.c:1132 nscd/connections.c:1158
 #, c-format
 msgid "cannot write result: %s"
 msgstr "невозможно записать результат: %s"
 
-#: nscd/connections.c:1238
+#: nscd/connections.c:1249
 #, c-format
 msgid "error getting caller's id: %s"
 msgstr "ошибка при получении идентификатора вызывающей стороны: %s"
 
-#: nscd/connections.c:1348
+#: nscd/connections.c:1359
 #, c-format
 msgid "cannot open /proc/self/cmdline: %m; disabling paranoia mode"
 msgstr "невозможно открыть /proc/self/cmdline: %m; выключаем параноидальный режим"
 
-#: nscd/connections.c:1371
+#: nscd/connections.c:1382
 #, c-format
 msgid "cannot change to old UID: %s; disabling paranoia mode"
 msgstr "невозможно сменить UID на прежний: %s; параноидальный режим выключен"
 
-#: nscd/connections.c:1382
+#: nscd/connections.c:1393
 #, c-format
 msgid "cannot change to old GID: %s; disabling paranoia mode"
 msgstr "невозможно сменить GID на прежний: %s; параноидальный режим выключен"
 
-#: nscd/connections.c:1396
+#: nscd/connections.c:1407
 #, c-format
 msgid "cannot change to old working directory: %s; disabling paranoia mode"
 msgstr "невозможно вернуться в прежний рабочий каталог: %s; параноидальный режим выключен"
 
-#: nscd/connections.c:1443
+#: nscd/connections.c:1454
 #, c-format
 msgid "re-exec failed: %s; disabling paranoia mode"
 msgstr "повторный exec не успешен: %s; параноидальный режим выключен"
 
-#: nscd/connections.c:1452
+#: nscd/connections.c:1463
 #, c-format
 msgid "cannot change current working directory to \"/\": %s"
 msgstr "невозможно сменить рабочий каталог на «/»: %s"
 
-#: nscd/connections.c:1636
+#: nscd/connections.c:1647
 #, c-format
 msgid "short read while reading request: %s"
 msgstr "неполный считанный блок при чтении запроса: %s"
 
-#: nscd/connections.c:1669
+#: nscd/connections.c:1680
 #, c-format
 msgid "key length in request too long: %d"
 msgstr "длина ключа в запросе слишком велика: %d"
 
-#: nscd/connections.c:1682
+#: nscd/connections.c:1693
 #, c-format
 msgid "short read while reading request key: %s"
 msgstr "неполный считанный блок при чтении ключа запроса: %s"
 
-#: nscd/connections.c:1692
+#: nscd/connections.c:1703
 #, c-format
 msgid "handle_request: request received (Version = %d) from PID %ld"
 msgstr "handle_request: получен запрос (версия = %d) от PID %ld"
 
-#: nscd/connections.c:1697
+#: nscd/connections.c:1708
 #, c-format
 msgid "handle_request: request received (Version = %d)"
 msgstr "handle_request: получен запрос (версия = %d)"
 
-#: nscd/connections.c:1837
+#: nscd/connections.c:1848
 #, c-format
 msgid "ignored inotify event for `%s` (file exists)"
 msgstr "событие inotify игнорировано для «%s» (файл существует)"
 
-#: nscd/connections.c:1842
+#: nscd/connections.c:1853
 #, c-format
 msgid "monitored file `%s` was %s, removing watch"
 msgstr "отслеживаемый файл «%s» был %s, удаление слежения"
 
-#: nscd/connections.c:1850 nscd/connections.c:1892
+#: nscd/connections.c:1861 nscd/connections.c:1903
 #, c-format
 msgid "failed to remove file watch `%s`: %s"
 msgstr "ошибка при удалении слежки за файлом «%s»: %s"
 
-#: nscd/connections.c:1865
+#: nscd/connections.c:1876
 #, c-format
 msgid "monitored file `%s` was written to"
 msgstr "в отслеживаемый файл «%s» была запись"
 
-#: nscd/connections.c:1889
+#: nscd/connections.c:1900
 #, c-format
 msgid "monitored parent directory `%s` was %s, removing watch on `%s`"
 msgstr "отслеживаемый родительский каталог «%s» был %s, удаление слежения за «%s»"
 
-#: nscd/connections.c:1915
+#: nscd/connections.c:1926
 #, c-format
 msgid "monitored file `%s` was %s, adding watch"
 msgstr "отслеживаемый файл «%s» был %s, добавление слежения"
 
-#: nscd/connections.c:1927
+#: nscd/connections.c:1938
 #, c-format
 msgid "failed to add file watch `%s`: %s"
 msgstr "ошибка при добавлении слежки за файлом «%s»: %s"
 
-#: nscd/connections.c:2105 nscd/connections.c:2270
+#: nscd/connections.c:2116 nscd/connections.c:2281
 #, c-format
 msgid "disabled inotify-based monitoring after read error %d"
 msgstr "выключение слежения с помощью inotify после ошибки чтения %d"
 
-#: nscd/connections.c:2385
+#: nscd/connections.c:2397
 msgid "could not initialize conditional variable"
 msgstr "невозможно инициализировать условное выражение"
 
-#: nscd/connections.c:2393
+#: nscd/connections.c:2405
 msgid "could not start clean-up thread; terminating"
 msgstr "не удалось запустить очищающую нить; завершение"
 
-#: nscd/connections.c:2407
+#: nscd/connections.c:2419
 msgid "could not start any worker thread; terminating"
 msgstr "не удалось запустить ни одну рабочую нить; завершение"
 
-#: nscd/connections.c:2462 nscd/connections.c:2464 nscd/connections.c:2480
-#: nscd/connections.c:2490 nscd/connections.c:2508 nscd/connections.c:2519
-#: nscd/connections.c:2529
+#: nscd/connections.c:2474 nscd/connections.c:2476 nscd/connections.c:2492
+#: nscd/connections.c:2502 nscd/connections.c:2520 nscd/connections.c:2531
+#: nscd/connections.c:2541
 #, c-format
 msgid "Failed to run nscd as user '%s'"
 msgstr "Не удалось запустить nscd от имени пользователя »%s»"
 
-#: nscd/connections.c:2482
+#: nscd/connections.c:2494
 msgid "initial getgrouplist failed"
 msgstr "первоначальная getgrouplist завершалась с ошибкой"
 
-#: nscd/connections.c:2491
+#: nscd/connections.c:2503
 msgid "getgrouplist failed"
 msgstr "getgrouplist завершилась с ошибкой"
 
-#: nscd/connections.c:2509
+#: nscd/connections.c:2521
 msgid "setgroups failed"
 msgstr "setgroups завершилась с ошибкой"
 
@@ -4106,32 +4095,32 @@ msgstr "Перезагрузка «%s» в кэше групп!"
 msgid "Invalid numeric gid \"%s\"!"
 msgstr "Неверный числовой идентификатор группы «%s»!"
 
-#: nscd/mem.c:424
+#: nscd/mem.c:420
 #, c-format
 msgid "freed %zu bytes in %s cache"
 msgstr "освобождено %zu байт в кэше %s"
 
-#: nscd/mem.c:567
+#: nscd/mem.c:563
 #, c-format
 msgid "no more memory for database '%s'"
 msgstr "недостаточно памяти для базы данных «%s»"
 
-#: nscd/netgroupcache.c:121
+#: nscd/netgroupcache.c:198
 #, c-format
 msgid "Haven't found \"%s\" in netgroup cache!"
 msgstr "Не найдено «%s» в кэше netgroup!"
 
-#: nscd/netgroupcache.c:123
+#: nscd/netgroupcache.c:200
 #, c-format
 msgid "Reloading \"%s\" in netgroup cache!"
 msgstr "Перезагрузка «%s» в кэше netgroup!"
 
-#: nscd/netgroupcache.c:469
+#: nscd/netgroupcache.c:486
 #, c-format
 msgid "Haven't found \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "Не найдено «%s (%s,%s,%s)» в кэше netgroup!"
 
-#: nscd/netgroupcache.c:472
+#: nscd/netgroupcache.c:489
 #, c-format
 msgid "Reloading \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "Перезагрузка «%s (%s,%s,%s)» в кэше netgroup!"
@@ -4168,10 +4157,6 @@ msgstr "Выключить сервер"
 msgid "Print current configuration statistics"
 msgstr "Напечатать статистику по текущей конфигурации"
 
-#: nscd/nscd.c:117
-msgid "TABLE"
-msgstr "ТАБЛИЦА"
-
 #: nscd/nscd.c:118
 msgid "Invalidate the specified cache"
 msgstr "Объявить указанный кэш недействительным"
@@ -4188,7 +4173,7 @@ msgstr "Использовать отдельный кэш для каждого
 msgid "Name Service Cache Daemon."
 msgstr "Демон кэша службы имен."
 
-#: nscd/nscd.c:158 nss/getent.c:986 nss/makedb.c:206
+#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:208
 #, c-format
 msgid "wrong number of arguments"
 msgstr "Неправильное число аргументов"
@@ -4594,59 +4579,63 @@ msgstr "Используемая конфигурация службы"
 msgid "disable IDN encoding"
 msgstr "выключить кодирование IDN"
 
-#: nss/getent.c:65
+#: nss/getent.c:62
+msgid "do not filter out unsupported IPv4/IPv6 addresses (with ahosts*)"
+msgstr "не фильтровать неподдерживаемые адреса IPv4/IPv6 (с ahosts*)"
+
+#: nss/getent.c:67
 msgid "Get entries from administrative database."
 msgstr "Получить записи из управляющей базы данных."
 
-#: nss/getent.c:149 nss/getent.c:461 nss/getent.c:508
+#: nss/getent.c:154 nss/getent.c:466 nss/getent.c:513
 #, c-format
 msgid "Enumeration not supported on %s\n"
 msgstr "Перечисление не поддерживается для %s\n"
 
-#: nss/getent.c:516 nss/getent.c:529
+#: nss/getent.c:521 nss/getent.c:534
 #, c-format
 msgid "Could not allocate group list: %m\n"
 msgstr "Не удалось выделить список групп: %m\n"
 
-#: nss/getent.c:900
+#: nss/getent.c:905
 #, c-format
 msgid "Unknown database name"
 msgstr "Неизвестное имя базы данных"
 
-#: nss/getent.c:930
+#: nss/getent.c:939
 msgid "Supported databases:\n"
 msgstr "Поддерживаемые базы данных:\n"
 
-#: nss/getent.c:996
+#: nss/getent.c:1005
 #, c-format
 msgid "Unknown database: %s\n"
 msgstr "Неизвестная база данных: %s\n"
 
-#: nss/makedb.c:119
+#: nss/makedb.c:121
 msgid "Convert key to lower case"
 msgstr "Преобразовать ключ в нижний регистр"
 
-#: nss/makedb.c:122
+#: nss/makedb.c:124
 msgid "Do not print messages while building database"
 msgstr "Не печатать сообщений при построении базы данных"
 
-#: nss/makedb.c:124
+#: nss/makedb.c:126
 msgid "Print content of database file, one entry a line"
 msgstr "Напечатать содержимое файла базы данных, по одной записи в строку"
 
-#: nss/makedb.c:125
+#: nss/makedb.c:127
 msgid "CHAR"
 msgstr "CHAR"
 
-#: nss/makedb.c:126
+#: nss/makedb.c:128
 msgid "Generated line not part of iteration"
 msgstr "Сгенерированная строка не является частью итерации"
 
-#: nss/makedb.c:131
+#: nss/makedb.c:133
 msgid "Create simple database from textual input."
 msgstr "Построить простую базу данных из текстового ввода."
 
-#: nss/makedb.c:134
+#: nss/makedb.c:136
 msgid ""
 "INPUT-FILE OUTPUT-FILE\n"
 "-o OUTPUT-FILE INPUT-FILE\n"
@@ -4656,86 +4645,96 @@ msgstr ""
 "-o ВЫХОДНОЙ-ФАЙЛ ВХОДНОЙ-ФАЙЛ\n"
 "-u ВХОДНОЙ-ФАЙЛ"
 
-#: nss/makedb.c:227
+#: nss/makedb.c:229
 #, c-format
 msgid "cannot open database file `%s'"
 msgstr "не удалось открыть файл базы данных «%s»"
 
-#: nss/makedb.c:272
+#: nss/makedb.c:274
 #, c-format
 msgid "no entries to be processed"
 msgstr "не обработано ни одной записи"
 
-#: nss/makedb.c:282
+#: nss/makedb.c:284
 #, c-format
 msgid "cannot create temporary file name"
 msgstr "не удалось создать имя временного файла"
 
-#: nss/makedb.c:288
+#: nss/makedb.c:290
 #, c-format
 msgid "cannot create temporary file"
 msgstr "невозможно создать временный файл"
 
-#: nss/makedb.c:304
+#: nss/makedb.c:306
 #, c-format
 msgid "cannot stat newly created file"
 msgstr "не удалось выполнить функцию stat для только что созданного файла"
 
-#: nss/makedb.c:315
+#: nss/makedb.c:317
 #, c-format
 msgid "cannot rename temporary file"
 msgstr "не удалось переименовать временный файл"
 
-#: nss/makedb.c:527 nss/makedb.c:550
+#: nss/makedb.c:529 nss/makedb.c:552
 #, c-format
 msgid "cannot create search tree"
 msgstr "не удалось создать дерево поиска"
 
-#: nss/makedb.c:556
+#: nss/makedb.c:558
 msgid "duplicate key"
 msgstr "дублированный ключ"
 
-#: nss/makedb.c:568
+#: nss/makedb.c:570
 #, c-format
 msgid "problems while reading `%s'"
 msgstr "проблемы при чтении «%s»"
 
-#: nss/makedb.c:804
+#: nss/makedb.c:748
+#, c-format
+msgid "failed to allocate memory"
+msgstr "не удалось выделить память"
+
+#: nss/makedb.c:814
 #, c-format
 msgid "failed to write new database file"
 msgstr "ошибка при записи файла базы данных"
 
-#: nss/makedb.c:821
+#: nss/makedb.c:833
 #, c-format
 msgid "cannot stat database file"
 msgstr "не удалось выполнить stat для файла базы данных"
 
-#: nss/makedb.c:826
+#: nss/makedb.c:838
 #, c-format
 msgid "cannot map database file"
 msgstr "не удалось отобразить файл базы данных"
 
-#: nss/makedb.c:829
+#: nss/makedb.c:841
 #, c-format
 msgid "file not a database file"
 msgstr "файл не является файлом базы данных"
 
-#: nss/makedb.c:887
+#: nss/makedb.c:893
+#, c-format
+msgid "cannot initialize SELinux context"
+msgstr "невозможно инициализировать контекст SELinux"
+
+#: nss/makedb.c:902
 #, c-format
 msgid "cannot set file creation context for `%s'"
 msgstr "не удалось установить контекст безопасности создания файла для «%s»"
 
-#: posix/getconf.c:417
+#: posix/getconf.c:419
 #, c-format
 msgid "Usage: %s [-v specification] variable_name [pathname]\n"
 msgstr "Использование: %s [-v спецификация] имя-переменной [путь]\n"
 
-#: posix/getconf.c:420
+#: posix/getconf.c:422
 #, c-format
 msgid "       %s -a [pathname]\n"
 msgstr "       %s -a [путь]\n"
 
-#: posix/getconf.c:496
+#: posix/getconf.c:498
 #, c-format
 msgid ""
 "Usage: getconf [-v SPEC] VAR\n"
@@ -4754,56 +4753,56 @@ msgstr ""
 "то выдаются значения, задаваемые окружением СПЕЦИФИКАЦИЯ.\n"
 "\n"
 
-#: posix/getconf.c:572
+#: posix/getconf.c:574
 #, c-format
 msgid "unknown specification \"%s\""
 msgstr "неизвестная спецификация «%s»"
 
-#: posix/getconf.c:624
+#: posix/getconf.c:626
 #, c-format
 msgid "Couldn't execute %s"
 msgstr "Невозможно выполнить %s"
 
-#: posix/getconf.c:669 posix/getconf.c:685
+#: posix/getconf.c:671 posix/getconf.c:687
 msgid "undefined"
 msgstr "не определено"
 
-#: posix/getconf.c:707
+#: posix/getconf.c:709
 #, c-format
 msgid "Unrecognized variable `%s'"
 msgstr "Нераспознанная переменная «%s»"
 
-#: posix/getopt.c:277
+#: posix/getopt.c:278
 #, c-format
 msgid "%s: option '%s%s' is ambiguous\n"
 msgstr "%s: двусмысленный параметр «%s%s»\n"
 
-#: posix/getopt.c:283
+#: posix/getopt.c:284
 #, c-format
 msgid "%s: option '%s%s' is ambiguous; possibilities:"
 msgstr "%s: двусмысленный параметр «%s%s»; возможные варианты:"
 
-#: posix/getopt.c:318
+#: posix/getopt.c:319
 #, c-format
 msgid "%s: unrecognized option '%s%s'\n"
 msgstr "%s: нераспознанный параметр «%s%s»\n"
 
-#: posix/getopt.c:344
+#: posix/getopt.c:345
 #, c-format
 msgid "%s: option '%s%s' doesn't allow an argument\n"
 msgstr "%s: для параметра «%s%s» нельзя использовать аргумент\n"
 
-#: posix/getopt.c:359
+#: posix/getopt.c:360
 #, c-format
 msgid "%s: option '%s%s' requires an argument\n"
 msgstr "%s: для параметра «%s%s» требуется аргумент\n"
 
-#: posix/getopt.c:620
+#: posix/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: неверный ключ — «%c»\n"
 
-#: posix/getopt.c:635 posix/getopt.c:681
+#: posix/getopt.c:636 posix/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: ключ должен использоваться с аргументом — «%c»\n"
@@ -4908,27 +4907,27 @@ msgstr "Внутренняя ошибка ресолвера"
 msgid "Unknown resolver error"
 msgstr "Неизвестная ошибка ресолвера"
 
-#: resolv/res_hconf.c:117
+#: resolv/res_hconf.c:118
 #, c-format
 msgid "%s: line %d: cannot specify more than %d trim domains"
 msgstr "%s: строка %d: не удалось указать более %d готовых доменов"
 
-#: resolv/res_hconf.c:138
+#: resolv/res_hconf.c:139
 #, c-format
 msgid "%s: line %d: list delimiter not followed by domain"
 msgstr "%s: строка %d: после разделителя списка не стоит домен"
 
-#: resolv/res_hconf.c:175
+#: resolv/res_hconf.c:176
 #, c-format
 msgid "%s: line %d: expected `on' or `off', found `%s'\n"
 msgstr "%s: строка %d: ожидается «on» или «off», найдено «%s»\n"
 
-#: resolv/res_hconf.c:218
+#: resolv/res_hconf.c:219
 #, c-format
 msgid "%s: line %d: bad command `%s'\n"
 msgstr "%s: строка %d: неправильная команда «%s»\n"
 
-#: resolv/res_hconf.c:251
+#: resolv/res_hconf.c:252
 #, c-format
 msgid "%s: line %d: ignoring trailing garbage `%s'\n"
 msgstr "%s: строка %d: проигнорирован мусор в конце «%s»\n"
@@ -5061,7 +5060,7 @@ msgstr "Доступны выходные буферы"
 msgid "Input message available"
 msgstr "Доступно входное сообщение"
 
-#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:375 timezone/zic.c:564
+#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:445 timezone/zic.c:652
 msgid "I/O error"
 msgstr "Ошибка ввода/вывода"
 
@@ -5119,7 +5118,7 @@ msgstr "Неизвестный сигнал %d\n"
 msgid "%s%sUnknown signal %d\n"
 msgstr "%s%sНеизвестный сигнал %d\n"
 
-#: stdio-common/psignal.c:44
+#: stdio-common/psignal.c:44 string/strsignal.c:57
 msgid "Unknown signal"
 msgstr "Неизвестный сигнал"
 
@@ -5127,12 +5126,12 @@ msgstr "Неизвестный сигнал"
 msgid "Unknown error "
 msgstr "Неизвестная ошибка "
 
-#: string/strsignal.c:39
+#: string/strsignal.c:42
 #, c-format
 msgid "Real-time signal %d"
 msgstr "Сигнал реального времени %d"
 
-#: string/strsignal.c:43
+#: string/strsignal.c:46
 #, c-format
 msgid "Unknown signal %d"
 msgstr "Неизвестный сигнал %d"
@@ -5399,6 +5398,10 @@ msgstr "svc_unix.c — невозможно выполнить getsockname ил�
 #: sysdeps/aarch64/dl-bti.c:72
 msgid "failed to turn on BTI protection"
 msgstr "не удалось включить защиту BTI"
+
+#: sysdeps/generic/dl-protected.h:55
+msgid "error due to GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS"
+msgstr "ошибка из-за GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS"
 
 #: sysdeps/generic/siglist.h:29
 msgid "Hangup"
@@ -6143,122 +6146,126 @@ msgid "Invalid slot"
 msgstr "Некорректный слот"
 
 #: sysdeps/gnu/errlist.h:597
+msgid "File locking deadlock error"
+msgstr "Ошибка: тупик при блокировке файла"
+
+#: sysdeps/gnu/errlist.h:600
 msgid "Bad font file format"
 msgstr "Неверный формат файла со шрифтом"
 
-#: sysdeps/gnu/errlist.h:600
+#: sysdeps/gnu/errlist.h:603
 msgid "Machine is not on the network"
 msgstr "Машина не в сети"
 
-#: sysdeps/gnu/errlist.h:603
+#: sysdeps/gnu/errlist.h:606
 msgid "Package not installed"
 msgstr "Пакет не установлен"
 
-#: sysdeps/gnu/errlist.h:606
+#: sysdeps/gnu/errlist.h:609
 msgid "Advertise error"
 msgstr "Ошибка объявления"
 
-#: sysdeps/gnu/errlist.h:609
+#: sysdeps/gnu/errlist.h:612
 msgid "Srmount error"
 msgstr "Ошибка Srmount"
 
-#: sysdeps/gnu/errlist.h:612
+#: sysdeps/gnu/errlist.h:615
 msgid "Communication error on send"
 msgstr "Ошибка связи при отправке"
 
-#: sysdeps/gnu/errlist.h:615
+#: sysdeps/gnu/errlist.h:618
 msgid "RFS specific error"
 msgstr "Специфичная для RFS ошибка"
 
-#: sysdeps/gnu/errlist.h:618
+#: sysdeps/gnu/errlist.h:621
 msgid "Name not unique on network"
 msgstr "Имя не уникально в сети"
 
-#: sysdeps/gnu/errlist.h:621
+#: sysdeps/gnu/errlist.h:624
 msgid "File descriptor in bad state"
 msgstr "Дескриптор файла в плохом состоянии"
 
-#: sysdeps/gnu/errlist.h:624
+#: sysdeps/gnu/errlist.h:627
 msgid "Remote address changed"
 msgstr "Удаленный адрес был изменен"
 
-#: sysdeps/gnu/errlist.h:627
+#: sysdeps/gnu/errlist.h:630
 msgid "Can not access a needed shared library"
 msgstr "Невозможно получить доступ к нужной разделяемой библиотеке"
 
-#: sysdeps/gnu/errlist.h:630
+#: sysdeps/gnu/errlist.h:633
 msgid "Accessing a corrupted shared library"
 msgstr "Обращение к поврежденной разделяемой библиотеке"
 
-#: sysdeps/gnu/errlist.h:633
+#: sysdeps/gnu/errlist.h:636
 msgid ".lib section in a.out corrupted"
 msgstr "Секция .lib в a.out повреждена"
 
-#: sysdeps/gnu/errlist.h:636
+#: sysdeps/gnu/errlist.h:639
 msgid "Attempting to link in too many shared libraries"
 msgstr "Попытка подключить слишком много разделяемый библиотек"
 
-#: sysdeps/gnu/errlist.h:639
+#: sysdeps/gnu/errlist.h:642
 msgid "Cannot exec a shared library directly"
 msgstr "Невозможно непосредственно выполнить разделяемую библиотеку"
 
-#: sysdeps/gnu/errlist.h:642
+#: sysdeps/gnu/errlist.h:645
 msgid "Streams pipe error"
 msgstr "Ошибка потоков канала"
 
-#: sysdeps/gnu/errlist.h:645
+#: sysdeps/gnu/errlist.h:648
 msgid "Structure needs cleaning"
 msgstr "Структуру необходимо почистить"
 
-#: sysdeps/gnu/errlist.h:648
+#: sysdeps/gnu/errlist.h:651
 msgid "Not a XENIX named type file"
 msgstr "Не является файлом именованного типа XENIX"
 
-#: sysdeps/gnu/errlist.h:651
+#: sysdeps/gnu/errlist.h:654
 msgid "No XENIX semaphores available"
 msgstr "Семафоры XENIX недоступны"
 
-#: sysdeps/gnu/errlist.h:654
+#: sysdeps/gnu/errlist.h:657
 msgid "Is a named type file"
 msgstr "Является файлом именованного типа"
 
-#: sysdeps/gnu/errlist.h:657
+#: sysdeps/gnu/errlist.h:660
 msgid "Remote I/O error"
 msgstr "Ошибка удаленного ввода/вывода"
 
-#: sysdeps/gnu/errlist.h:660
+#: sysdeps/gnu/errlist.h:663
 msgid "No medium found"
 msgstr "Носитель не найден"
 
-#: sysdeps/gnu/errlist.h:663
+#: sysdeps/gnu/errlist.h:666
 msgid "Wrong medium type"
 msgstr "Неправильный тип носителя"
 
-#: sysdeps/gnu/errlist.h:666
+#: sysdeps/gnu/errlist.h:669
 msgid "Required key not available"
 msgstr "Требуемый ключ недоступен"
 
-#: sysdeps/gnu/errlist.h:669
+#: sysdeps/gnu/errlist.h:672
 msgid "Key has expired"
 msgstr "Время жизни ключа истекло"
 
-#: sysdeps/gnu/errlist.h:672
+#: sysdeps/gnu/errlist.h:675
 msgid "Key has been revoked"
 msgstr "Ключ был отозван"
 
-#: sysdeps/gnu/errlist.h:675
+#: sysdeps/gnu/errlist.h:678
 msgid "Key was rejected by service"
 msgstr "Ключ был отвергнут службой"
 
-#: sysdeps/gnu/errlist.h:678
+#: sysdeps/gnu/errlist.h:681
 msgid "Operation not possible due to RF-kill"
 msgstr "Операция не позволяется из-за RF-kill"
 
-#: sysdeps/gnu/errlist.h:681
+#: sysdeps/gnu/errlist.h:684
 msgid "Memory page has hardware error"
 msgstr "В странице памяти аппаратная ошибка"
 
-#: sysdeps/gnu/errlist.h:684
+#: sysdeps/gnu/errlist.h:687
 msgid "RPC struct is bad"
 msgstr "RPC неправильная структура"
 
@@ -6267,43 +6274,43 @@ msgstr "RPC неправильная структура"
 #. TRANS
 #. TRANS On some systems @code{chmod} returns this error if you try to set the
 #. TRANS sticky bit on a non-directory file; @pxref{Setting Permissions}.
-#: sysdeps/gnu/errlist.h:693
+#: sysdeps/gnu/errlist.h:696
 msgid "Inappropriate file type or format"
 msgstr "Неподходящий тип или формат файла"
 
-#: sysdeps/gnu/errlist.h:696
+#: sysdeps/gnu/errlist.h:699
 msgid "RPC bad procedure for program"
 msgstr "RPC неправильная процедура для программы"
 
-#: sysdeps/gnu/errlist.h:699
+#: sysdeps/gnu/errlist.h:702
 msgid "Authentication error"
 msgstr "Ошибка аутентификации"
 
 #. TRANS On @gnuhurdsystems{}, opening a file returns this error when the file is
 #. TRANS translated by a program and the translator program dies while starting
 #. TRANS up, before it has connected to the file.
-#: sysdeps/gnu/errlist.h:706
+#: sysdeps/gnu/errlist.h:709
 msgid "Translator died"
 msgstr "Транслятор умер"
 
-#: sysdeps/gnu/errlist.h:709
+#: sysdeps/gnu/errlist.h:712
 msgid "RPC version wrong"
 msgstr "RPC неправильная версия"
 
 #. TRANS You did @strong{what}?
-#: sysdeps/gnu/errlist.h:714
+#: sysdeps/gnu/errlist.h:717
 msgid "You really blew it this time"
 msgstr "На этот раз вы всех опрокинули"
 
 #. TRANS This means that the per-user limit on new process would be exceeded by
 #. TRANS an attempted @code{fork}.  @xref{Limits on Resources}, for details on
 #. TRANS the @code{RLIMIT_NPROC} limit.
-#: sysdeps/gnu/errlist.h:721
+#: sysdeps/gnu/errlist.h:724
 msgid "Too many processes"
 msgstr "Слишком много процессов"
 
 #. TRANS This error code has no purpose.
-#: sysdeps/gnu/errlist.h:726
+#: sysdeps/gnu/errlist.h:729
 msgid "Gratuitous error"
 msgstr "Безвозмездная ошибка"
 
@@ -6319,11 +6326,11 @@ msgstr "Безвозмездная ошибка"
 #. TRANS
 #. TRANS If the entire function is not available at all in the implementation,
 #. TRANS it returns @code{ENOSYS} instead.
-#: sysdeps/gnu/errlist.h:742
+#: sysdeps/gnu/errlist.h:745
 msgid "Not supported"
 msgstr "Не поддерживается"
 
-#: sysdeps/gnu/errlist.h:745
+#: sysdeps/gnu/errlist.h:748
 msgid "RPC program version wrong"
 msgstr "RPC неправильная версия программы"
 
@@ -6333,7 +6340,7 @@ msgstr "RPC неправильная версия программы"
 #. TRANS error because functions such as @code{read} and @code{write} translate
 #. TRANS it into a @code{SIGTTIN} or @code{SIGTTOU} signal.  @xref{Job Control},
 #. TRANS for information on process groups and these signals.
-#: sysdeps/gnu/errlist.h:755
+#: sysdeps/gnu/errlist.h:758
 msgid "Inappropriate operation for background process"
 msgstr "Неподходящая операция для фонового процесса"
 
@@ -6351,7 +6358,7 @@ msgstr "Неподходящая операция для фонового про
 #. TRANS @c
 #. TRANS @c Translators, please do not translate this litteraly, translate it into
 #. TRANS @c an idiomatic funny way of saying that the computer died.
-#: sysdeps/gnu/errlist.h:773
+#: sysdeps/gnu/errlist.h:776
 msgid "Computer bought the farm"
 msgstr "Компьютер отбросил копыта"
 
@@ -6360,160 +6367,156 @@ msgstr "Компьютер отбросил копыта"
 #. TRANS
 #. TRANS C libraries in many older Unix systems have @code{EWOULDBLOCK} as a
 #. TRANS separate error code.
-#: sysdeps/gnu/errlist.h:782
+#: sysdeps/gnu/errlist.h:785
 msgid "Operation would block"
 msgstr "Операция приведет к блокировке"
 
-#: sysdeps/gnu/errlist.h:785
+#: sysdeps/gnu/errlist.h:788
 msgid "Need authenticator"
 msgstr "Необходим аутентификатор"
 
 #. TRANS The experienced user will know what is wrong.
 #. TRANS @c This error code is a joke.  Its perror text is part of the joke.
 #. TRANS @c Don't change it.
-#: sysdeps/gnu/errlist.h:792
+#: sysdeps/gnu/errlist.h:795
 msgid "?"
 msgstr "?"
 
-#: sysdeps/gnu/errlist.h:795
+#: sysdeps/gnu/errlist.h:798
 msgid "RPC program not available"
 msgstr "RPC программа недоступна"
 
-#: sysdeps/mach/_strerror.c:43
+#: sysdeps/hppa/dl-fptr.c:96
+msgid "cannot map pages for fdesc table"
+msgstr "невозможно отобразить страницы для таблицы fdesc"
+
+#: sysdeps/hppa/dl-fptr.c:214
+msgid "cannot map pages for fptr table"
+msgstr "невозможно отобразить страницы для таблицы fptr"
+
+#: sysdeps/hppa/dl-fptr.c:243
+msgid "internal error: symidx out of range of fptr table"
+msgstr "внутренняя ошибка: symidx выходит за пределы таблицы fptr"
+
+#: sysdeps/mach/_strerror.c:43 sysdeps/mach/xpg-strerror.c:55
 msgid "Error in unknown error system: "
 msgstr "Ошибка в неизвестной системе ошибок: "
 
-#: sysdeps/posix/gai_strerror-strs.h:1
+#: sysdeps/posix/gai_strerror-strs.h:2
 msgid "Address family for hostname not supported"
 msgstr "Семейство адресов не поддерживается для данного имени узла"
 
-#: sysdeps/posix/gai_strerror-strs.h:2
+#: sysdeps/posix/gai_strerror-strs.h:3
 msgid "Temporary failure in name resolution"
 msgstr "Временный сбой в разрешении имен"
 
-#: sysdeps/posix/gai_strerror-strs.h:3
+#: sysdeps/posix/gai_strerror-strs.h:4
 msgid "Bad value for ai_flags"
 msgstr "Неправильное значение для ai_flags"
 
-#: sysdeps/posix/gai_strerror-strs.h:4
+#: sysdeps/posix/gai_strerror-strs.h:5
 msgid "Non-recoverable failure in name resolution"
 msgstr "Неисправимая ошибка в разрешении имен"
 
-#: sysdeps/posix/gai_strerror-strs.h:5
+#: sysdeps/posix/gai_strerror-strs.h:6
 msgid "ai_family not supported"
 msgstr "ai_family не поддерживается"
 
-#: sysdeps/posix/gai_strerror-strs.h:6
+#: sysdeps/posix/gai_strerror-strs.h:7
 msgid "Memory allocation failure"
 msgstr "Ошибка выделения памяти"
 
-#: sysdeps/posix/gai_strerror-strs.h:7
+#: sysdeps/posix/gai_strerror-strs.h:8
 msgid "No address associated with hostname"
 msgstr "С именем узла не связано ни одного адреса"
 
-#: sysdeps/posix/gai_strerror-strs.h:8
+#: sysdeps/posix/gai_strerror-strs.h:9
 msgid "Name or service not known"
 msgstr "Неизвестное имя или служба"
 
-#: sysdeps/posix/gai_strerror-strs.h:9
+#: sysdeps/posix/gai_strerror-strs.h:10
 msgid "Servname not supported for ai_socktype"
 msgstr "Servname не поддерживается для ai_socktype"
 
-#: sysdeps/posix/gai_strerror-strs.h:10
+#: sysdeps/posix/gai_strerror-strs.h:11
 msgid "ai_socktype not supported"
 msgstr "ai_socktype не поддерживается"
 
-#: sysdeps/posix/gai_strerror-strs.h:11
+#: sysdeps/posix/gai_strerror-strs.h:12
 msgid "System error"
 msgstr "Системная ошибка"
 
-#: sysdeps/posix/gai_strerror-strs.h:12
+#: sysdeps/posix/gai_strerror-strs.h:13
 msgid "Processing request in progress"
 msgstr "Обработка запроса продолжается"
 
-#: sysdeps/posix/gai_strerror-strs.h:13
+#: sysdeps/posix/gai_strerror-strs.h:14
 msgid "Request canceled"
 msgstr "Запрос отменен"
 
-#: sysdeps/posix/gai_strerror-strs.h:14
+#: sysdeps/posix/gai_strerror-strs.h:15
 msgid "Request not canceled"
 msgstr "Запрос не отменен"
 
-#: sysdeps/posix/gai_strerror-strs.h:15
+#: sysdeps/posix/gai_strerror-strs.h:16
 msgid "All requests done"
 msgstr "Все запросы выполнены"
 
-#: sysdeps/posix/gai_strerror-strs.h:16
+#: sysdeps/posix/gai_strerror-strs.h:17
 msgid "Interrupted by a signal"
 msgstr "Прервано по сигналу"
 
-#: sysdeps/posix/gai_strerror-strs.h:17
+#: sysdeps/posix/gai_strerror-strs.h:18
 msgid "Parameter string not correctly encoded"
 msgstr "Неправильно закодирована строка параметра"
 
-#: sysdeps/unix/sysv/linux/ia64/makecontext.c:57
-#, c-format
-msgid "makecontext: does not know how to handle more than 8 arguments\n"
-msgstr "makecontext: нет возможности обработать более восьми аргументов\n"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:59
-#, c-format
-msgid ""
-"Usage: lddlibc4 FILE\n"
-"\n"
-msgstr ""
-"Использование: lddlibc4 ФАЙЛ\n"
-"\n"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:80
-#, c-format
-msgid "cannot open `%s'"
-msgstr "невозможно открыть «%s»"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:84
-#, c-format
-msgid "cannot read header from `%s'"
-msgstr "невозможно считать заголовок из «%s»"
-
-#: sysdeps/unix/sysv/linux/x86/readelflib.c:64
-#, c-format
-msgid "%s is for unknown machine %d.\n"
-msgstr "%s предназначен для неизвестной машины %d.\n"
-
-#: sysdeps/x86/dl-cet.c:154
-msgid "rebuild shared object with IBT support enabled"
-msgstr "включена пересборка общего объекта с поддержкой IBT"
-
-#: sysdeps/x86/dl-cet.c:165
-msgid "rebuild shared object with SHSTK support enabled"
-msgstr "включена пересборка общего объекта с поддержкой SHSTK"
-
-#: sysdeps/x86/dl-cet.c:194
-msgid "can't disable CET"
-msgstr "невозможно выключить CET"
+#: sysdeps/posix/gai_strerror-strs.h:19
+msgid "Result too large for supplied buffer"
+msgstr "Результат слишком большой для указанного буфера"
 
 #: sysdeps/x86/dl-prop.h:61
 msgid "CPU ISA level is lower than required"
 msgstr "Уровень CPU ISA ниже чем требуется"
 
-#: timezone/zdump.c:332
+#: sysdeps/x86/readelflib.c:49
+#, c-format
+msgid "%s is for unknown machine %d.\n"
+msgstr "%s предназначен для неизвестной машины %d.\n"
+
+#: sysdeps/x86_64/dl-cet.c:214
+msgid "rebuild shared object with IBT support enabled"
+msgstr "включена пересборка общего объекта с поддержкой IBT"
+
+#: sysdeps/x86_64/dl-cet.c:233
+msgid "rebuild shared object with SHSTK support enabled"
+msgstr "включена пересборка общего объекта с поддержкой SHSTK"
+
+#: sysdeps/x86_64/dl-cet.c:251
+msgid "can't disable IBT"
+msgstr "невозможно выключить IBT"
+
+#: sysdeps/x86_64/dl-cet.c:253
+msgid "can't disable SHSTK"
+msgstr "невозможно выключить SHSTK"
+
+#: timezone/zdump.c:402
 msgid "has characters other than ASCII alphanumerics, '-' or '+'"
 msgstr "содержит символы помимо буквенно-цифровых ASCII, «-» или «+»"
 
-#: timezone/zdump.c:334
+#: timezone/zdump.c:404
 msgid "has fewer than 3 characters"
 msgstr "содержит менее 3 символов"
 
-#: timezone/zdump.c:336
+#: timezone/zdump.c:406
 msgid "has more than 6 characters"
 msgstr "содержит более 6 символов"
 
-#: timezone/zdump.c:341
+#: timezone/zdump.c:411
 #, c-format
 msgid "%s: warning: zone \"%s\" abbreviation \"%s\" %s\n"
 msgstr "%s: предупреждение: зона «%s» сокращение «%s» %s\n"
 
-#: timezone/zdump.c:387
+#: timezone/zdump.c:457
 #, c-format
 msgid ""
 "%s: usage: %s OPTIONS TIMEZONE ...\n"
@@ -6540,496 +6543,422 @@ msgstr ""
 "\n"
 "Сообщения об ошибках отправляйте по адресу %s.\n"
 
-#: timezone/zdump.c:473
+#: timezone/zdump.c:543
 #, c-format
 msgid "%s: wild -c argument %s\n"
 msgstr "%s: не обработан аргумент -c, %s\n"
 
-#: timezone/zdump.c:506
+#: timezone/zdump.c:576
 #, c-format
 msgid "%s: wild -t argument %s\n"
 msgstr "%s: не обработан аргумент -t, %s\n"
 
-#: timezone/zic.c:432
+#: timezone/zic.c:463
 #, c-format
 msgid "%s: Memory exhausted: %s\n"
 msgstr "%s: Память исчерпана: %s\n"
 
-#: timezone/zic.c:440
+#: timezone/zic.c:470
 msgid "size overflow"
 msgstr "переполнение размера"
 
-#: timezone/zic.c:450
-msgid "alignment overflow"
-msgstr "переполнение выравнивания"
-
-#: timezone/zic.c:498
+#: timezone/zic.c:559
 msgid "integer overflow"
 msgstr "целочисленное переполнение"
 
-#: timezone/zic.c:532
+#: timezone/zic.c:585
+msgid "command line"
+msgstr "командная строка"
+
+#: timezone/zic.c:588
+msgid "standard input"
+msgstr "стандартный ввод"
+
+#: timezone/zic.c:616
 #, c-format
 msgid "\"%s\", line %<PRIdMAX>: "
 msgstr "«%s», строка %<PRIdMAX>: "
 
-#: timezone/zic.c:535
+#: timezone/zic.c:620
 #, c-format
 msgid " (rule from \"%s\", line %<PRIdMAX>)"
 msgstr " (правило из «%s», строка %<PRIdMAX>)"
 
-#: timezone/zic.c:554
+#: timezone/zic.c:639
 #, c-format
 msgid "warning: "
 msgstr "предупреждение: "
 
-#: timezone/zic.c:579
-#, c-format
-msgid ""
-"%s: usage is %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
-"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
-"\t[ filename ... ]\n"
-"\n"
-"Report bugs to %s.\n"
-msgstr ""
-"%s: использование: %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d каталог ] [ -l местное_время ] [ -L високос_сек. ] \\\n"
-"\t[ -p правила_posix ] [ -r '[@lo][/@hi]' ] [ -t ссылка_на_местное_время ] \\\n"
-"\t[ имя_файла … ]\n"
-"\n"
-"Сообщения об ошибках отправляйте на %s.\n"
-
-#: timezone/zic.c:604
+#: timezone/zic.c:695
 #, c-format
 msgid "%s: Can't chdir to %s: %s\n"
 msgstr "%s: Невозможно выполнить chdir в %s: %s\n"
 
-#: timezone/zic.c:698
+#: timezone/zic.c:992
 msgid "wild compilation-time specification of zic_t"
 msgstr "плохая спецификация при компиляции для zic_t"
 
-#: timezone/zic.c:716 timezone/zic.c:720
+#: timezone/zic.c:1011 timezone/zic.c:1015
 msgid "incompatible -b options"
 msgstr "несовместимые параметры -b"
 
-#: timezone/zic.c:723
+#: timezone/zic.c:1018
 #, c-format
 msgid "invalid option: -b '%s'"
 msgstr "неверный параметр: -b «%s»"
 
-#: timezone/zic.c:730
+#: timezone/zic.c:1025
 #, c-format
 msgid "%s: More than one -d option specified\n"
 msgstr "%s: Задано более одного ключа -d\n"
 
-#: timezone/zic.c:740
+#: timezone/zic.c:1036
 #, c-format
 msgid "%s: More than one -l option specified\n"
 msgstr "%s: Задано более одного ключа -l\n"
 
-#: timezone/zic.c:750
+#: timezone/zic.c:1047
 #, c-format
 msgid "%s: More than one -p option specified\n"
 msgstr "%s: Задано более одного ключа -p\n"
 
-#: timezone/zic.c:758
+#: timezone/zic.c:1056
 #, c-format
 msgid "%s: More than one -t option specified\n"
 msgstr "%s: Задано более одного ключа -t\n"
 
-#: timezone/zic.c:767
-msgid "-y is obsolescent"
-msgstr "-y устарел"
-
-#: timezone/zic.c:771
-#, c-format
-msgid "%s: More than one -y option specified\n"
-msgstr "%s: Задано более одного ключа -y\n"
-
-#: timezone/zic.c:781
+#: timezone/zic.c:1071
 #, c-format
 msgid "%s: More than one -L option specified\n"
 msgstr "%s: Задано более одного ключа -L\n"
 
-#: timezone/zic.c:792
+#: timezone/zic.c:1083
 #, c-format
 msgid "%s: More than one -r option specified\n"
 msgstr "%s: Задано более одного ключа -r\n"
 
-#: timezone/zic.c:798
+#: timezone/zic.c:1090
 #, c-format
 msgid "%s: invalid time range: %s\n"
 msgstr "%s: неверный диапазон времени: %s\n"
 
-#: timezone/zic.c:805
+#: timezone/zic.c:1104
 msgid "-s ignored"
 msgstr "-s игнорировать"
 
-#: timezone/zic.c:848
-msgid "link to link"
-msgstr "ссылка на ссылку"
-
-#: timezone/zic.c:851 timezone/zic.c:855
-msgid "command line"
-msgstr "командная строка"
-
-#: timezone/zic.c:871
+#: timezone/zic.c:1171
 msgid "empty file name"
 msgstr "пустое имя файла"
 
-#: timezone/zic.c:874
+#: timezone/zic.c:1174
 #, c-format
 msgid "file name '%s' begins with '/'"
 msgstr "имя файла «%s» начинается с «/»"
 
-#: timezone/zic.c:884
+#: timezone/zic.c:1184
 #, c-format
 msgid "file name '%s' contains '%.*s' component"
 msgstr "имя файла «%s» содержит компонент «%.*s»"
 
-#: timezone/zic.c:890
+#: timezone/zic.c:1190
 #, c-format
 msgid "file name '%s' component contains leading '-'"
 msgstr "компонент имени файла «%s» начинается с «-»"
 
-#: timezone/zic.c:893
+#: timezone/zic.c:1193
 #, c-format
 msgid "file name '%s' contains overlength component '%.*s...'"
 msgstr "имя файла «%s» содержит слишком длинный компонент «%.*s...»"
 
-#: timezone/zic.c:921
+#: timezone/zic.c:1221
 #, c-format
 msgid "file name '%s' contains byte '%c'"
 msgstr "имя файла «%s» содержит байт «%c»"
 
-#: timezone/zic.c:922
+#: timezone/zic.c:1222
 #, c-format
 msgid "file name '%s' contains byte '\\%o'"
 msgstr "имя файла «\\%s» содержит байт «\\%o»"
 
-#: timezone/zic.c:992
-#, c-format
-msgid "%s: link from %s/%s failed: %s\n"
-msgstr "%s: ошибки при ссылке из %s/%s: %s\n"
-
-#: timezone/zic.c:1002 timezone/zic.c:1992
-#, c-format
-msgid "%s: Can't remove %s/%s: %s\n"
-msgstr "%s: Невозможно удалить %s/%s: %s\n"
-
-#: timezone/zic.c:1026
-#, c-format
-msgid "symbolic link used because hard link failed: %s"
-msgstr "используется символьная ссылка, так как жёсткая ссылка привела к ошибке: %s"
-
-#: timezone/zic.c:1034
-#, c-format
-msgid "%s: Can't read %s/%s: %s\n"
-msgstr "%s: Невозможно прочитать %s/%s: %s\n"
-
-#: timezone/zic.c:1041 timezone/zic.c:2005
+#: timezone/zic.c:1369
 #, c-format
 msgid "%s: Can't create %s/%s: %s\n"
 msgstr "%s: Невозможно создать %s/%s: %s\n"
 
-#: timezone/zic.c:1050
+#: timezone/zic.c:1463
+#, c-format
+msgid "%s: Can't remove %s/%s: %s\n"
+msgstr "%s: Невозможно удалить %s/%s: %s\n"
+
+#: timezone/zic.c:1536
+#, c-format
+msgid "symbolic link used because hard link failed: %s"
+msgstr "используется символьная ссылка, так как жёсткая ссылка привела к ошибке: %s"
+
+#: timezone/zic.c:1544
+#, c-format
+msgid "%s: Can't read %s/%s: %s\n"
+msgstr "%s: Невозможно прочитать %s/%s: %s\n"
+
+#: timezone/zic.c:1554
 #, c-format
 msgid "copy used because hard link failed: %s"
 msgstr "используется копирование, так как жёсткая ссылка привела к ошибке: %s"
 
-#: timezone/zic.c:1053
+#: timezone/zic.c:1557
 #, c-format
 msgid "copy used because symbolic link failed: %s"
 msgstr "используется копирование, так как символьная ссылка привела к ошибке: %s"
 
-#: timezone/zic.c:1122 timezone/zic.c:1124
+#: timezone/zic.c:1608 timezone/zic.c:1610
 msgid "same rule name in multiple files"
 msgstr "одинаковое имя правила в нескольких файлах"
 
-#: timezone/zic.c:1171
+#: timezone/zic.c:1656
 #, c-format
 msgid "%s in ruleless zone"
 msgstr "%s в зоне без правил"
 
-#: timezone/zic.c:1191
-msgid "standard input"
-msgstr "стандартный ввод"
+#: timezone/zic.c:1688
+msgid "line too long"
+msgstr "строка слишком длинная"
 
-#: timezone/zic.c:1196
+#: timezone/zic.c:1709
 #, c-format
 msgid "%s: Can't open %s: %s\n"
 msgstr "%s: Невозможно открыть %s: %s\n"
 
-#: timezone/zic.c:1207
-msgid "line too long"
-msgstr "строка слишком длинная"
-
-#: timezone/zic.c:1230
+#: timezone/zic.c:1734
 msgid "input line of unknown type"
 msgstr "входная строка неизвестного типа"
 
-#: timezone/zic.c:1253 timezone/zic.c:1699 timezone/zic.c:1721
-#, c-format
-msgid "%s: panic: Invalid l_value %d\n"
-msgstr "%s: паника: Недопустимое l_value %d\n"
-
-#: timezone/zic.c:1262
+#: timezone/zic.c:1761
 msgid "expected continuation line not found"
 msgstr "ожидаемая строка продолжения не найдена"
 
-#: timezone/zic.c:1298
+#: timezone/zic.c:1797
 msgid "fractional seconds rejected by pre-2018 versions of zic"
 msgstr "дробные секунды не поддерживаются  zic до версии pre-2018"
 
-#: timezone/zic.c:1316 timezone/zic.c:3282
+#: timezone/zic.c:1815 timezone/zic.c:3760
 msgid "time overflow"
 msgstr "переполнение времени"
 
-#: timezone/zic.c:1322
+#: timezone/zic.c:1821
 msgid "values over 24 hours not handled by pre-2007 versions of zic"
 msgstr "значения больше 24 часов не поддерживается версиями zic старше 2007 года"
 
-#: timezone/zic.c:1340
+#: timezone/zic.c:1839
 msgid "invalid saved time"
 msgstr "неверное сохраненное время"
 
-#: timezone/zic.c:1351
+#: timezone/zic.c:1850
 msgid "wrong number of fields on Rule line"
 msgstr "неправильное число полей в строке Rule"
 
-#: timezone/zic.c:1360
+#: timezone/zic.c:1859
 #, c-format
 msgid "Invalid rule name \"%s\""
 msgstr "Неверное имя правила «%s»"
 
-#: timezone/zic.c:1382
+#: timezone/zic.c:1883
 msgid "wrong number of fields on Zone line"
 msgstr "неверное число полей в строке Zone"
 
-#: timezone/zic.c:1387
+#: timezone/zic.c:1887
 #, c-format
 msgid "\"Zone %s\" line and -l option are mutually exclusive"
 msgstr "строка «Zone %s» и ключ -l взаимно исключаются"
 
-#: timezone/zic.c:1393
+#: timezone/zic.c:1892
 #, c-format
 msgid "\"Zone %s\" line and -p option are mutually exclusive"
 msgstr "строка «Zone %s» и ключ -p взаимно исключаются"
 
-#: timezone/zic.c:1400
+#: timezone/zic.c:1899
 #, c-format
 msgid "duplicate zone name %s (file \"%s\", line %<PRIdMAX>)"
 msgstr "повторное имя зоны %s (файл «%s», строка %<PRIdMAX>)"
 
-#: timezone/zic.c:1414
+#: timezone/zic.c:1913
 msgid "wrong number of fields on Zone continuation line"
 msgstr "неправильное число полей в строке продолжения Zone"
 
-#: timezone/zic.c:1454
+#: timezone/zic.c:1952
 msgid "invalid UT offset"
 msgstr "неверное смещение UT"
 
-#: timezone/zic.c:1458
+#: timezone/zic.c:1956
 msgid "invalid abbreviation format"
 msgstr "неверный формат сокращения"
 
-#: timezone/zic.c:1467
+#: timezone/zic.c:1986
+msgid "Zone continuation line end time is not after end time of previous line"
+msgstr "конечное время в строке продолжения Zone не позднее конечного времени в предыдущей строке"
+
+#: timezone/zic.c:1997
 #, c-format
 msgid "format '%s' not handled by pre-2015 versions of zic"
 msgstr "формат «%s» не поддерживается версиями zic старше 2015 года"
 
-#: timezone/zic.c:1494
-msgid "Zone continuation line end time is not after end time of previous line"
-msgstr "конечное время в строке продолжения Zone не позднее конечного времени в предыдущей строке"
-
-#: timezone/zic.c:1526
+#: timezone/zic.c:2027
 msgid "invalid leaping year"
 msgstr "неверный високосный год"
 
-#: timezone/zic.c:1548 timezone/zic.c:1653
+#: timezone/zic.c:2049 timezone/zic.c:2154
 msgid "invalid month name"
 msgstr "неверное название месяца"
 
-#: timezone/zic.c:1561 timezone/zic.c:1769 timezone/zic.c:1783
+#: timezone/zic.c:2062 timezone/zic.c:2252 timezone/zic.c:2266
 msgid "invalid day of month"
 msgstr "неверный день месяца"
 
-#: timezone/zic.c:1566
+#: timezone/zic.c:2067
 msgid "time too small"
 msgstr "время слишком мало"
 
-#: timezone/zic.c:1570
+#: timezone/zic.c:2071
 msgid "time too large"
 msgstr "время слишком велико"
 
-#: timezone/zic.c:1574 timezone/zic.c:1682
+#: timezone/zic.c:2075 timezone/zic.c:2183
 msgid "invalid time of day"
 msgstr "неверное время дня"
 
-#: timezone/zic.c:1577
+#: timezone/zic.c:2078
 msgid "leap second precedes Epoch"
 msgstr "високосная секунда раньше Эпохи"
 
-#: timezone/zic.c:1585
+#: timezone/zic.c:2086
 msgid "wrong number of fields on Leap line"
 msgstr "неверное число полей в строке Leap"
 
-#: timezone/zic.c:1591
+#: timezone/zic.c:2092
 msgid "invalid Rolling/Stationary field on Leap line"
 msgstr "неверное поле Rolling/Stationary в строке Leap"
 
-#: timezone/zic.c:1599
+#: timezone/zic.c:2100
 msgid "invalid CORRECTION field on Leap line"
 msgstr "неверное поле CORRECTION в строке Leap"
 
-#: timezone/zic.c:1611
+#: timezone/zic.c:2112
 msgid "wrong number of fields on Expires line"
 msgstr "неправильное количество полей в строке Expires"
 
-#: timezone/zic.c:1613
+#: timezone/zic.c:2114
 msgid "multiple Expires lines"
 msgstr "несколько строк Expires"
 
-#: timezone/zic.c:1624
+#: timezone/zic.c:2125
 msgid "wrong number of fields on Link line"
 msgstr "неверное число полей в строке Link"
 
-#: timezone/zic.c:1628
-msgid "blank FROM field on Link line"
-msgstr "пустое поле FROM в строке Link"
-
-#: timezone/zic.c:1703
+#: timezone/zic.c:2199
 msgid "invalid starting year"
 msgstr "неверный начальный год"
 
-#: timezone/zic.c:1725
+#: timezone/zic.c:2214
 msgid "invalid ending year"
 msgstr "неверный конечный год"
 
-#: timezone/zic.c:1729
+#: timezone/zic.c:2218
 msgid "starting year greater than ending year"
 msgstr "начальный год больше конечного"
 
-#: timezone/zic.c:1736
-msgid "typed single year"
-msgstr "один типизированный год"
-
-#: timezone/zic.c:1739
-#, c-format
-msgid "year type \"%s\" is obsolete; use \"-\" instead"
-msgstr "тип года «%s» устарел; вместо этого используйте «-»"
-
-#: timezone/zic.c:1774
+#: timezone/zic.c:2257
 msgid "invalid weekday name"
 msgstr "неверное названия дня недели"
 
-#: timezone/zic.c:1935
+#: timezone/zic.c:2435
 #, c-format
 msgid "reference clients mishandle more than %d transition times"
 msgstr "стандартные клиенты неправильно работают при выполнении более чем %d переводов времени"
 
-#: timezone/zic.c:1939
+#: timezone/zic.c:2439
 msgid "pre-2014 clients may mishandle more than 1200 transition times"
 msgstr "клиенты до версии pre-2014 могут неправильно работать при выполнении более чем 1200 переводов времени"
 
-#: timezone/zic.c:2058
+#: timezone/zic.c:2537
 msgid "too many transition times"
 msgstr "слишком много переводов времени"
 
-#: timezone/zic.c:2297
+#: timezone/zic.c:2801
 #, c-format
 msgid "%%z UT offset magnitude exceeds 99:59:59"
 msgstr "порядок величин смещения %%z UT превышает 99:59:59"
 
-#: timezone/zic.c:2673
-msgid "no POSIX environment variable for zone"
-msgstr "нет переменной окружения POSIX для часового пояса"
-
-#: timezone/zic.c:2679
+#: timezone/zic.c:3186
 #, c-format
 msgid "%s: pre-%d clients may mishandle distant timestamps"
 msgstr "%s: клиенты до версии pre-%d могут неправильно понять удалённые метки времени"
 
-#: timezone/zic.c:2818
+#: timezone/zic.c:3315
 msgid "two rules for same instant"
 msgstr "два правила для одного мгновения"
 
-#: timezone/zic.c:2889
+#: timezone/zic.c:3388
 msgid "can't determine time zone abbreviation to use just after until time"
 msgstr "не удалось определить аббревиатуру часового пояса для использования сразу после прошедшего времени"
 
-#: timezone/zic.c:2964
+#: timezone/zic.c:3489
 msgid "UT offset out of range"
 msgstr "смещение UT вне диапазона"
 
-#: timezone/zic.c:2987
+#: timezone/zic.c:3512
 msgid "too many local time types"
 msgstr "слишком много типов местного времени"
 
-#: timezone/zic.c:3005
+#: timezone/zic.c:3530
 msgid "too many leap seconds"
 msgstr "слишком много високосных секунд"
 
-#: timezone/zic.c:3032
+#: timezone/zic.c:3561
 msgid "Leap seconds too close together"
 msgstr "Високосные секунды слишком близко друг к другу"
 
-#: timezone/zic.c:3043
-msgid "\"#expires\" is obsolescent; use \"Expires\""
-msgstr "\"#expires\" устарел; используйте \"Expires\""
-
-#: timezone/zic.c:3049
+#: timezone/zic.c:3572
 msgid "last Leap time does not precede Expires time"
 msgstr "последнее високосное время не начинается временем Expires"
 
-#: timezone/zic.c:3095
-msgid "Wild result from command execution"
-msgstr "Неадекватный результат выполнения команды"
-
-#: timezone/zic.c:3096
-#, c-format
-msgid "%s: command was '%s', result was %d\n"
-msgstr "%s: команда была »%s», результат был %d\n"
-
-#: timezone/zic.c:3202
+#: timezone/zic.c:3679
 #, c-format
 msgid "\"%s\" is undocumented; use \"last%s\" instead"
 msgstr "«%s» нет в документации; вместо этого используйте «last%s»"
 
-#: timezone/zic.c:3233
+#: timezone/zic.c:3710
 #, c-format
 msgid "\"%s\" is ambiguous in pre-2017c zic"
 msgstr "смысл «%s» неоднозначен для zic версии pre-2017c"
 
-#: timezone/zic.c:3267
+#: timezone/zic.c:3741
 msgid "Odd number of quotation marks"
 msgstr "Нечётное число кавычек"
 
-#: timezone/zic.c:3361
+#: timezone/zic.c:3838
 msgid "use of 2/29 in non leap-year"
 msgstr "использование 29 февраля в не-високосном году"
 
-#: timezone/zic.c:3396
+#: timezone/zic.c:3864
 msgid "rule goes past start/end of month; will not work with pre-2004 versions of zic"
 msgstr "правило переходит за начало/конец месяца; это не будет работать в версиях zic старше 2004 года"
 
-#: timezone/zic.c:3423
+#: timezone/zic.c:3891
 msgid "time zone abbreviation has fewer than 3 characters"
 msgstr "в аббревиатуре часового пояса содержится более трёх символов"
 
-#: timezone/zic.c:3425
+#: timezone/zic.c:3893
 msgid "time zone abbreviation has too many characters"
 msgstr "в аббревиатуре часового пояса содержится слишком много символов"
 
-#: timezone/zic.c:3427
+#: timezone/zic.c:3895
 msgid "time zone abbreviation differs from POSIX standard"
 msgstr "аббревиатура часового пояса отличается от стандартной POSIX"
 
-#: timezone/zic.c:3433
+#: timezone/zic.c:3901
 msgid "too many, or too long, time zone abbreviations"
 msgstr "слишком много аббревиатур часовых поясов или они слишком длинные"
 
-#: timezone/zic.c:3479
+#: timezone/zic.c:3952
 #, c-format
 msgid "%s: Can't create directory %s: %s"
 msgstr "%s: Невозможно создать каталог %s: %s"

@@ -1,5 +1,5 @@
 /* strcmp optimized with SSE4.2.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -84,7 +84,7 @@ ENTRY (STRCASECMP)
 	movq	__libc_tsd_LOCALE@gottpoff(%rip),%rax
 	mov	%fs:(%rax),%RDX_LP
 
-	/* Either 1 or 5 bytes (dependeing if CET is enabled).  */
+	/* Either 1 or 5 bytes (depending if CET is enabled).  */
 	.p2align 4
 END (STRCASECMP)
 	/* FALLTHROUGH to strcasecmp_l.  */
@@ -94,7 +94,7 @@ ENTRY (STRCASECMP)
 	movq	__libc_tsd_LOCALE@gottpoff(%rip),%rax
 	mov	%fs:(%rax),%RCX_LP
 
-	/* Either 1 or 5 bytes (dependeing if CET is enabled).  */
+	/* Either 1 or 5 bytes (depending if CET is enabled).  */
 	.p2align 4
 END (STRCASECMP)
 	/* FALLTHROUGH to strncasecmp_l.  */
@@ -119,7 +119,7 @@ STRCMP:
 #  else
 	mov	(%rdx), %RAX_LP
 #  endif
-	testl	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
+	testb	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
 	jne	__strcasecmp_l_nonascii
 # endif
 # ifdef USE_AS_STRNCASECMP_L
@@ -130,7 +130,7 @@ STRCMP:
 #  else
 	mov	(%rcx), %RAX_LP
 #  endif
-	testl	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
+	testb	$1, LOCALE_DATA_VALUES+_NL_CTYPE_NONASCII_CASE*SIZEOF_VALUES(%rax)
 	jne	__strncasecmp_l_nonascii
 # endif
 

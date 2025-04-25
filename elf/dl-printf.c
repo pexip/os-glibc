@@ -1,5 +1,6 @@
 /* printf implementation for the dynamic loader.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
+   Copyright The GNU Toolchain Authors.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +17,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <string.h>
+#if BUILD_PIE_DEFAULT
+# pragma GCC visibility push(hidden)
+#endif
 #include <_itoa.h>
 #include <assert.h>
 #include <dl-writev.h>
@@ -24,9 +29,18 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <intprops.h>
+
+/* The function might be called before the process is self-relocated.  */
+static size_t
+_dl_debug_strlen (const char *s)
+{
+  const char *p = s;
+  for (; *s != '\0'; s++);
+  return s - p;
+}
 
 /* Bare-bones printf implementation.  This function only knows about
    the formats and flags needed and can handle only up to 64 stripes in
@@ -36,6 +50,9 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 {
 # define NIOVMAX 64
   struct iovec iov[NIOVMAX];
+  /* Maximum size for 'd', 'u', and 'x' including padding.  */
+  enum { IFMTSIZE = INT_STRLEN_BOUND(void *) };
+  char ifmtbuf[NIOVMAX][IFMTSIZE];
   int niov = 0;
   pid_t pid = 0;
   char pidbuf[12];
@@ -100,6 +117,8 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 	  if (*fmt == '*')
 	    {
 	      width = va_arg (arg, int);
+	      /* The maximum padding accepted is up to pointer size.  */
+	      assert (width < IFMTSIZE);
 	      ++fmt;
 	    }
 
@@ -113,7 +132,7 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 	  /* Recognize the l modifier.  It is only important on some
 	     platforms where long and int have a different size.  We
 	     can use the same code for size_t.  */
-	  if (*fmt == 'l' || *fmt == 'Z')
+	  if (*fmt == 'l' || *fmt == 'z')
 	    {
 #if LONG_MAX != INT_MAX
 	      long_mod = 1;
@@ -144,27 +163,29 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 		    if (long_mod)
 		      {
 			if ((long int) num < 0)
-			  negative = true;
+			  {
+			    num = -num;
+			    negative = true;
+			  }
 		      }
 		    else
 		      {
 			if ((int) num < 0)
 			  {
-			    num = (unsigned int) num;
+			    num = -(unsigned int) num;
 			    negative = true;
 			  }
 		      }
 #else
 		    if ((int) num < 0)
-		      negative = true;
+		      {
+			num = -num;
+			negative = true;
+		      }
 #endif
 		  }
 
-		/* We use alloca() to allocate the buffer with the most
-		   pessimistic guess for the size.  Using alloca() allows
-		   having more than one integer formatting in a call.  */
-		char *buf = (char *) alloca (1 + 3 * sizeof (unsigned long int));
-		char *endp = &buf[1 + 3 * sizeof (unsigned long int)];
+		char *endp = &ifmtbuf[niov][IFMTSIZE];
 		char *cp = _itoa (num, endp, *fmt == 'x' ? 16 : 10, 0);
 
 		/* Pad to the width the user specified.  */
@@ -184,7 +205,7 @@ _dl_debug_vdprintf (int fd, int tag_p, const char *fmt, va_list arg)
 	    case 's':
 	      /* Get the string argument.  */
 	      iov[niov].iov_base = va_arg (arg, char *);
-	      iov[niov].iov_len = strlen (iov[niov].iov_base);
+	      iov[niov].iov_len = _dl_debug_strlen (iov[niov].iov_base);
 	      if (prec != -1)
 		iov[niov].iov_len = MIN ((size_t) prec, iov[niov].iov_len);
 	      ++niov;

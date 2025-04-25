@@ -1,5 +1,5 @@
 /* Measure strlen functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 #else
 # define TEST_NAME "wcsnlen"
 # define generic_strnlen generic_wcsnlen
-# define memchr_strnlen wcschr_wcsnlen
 #endif /* WIDE */
 #include "bench-string.h"
 #include "json-lib.h"
@@ -38,22 +37,14 @@
 typedef size_t (*proto_t) (const CHAR *, size_t);
 size_t generic_strnlen (const CHAR *, size_t);
 
-size_t
-memchr_strnlen (const CHAR *s, size_t maxlen)
-{
-  const CHAR *s1 = MEMCHR (s, 0, maxlen);
-  return (s1 == NULL) ? maxlen : s1 - s;
-}
-
 IMPL (STRNLEN, 1)
-IMPL (memchr_strnlen, 0)
 IMPL (generic_strnlen, 0)
 
 static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s, size_t maxlen,
 	     size_t exp_len)
 {
-  size_t len = CALL (impl, s, maxlen), i, iters = INNER_LOOP_ITERS_LARGE;
+  size_t len = CALL (impl, s, maxlen), i, iters = INNER_LOOP_ITERS;
   timing_t start, stop, cur;
 
   if (len != exp_len)
@@ -62,6 +53,11 @@ do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s, size_t maxlen,
 	     exp_len);
       ret = 1;
       return;
+    }
+  /* Warmup.  */
+  for (i = 0; i < iters / 16; ++i)
+    {
+      CALL (impl, s, maxlen);
     }
 
   TIMING_NOW (start);
@@ -110,7 +106,7 @@ do_test (json_ctx_t *json_ctx, size_t align, size_t len, size_t maxlen,
 int
 test_main (void)
 {
-  size_t i;
+  size_t i, j;
   json_ctx_t json_ctx;
 
   test_init ();
@@ -131,6 +127,19 @@ test_main (void)
 
   json_array_begin (&json_ctx, "results");
 
+  for (i = 0; i <= 1; ++i)
+    {
+      do_test (&json_ctx, i, 1, 128, MIDDLE_CHAR);
+      do_test (&json_ctx, i, 128, 1, MIDDLE_CHAR);
+      do_test (&json_ctx, i, 1, 2, MIDDLE_CHAR);
+      do_test (&json_ctx, i, 2, 1, MIDDLE_CHAR);
+
+      do_test (&json_ctx, 32 + i, 1, 128, MIDDLE_CHAR);
+      do_test (&json_ctx, 32 + i, 128, 1, MIDDLE_CHAR);
+      do_test (&json_ctx, 32 + i, 1, 2, MIDDLE_CHAR);
+      do_test (&json_ctx, 32 + i, 2, 1, MIDDLE_CHAR);
+    }
+
   for (i = 1; i < 8; ++i)
     {
       do_test (&json_ctx, 0, i, i - 1, MIDDLE_CHAR);
@@ -149,18 +158,49 @@ test_main (void)
     {
       do_test (&json_ctx, 0, 1 << i, 5000, MIDDLE_CHAR);
       do_test (&json_ctx, 1, 1 << i, 5000, MIDDLE_CHAR);
+      do_test (&json_ctx, 0, 5000, 1 << i, MIDDLE_CHAR);
+      do_test (&json_ctx, 1, 5000, 1 << i, MIDDLE_CHAR);
     }
 
   for (i = 1; i < 8; ++i)
-    do_test (&json_ctx, 0, i, 5000, BIG_CHAR);
+    {
+      do_test (&json_ctx, 0, i, 5000, BIG_CHAR);
+      do_test (&json_ctx, 0, 5000, i, BIG_CHAR);
+    }
 
   for (i = 1; i < 8; ++i)
-    do_test (&json_ctx, i, i, 5000, BIG_CHAR);
+    {
+      do_test (&json_ctx, i, i, 5000, BIG_CHAR);
+      do_test (&json_ctx, i, 5000, i, BIG_CHAR);
+    }
 
   for (i = 2; i <= 10; ++i)
     {
       do_test (&json_ctx, 0, 1 << i, 5000, BIG_CHAR);
       do_test (&json_ctx, 1, 1 << i, 5000, BIG_CHAR);
+      do_test (&json_ctx, 0, 5000, 1 << i, BIG_CHAR);
+      do_test (&json_ctx, 1, 5000, 1 << i, BIG_CHAR);
+    }
+
+  for (i = (16 / sizeof (CHAR)); i <= (8192 / sizeof (CHAR)); i += i)
+    {
+      for (j = 0; j <= (704 / sizeof (CHAR)); j += (32 / sizeof (CHAR)))
+	{
+	  do_test (&json_ctx, 0, i + j, i, BIG_CHAR);
+	  do_test (&json_ctx, 64, i + j, i, BIG_CHAR);
+
+	  do_test (&json_ctx, 0, i, i + j, BIG_CHAR);
+	  do_test (&json_ctx, 64, i, i + j, BIG_CHAR);
+
+	  if (j < i)
+	    {
+	      do_test (&json_ctx, 0, i - j, i, BIG_CHAR);
+	      do_test (&json_ctx, 64, i - j, i, BIG_CHAR);
+
+	      do_test (&json_ctx, 0, i, i - j, BIG_CHAR);
+	      do_test (&json_ctx, 64, i, i - j, BIG_CHAR);
+	    }
+	}
     }
 
   json_array_end (&json_ctx);

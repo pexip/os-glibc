@@ -1,5 +1,5 @@
 /* Dynamic linker system dependencies for Linux.
-   Copyright (C) 1995-2022 Free Software Foundation, Inc.
+   Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,6 +40,7 @@
 #include <sys/utsname.h>
 #include <tls.h>
 #include <unistd.h>
+#include <dl-symbol-redir-ifunc.h>
 
 #include <dl-machine.h>
 #include <dl-hwcap-check.h>
@@ -112,7 +113,7 @@ _dl_sysdep_start (void **start_argptr,
   /* Initialize DSO sorting algorithm after tunables.  */
   _dl_sort_maps_init ();
 
-  __brk (0);			/* Initialize the break.  */
+  __brk (NULL);			/* Initialize the break.  */
 
 #ifdef DL_PLATFORM_INIT
   DL_PLATFORM_INIT;
@@ -129,7 +130,7 @@ _dl_sysdep_start (void **start_argptr,
        break up that far.  When the user program examines its break, it
        will see this new value and not clobber our data.  */
     __sbrk (GLRO(dl_pagesize)
-	    - ((_end - (char *) 0) & (GLRO(dl_pagesize) - 1)));
+	    - (((uintptr_t) _end) & (GLRO(dl_pagesize) - 1)));
 
   /* If this is a SUID program we make sure that FDs 0, 1, and 2 are
      allocated.  If necessary we are doing it ourself.  If it is not
@@ -197,6 +198,10 @@ _dl_show_auxv (void)
 	  [AT_SYSINFO_EHDR - 2] =	{ "SYSINFO_EHDR:      0x", hex },
 	  [AT_RANDOM - 2] =		{ "RANDOM:            0x", hex },
 	  [AT_HWCAP2 - 2] =		{ "HWCAP2:            0x", hex },
+	  [AT_HWCAP3 - 2] =		{ "HWCAP3:            0x", hex },
+	  [AT_HWCAP4 - 2] =		{ "HWCAP4:            0x", hex },
+	  [AT_RSEQ_FEATURE_SIZE - 2] =	{ "RSEQ_FEATURE_SIZE: ", dec },
+	  [AT_RSEQ_ALIGN - 2] =		{ "RSEQ_ALIGN:        ", dec },
 	  [AT_MINSIGSTKSZ - 2] =	{ "MINSIGSTKSZ:       ", dec },
 	  [AT_L1I_CACHESIZE - 2] =	{ "L1I_CACHESIZE:     ", dec },
 	  [AT_L1I_CACHEGEOMETRY - 2] =	{ "L1I_CACHEGEOMETRY: 0x", hex },

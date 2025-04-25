@@ -1,6 +1,6 @@
 /* Machine-dependent ELF dynamic relocation inline functions.
    64 bit S/390 Version.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #include <dl-irel.h>
 #include <dl-static-tls.h>
 #include <dl-machine-rel.h>
+#include <cpu-features.c>
 
 #define ELF_MACHINE_IRELATIVE       R_390_IRELATIVE
 
@@ -43,33 +44,22 @@ elf_machine_matches_host (const Elf64_Ehdr *ehdr)
 	 && ehdr->e_ident[EI_CLASS] == ELFCLASS64;
 }
 
-/* Return the link-time address of _DYNAMIC.  Conveniently, this is the
-   first element of the GOT.  This must be inlined in a function which
-   uses global data.  */
-
-static inline Elf64_Addr
-elf_machine_dynamic (void)
-{
-  register Elf64_Addr *got;
-
-  __asm__ ( "	larl   %0,_GLOBAL_OFFSET_TABLE_\n"
-	    : "=&a" (got) : : "0" );
-
-  return *got;
-}
-
 /* Return the run-time load address of the shared object.  */
 static inline Elf64_Addr
 elf_machine_load_address (void)
 {
-  Elf64_Addr addr;
+  /* Starting from binutils-2.23, the linker will define the magic symbol
+     __ehdr_start to point to our own ELF header.  */
+  extern const ElfW(Ehdr) __ehdr_start attribute_hidden;
+  return (ElfW(Addr)) &__ehdr_start;
+}
 
-  __asm__( "   larl	 %0,_dl_start\n"
-	   "   larl	 1,_GLOBAL_OFFSET_TABLE_\n"
-	   "   lghi	 2,_dl_start@GOT\n"
-	   "   slg	 %0,0(2,1)"
-	   : "=&d" (addr) : : "1", "2" );
-  return addr;
+/* Return the link-time address of _DYNAMIC.  */
+static inline Elf64_Addr
+elf_machine_dynamic (void)
+{
+  extern ElfW(Dyn) _DYNAMIC[] attribute_hidden;
+  return (ElfW(Addr)) _DYNAMIC - elf_machine_load_address ();
 }
 
 /* Set up the loaded object described by L so its unrelocated PLT
@@ -110,16 +100,17 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	 to intercept the calls to collect information.	 In this case we
 	 don't store the address in the GOT so that all future calls also
 	 end in this function.	*/
+#ifdef SHARED
       if (__glibc_unlikely (profile))
 	{
-#if defined HAVE_S390_VX_ASM_SUPPORT
+# if defined HAVE_S390_VX_ASM_SUPPORT
 	  if (GLRO(dl_hwcap) & HWCAP_S390_VX)
 	    got[2] = (Elf64_Addr) &_dl_runtime_profile_vx;
 	  else
 	    got[2] = (Elf64_Addr) &_dl_runtime_profile;
-#else
+# else
 	  got[2] = (Elf64_Addr) &_dl_runtime_profile;
-#endif
+# endif
 
 	  if (GLRO(dl_profile) != NULL
 	      && _dl_name_match_p (GLRO(dl_profile), l))
@@ -128,6 +119,7 @@ elf_machine_runtime_setup (struct link_map *l, struct r_scope_elem *scope[],
 	    GL(dl_profile_map) = l;
 	}
       else
+#endif
 	{
 	  /* This function will get called to fix up the GOT entry indicated by
 	     the offset on the stack, and then jump to the resolved address.  */
@@ -220,6 +212,13 @@ dl_platform_init (void)
   if (GLRO(dl_platform) != NULL && *GLRO(dl_platform) == '\0')
     /* Avoid an empty string which would disturb us.  */
     GLRO(dl_platform) = NULL;
+
+#ifdef SHARED
+  /* init_cpu_features has been called early from __libc_start_main in
+     static executable.  */
+  init_cpu_features (&GLRO(dl_s390_cpu_features));
+#endif
+
 }
 
 static inline Elf64_Addr
