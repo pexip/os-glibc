@@ -1,5 +1,5 @@
 /* Convert string representing a number to integer value, using given locale.
-   Copyright (C) 1997-2022 Free Software Foundation, Inc.
+   Copyright (C) 1997-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,6 +16,9 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <features.h>
+#undef __GLIBC_USE_C23_STRTOL
+#define __GLIBC_USE_C23_STRTOL 0
 #define __need_wchar_t
 #include <stddef.h>
 #include <locale.h>

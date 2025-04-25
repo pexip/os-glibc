@@ -1,5 +1,5 @@
 /* System-specific socket constants and types.  Linux version.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -172,6 +172,7 @@ typedef __socklen_t socklen_t;
 #define SOL_MPTCP	284
 #define SOL_MCTP	285
 #define SOL_SMC		286
+#define SOL_VSOCK	287
 
 /* Maximum queue length specifiable by listen.  */
 #define SOMAXCONN	4096
@@ -180,7 +181,7 @@ typedef __socklen_t socklen_t;
 #include <bits/sockaddr.h>
 
 /* Structure describing a generic socket address.  */
-struct sockaddr
+struct __attribute_struct_may_alias__ sockaddr
   {
     __SOCKADDR_COMMON (sa_);	/* Common data: address family and length.  */
     char sa_data[14];		/* Address data.  */
@@ -193,7 +194,7 @@ struct sockaddr
 #define _SS_PADSIZE \
   (_SS_SIZE - __SOCKADDR_COMMON_SIZE - sizeof (__ss_aligntype))
 
-struct sockaddr_storage
+struct __attribute_struct_may_alias__ sockaddr_storage
   {
     __SOCKADDR_COMMON (ss_);	/* Address family, etc.  */
     char __ss_padding[_SS_PADSIZE];
@@ -245,6 +246,8 @@ enum
 #define MSG_WAITFORONE	MSG_WAITFORONE
     MSG_BATCH		= 0x40000, /* sendmmsg: more messages coming.  */
 #define MSG_BATCH	MSG_BATCH
+    MSG_SOCK_DEVMEM	= 0x2000000, /* Receive devmem skbs as cmsg.  */
+#define MSG_SOCK_DEVMEM	MSG_SOCK_DEVMEM
     MSG_ZEROCOPY	= 0x4000000, /* Use user data in kernel path.  */
 #define MSG_ZEROCOPY	MSG_ZEROCOPY
     MSG_FASTOPEN	= 0x20000000, /* Send data in TCP SYN.  */
@@ -307,6 +310,12 @@ struct cmsghdr
 			 + CMSG_ALIGN (sizeof (struct cmsghdr)))
 #define CMSG_LEN(len)   (CMSG_ALIGN (sizeof (struct cmsghdr)) + (len))
 
+/* Given a length, return the additional padding necessary such that
+   len + __CMSG_PADDING(len) == CMSG_ALIGN (len).  */
+#define __CMSG_PADDING(len) ((sizeof (size_t) \
+                              - ((len) & (sizeof (size_t) - 1))) \
+                             & (sizeof (size_t) - 1))
+
 extern struct cmsghdr *__cmsg_nxthdr (struct msghdr *__mhdr,
 				      struct cmsghdr *__cmsg) __THROW;
 #ifdef __USE_EXTERN_INLINES
@@ -316,18 +325,38 @@ extern struct cmsghdr *__cmsg_nxthdr (struct msghdr *__mhdr,
 _EXTERN_INLINE struct cmsghdr *
 __NTH (__cmsg_nxthdr (struct msghdr *__mhdr, struct cmsghdr *__cmsg))
 {
+  /* We may safely assume that __cmsg lies between __mhdr->msg_control and
+     __mhdr->msg_controllen because the user is required to obtain the first
+     cmsg via CMSG_FIRSTHDR, set its length, then obtain subsequent cmsgs
+     via CMSG_NXTHDR, setting lengths along the way.  However, we don't yet
+     trust the value of __cmsg->cmsg_len and therefore do not use it in any
+     pointer arithmetic until we check its value.  */
+
+  unsigned char * __msg_control_ptr = (unsigned char *) __mhdr->msg_control;
+  unsigned char * __cmsg_ptr = (unsigned char *) __cmsg;
+
+  size_t __size_needed = sizeof (struct cmsghdr)
+                         + __CMSG_PADDING (__cmsg->cmsg_len);
+
+  /* The current header is malformed, too small to be a full header.  */
   if ((size_t) __cmsg->cmsg_len < sizeof (struct cmsghdr))
-    /* The kernel header does this so there may be a reason.  */
     return (struct cmsghdr *) 0;
 
+  /* There isn't enough space between __cmsg and the end of the buffer to
+  hold the current cmsg *and* the next one.  */
+  if (((size_t)
+         (__msg_control_ptr + __mhdr->msg_controllen - __cmsg_ptr)
+       < __size_needed)
+      || ((size_t)
+            (__msg_control_ptr + __mhdr->msg_controllen - __cmsg_ptr
+             - __size_needed)
+          < __cmsg->cmsg_len))
+
+    return (struct cmsghdr *) 0;
+
+  /* Now, we trust cmsg_len and can use it to find the next header.  */
   __cmsg = (struct cmsghdr *) ((unsigned char *) __cmsg
 			       + CMSG_ALIGN (__cmsg->cmsg_len));
-  if ((unsigned char *) (__cmsg + 1) > ((unsigned char *) __mhdr->msg_control
-					+ __mhdr->msg_controllen)
-      || ((unsigned char *) __cmsg + CMSG_ALIGN (__cmsg->cmsg_len)
-	  > ((unsigned char *) __mhdr->msg_control + __mhdr->msg_controllen)))
-    /* No more entries.  */
-    return (struct cmsghdr *) 0;
   return __cmsg;
 }
 #endif	/* Use `extern inline'.  */
@@ -341,6 +370,10 @@ enum
 #ifdef __USE_GNU
     , SCM_CREDENTIALS = 0x02	/* Credentials passing.  */
 # define SCM_CREDENTIALS SCM_CREDENTIALS
+    , SCM_SECURITY = 0x03	/* Security label.  */
+# define SCM_SECURITY SCM_SECURITY
+    , SCM_PIDFD = 0x04		/* Pidfd.  */
+# define SCM_PIDFD SCM_PIDFD
 #endif
   };
 

@@ -1,5 +1,5 @@
 /* Definition for thread-local data handling.  nptl/x86_64 version.
-   Copyright (C) 2002-2022 Free Software Foundation, Inc.
+   Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ typedef struct
   void *__private_tm[4];
   /* GCC split stack support.  */
   void *__private_ss;
-  /* The lowest address of shadow stack,  */
+  /* The marker for the current shadow stack.  */
   unsigned long long int ssp_base;
   /* Must be kept even if it is no longer used by glibc since programs,
      like AddressSanitizer, depend on the size of tcbhead_t.  */
@@ -156,7 +156,7 @@ _Static_assert (offsetof (tcbhead_t, __glibc_unused2) == 0x80,
 		     "S" (_thrdescr)					      \
 		   : "memory", "cc", "r11", "cx");			      \
 									      \
-    _result ? "cannot set %fs base address for thread-local storage" : 0;     \
+    _result == 0;							      \
   })
 
 # define TLS_DEFINE_INIT_TP(tp, pd) void *tp = (pd)

@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Torbjorn Granlund (tege@sics.se).
 
@@ -46,11 +46,7 @@
 /* Type to use for aligned memory operations.
    This should normally be the biggest type supported by a single load
    and store.  Must be an unsigned type.  */
-# define op_t	unsigned long int
 # define OPSIZ	(sizeof (op_t))
-
-/* Threshold value for when to enter the unrolled loops.  */
-# define OP_T_THRES	16
 
 /* Type to use for unaligned operations.  */
 typedef unsigned char byte;

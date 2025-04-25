@@ -8,7 +8,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: libc 2.33.9000\n"
-"POT-Creation-Date: 2022-01-29 17:34-0500\n"
+"POT-Creation-Date: 2025-01-28 12:35+0100\n"
 "PO-Revision-Date: 2021-07-29 13:23+0300\n"
 "Last-Translator: Mehmet Kececi <mkececi@mehmetkececi.com>\n"
 "Language-Team: Turkish <gnome-turk@gnome.org>\n"
@@ -61,80 +61,62 @@ msgstr "Daha fazla bilgi için `%s --help' veya `%s --usage' yazınız.\n"
 msgid "Report bugs to %s.\n"
 msgstr "Hataları rapor et %s.\n"
 
-#: argp/argp-parse.c:101
+#: argp/argp-parse.c:86
 msgid "Give this help list"
 msgstr "Bu yardım iletisi verilir"
 
-#: argp/argp-parse.c:102
+#: argp/argp-parse.c:87
 msgid "Give a short usage message"
 msgstr "Kısa kullanım iletisi verilir"
 
-#: argp/argp-parse.c:103 catgets/gencat.c:108 catgets/gencat.c:112
-#: iconv/iconv_prog.c:60 iconv/iconv_prog.c:61 nscd/nscd.c:106 nscd/nscd.c:110
-#: nss/makedb.c:120
+#: argp/argp-parse.c:88 catgets/gencat.c:110 catgets/gencat.c:114
+#: iconv/iconv_prog.c:61 iconv/iconv_prog.c:62 nscd/nscd.c:106 nscd/nscd.c:110
+#: nss/makedb.c:122
 msgid "NAME"
 msgstr "İSİM"
 
-#: argp/argp-parse.c:104
+#: argp/argp-parse.c:89
 msgid "Set the program name"
 msgstr "Uygulama ismi belirtilir"
 
-#: argp/argp-parse.c:105
+#: argp/argp-parse.c:90
 msgid "SECS"
 msgstr "SECS"
 
-#: argp/argp-parse.c:106
+#: argp/argp-parse.c:91
 msgid "Hang for SECS seconds (default 3600)"
 msgstr "SANİYE saniyede kapanır (öntanımlı 3600)"
 
-#: argp/argp-parse.c:167
+#: argp/argp-parse.c:152
 msgid "Print program version"
 msgstr "Program sürümünü basar"
 
-#: argp/argp-parse.c:183
+#: argp/argp-parse.c:168
 msgid "(PROGRAM ERROR) No version known!?"
 msgstr "(PROGRAM HATASI) Bilinen bir sürüm değil!?"
 
-#: argp/argp-parse.c:623
+#: argp/argp-parse.c:608
 #, c-format
 msgid "%s: Too many arguments\n"
 msgstr "%s: Çok fazla argüman var\n"
 
-#: argp/argp-parse.c:766
+#: argp/argp-parse.c:751
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
 msgstr "(PROGRAM HATASI) Bu tanınan bir seçenek olmalıydı!?"
 
-#: assert/assert-perr.c:35
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sUnexpected error: %s.\n"
-"%n"
-msgstr ""
-"%s%s%s:%u: %s%sUmulmadık hata: %s.\n"
-"%n"
-
-#: assert/assert.c:101
-#, c-format
-msgid ""
-"%s%s%s:%u: %s%sAssertion `%s' failed.\n"
-"%n"
-msgstr ""
-"%s%s%s:%u: %s%sSav `%s' başarısızlığa uğradı.\n"
-"%n"
-
-#: catgets/gencat.c:109
+#: catgets/gencat.c:111
 msgid "Create C header file NAME containing symbol definitions"
 msgstr "Sembol tanımlarını içeren C başlık dosyası İSİM'i oluşturur"
 
-#: catgets/gencat.c:111
+#: catgets/gencat.c:113
 msgid "Do not use existing catalog, force new output file"
 msgstr "Mevcut kataloğu kullanmaz, yeni çıktı dosyasını zorlar"
 
-#: catgets/gencat.c:112 nss/makedb.c:120
+#: catgets/gencat.c:114 nss/makedb.c:122
 msgid "Write output to file NAME"
 msgstr "Çıktıyı İSİM dosyasına yazar"
 
-#: catgets/gencat.c:117
+#: catgets/gencat.c:119
 msgid ""
 "Generate message catalog.\vIf INPUT-FILE is -, input is read from standard input.  If OUTPUT-FILE\n"
 "is -, output is written to standard output.\n"
@@ -142,7 +124,7 @@ msgstr ""
 "İleti kataloğu üretilir. GİRDİ-DOSYASI - verilirse standart girdi okunur.\n"
 "ÇIKTI-DOSYASI - verilirse standart çıktıya yazılır.\n"
 
-#: catgets/gencat.c:122
+#: catgets/gencat.c:124
 msgid ""
 "-o OUTPUT-FILE [INPUT-FILE]...\n"
 "[OUTPUT-FILE [INPUT-FILE]...]"
@@ -150,12 +132,12 @@ msgstr ""
 "-o ÇIKTI-DOSYASI [GİRDİ-DOSYASI]...\n"
 "[ÇIKTI-DOSYASI [GİRDİ-DOSYASI]...]"
 
-#: catgets/gencat.c:228 debug/pcprofiledump.c:208 elf/ldconfig.c:311
-#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:387
+#: catgets/gencat.c:230 debug/pcprofiledump.c:219 elf/ldconfig.c:217
+#: elf/pldd.c:246 elf/sln.c:77 elf/sprof.c:371 iconv/iconv_prog.c:374
 #: iconv/iconvconfig.c:380 locale/programs/locale.c:275
 #: locale/programs/localedef.c:437 login/programs/pt_chown.c:88
-#: malloc/memusagestat.c:562 nss/getent.c:952 nss/makedb.c:369
-#: posix/getconf.c:503 sysdeps/unix/sysv/linux/lddlibc4.c:60
+#: malloc/memusagestat.c:564 nss/getent.c:961 nss/makedb.c:371
+#: posix/getconf.c:505
 #, c-format
 msgid ""
 "For bug reporting instructions, please see:\n"
@@ -164,13 +146,12 @@ msgstr ""
 "Yazılım hatalarını raporlama işlemleri için.\n"
 "%s.\n"
 
-#: catgets/gencat.c:244 debug/pcprofiledump.c:224 debug/xtrace.sh:63
-#: elf/ldconfig.c:327 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
-#: elf/sprof.c:388 iconv/iconv_prog.c:404 iconv/iconvconfig.c:397
+#: catgets/gencat.c:246 debug/pcprofiledump.c:235 debug/xtrace.sh:63
+#: elf/ldconfig.c:233 elf/ldd.bash.in:38 elf/pldd.c:262 elf/sotruss.sh:75
+#: elf/sprof.c:388 iconv/iconv_prog.c:391 iconv/iconvconfig.c:397
 #: locale/programs/locale.c:292 locale/programs/localedef.c:459
-#: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:580
-#: nscd/nscd.c:521 nss/getent.c:87 nss/makedb.c:385 posix/getconf.c:485
-#: sysdeps/unix/sysv/linux/lddlibc4.c:67
+#: login/programs/pt_chown.c:62 malloc/memusage.sh:70 malloc/memusagestat.c:582
+#: nscd/nscd.c:521 nss/getent.c:92 nss/makedb.c:387 posix/getconf.c:487
 #, c-format
 msgid ""
 "Copyright (C) %s Free Software Foundation, Inc.\n"
@@ -182,96 +163,96 @@ msgstr ""
 "HİÇBİR garanti yoktur; hatta SATILABİLİRLİĞİ veya ŞAHSİ KULLANIMINIZA\n"
 "UYGUNLUĞU için bile garanti verilmez.\n"
 
-#: catgets/gencat.c:249 debug/pcprofiledump.c:229 debug/xtrace.sh:67
-#: elf/ldconfig.c:332 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:409
+#: catgets/gencat.c:251 debug/pcprofiledump.c:240 debug/xtrace.sh:67
+#: elf/ldconfig.c:238 elf/pldd.c:267 elf/sprof.c:394 iconv/iconv_prog.c:396
 #: iconv/iconvconfig.c:402 locale/programs/locale.c:297
 #: locale/programs/localedef.c:464 malloc/memusage.sh:74
-#: malloc/memusagestat.c:585 nscd/nscd.c:526 nss/getent.c:92 nss/makedb.c:390
-#: posix/getconf.c:490
+#: malloc/memusagestat.c:587 nscd/nscd.c:526 nss/getent.c:97 nss/makedb.c:392
+#: posix/getconf.c:492
 #, c-format
 msgid "Written by %s.\n"
 msgstr "%s tarafından yazıldı.\n"
 
-#: catgets/gencat.c:280
+#: catgets/gencat.c:282
 msgid "*standard input*"
 msgstr "*standart girdi*"
 
-#: catgets/gencat.c:286 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:272
-#: nss/makedb.c:246
+#: catgets/gencat.c:288 iconv/iconv_charmap.c:172 iconv/iconv_prog.c:279
+#: iconv/iconv_prog.c:432 nss/makedb.c:248
 #, c-format
 msgid "cannot open input file `%s'"
 msgstr "`%s' girdi dosyası açılamıyor"
 
-#: catgets/gencat.c:415 catgets/gencat.c:490
+#: catgets/gencat.c:417 catgets/gencat.c:492
 msgid "illegal set number"
 msgstr "küme sayısı kuraldışı"
 
-#: catgets/gencat.c:442
+#: catgets/gencat.c:444
 msgid "duplicate set definition"
 msgstr "küme ataması tekrarlanmış"
 
-#: catgets/gencat.c:444 catgets/gencat.c:616 catgets/gencat.c:668
+#: catgets/gencat.c:446 catgets/gencat.c:618 catgets/gencat.c:670
 msgid "this is the first definition"
 msgstr "bu ilk tanım"
 
-#: catgets/gencat.c:515
+#: catgets/gencat.c:517
 #, c-format
 msgid "unknown set `%s'"
 msgstr "`%s' kümesi bilinmiyor"
 
-#: catgets/gencat.c:556
+#: catgets/gencat.c:558
 msgid "invalid quote character"
 msgstr "tırnak işareti geçersiz"
 
-#: catgets/gencat.c:569
+#: catgets/gencat.c:571
 #, c-format
 msgid "unknown directive `%s': line ignored"
 msgstr "bilinmeyen `%s' yönergesi: satır yoksayıldı"
 
-#: catgets/gencat.c:614
+#: catgets/gencat.c:616
 msgid "duplicated message number"
 msgstr "tekrarlanmış ileti numarası"
 
-#: catgets/gencat.c:665
+#: catgets/gencat.c:667
 msgid "duplicated message identifier"
 msgstr "ileti tanıtıcı tekrarlanmış"
 
-#: catgets/gencat.c:722
+#: catgets/gencat.c:724
 msgid "invalid character: message ignored"
 msgstr "geçersiz karakter: ileti yoksayıldı"
 
-#: catgets/gencat.c:765
+#: catgets/gencat.c:767
 msgid "invalid line"
 msgstr "satır geçersiz"
 
-#: catgets/gencat.c:819
+#: catgets/gencat.c:821
 msgid "malformed line ignored"
 msgstr "hatalı satır yoksayıldı"
 
-#: catgets/gencat.c:983 catgets/gencat.c:1024
+#: catgets/gencat.c:1000 catgets/gencat.c:1045
 #, c-format
 msgid "cannot open output file `%s'"
 msgstr "`%s' çıktı dosyası açılamıyor"
 
-#: catgets/gencat.c:1186 locale/programs/linereader.c:559
+#: catgets/gencat.c:1210 locale/programs/linereader.c:588
 msgid "invalid escape sequence"
 msgstr "geçersiz escape dizisi"
 
-#: catgets/gencat.c:1210
+#: catgets/gencat.c:1234
 msgid "unterminated message"
 msgstr "sonlandırılmamış ileti"
 
-#: catgets/gencat.c:1234
+#: catgets/gencat.c:1258
 #, c-format
 msgid "while opening old catalog file"
 msgstr "eski katalog dosyası açılırken"
 
-#: catgets/gencat.c:1325
+#: catgets/gencat.c:1349
 #, c-format
 msgid "conversion modules not available"
 msgstr "dönüşüm modülleri yok"
 
-#: catgets/gencat.c:1351
+#: catgets/gencat.c:1375
 #, c-format
 msgid "cannot determine escape character"
 msgstr "öncelem karakteri saptanamıyor"
@@ -288,17 +269,17 @@ msgstr "Üretilen PC profilini yazar."
 msgid "[FILE]"
 msgstr "[DOSYA]"
 
-#: debug/pcprofiledump.c:107
-#, c-format
-msgid "cannot open input file"
-msgstr "girdi dosyası açılamıyor"
-
-#: debug/pcprofiledump.c:114
+#: debug/pcprofiledump.c:97
 #, c-format
 msgid "cannot read header"
 msgstr "başlık okunamıyor"
 
-#: debug/pcprofiledump.c:178
+#: debug/pcprofiledump.c:145
+#, c-format
+msgid "cannot open input file"
+msgstr "girdi dosyası açılamıyor"
+
+#: debug/pcprofiledump.c:189
 #, c-format
 msgid "invalid pointer size"
 msgstr "imleyici uzunluğu geçersiz"
@@ -366,7 +347,7 @@ msgstr "çalıştırılabilir \\`$program' ortalarda yok\\n"
 msgid "\\`$program' is no executable\\n"
 msgstr "\\`$program' çalışkan değil\\n"
 
-#: dlfcn/dlinfo.c:43
+#: dlfcn/dlinfo.c:48
 msgid "unsupported dlinfo request"
 msgstr "dlinfo isteği desteklenmiyor"
 
@@ -382,287 +363,258 @@ msgstr "geçersiz kip"
 msgid "invalid mode parameter"
 msgstr "kip parametresi geçersiz"
 
-#: elf/cache.c:179
-msgid "unknown"
-msgstr "bilinmiyor"
-
-#: elf/cache.c:253
-msgid "Unknown OS"
-msgstr "Bilinmeyen işletim sistemi"
-
-#: elf/cache.c:258
-#, c-format
-msgid ", OS ABI: %s %d.%d.%d"
-msgstr ", OS ABI: %s %d.%d.%d"
-
-#: elf/cache.c:296
+#: elf/cache.c:273
 #, c-format
 msgid "Cache file has wrong endianness.\n"
 msgstr "Önbellek dosyası yanlış sonsuzluğa sahip.\n"
 
-#: elf/cache.c:305
+#: elf/cache.c:282
 msgid "Cache generated by: "
 msgstr "Önbellek tarafından oluşturulan: "
 
-#: elf/cache.c:319 elf/ldconfig.c:1437
+#: elf/cache.c:296 elf/ldconfig.c:1239
 #, c-format
 msgid "Can't open cache file %s\n"
 msgstr "Arabellek dosyası %s açılamıyor\n"
 
-#: elf/cache.c:333
+#: elf/cache.c:310
 #, c-format
 msgid "mmap of cache file failed.\n"
 msgstr "arabellek dosyasının mmap'lenmesi başarısız\n"
 
-#: elf/cache.c:337 elf/cache.c:351 elf/cache.c:362
+#: elf/cache.c:314 elf/cache.c:328 elf/cache.c:339
 #, c-format
 msgid "File is not a cache file.\n"
 msgstr "Bir arabellek dosyası değil.\n"
 
-#: elf/cache.c:391 elf/cache.c:406
+#: elf/cache.c:368 elf/cache.c:383
 #, c-format
 msgid "%d libs found in cache `%s'\n"
 msgstr "%d kitaplık, `%s' arabelleğinde bulundu\n"
 
-#: elf/cache.c:404
+#: elf/cache.c:381
 #, c-format
 msgid "Malformed extension data in cache file %s\n"
 msgstr "%s önbellek dosyasında hatalı biçimlendirilmiş uzantı verileri\n"
 
-#: elf/cache.c:547
+#: elf/cache.c:510
 #, c-format
 msgid "Writing of cache extension data failed"
 msgstr "Önbellek uzantısı verilerinin yazılması başarısız oldu"
 
-#: elf/cache.c:558
+#: elf/cache.c:521
 #, c-format
 msgid "%s: ISA level is too high (%d > %d)"
 msgstr "%s: ISA düzeyi çok yüksek (%d > %d)"
 
-#: elf/cache.c:725
+#: elf/cache.c:685
 #, c-format
 msgid "Can't create temporary cache file %s"
 msgstr "Geçici arabellek dosyası %s oluşturulamıyor"
 
-#: elf/cache.c:733 elf/cache.c:743 elf/cache.c:747 elf/cache.c:752
-#: elf/cache.c:770
+#: elf/cache.c:693 elf/cache.c:703 elf/cache.c:707 elf/cache.c:712
+#: elf/cache.c:731
 #, c-format
 msgid "Writing of cache data failed"
 msgstr "Arabellek verisini yazmada hata"
 
-#: elf/cache.c:765
+#: elf/cache.c:726
 #, c-format
 msgid "Changing access rights of %s to %#o failed"
 msgstr "%s erişim hakları %#o olarak değiştirilemedi"
 
-#: elf/cache.c:774
+#: elf/cache.c:735
 #, c-format
 msgid "Renaming of %s to %s failed"
 msgstr "%s'in ismi %s olarak değiştirilemedi"
 
-#: elf/cache.c:805
+#: elf/cache.c:765
 #, c-format
 msgid "Could not create library path"
 msgstr "Kitaplık yolu oluşturulamadı"
 
-#: elf/dl-close.c:386 elf/dl-open.c:298
+#: elf/dl-catch.c:85
+msgid "error while loading shared libraries"
+msgstr "paylaşımlı kitaplıklar yüklenirken hata oluştu"
+
+#: elf/dl-catch.c:118
+msgid "DYNAMIC LINKER BUG!!!"
+msgstr "DİNAMİK BAĞLAYICI HATASI!!!"
+
+#: elf/dl-close.c:363 elf/dl-open.c:298
 msgid "cannot create scope list"
 msgstr "etki alanı listesi oluşturulamıyor"
 
-#: elf/dl-close.c:815
+#: elf/dl-close.c:792
 msgid "shared object not open"
 msgstr "paylaşımlı nesne açık değil"
 
-#: elf/dl-deps.c:112
+#: elf/dl-deps.c:96
 msgid "DST not allowed in SUID/SGID programs"
 msgstr "SUID/SGID programlarda DST'ye izin verilmez"
 
-#: elf/dl-deps.c:125
+#: elf/dl-deps.c:109
 msgid "empty dynamic string token substitution"
 msgstr "boş dinamik dizge simge ikamesi"
 
-#: elf/dl-deps.c:131
+#: elf/dl-deps.c:115
 #, c-format
 msgid "cannot load auxiliary `%s' because of empty dynamic string token substitution\n"
 msgstr "boş dinamik dizge simgesi ikamesi yüzünden yardımcı `%s' yüklenemiyor\n"
 
-#: elf/dl-deps.c:220
+#: elf/dl-deps.c:204
 msgid "cannot allocate dependency buffer"
 msgstr "bağımlılık arabelleği tahsis edemez"
 
-#: elf/dl-deps.c:443
+#: elf/dl-deps.c:427
 msgid "cannot allocate dependency list"
 msgstr "bağımlılık listesi ayrılamadı"
 
-#: elf/dl-deps.c:483 elf/dl-deps.c:548
+#: elf/dl-deps.c:467
 msgid "cannot allocate symbol search list"
 msgstr "sembol arama listesi ayrılamadı"
-
-#: elf/dl-deps.c:528
-msgid "Filters not supported with LD_TRACE_PRELINKING"
-msgstr "LD_TRACE_PRELINKING'li süzgeçler destenlenmez"
-
-#: elf/dl-error-skeleton.c:80
-msgid "error while loading shared libraries"
-msgstr "paylaşımlı kitaplıklar yüklenirken hata oluştu"
-
-#: elf/dl-error-skeleton.c:113
-msgid "DYNAMIC LINKER BUG!!!"
-msgstr "DİNAMİK BAĞLAYICI HATASI!!!"
-
-#: elf/dl-fptr.c:88 sysdeps/hppa/dl-fptr.c:95
-msgid "cannot map pages for fdesc table"
-msgstr "fdesc tablosu için sayfalar eşlenemiyor"
-
-#: elf/dl-fptr.c:192 sysdeps/hppa/dl-fptr.c:213
-msgid "cannot map pages for fptr table"
-msgstr "fptr tablosu için sayfalar eşlenemiyor"
-
-#: elf/dl-fptr.c:221 sysdeps/hppa/dl-fptr.c:242
-msgid "internal error: symidx out of range of fptr table"
-msgstr "dahili hata: fptr tablosundaki symidx aralık dışında"
 
 #: elf/dl-hwcaps.c:104
 msgid "cannot create HWCAP priorities"
 msgstr "öncelikler HWCAP oluşturulamıyor"
 
-#: elf/dl-hwcaps.c:247 elf/dl-hwcaps.c:262
+#: elf/dl-hwcaps.c:196
 msgid "cannot create capability list"
 msgstr "yetenek listesi oluşturulamıyor"
 
-#: elf/dl-load.c:434
+#: elf/dl-load.c:424
 msgid "cannot allocate name record"
 msgstr "isim kaydı ayrılamadı"
 
-#: elf/dl-load.c:536 elf/dl-load.c:649 elf/dl-load.c:743 elf/dl-load.c:840
+#: elf/dl-load.c:510 elf/dl-load.c:623 elf/dl-load.c:717 elf/dl-load.c:814
 msgid "cannot create cache for search path"
 msgstr "dosya arama yolu için arabellek oluşturulamıyor"
 
-#: elf/dl-load.c:632
+#: elf/dl-load.c:606
 msgid "cannot create RUNPATH/RPATH copy"
 msgstr "kopyası RUNPATH/RPATH oluşturulamıyor"
 
-#: elf/dl-load.c:729
+#: elf/dl-load.c:703
 msgid "cannot create search path array"
 msgstr "dosya arama yolu dizisi oluşturulamıyor"
 
-#: elf/dl-load.c:970
+#: elf/dl-load.c:973
 msgid "cannot stat shared object"
 msgstr "paylaşımlı nesne durumlanamıyor"
 
-#: elf/dl-load.c:1069 elf/dl-load.c:2282
+#: elf/dl-load.c:1066 elf/dl-load.c:2155
 msgid "cannot create shared object descriptor"
 msgstr "paylaşımlı nesne tanımlayıcı oluşturulamıyor"
 
-#: elf/dl-load.c:1088 elf/dl-load.c:1661 elf/dl-load.c:1763
+#: elf/dl-load.c:1085 elf/dl-load.c:1604 elf/dl-load.c:1710
 msgid "cannot read file data"
 msgstr "dosya verisi okunamıyor"
 
-#: elf/dl-load.c:1223
+#: elf/dl-load.c:1230
 msgid "object file has no loadable segments"
 msgstr "nesne dosyasının yüklenebilir segmanı yok"
 
-#: elf/dl-load.c:1240
+#: elf/dl-load.c:1247
 msgid "cannot dynamically load executable"
 msgstr "çalıştırılabilir dosya dinamik olarak yüklenemiyor"
 
-#: elf/dl-load.c:1247
+#: elf/dl-load.c:1254
 msgid "object file has no dynamic section"
 msgstr "nesne dosyasının dinamik bölümü yok"
 
-#: elf/dl-load.c:1282
+#: elf/dl-load.c:1289
 msgid "cannot dynamically load position-independent executable"
 msgstr "konum-bağımsız yürütülebilir dinamik olarak yükleyemez"
 
-#: elf/dl-load.c:1284
+#: elf/dl-load.c:1291
 msgid "shared object cannot be dlopen()ed"
 msgstr "paylaşımlı nesne dlopen()'lanamıyor"
 
-#: elf/dl-load.c:1297
+#: elf/dl-load.c:1304
 msgid "cannot allocate memory for program header"
 msgstr "uygulama başlığı için bellek ayrılamadı"
 
-#: elf/dl-load.c:1330 elf/dl-load.h:131
-msgid "cannot change memory protections"
-msgstr "bellek korumaları değiştirilemiyor"
-
-#: elf/dl-load.c:1354
+#: elf/dl-load.c:1329
 msgid "cannot enable executable stack as shared object requires"
 msgstr "paylaşımlı nesnenin gerektirdiği çalıştırılabilir yığıt etkinleştirilemiyor"
 
-#: elf/dl-load.c:1382
+#: elf/dl-load.c:1357
 msgid "cannot close file descriptor"
 msgstr "dosya tanıtıcı kapatılamıyor"
 
-#: elf/dl-load.c:1661
+#: elf/dl-load.c:1604
 msgid "file too short"
 msgstr "dosya çok küçük"
 
-#: elf/dl-load.c:1697
+#: elf/dl-load.c:1638
 msgid "invalid ELF header"
 msgstr "geçersiz ELF başlığı"
 
-#: elf/dl-load.c:1709
+#: elf/dl-load.c:1653
 msgid "ELF file data encoding not big-endian"
 msgstr "ELF dosyası verisinin kodlaması en-kıymetli-bayt-ilk (big-endian) değil"
 
-#: elf/dl-load.c:1711
+#: elf/dl-load.c:1655
 msgid "ELF file data encoding not little-endian"
 msgstr "ELF dosyası verisinin kodlaması en-kıymetli-bayt-son (little-endian) değil"
 
-#: elf/dl-load.c:1715
+#: elf/dl-load.c:1659
 msgid "ELF file version ident does not match current one"
 msgstr "ELF dosyası sürüm kimliği mevcut biriyle eşleşmiyor"
 
-#: elf/dl-load.c:1719
+#: elf/dl-load.c:1663
 msgid "ELF file OS ABI invalid"
 msgstr "ELF dosyası OS ABI geçersiz"
 
-#: elf/dl-load.c:1722
+#: elf/dl-load.c:1666
 msgid "ELF file ABI version invalid"
 msgstr "ELF dosyası ABI sürümü geçersiz"
 
-#: elf/dl-load.c:1725
+#: elf/dl-load.c:1669
 msgid "nonzero padding in e_ident"
 msgstr "e_ident içinde sıfır olmayan dolgu"
 
-#: elf/dl-load.c:1728
+#: elf/dl-load.c:1672
 msgid "internal error"
 msgstr "iç hata"
 
-#: elf/dl-load.c:1735
+#: elf/dl-load.c:1679
 msgid "ELF file version does not match current one"
 msgstr "ELF dosyası sürümü mevcut biriyle eşleşmiyor"
 
-#: elf/dl-load.c:1743
+#: elf/dl-load.c:1691
 msgid "only ET_DYN and ET_EXEC can be loaded"
 msgstr "sadece ET_DYN ve ET_EXEC yüklü olabilir"
 
-#: elf/dl-load.c:1748
+#: elf/dl-load.c:1696
 msgid "ELF file's phentsize not the expected size"
 msgstr "ELF dosyasının phent uzunluğu beklenen uzunlukta değil"
 
-#: elf/dl-load.c:2301
+#: elf/dl-load.c:2174
 msgid "wrong ELF class: ELFCLASS64"
 msgstr "yanlış ELF sınıfı: ELFCLASS64"
 
-#: elf/dl-load.c:2302
+#: elf/dl-load.c:2175
 msgid "wrong ELF class: ELFCLASS32"
 msgstr "yanlış ELF sınıfı: ELFCLASS32"
 
-#: elf/dl-load.c:2305
+#: elf/dl-load.c:2178
 msgid "cannot open shared object file"
 msgstr "paylaşımlı nesne dosyası açılamıyor"
 
-#: elf/dl-load.h:129
+#: elf/dl-load.h:126
 msgid "failed to map segment from shared object"
 msgstr "parça paylaşımlı nesneden eşleştirilemedi"
 
-#: elf/dl-load.h:133
+#: elf/dl-load.h:128
+msgid "cannot change memory protections"
+msgstr "bellek korumaları değiştirilemiyor"
+
+#: elf/dl-load.h:130
 msgid "cannot map zero-fill pages"
 msgstr "sıfırlar içeren sayfalar eşleştirilemez"
 
-#: elf/dl-lookup.c:881
+#: elf/dl-lookup.c:800
 msgid "symbol lookup error"
 msgstr "simge arama hatası"
 
@@ -670,40 +622,40 @@ msgstr "simge arama hatası"
 msgid "cannot extend global scope"
 msgstr "genel kapsam genişletilemiyor"
 
-#: elf/dl-open.c:405
+#: elf/dl-open.c:382
 msgid "TLS generation counter wrapped!  Please report this."
 msgstr "TLS üretecinin sayacı başa döndü! Bunu lütfen bildirin."
 
-#: elf/dl-open.c:827
+#: elf/dl-open.c:817
 msgid "invalid mode for dlopen()"
 msgstr "dlopen() için kip geçersiz"
 
-#: elf/dl-open.c:844
+#: elf/dl-open.c:834
 msgid "no more namespaces available for dlmopen()"
 msgstr "dlmopen() için artık isim alanı kalmadı"
 
-#: elf/dl-open.c:868
+#: elf/dl-open.c:859
 msgid "invalid target namespace in dlmopen()"
 msgstr "dlmopen() için hedef isim alanı geçersiz"
 
-#: elf/dl-reloc.c:139
+#: elf/dl-reloc.c:140
 msgid "cannot allocate memory in static TLS block"
 msgstr "durağan TLS bloğunda bellek ayrılamıyor"
 
-#: elf/dl-reloc.c:275
+#: elf/dl-reloc.c:283
 msgid "cannot make segment writable for relocation"
 msgstr "yeniden konumlama için parça yazılabilir yapılamıyor"
 
-#: elf/dl-reloc.c:306
+#: elf/dl-reloc.c:313
 #, c-format
 msgid "%s: out of memory to store relocation results for %s\n"
 msgstr "%s: %s için yeniden ayırma işleminin sonuçlarını saklamak için bellek yetersiz\n"
 
-#: elf/dl-reloc.c:322
+#: elf/dl-reloc.c:328
 msgid "cannot restore segment prot after reloc"
 msgstr "reloc işleminden sonra prot segmanı eski haline getirilemedi"
 
-#: elf/dl-reloc.c:353
+#: elf/dl-reloc.c:366
 msgid "cannot apply additional memory protection after relocation"
 msgstr "yeniden ayırma işleminden sonra ek bellek koruması uygulanamaz"
 
@@ -711,7 +663,7 @@ msgstr "yeniden ayırma işleminden sonra ek bellek koruması uygulanamaz"
 msgid "RTLD_NEXT used in code not dynamically loaded"
 msgstr "RTLD_NEXT kullanılan kod dinamik olarak yüklenmedi"
 
-#: elf/dl-tls.c:1039
+#: elf/dl-tls.c:1196
 msgid "cannot create TLS data structures"
 msgstr "veri yapıları TLS oluşturulamıyor"
 
@@ -719,230 +671,215 @@ msgstr "veri yapıları TLS oluşturulamıyor"
 msgid "version lookup error"
 msgstr "sürüm arama hatası"
 
-#: elf/dl-version.c:278
+#: elf/dl-version.c:285
 msgid "cannot allocate version reference table"
 msgstr "sürüm başvuru tablosu ayrılamadı"
 
-#: elf/ldconfig.c:150
+#: elf/ldconfig.c:125
 msgid "Print cache"
 msgstr "Yazıcı ön belleği"
 
-#: elf/ldconfig.c:151
+#: elf/ldconfig.c:126
 msgid "Generate verbose messages"
 msgstr "Çok detaylı iletiler üretilir"
 
-#: elf/ldconfig.c:152
+#: elf/ldconfig.c:127
 msgid "Don't build cache"
 msgstr "Arabellek oluşturulamıyor"
 
-#: elf/ldconfig.c:153
+#: elf/ldconfig.c:128
 msgid "Don't update symbolic links"
 msgstr "Sembolik bağlantıları güncellemeyin"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:129
 msgid "Change to and use ROOT as root directory"
 msgstr "Dizine geçilir ve kök dizin olarak ROOT kullanır"
 
-#: elf/ldconfig.c:154
+#: elf/ldconfig.c:129
 msgid "ROOT"
 msgstr "KÖK"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:130
 msgid "CACHE"
 msgstr "ARABELLEK"
 
-#: elf/ldconfig.c:155
+#: elf/ldconfig.c:130
 msgid "Use CACHE as cache file"
 msgstr "Arabellek dosyası olarak ARABELLEK kullanılır"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:131
 msgid "CONF"
 msgstr "YAPL"
 
-#: elf/ldconfig.c:156
+#: elf/ldconfig.c:131
 msgid "Use CONF as configuration file"
 msgstr "Yapılandırma dosyası olarak YAPD kullanılır"
 
-#: elf/ldconfig.c:157
+#: elf/ldconfig.c:132
 msgid "Only process directories specified on the command line.  Don't build cache."
 msgstr "Komut satırında sadece süreç dizinleri belirtilmiş. Önbellek oluşturulamadı."
 
-#: elf/ldconfig.c:158
+#: elf/ldconfig.c:133
 msgid "Manually link individual libraries."
 msgstr "Her bir kitaplığı kendiniz bağlayın."
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:134
 msgid "FORMAT"
 msgstr "BİÇİM"
 
-#: elf/ldconfig.c:159
+#: elf/ldconfig.c:134
 msgid "Format to use: new (default), old, or compat"
 msgstr "Kullanılacak biçim: yeni (varsayılan), eski, veya compat"
 
-#: elf/ldconfig.c:160
+#: elf/ldconfig.c:135
 msgid "Ignore auxiliary cache file"
 msgstr "Yardımcı arabellek dosyası yoksayılır"
 
-#: elf/ldconfig.c:168
+#: elf/ldconfig.c:143
 msgid "Configure Dynamic Linker Run Time Bindings."
 msgstr "Dinamik Bağlayıcının İcra Zamanı Bağıntılarını Yapılandırır."
 
-#: elf/ldconfig.c:371
+#: elf/ldconfig.c:277
 #, c-format
 msgid "Path `%s' given more than once"
 msgstr "`%s' dosya yolu birden fazla verilmiş"
 
-#: elf/ldconfig.c:372
+#: elf/ldconfig.c:278
 #, c-format
 msgid "(from %s:%d and %s:%d)\n"
 msgstr "(%s:%d itibaren ve %s:%d)\n"
 
-#: elf/ldconfig.c:404 elf/ldconfig.c:445
+#: elf/ldconfig.c:310 elf/ldconfig.c:351
 #, c-format
 msgid "Could not form glibc-hwcaps path"
 msgstr "Glibc-hwcaps yolu oluşturulamadı"
 
-#: elf/ldconfig.c:418
+#: elf/ldconfig.c:324
 #, c-format
 msgid "Listing directory %s"
 msgstr "Listeleme dizini %s"
 
-#: elf/ldconfig.c:487
-#, c-format
-msgid "%s is not a known library type"
-msgstr "%s bilinen bir kitaplık türü değil"
-
-#: elf/ldconfig.c:519
+#: elf/ldconfig.c:406
 #, c-format
 msgid "Can't stat %s"
 msgstr "Stat %s yapılamıyor"
 
-#: elf/ldconfig.c:600
+#: elf/ldconfig.c:487
 #, c-format
 msgid "Can't stat %s\n"
 msgstr "Stat %s yapılamıyor\n"
 
-#: elf/ldconfig.c:610
+#: elf/ldconfig.c:497
 #, c-format
 msgid "%s is not a symbolic link\n"
 msgstr "%s bir sembolik bağ değil\n"
 
-#: elf/ldconfig.c:629
+#: elf/ldconfig.c:516
 #, c-format
 msgid "Can't unlink %s"
 msgstr "%s bağı kaldırılamadı"
 
-#: elf/ldconfig.c:635
+#: elf/ldconfig.c:522
 #, c-format
 msgid "Can't link %s to %s"
 msgstr "%s den %s'e bağ yapılamıyor"
 
-#: elf/ldconfig.c:641
+#: elf/ldconfig.c:528
 msgid " (changed)\n"
 msgstr " (değişti)\n"
 
-#: elf/ldconfig.c:643
+#: elf/ldconfig.c:530
 msgid " (SKIPPED)\n"
 msgstr " (ATLANDI)\n"
 
-#: elf/ldconfig.c:699
+#: elf/ldconfig.c:585
 #, c-format
 msgid "Can't find %s"
 msgstr "%s bulunamıyor"
 
-#: elf/ldconfig.c:715 elf/ldconfig.c:895 elf/ldconfig.c:955 elf/ldconfig.c:987
+#: elf/ldconfig.c:601 elf/ldconfig.c:760 elf/ldconfig.c:827
 #, c-format
 msgid "Cannot lstat %s"
 msgstr "Lstat %s yapılamıyor"
 
-#: elf/ldconfig.c:721
+#: elf/ldconfig.c:607
 #, c-format
 msgid "Ignored file %s since it is not a regular file."
 msgstr "Normal bir dosya olmadığından %s dosyası yoksayıldı."
 
-#: elf/ldconfig.c:729
+#: elf/ldconfig.c:615
 #, c-format
 msgid "No link created since soname could not be found for %s"
 msgstr "%s için kitaplık ismi bulunamadığından bağ oluşturulmadı"
 
-#: elf/ldconfig.c:804
+#: elf/ldconfig.c:701
 #, c-format
 msgid " (from %s:%d)\n"
 msgstr " (%s:%d itibaren)\n"
 
-#: elf/ldconfig.c:828
+#: elf/ldconfig.c:716
 #, c-format
 msgid "Can't open directory %s"
 msgstr "%s dizini açılamıyor"
 
-#: elf/ldconfig.c:913 elf/ldconfig.c:975 elf/readlib.c:96
+#: elf/ldconfig.c:777 elf/ldconfig.c:815 elf/readlib.c:81
 #, c-format
 msgid "Input file %s not found.\n"
 msgstr "Girdi dosyası %s bulunamadı.\n"
 
-#: elf/ldconfig.c:920
+#: elf/ldconfig.c:784
 #, c-format
 msgid "Cannot stat %s"
 msgstr "Stat %s yapılamıyor"
 
-#: elf/ldconfig.c:1073
-#, c-format
-msgid "libc5 library %s in wrong directory"
-msgstr "libc5 kitaplığı %s yanlış dizinde"
-
-#: elf/ldconfig.c:1076
+#: elf/ldconfig.c:903
 #, c-format
 msgid "libc6 library %s in wrong directory"
 msgstr "libc6 kitaplığı %s yanlış dizinde"
 
-#: elf/ldconfig.c:1079
-#, c-format
-msgid "libc4 library %s in wrong directory"
-msgstr "libc4 kitaplığı %s yanlış dizinde"
-
-#: elf/ldconfig.c:1107
+#: elf/ldconfig.c:922
 #, c-format
 msgid "libraries %s and %s in directory %s have same soname but different type."
 msgstr "%s ve %s kitaplıkları %s dizininde ve aynı isme sahip oldukları halde farklı türde."
 
-#: elf/ldconfig.c:1237
+#: elf/ldconfig.c:1051
 #, c-format
 msgid "Warning: ignoring configuration file that cannot be opened: %s"
 msgstr "Uyarı: açılmayan yapılandırma dosyası yok sayılıyor: %s"
 
-#: elf/ldconfig.c:1285
+#: elf/ldconfig.c:1099
 #, c-format
 msgid "%s:%u: hwcap directive ignored"
 msgstr "%s:%u: hwcap yönergesi göz ardı edildi"
 
-#: elf/ldconfig.c:1304
+#: elf/ldconfig.c:1118
 #, c-format
 msgid "need absolute file name for configuration file when using -r"
 msgstr "-r kullanılırken yapılandırma dosyası için soyut dosya ismi gerekir"
 
-#: elf/ldconfig.c:1311 locale/programs/xasprintf.c:31
+#: elf/ldconfig.c:1125 locale/programs/xasprintf.c:31
 #: locale/programs/xmalloc.c:63 malloc/obstack.c:416 malloc/obstack.c:418
-#: posix/getconf.c:458 posix/getconf.c:697
+#: posix/getconf.c:460 posix/getconf.c:699
 #, c-format
 msgid "memory exhausted"
 msgstr "bellek tükendi"
 
-#: elf/ldconfig.c:1344
+#: elf/ldconfig.c:1158
 #, c-format
 msgid "%s:%u: cannot read directory %s"
 msgstr "%s:%u: %s dizini okunamıyor"
 
-#: elf/ldconfig.c:1392
+#: elf/ldconfig.c:1196
 #, c-format
 msgid "relative path `%s' used to build cache"
 msgstr "arabelleğin oluşturulduğu göreli yol `%s'"
 
-#: elf/ldconfig.c:1416
+#: elf/ldconfig.c:1218
 #, c-format
 msgid "Can't chdir to /"
 msgstr "Dizin chdir'e geçilemiyor /"
 
-#: elf/ldconfig.c:1457
+#: elf/ldconfig.c:1259
 #, c-format
 msgid "Can't open cache file directory %s\n"
 msgstr "Arabellek dosyasının dizini %s açılamıyor\n"
@@ -993,7 +930,7 @@ msgstr "dosya nitelikleri eksik"
 msgid "No such file or directory"
 msgstr "Böyle bir dosya ya da dizin yok"
 
-#: elf/ldd.bash.in:150 inet/rcmd.c:481
+#: elf/ldd.bash.in:150 inet/rcmd.c:483
 msgid "not regular file"
 msgstr "düzenli dosya değil"
 
@@ -1013,42 +950,42 @@ msgstr "bilinmeyen bir çıkış koduyla durdu"
 msgid "error: you do not have read permission for"
 msgstr "hata: bunun için okuma yetkiniz yok"
 
-#: elf/pldd-xx.c:101
+#: elf/pldd-xx.c:103
 #, c-format
 msgid "cannot find program header of process"
 msgstr "işlemin program üstbilgisini bulamıyor"
 
-#: elf/pldd-xx.c:105
+#: elf/pldd-xx.c:107
 #, c-format
 msgid "cannot read program header"
 msgstr "program üstbilgisi okuyamıyorum"
 
-#: elf/pldd-xx.c:127
+#: elf/pldd-xx.c:129
 #, c-format
 msgid "cannot read dynamic section"
 msgstr "dinamik bölümü okunamıyor"
 
-#: elf/pldd-xx.c:136
+#: elf/pldd-xx.c:141
 #, c-format
 msgid "cannot read r_debug"
 msgstr "r_debug okunamıyor"
 
-#: elf/pldd-xx.c:153
+#: elf/pldd-xx.c:159
 #, c-format
 msgid "cannot read program interpreter"
 msgstr "program yorumlayıcı okunamıyor"
 
-#: elf/pldd-xx.c:182
+#: elf/pldd-xx.c:188
 #, c-format
 msgid "cannot read link map"
 msgstr "bağlantı haritası okunamıyor"
 
-#: elf/pldd-xx.c:189
+#: elf/pldd-xx.c:195
 #, c-format
 msgid "cannot read object name"
 msgstr "nesne adı okunamıyor"
 
-#: elf/pldd-xx.c:196
+#: elf/pldd-xx.c:202
 #, c-format
 msgid "cannot allocate buffer for object name"
 msgstr "nesne adı için arabellek tahsis edemez"
@@ -1116,52 +1053,52 @@ msgstr "işlem %lu ELF programı değildir"
 msgid "file %s is truncated\n"
 msgstr "%s dosyası kırpılmış\n"
 
-#: elf/readelflib.c:65
+#: elf/readelflib.c:63
 #, c-format
 msgid "%s is a 32 bit ELF file.\n"
 msgstr "%s 32 bitlik bir ELF dosyasıdır.\n"
 
-#: elf/readelflib.c:67
+#: elf/readelflib.c:65
 #, c-format
 msgid "%s is a 64 bit ELF file.\n"
 msgstr "%s 64 bitlik bir ELF dosyasıdır.\n"
 
-#: elf/readelflib.c:69
+#: elf/readelflib.c:67
 #, c-format
 msgid "Unknown ELFCLASS in file %s.\n"
 msgstr "%s dosyasında bilinmeyen ELFCLASS.\n"
 
-#: elf/readelflib.c:76
+#: elf/readelflib.c:74
 #, c-format
 msgid "%s is not a shared object file (Type: %d).\n"
 msgstr "%s paylaşımlı nesne dosyası değil (Tür: %d).\n"
 
-#: elf/readelflib.c:104
+#: elf/readelflib.c:101
 #, c-format
 msgid "more than one dynamic segment\n"
 msgstr "bir dinamik parçadan fazla\n"
 
-#: elf/readlib.c:102
+#: elf/readlib.c:87
 #, c-format
 msgid "Cannot fstat file %s.\n"
 msgstr "%s dosyası fstat yapılamıyor.\n"
 
-#: elf/readlib.c:113
+#: elf/readlib.c:98
 #, c-format
 msgid "File %s is empty, not checked."
 msgstr "%s dosyası boş olduğundan denetlenemiyor."
 
-#: elf/readlib.c:119
+#: elf/readlib.c:104
 #, c-format
 msgid "File %s is too small, not checked."
 msgstr "%s dosyası çok küçük, kontrol edilemedi."
 
-#: elf/readlib.c:129
+#: elf/readlib.c:114
 #, c-format
 msgid "Cannot mmap file %s.\n"
 msgstr "%s dosyası mmap yapılamıyor.\n"
 
-#: elf/readlib.c:168
+#: elf/readlib.c:152
 #, c-format
 msgid "%s is not an ELF file - it has the wrong magic bytes at the start.\n"
 msgstr "%s bir ELF dosyası değil - Başlangıcındaki dosya tanımı hatalı.\n"
@@ -1390,143 +1327,127 @@ msgstr "Dize tablosunun çok fazla girişi var"
 msgid "String table is too large"
 msgstr "Dize tablosu çok büyük"
 
-#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:427
+#: iconv/iconv_charmap.c:146 iconv/iconv_prog.c:426
 #, c-format
 msgid "cannot open output file"
 msgstr "çıktı dosyası açılamıyor"
 
-#: iconv/iconv_charmap.c:192 iconv/iconv_prog.c:290
+#: iconv/iconv_charmap.c:192
 #, c-format
 msgid "error while closing input `%s'"
 msgstr "`%s' girdisi kapatılırken hata"
 
-#: iconv/iconv_charmap.c:443
-#, c-format
-msgid "illegal input sequence at position %Zd"
-msgstr "%Zd konumunda uygun olmayan girdi dizgesi"
-
-#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:518
+#: iconv/iconv_charmap.c:462 iconv/iconv_prog.c:728
 #, c-format
 msgid "incomplete character or shift sequence at end of buffer"
 msgstr "tampon bellek sonunda eksik karakter ya da shift dizisi"
 
-#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:561
-#: iconv/iconv_prog.c:597
+#: iconv/iconv_charmap.c:507 iconv/iconv_charmap.c:543 iconv/iconv_prog.c:736
 #, c-format
 msgid "error while reading the input"
 msgstr "girdi okunurken hata"
 
-#: iconv/iconv_charmap.c:525 iconv/iconv_prog.c:579
+#: iconv/iconv_charmap.c:525
 #, c-format
 msgid "unable to allocate buffer for input"
 msgstr "girdi için tampon ayrılamadı"
 
-#: iconv/iconv_prog.c:59
+#: iconv/iconv_prog.c:60
 msgid "Input/Output format specification:"
 msgstr "Girdi/Çıktı biçem özellikleri:"
 
-#: iconv/iconv_prog.c:60
+#: iconv/iconv_prog.c:61
 msgid "encoding of original text"
 msgstr "özgün metin kodlaması"
 
-#: iconv/iconv_prog.c:61
+#: iconv/iconv_prog.c:62
 msgid "encoding for output"
 msgstr "çıktı için kodlama"
 
-#: iconv/iconv_prog.c:62
+#: iconv/iconv_prog.c:63
 msgid "Information:"
 msgstr "Bilgi:"
 
-#: iconv/iconv_prog.c:63
+#: iconv/iconv_prog.c:64
 msgid "list all known coded character sets"
 msgstr "tüm bilinen kodlu karakter kümelerini listeler"
 
-#: iconv/iconv_prog.c:64 locale/programs/localedef.c:123
+#: iconv/iconv_prog.c:65 locale/programs/localedef.c:123
 msgid "Output control:"
 msgstr "Çıktı kontrolu:"
 
-#: iconv/iconv_prog.c:65
+#: iconv/iconv_prog.c:66
 msgid "omit invalid characters from output"
 msgstr "geçersiz karakterleri çıktıya yazmaz"
 
-#: iconv/iconv_prog.c:66 iconv/iconvconfig.c:128
+#: iconv/iconv_prog.c:67 iconv/iconvconfig.c:128
 #: locale/programs/localedef.c:116 locale/programs/localedef.c:118
 #: locale/programs/localedef.c:120 locale/programs/localedef.c:149
-#: malloc/memusagestat.c:55
+#: malloc/memusagestat.c:56
 msgid "FILE"
 msgstr "DOSYA"
 
-#: iconv/iconv_prog.c:66
+#: iconv/iconv_prog.c:67
 msgid "output file"
 msgstr "çıktı dosyası"
 
-#: iconv/iconv_prog.c:67
+#: iconv/iconv_prog.c:68
 msgid "suppress warnings"
 msgstr "uyarıları engeller"
 
-#: iconv/iconv_prog.c:68
+#: iconv/iconv_prog.c:69
 msgid "print progress information"
 msgstr "gelişim bilgisi gösterir"
 
-#: iconv/iconv_prog.c:73
+#: iconv/iconv_prog.c:78
 msgid "Convert encoding of given files from one encoding to another."
 msgstr "Verilen dosyaların kodlamasını dönüştürür."
 
-#: iconv/iconv_prog.c:77
+#: iconv/iconv_prog.c:82
 msgid "[FILE...]"
 msgstr "[DOSYA...]"
 
-#: iconv/iconv_prog.c:176 iconv/iconv_prog.c:238
+#: iconv/iconv_prog.c:189 iconv/iconv_prog.c:251
 #, c-format
 msgid "failed to start conversion processing"
 msgstr "dönüşüm işlemi başlatılamadı"
 
-#: iconv/iconv_prog.c:212
+#: iconv/iconv_prog.c:225
 #, c-format
 msgid "conversions from `%s' and to `%s' are not supported"
 msgstr "`%s'den ve `%s'e dönüşümler desteklenmiyor"
 
-#: iconv/iconv_prog.c:217
+#: iconv/iconv_prog.c:230
 #, c-format
 msgid "conversion from `%s' is not supported"
 msgstr "`%s' den dönüşüm desteklenmiyor"
 
-#: iconv/iconv_prog.c:224
+#: iconv/iconv_prog.c:237
 #, c-format
 msgid "conversion to `%s' is not supported"
 msgstr "`%s' e dönüşüm desteklenmiyor"
 
-#: iconv/iconv_prog.c:228
+#: iconv/iconv_prog.c:241
 #, c-format
 msgid "conversion from `%s' to `%s' is not supported"
 msgstr "`%s' den `%s' e dönüşüm desteklenmiyor"
 
-#: iconv/iconv_prog.c:336
-#, c-format
-msgid "error while closing output file"
-msgstr "çıktı dosyası kapatılırken hata"
-
-#: iconv/iconv_prog.c:437
+#: iconv/iconv_prog.c:540
 #, c-format
 msgid "conversion stopped due to problem in writing the output"
 msgstr "çıktıyı yazarken bir problemden dolayı dönüştürme durdu"
 
-#: iconv/iconv_prog.c:514
-#, c-format
-msgid "illegal input sequence at position %ld"
-msgstr "%ld konumunda uygun olmayan girdi dizgesi"
-
-#: iconv/iconv_prog.c:522
+#: iconv/iconv_prog.c:693
 #, c-format
 msgid "internal error (illegal descriptor)"
 msgstr "iç hata (kuraldışı tanımlayıcı)"
 
-#: iconv/iconv_prog.c:525
+#: iconv/iconv_prog.c:696
 #, c-format
 msgid "unknown iconv() error %d"
 msgstr "bilinmeyen iconv() hatası %d"
 
-#: iconv/iconv_prog.c:768
+#: iconv/iconv_prog.c:909
 msgid ""
 "The following list contains all the coded character sets known.  This does\n"
 "not necessarily mean that all combinations of these names can be used for\n"
@@ -1586,68 +1507,68 @@ msgstr "arama ağacına eklenirken"
 msgid "cannot generate output file"
 msgstr "çıktı dosyası üretilemiyor"
 
-#: inet/rcmd.c:158
+#: inet/rcmd.c:160
 msgid "rcmd: Cannot allocate memory\n"
 msgstr "rcmd: Bellek ayrılamadı\n"
 
-#: inet/rcmd.c:175
+#: inet/rcmd.c:177
 msgid "rcmd: socket: All ports in use\n"
 msgstr "rcmd: soket: Tüm portlar kullanımda\n"
 
-#: inet/rcmd.c:203
+#: inet/rcmd.c:205
 #, c-format
 msgid "connect to address %s: "
 msgstr "%s adresine bağlantı: "
 
-#: inet/rcmd.c:216
+#: inet/rcmd.c:218
 #, c-format
 msgid "Trying %s...\n"
 msgstr "%s deneniyor...\n"
 
-#: inet/rcmd.c:252
+#: inet/rcmd.c:254
 #, c-format
 msgid "rcmd: write (setting up stderr): %m\n"
 msgstr "rcmd: write (stderr ayarlaması): %m\n"
 
-#: inet/rcmd.c:268
+#: inet/rcmd.c:270
 #, c-format
 msgid "rcmd: poll (setting up stderr): %m\n"
 msgstr "rcmd: poll (stderr ayarlaması): %m\n"
 
-#: inet/rcmd.c:271
+#: inet/rcmd.c:273
 msgid "poll: protocol failure in circuit setup\n"
 msgstr "poll: devre ayarında protokol hatası\n"
 
-#: inet/rcmd.c:303
+#: inet/rcmd.c:305
 msgid "socket: protocol failure in circuit setup\n"
 msgstr "soket: devre ayarında protokol hatası\n"
 
-#: inet/rcmd.c:327
+#: inet/rcmd.c:329
 #, c-format
 msgid "rcmd: %s: short read"
 msgstr "rcmd: %s: kısa okuma"
 
-#: inet/rcmd.c:479
+#: inet/rcmd.c:481
 msgid "lstat failed"
 msgstr "lstat başarısız"
 
-#: inet/rcmd.c:486
+#: inet/rcmd.c:488
 msgid "cannot open"
 msgstr "açılamıyor"
 
-#: inet/rcmd.c:488
+#: inet/rcmd.c:490
 msgid "fstat failed"
 msgstr "fstat başarısız"
 
-#: inet/rcmd.c:490
+#: inet/rcmd.c:492
 msgid "bad owner"
 msgstr "sahip hatalı"
 
-#: inet/rcmd.c:492
+#: inet/rcmd.c:494
 msgid "writeable by other than owner"
 msgstr "sahibinden başkası yazabilir"
 
-#: inet/rcmd.c:494
+#: inet/rcmd.c:496
 msgid "hard linked somewhere"
 msgstr "bir yere sabit bağlı"
 
@@ -1763,10 +1684,10 @@ msgid "no symbolic name given for end of range"
 msgstr "kapsam sonu için sembolik isim verilmemiş"
 
 #: locale/programs/charmap.c:614 locale/programs/ld-address.c:523
-#: locale/programs/ld-collate.c:2642 locale/programs/ld-collate.c:3806
+#: locale/programs/ld-collate.c:2635 locale/programs/ld-collate.c:3799
 #: locale/programs/ld-ctype.c:2117 locale/programs/ld-ctype.c:2829
 #: locale/programs/ld-identification.c:396 locale/programs/ld-measurement.c:212
-#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:747
+#: locale/programs/ld-messages.c:294 locale/programs/ld-monetary.c:855
 #: locale/programs/ld-name.c:261 locale/programs/ld-numeric.c:324
 #: locale/programs/ld-paper.c:211 locale/programs/ld-telephone.c:275
 #: locale/programs/ld-time.c:958 locale/programs/repertoire.c:311
@@ -1789,10 +1710,10 @@ msgid "%s: error in state machine"
 msgstr "%s: durum motorunda hata"
 
 #: locale/programs/charmap.c:855 locale/programs/ld-address.c:539
-#: locale/programs/ld-collate.c:2639 locale/programs/ld-collate.c:3999
+#: locale/programs/ld-collate.c:2632 locale/programs/ld-collate.c:3992
 #: locale/programs/ld-ctype.c:2114 locale/programs/ld-ctype.c:2846
 #: locale/programs/ld-identification.c:412 locale/programs/ld-measurement.c:228
-#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:763
+#: locale/programs/ld-messages.c:310 locale/programs/ld-monetary.c:871
 #: locale/programs/ld-name.c:277 locale/programs/ld-numeric.c:340
 #: locale/programs/ld-paper.c:227 locale/programs/ld-telephone.c:291
 #: locale/programs/ld-time.c:989 locale/programs/locfile.c:1009
@@ -1811,7 +1732,7 @@ msgstr "`%s' karakteri bilinmiyor"
 msgid "number of bytes for byte sequence of beginning and end of range not the same: %d vs %d"
 msgstr "aralığın başındaki ve sonundaki bayt dizilerideki baytların sayısı aynı değil: %d ve %d"
 
-#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2923
+#: locale/programs/charmap.c:998 locale/programs/ld-collate.c:2916
 #: locale/programs/repertoire.c:417
 msgid "invalid names for character range"
 msgstr "karakter kapsamı için geçersiz isimler"
@@ -1833,7 +1754,7 @@ msgstr "aralığın üst sınırı alt sınırdan küçük"
 msgid "resulting bytes for range not representable."
 msgstr "sonuçlanan baytlar kapsam için gösterilebilir değil."
 
-#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1570
+#: locale/programs/ld-address.c:132 locale/programs/ld-collate.c:1569
 #: locale/programs/ld-ctype.c:429 locale/programs/ld-identification.c:130
 #: locale/programs/ld-measurement.c:91 locale/programs/ld-messages.c:95
 #: locale/programs/ld-monetary.c:191 locale/programs/ld-name.c:92
@@ -1847,14 +1768,13 @@ msgstr "%s kategorisi için atama bulunamadı"
 #: locale/programs/ld-address.c:198 locale/programs/ld-address.c:227
 #: locale/programs/ld-address.c:299 locale/programs/ld-address.c:318
 #: locale/programs/ld-address.c:330 locale/programs/ld-identification.c:143
-#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:203
-#: locale/programs/ld-monetary.c:257 locale/programs/ld-monetary.c:273
-#: locale/programs/ld-monetary.c:285 locale/programs/ld-name.c:103
-#: locale/programs/ld-name.c:140 locale/programs/ld-numeric.c:110
-#: locale/programs/ld-numeric.c:124 locale/programs/ld-paper.c:99
-#: locale/programs/ld-paper.c:108 locale/programs/ld-telephone.c:102
-#: locale/programs/ld-telephone.c:159 locale/programs/ld-time.c:179
-#: locale/programs/ld-time.c:200
+#: locale/programs/ld-measurement.c:102 locale/programs/ld-monetary.c:291
+#: locale/programs/ld-monetary.c:368 locale/programs/ld-monetary.c:389
+#: locale/programs/ld-name.c:103 locale/programs/ld-name.c:140
+#: locale/programs/ld-numeric.c:110 locale/programs/ld-numeric.c:124
+#: locale/programs/ld-paper.c:99 locale/programs/ld-paper.c:108
+#: locale/programs/ld-telephone.c:102 locale/programs/ld-telephone.c:159
+#: locale/programs/ld-time.c:179 locale/programs/ld-time.c:200
 #, c-format
 msgid "%s: field `%s' not defined"
 msgstr "%s: `%s' alanı tanımlı değil"
@@ -1900,8 +1820,8 @@ msgstr "%s: sayısal ülke kodu `%d' geçersiz"
 #: locale/programs/ld-address.c:431 locale/programs/ld-address.c:468
 #: locale/programs/ld-address.c:506 locale/programs/ld-ctype.c:2478
 #: locale/programs/ld-identification.c:308 locale/programs/ld-measurement.c:195
-#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:502
-#: locale/programs/ld-monetary.c:537 locale/programs/ld-monetary.c:578
+#: locale/programs/ld-messages.c:263 locale/programs/ld-monetary.c:610
+#: locale/programs/ld-monetary.c:645 locale/programs/ld-monetary.c:686
 #: locale/programs/ld-name.c:234 locale/programs/ld-numeric.c:216
 #: locale/programs/ld-paper.c:194 locale/programs/ld-telephone.c:250
 #: locale/programs/ld-time.c:863 locale/programs/ld-time.c:905
@@ -1911,7 +1831,7 @@ msgstr "%s: `%s' alanı bir kereden fazla bildirilmiş"
 
 #: locale/programs/ld-address.c:435 locale/programs/ld-address.c:473
 #: locale/programs/ld-identification.c:312 locale/programs/ld-messages.c:273
-#: locale/programs/ld-monetary.c:506 locale/programs/ld-monetary.c:541
+#: locale/programs/ld-monetary.c:614 locale/programs/ld-monetary.c:649
 #: locale/programs/ld-name.c:238 locale/programs/ld-numeric.c:220
 #: locale/programs/ld-telephone.c:254 locale/programs/ld-time.c:755
 #: locale/programs/ld-time.c:826 locale/programs/ld-time.c:868
@@ -1919,10 +1839,10 @@ msgstr "%s: `%s' alanı bir kereden fazla bildirilmiş"
 msgid "%s: unknown character in field `%s'"
 msgstr "%s: `%s' alanında bilinmeyen karakter"
 
-#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3804
+#: locale/programs/ld-address.c:520 locale/programs/ld-collate.c:3797
 #: locale/programs/ld-ctype.c:2826 locale/programs/ld-identification.c:393
 #: locale/programs/ld-measurement.c:209 locale/programs/ld-messages.c:292
-#: locale/programs/ld-monetary.c:745 locale/programs/ld-name.c:259
+#: locale/programs/ld-monetary.c:853 locale/programs/ld-name.c:259
 #: locale/programs/ld-numeric.c:322 locale/programs/ld-paper.c:209
 #: locale/programs/ld-telephone.c:273 locale/programs/ld-time.c:956
 #, c-format
@@ -1931,12 +1851,12 @@ msgstr "%s: tamamlanmamış `END' satırı"
 
 #: locale/programs/ld-address.c:530 locale/programs/ld-collate.c:553
 #: locale/programs/ld-collate.c:605 locale/programs/ld-collate.c:901
-#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2608
-#: locale/programs/ld-collate.c:2629 locale/programs/ld-collate.c:3989
+#: locale/programs/ld-collate.c:914 locale/programs/ld-collate.c:2601
+#: locale/programs/ld-collate.c:2622 locale/programs/ld-collate.c:3982
 #: locale/programs/ld-ctype.c:1846 locale/programs/ld-ctype.c:2104
 #: locale/programs/ld-ctype.c:2676 locale/programs/ld-ctype.c:2837
 #: locale/programs/ld-identification.c:403 locale/programs/ld-measurement.c:219
-#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:754
+#: locale/programs/ld-messages.c:301 locale/programs/ld-monetary.c:862
 #: locale/programs/ld-name.c:268 locale/programs/ld-numeric.c:331
 #: locale/programs/ld-paper.c:218 locale/programs/ld-telephone.c:282
 #: locale/programs/ld-time.c:980
@@ -2000,11 +1920,6 @@ msgstr "%s: ağırlıklar isim olarak aynı elips sembolünü kullanmalıdır"
 msgid "%s: too many values"
 msgstr "%s: çok fazla değer var"
 
-#: locale/programs/ld-collate.c:1062 locale/programs/ld-collate.c:1237
-#, c-format
-msgid "order for `%.*s' already defined at %s:%Zu"
-msgstr "`%.*s' için sıralama zaten %s:%Zu içinde atanmış"
-
 #: locale/programs/ld-collate.c:1112
 #, c-format
 msgid "%s: the start and the end symbol of a range must stand for characters"
@@ -2035,166 +1950,161 @@ msgstr "%s: sembolik kapsam elipslerinin hemen ardından `order_end' gelmemelidi
 msgid "`%s' and `%.*s' are not valid names for symbolic range"
 msgstr "`%s' ve `%.*s' simgesel aralık için geçerli isimler değil"
 
-#: locale/programs/ld-collate.c:1380 locale/programs/ld-collate.c:3738
-#, c-format
-msgid "%s: order for `%.*s' already defined at %s:%Zu"
-msgstr "%s: `%.*s' için abecesel sıra zaten %s:%Zu içinde atanmış"
-
 #: locale/programs/ld-collate.c:1389
 #, c-format
 msgid "%s: `%s' must be a character"
 msgstr "%s: `%s' bir karakter olmalı"
 
-#: locale/programs/ld-collate.c:1591
+#: locale/programs/ld-collate.c:1590
 #, c-format
 msgid "%s: `position' must be used for a specific level in all sections or none"
 msgstr "%s: `position' tüm alt bölümlerde özel bir düzey için kullanılmış olmalı ya da hiç bulunmamalı"
 
-#: locale/programs/ld-collate.c:1615
+#: locale/programs/ld-collate.c:1614
 #, c-format
 msgid "symbol `%s' not defined"
 msgstr "`%s' sembolü atanmamış"
 
-#: locale/programs/ld-collate.c:1691 locale/programs/ld-collate.c:1796
+#: locale/programs/ld-collate.c:1690 locale/programs/ld-collate.c:1789
 #, c-format
 msgid "symbol `%s' has the same encoding as"
 msgstr "`%s' sembolü bununla aynı kodlamaya sahip"
 
-#: locale/programs/ld-collate.c:1695 locale/programs/ld-collate.c:1800
+#: locale/programs/ld-collate.c:1694 locale/programs/ld-collate.c:1793
 #, c-format
 msgid "symbol `%s'"
 msgstr "`%s' sembolü"
 
-#: locale/programs/ld-collate.c:1863
+#: locale/programs/ld-collate.c:1856
 msgid "too many errors; giving up"
 msgstr "çok fazla hata: bırakılıyor"
 
-#: locale/programs/ld-collate.c:2534 locale/programs/ld-collate.c:3928
+#: locale/programs/ld-collate.c:2527 locale/programs/ld-collate.c:3921
 #, c-format
 msgid "%s: nested conditionals not supported"
 msgstr "%s:  iç içe koşullu ifadeler desteklenmiyor"
 
-#: locale/programs/ld-collate.c:2552
+#: locale/programs/ld-collate.c:2545
 #, c-format
 msgid "%s: more than one 'else'"
 msgstr "%s: birden fazla 'else'"
 
-#: locale/programs/ld-collate.c:2731
+#: locale/programs/ld-collate.c:2724
 #, c-format
 msgid "%s: duplicate definition of `%s'"
 msgstr "%s: `%s' tanımı tekrarlanmış"
 
-#: locale/programs/ld-collate.c:2767
+#: locale/programs/ld-collate.c:2760
 #, c-format
 msgid "%s: duplicate declaration of section `%s'"
 msgstr "%s: `%s' bölüm bildirimi tekrarlanmış"
 
-#: locale/programs/ld-collate.c:2903
+#: locale/programs/ld-collate.c:2896
 #, c-format
 msgid "%s: unknown character in collating symbol name"
 msgstr "%s: karşılaştırma sembolü isminde bilinmeyen karakter"
 
-#: locale/programs/ld-collate.c:3032
+#: locale/programs/ld-collate.c:3025
 #, c-format
 msgid "%s: unknown character in equivalent definition name"
 msgstr "%s: eşdeğer tanımlama isminde bilinmeyen karakter"
 
-#: locale/programs/ld-collate.c:3043
+#: locale/programs/ld-collate.c:3036
 #, c-format
 msgid "%s: unknown character in equivalent definition value"
 msgstr "%s: eşdeğer tanımlama değerinde bilinmeyen karakter"
 
-#: locale/programs/ld-collate.c:3053
+#: locale/programs/ld-collate.c:3046
 #, c-format
 msgid "%s: unknown symbol `%s' in equivalent definition"
 msgstr "%s: eşdeğer tanımlamada bilinmeyen sembol: `%s'"
 
-#: locale/programs/ld-collate.c:3062
+#: locale/programs/ld-collate.c:3055
 msgid "error while adding equivalent collating symbol"
 msgstr "eşdeğer karşılaştırma sembolünü eklerken hata"
 
-#: locale/programs/ld-collate.c:3100
+#: locale/programs/ld-collate.c:3093
 #, c-format
 msgid "duplicate definition of script `%s'"
 msgstr "`%s' betiğinin ataması tekrarlanmış"
 
-#: locale/programs/ld-collate.c:3148
+#: locale/programs/ld-collate.c:3141
 #, c-format
 msgid "%s: unknown section name `%.*s'"
 msgstr "%s: bölüm ismi `%.*s' bilinmiyor"
 
-#: locale/programs/ld-collate.c:3177
+#: locale/programs/ld-collate.c:3170
 #, c-format
 msgid "%s: multiple order definitions for section `%s'"
 msgstr "%s: `%s' alt bölümünde çok sayıda sıralama tanımı"
 
-#: locale/programs/ld-collate.c:3205
+#: locale/programs/ld-collate.c:3198
 #, c-format
 msgid "%s: invalid number of sorting rules"
 msgstr "%s: sıralama kurallarının sayısı geçersiz"
 
-#: locale/programs/ld-collate.c:3232
+#: locale/programs/ld-collate.c:3225
 #, c-format
 msgid "%s: multiple order definitions for unnamed section"
 msgstr "%s: isimsiz alt bölümde çok sayıda sıralama tanımı"
 
-#: locale/programs/ld-collate.c:3287 locale/programs/ld-collate.c:3417
-#: locale/programs/ld-collate.c:3782
+#: locale/programs/ld-collate.c:3280 locale/programs/ld-collate.c:3410
+#: locale/programs/ld-collate.c:3775
 #, c-format
 msgid "%s: missing `order_end' keyword"
 msgstr "%s: `order_end' anahtar-sözcüğü kayıp"
 
-#: locale/programs/ld-collate.c:3350
+#: locale/programs/ld-collate.c:3343
 #, c-format
 msgid "%s: order for collating symbol %.*s not yet defined"
 msgstr "%s: karşılaştırma sembolü %.*s için abecesel sıra henüz atanmamış"
 
-#: locale/programs/ld-collate.c:3368
+#: locale/programs/ld-collate.c:3361
 #, c-format
 msgid "%s: order for collating element %.*s not yet defined"
 msgstr "%s: karşılaştırma elemanı %.*s için abecesel sıra henüz atanmamış"
 
-#: locale/programs/ld-collate.c:3379
+#: locale/programs/ld-collate.c:3372
 #, c-format
 msgid "%s: cannot reorder after %.*s: symbol not known"
 msgstr "%s: %.*s sembolünden sonra tekrar sıralanamıyor: sembol bilinmiyor"
 
-#: locale/programs/ld-collate.c:3431 locale/programs/ld-collate.c:3794
+#: locale/programs/ld-collate.c:3424 locale/programs/ld-collate.c:3787
 #, c-format
 msgid "%s: missing `reorder-end' keyword"
 msgstr "%s: `reorder_end' anahtar-sözcüğü kayıp"
 
-#: locale/programs/ld-collate.c:3465 locale/programs/ld-collate.c:3663
+#: locale/programs/ld-collate.c:3458 locale/programs/ld-collate.c:3656
 #, c-format
 msgid "%s: section `%.*s' not known"
 msgstr "%s: `%.*s' alt bölümü bilinmiyor"
 
-#: locale/programs/ld-collate.c:3530
+#: locale/programs/ld-collate.c:3523
 #, c-format
 msgid "%s: bad symbol <%.*s>"
 msgstr "%s: hatalı sembol <%.*s>"
 
-#: locale/programs/ld-collate.c:3726
+#: locale/programs/ld-collate.c:3719
 #, c-format
 msgid "%s: cannot have `%s' as end of ellipsis range"
 msgstr "%s: `%s' elips kapsamının sonu olamıyor"
 
-#: locale/programs/ld-collate.c:3778
+#: locale/programs/ld-collate.c:3771
 #, c-format
 msgid "%s: empty category description not allowed"
 msgstr "%s: boş kategori açıklamasına izin verilmez"
 
-#: locale/programs/ld-collate.c:3797
+#: locale/programs/ld-collate.c:3790
 #, c-format
 msgid "%s: missing `reorder-sections-end' keyword"
 msgstr "%s: `reorder_section_end' anahtar-sözcüğü kayıp"
 
-#: locale/programs/ld-collate.c:3961
+#: locale/programs/ld-collate.c:3954
 #, c-format
 msgid "%s: '%s' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: 'ifdef' veya 'ifndef' ile eşleşmeyen '%s'"
 
-#: locale/programs/ld-collate.c:3979
+#: locale/programs/ld-collate.c:3972
 #, c-format
 msgid "%s: 'endif' without matching 'ifdef' or 'ifndef'"
 msgstr "%s: 'ifdef' veya 'ifndef' ile eşleşmeyen 'endif'"
@@ -2385,22 +2295,22 @@ msgstr "%s: öntanımlı değer olarak gerekli olan `%s' karakteri tek bayt ile 
 msgid "no output digits defined and none of the standard names in the charmap"
 msgstr "karakter eşleşme listesinde standart isimlerin hiç biri ve atanmış çıktı rakamları yok"
 
-#: locale/programs/ld-ctype.c:3572
+#: locale/programs/ld-ctype.c:3545
 #, c-format
 msgid "%s: transliteration data from locale `%s' not available"
 msgstr "%s: `%s' yerelinden başka bir dilin alfabesinde yazma verisi yok"
 
-#: locale/programs/ld-ctype.c:3671
+#: locale/programs/ld-ctype.c:3644
 #, c-format
 msgid "%s: table for class \"%s\": %lu bytes"
 msgstr "%s: \"%s\" sınıfının tablosu: %lu bayt"
 
-#: locale/programs/ld-ctype.c:3735
+#: locale/programs/ld-ctype.c:3708
 #, c-format
 msgid "%s: table for map \"%s\": %lu bytes"
 msgstr "%s: \"%s\" eşlemlerinin tablosu: %lu bayt"
 
-#: locale/programs/ld-ctype.c:3859
+#: locale/programs/ld-ctype.c:3832
 #, c-format
 msgid "%s: table for width: %lu bytes"
 msgstr "%s: genişlik için tablo: %lu bayt"
@@ -2431,7 +2341,7 @@ msgid "%s: field `%s' undefined"
 msgstr "%s: `%s' alanı tanımsız"
 
 #: locale/programs/ld-messages.c:118 locale/programs/ld-messages.c:151
-#: locale/programs/ld-monetary.c:263 locale/programs/ld-numeric.c:116
+#: locale/programs/ld-numeric.c:116
 #, c-format
 msgid "%s: value for field `%s' must not be an empty string"
 msgstr "%s: `%s' alanının değeri boş bir dizge olmamalı"
@@ -2441,37 +2351,37 @@ msgstr "%s: `%s' alanının değeri boş bir dizge olmamalı"
 msgid "%s: no correct regular expression for field `%s': %s"
 msgstr "%s: `%s' alanında doğru bir düzenli ifade yok: %s"
 
-#: locale/programs/ld-monetary.c:227
+#: locale/programs/ld-monetary.c:310
 #, c-format
 msgid "%s: value of field `int_curr_symbol' has wrong length"
 msgstr "%s: `int_curr_symbol' alanındaki değer yanlış uzunlukta"
 
-#: locale/programs/ld-monetary.c:244
+#: locale/programs/ld-monetary.c:327
 #, c-format
 msgid "%s: value of field `int_curr_symbol' does not correspond to a valid name in ISO 4217 [--no-warnings=intcurrsym]"
 msgstr "%s: `int_curr_symbol' alanının değeri ISO 4217'deki geçerli bir ada karşılık gelmez [--no-warnings=intcurrsym]"
 
-#: locale/programs/ld-monetary.c:292 locale/programs/ld-monetary.c:321
+#: locale/programs/ld-monetary.c:396 locale/programs/ld-monetary.c:420
 #, c-format
 msgid "%s: value for field `%s' must be in range %d...%d"
 msgstr "%s: `%s' alanındaki değer %d...%d aralığında olmalı"
 
-#: locale/programs/ld-monetary.c:548 locale/programs/ld-numeric.c:227
+#: locale/programs/ld-monetary.c:656 locale/programs/ld-numeric.c:227
 #, c-format
 msgid "%s: value for field `%s' must be a single character"
 msgstr "%s: `%s' alanındaki değer tek karakter olmalı"
 
-#: locale/programs/ld-monetary.c:645 locale/programs/ld-numeric.c:271
+#: locale/programs/ld-monetary.c:753 locale/programs/ld-numeric.c:271
 #, c-format
 msgid "%s: `-1' must be last entry in `%s' field"
 msgstr "%s: `%s' alanında `-1' son girdi olmalı"
 
-#: locale/programs/ld-monetary.c:667 locale/programs/ld-numeric.c:288
+#: locale/programs/ld-monetary.c:775 locale/programs/ld-numeric.c:288
 #, c-format
 msgid "%s: values for field `%s' must be smaller than 127"
 msgstr "%s: `%s' alanındaki değer 127 den küçük olmalı"
 
-#: locale/programs/ld-monetary.c:713
+#: locale/programs/ld-monetary.c:821
 msgid "conversion rate value cannot be zero"
 msgstr "dönüştürme oranı sıfır olamaz"
 
@@ -2561,36 +2471,36 @@ msgstr "fazladan ; var"
 msgid "%s: too many values for field `%s'"
 msgstr "%s: `%s' alanındaki değerler çok fazla"
 
-#: locale/programs/linereader.c:129
+#: locale/programs/linereader.c:130
 msgid "trailing garbage at end of line"
 msgstr "satır sonu bozuk"
 
-#: locale/programs/linereader.c:297
+#: locale/programs/linereader.c:298
 msgid "garbage at end of number"
 msgstr "numaranın sonunda bozulma"
 
-#: locale/programs/linereader.c:409
+#: locale/programs/linereader.c:423
 msgid "garbage at end of character code specification"
 msgstr "karakter kodu özelliklerinin sonunda bozulma"
 
-#: locale/programs/linereader.c:495
+#: locale/programs/linereader.c:531
 msgid "unterminated symbolic name"
 msgstr "sonlandırılmamış sembolik isim"
 
-#: locale/programs/linereader.c:622
+#: locale/programs/linereader.c:804
 msgid "illegal escape sequence at end of string"
 msgstr "karakter dizisinin sonunda uygun olmayan escape dizisi"
 
-#: locale/programs/linereader.c:626 locale/programs/linereader.c:846
+#: locale/programs/linereader.c:808 locale/programs/linereader.c:979
 msgid "unterminated string"
 msgstr "sonlandırılmamış dizge"
 
-#: locale/programs/linereader.c:807
+#: locale/programs/linereader.c:940
 #, c-format
 msgid "symbol `%.*s' not in charmap"
 msgstr "`%.*s' sembolü CHARMAP içinde değil"
 
-#: locale/programs/linereader.c:828
+#: locale/programs/linereader.c:961
 #, c-format
 msgid "symbol `%.*s' not in repertoire map"
 msgstr "`%.*s' sembolü repertuar eşlem içinde değil"
@@ -2905,42 +2815,42 @@ msgstr "`%s' yereli zaten var"
 msgid "cannot add to locale archive"
 msgstr "yerel arşive ekleme yapılamıyor"
 
-#: locale/programs/locarchive.c:1209
+#: locale/programs/locarchive.c:1217
 #, c-format
 msgid "locale alias file `%s' not found"
 msgstr "`%s' yerel isim dosyası bulunamadı"
 
-#: locale/programs/locarchive.c:1357
+#: locale/programs/locarchive.c:1365
 #, c-format
 msgid "Adding %s\n"
 msgstr "%s ekleniyor\n"
 
-#: locale/programs/locarchive.c:1363
+#: locale/programs/locarchive.c:1371
 #, c-format
 msgid "stat of \"%s\" failed: %s: ignored"
 msgstr "\"%s\" durumlaması başarısız: %s: yoksayıldı"
 
-#: locale/programs/locarchive.c:1369
+#: locale/programs/locarchive.c:1377
 #, c-format
 msgid "\"%s\" is no directory; ignored"
 msgstr "\"%s\" dizinsiz; yoksayıldı"
 
-#: locale/programs/locarchive.c:1376
+#: locale/programs/locarchive.c:1384
 #, c-format
 msgid "cannot open directory \"%s\": %s: ignored"
 msgstr "\"%s\" dizini açılamıyor: %s: yoksayıldı"
 
-#: locale/programs/locarchive.c:1444
+#: locale/programs/locarchive.c:1452
 #, c-format
 msgid "incomplete set of locale files in \"%s\""
 msgstr "\"%s\" içindeki yerel dosyaları kümesi tamamlanmamış"
 
-#: locale/programs/locarchive.c:1508
+#: locale/programs/locarchive.c:1516
 #, c-format
 msgid "cannot read all files in \"%s\": ignored"
 msgstr "\"%s\" içindeki hiçbir dosya okunamıyor: yoksayıldı"
 
-#: locale/programs/locarchive.c:1578
+#: locale/programs/locarchive.c:1586
 #, c-format
 msgid "locale \"%s\" not in archive"
 msgstr "\"%s\" yeri arşivde değil"
@@ -3135,45 +3045,45 @@ msgstr "memusage: tanınmayan seçenek \\`$1'"
 msgid "No program name given"
 msgstr "Program ismi verilmemiş"
 
-#: malloc/memusagestat.c:55
+#: malloc/memusagestat.c:56
 msgid "Name output file"
 msgstr "İsim çıktı dosyası"
 
-#: malloc/memusagestat.c:56
+#: malloc/memusagestat.c:57
 msgid "STRING"
 msgstr "DİZİ"
 
-#: malloc/memusagestat.c:56
+#: malloc/memusagestat.c:57
 msgid "Title string used in output graphic"
 msgstr "Çıktı grafiğinde kullanılan başlık dizgesi"
 
-#: malloc/memusagestat.c:57
+#: malloc/memusagestat.c:58
 msgid "Generate output linear to time (default is linear to number of function calls)"
 msgstr ""
 "Zamanla düzgün değişen çıktı üretilir. \n"
 "(işlev çağrılarının sayısıyla düzgün değişen çıktı üretimi öntanımlıdır)"
 
-#: malloc/memusagestat.c:61
+#: malloc/memusagestat.c:62
 msgid "Also draw graph for total memory consumption"
 msgstr "Üstelik toplam bellek tüketimi grafiğini çizerken"
 
-#: malloc/memusagestat.c:62
+#: malloc/memusagestat.c:63
 msgid "VALUE"
 msgstr "DEĞER"
 
-#: malloc/memusagestat.c:63
+#: malloc/memusagestat.c:64
 msgid "Make output graphic VALUE pixels wide"
 msgstr "Çizgeyi DEĞER piksel genişlikte çıktılar"
 
-#: malloc/memusagestat.c:64
+#: malloc/memusagestat.c:65
 msgid "Make output graphic VALUE pixels high"
 msgstr "Çizgeyi DEĞER piksel yükseklikte çıktılar"
 
-#: malloc/memusagestat.c:69
+#: malloc/memusagestat.c:70
 msgid "Generate graphic from memory profiling data"
 msgstr "Bellek profili verisinden grafik üretir"
 
-#: malloc/memusagestat.c:72
+#: malloc/memusagestat.c:73
 msgid "DATAFILE [OUTFILE]"
 msgstr "VERİDOSYASI [ÇIKTIDOSYASI]"
 
@@ -3186,7 +3096,7 @@ msgid "unable to free arguments"
 msgstr "argümanlar serbest bırakılamadı"
 
 #: nis/nis_error.h:1 nis/ypclnt.c:832 nis/ypclnt.c:921 posix/regcomp.c:135
-#: sysdeps/gnu/errlist.h:1
+#: sysdeps/gnu/errlist.h:1 sysdeps/posix/gai_strerror-strs.h:1
 msgid "Success"
 msgstr "Başarılı"
 
@@ -3388,119 +3298,91 @@ msgstr "%d kullanıcı-kimliği için YEREL girişi %s dizininde eşsiz değil\n
 msgid "UNKNOWN"
 msgstr "BİLİNMEYEN"
 
-#: nis/nis_print.c:109
-msgid "BOGUS OBJECT\n"
-msgstr "SAHTE NESNE\n"
+#: nis/nis_print.c:69 nscd/nscd.c:117
+msgid "TABLE"
+msgstr "TABLO"
 
-#: nis/nis_print.c:112
-msgid "NO OBJECT\n"
-msgstr "NESNE YOK\n"
-
-#: nis/nis_print.c:115
-msgid "DIRECTORY\n"
-msgstr "DİZİN\n"
-
-#: nis/nis_print.c:118
-msgid "GROUP\n"
-msgstr "GRUP\n"
-
-#: nis/nis_print.c:121
-msgid "TABLE\n"
-msgstr "TABLO\n"
-
-#: nis/nis_print.c:124
-msgid "ENTRY\n"
-msgstr "GİRİŞ\n"
-
-#: nis/nis_print.c:127
-msgid "LINK\n"
-msgstr "BAĞ\n"
-
-#: nis/nis_print.c:130
+#: nis/nis_print.c:75
 msgid "PRIVATE\n"
 msgstr "ÖZEL\n"
 
-#: nis/nis_print.c:133
-msgid "(Unknown object)\n"
-msgstr "(Bilinmeyen nesne)\n"
-
-#: nis/nis_print.c:167
+#: nis/nis_print.c:164
 #, c-format
 msgid "Name : `%s'\n"
 msgstr "İsim : `%s'\n"
 
-#: nis/nis_print.c:168
+#: nis/nis_print.c:165
 #, c-format
 msgid "Type : %s\n"
 msgstr "Türü : %s\n"
 
-#: nis/nis_print.c:173
+#: nis/nis_print.c:170
 msgid "Master Server :\n"
 msgstr "Ana Sunucu    :\n"
 
-#: nis/nis_print.c:175
+#: nis/nis_print.c:172
 msgid "Replicate :\n"
 msgstr "Örnekleme :\n"
 
-#: nis/nis_print.c:176
+#: nis/nis_print.c:173
 #, c-format
 msgid "\tName       : %s\n"
 msgstr "\tİsim       : %s\n"
 
-#: nis/nis_print.c:177
+#: nis/nis_print.c:174
 msgid "\tPublic Key : "
 msgstr "\tGenel Anahtar: "
 
-#: nis/nis_print.c:181
+#: nis/nis_print.c:178
 msgid "None.\n"
 msgstr "Yok.\n"
 
-#: nis/nis_print.c:184
+#: nis/nis_print.c:181
 #, c-format
 msgid "Diffie-Hellmann (%d bits)\n"
 msgstr "Diffie-Hellmann (%d bit)\n"
 
-#: nis/nis_print.c:189
+#: nis/nis_print.c:186
 #, c-format
 msgid "RSA (%d bits)\n"
 msgstr "RSA (%d bit)\n"
 
-#: nis/nis_print.c:192
+#: nis/nis_print.c:189
 msgid "Kerberos.\n"
 msgstr "Kerberos.\n"
 
-#: nis/nis_print.c:195
+#: nis/nis_print.c:192
 #, c-format
 msgid "Unknown (type = %d, bits = %d)\n"
 msgstr "Bilinmeyen (tür = %d, bit = %d)\n"
 
-#: nis/nis_print.c:206
+#: nis/nis_print.c:203
 #, c-format
 msgid "\tUniversal addresses (%u)\n"
 msgstr "\tEvrensel adresler (%u)\n"
 
-#: nis/nis_print.c:228
+#: nis/nis_print.c:225
 msgid "Time to live : "
 msgstr "Yaşam süresi(ttl): "
 
-#: nis/nis_print.c:230
+#: nis/nis_print.c:227
 msgid "Default Access rights :\n"
 msgstr "Öntanımlı Erişim hakları:\n"
 
-#: nis/nis_print.c:239
+#: nis/nis_print.c:236
 #, c-format
 msgid "\tType         : %s\n"
 msgstr "\tTürü        : %s\n"
 
-#: nis/nis_print.c:240
+#: nis/nis_print.c:237
 msgid "\tAccess rights: "
 msgstr "\tErişim hakları: "
 
-#: nis/nis_print.c:254
+#: nis/nis_print.c:251
 msgid "Group Flags :"
 msgstr "Grup Flamaları:"
 
-#: nis/nis_print.c:257
+#: nis/nis_print.c:254
 msgid ""
 "\n"
 "Group Members :\n"
@@ -3508,95 +3390,95 @@ msgstr ""
 "\n"
 "  Grup Üyeleri:\n"
 
-#: nis/nis_print.c:269
+#: nis/nis_print.c:266
 #, c-format
 msgid "Table Type          : %s\n"
 msgstr "Tablo Türü          : %s\n"
 
-#: nis/nis_print.c:270
+#: nis/nis_print.c:267
 #, c-format
 msgid "Number of Columns   : %d\n"
 msgstr "Sütun sayısı        : %d\n"
 
-#: nis/nis_print.c:271
+#: nis/nis_print.c:268
 #, c-format
 msgid "Character Separator : %c\n"
 msgstr "Karakter Ayracı: %c\n"
 
-#: nis/nis_print.c:272
+#: nis/nis_print.c:269
 #, c-format
 msgid "Search Path         : %s\n"
 msgstr "Dosya arama yolu    : %s\n"
 
-#: nis/nis_print.c:273
+#: nis/nis_print.c:270
 msgid "Columns             :\n"
 msgstr "Sütun               :\n"
 
-#: nis/nis_print.c:276
+#: nis/nis_print.c:273
 #, c-format
 msgid "\t[%d]\tName          : %s\n"
 msgstr "\t[%d]\tİsim          : %s\n"
 
-#: nis/nis_print.c:278
+#: nis/nis_print.c:275
 msgid "\t\tAttributes    : "
 msgstr "\t\tNiteleyiciler : "
 
-#: nis/nis_print.c:280
+#: nis/nis_print.c:277
 msgid "\t\tAccess Rights : "
 msgstr "\t\tErişim Hakları: "
 
-#: nis/nis_print.c:290
+#: nis/nis_print.c:287
 msgid "Linked Object Type : "
 msgstr "Bağlı Nesne Türü   : "
 
-#: nis/nis_print.c:292
+#: nis/nis_print.c:289
 #, c-format
 msgid "Linked to : %s\n"
 msgstr "Bağ hedefi: %s\n"
 
-#: nis/nis_print.c:302
+#: nis/nis_print.c:299
 #, c-format
 msgid "\tEntry data of type %s\n"
 msgstr "\t %s türü girdi verisi\n"
 
-#: nis/nis_print.c:305
+#: nis/nis_print.c:302
 #, c-format
 msgid "\t[%u] - [%u bytes] "
 msgstr "\t[%u] - [%u bayt] "
 
-#: nis/nis_print.c:308
+#: nis/nis_print.c:305
 msgid "Encrypted data\n"
 msgstr "Şifreli veri\n"
 
-#: nis/nis_print.c:310
+#: nis/nis_print.c:307
 msgid "Binary data\n"
 msgstr "İkilik veri\n"
 
-#: nis/nis_print.c:326
+#: nis/nis_print.c:323
 #, c-format
 msgid "Object Name   : %s\n"
 msgstr "Nesne İsmi    : %s\n"
 
-#: nis/nis_print.c:327
+#: nis/nis_print.c:324
 #, c-format
 msgid "Directory     : %s\n"
 msgstr "Dizin         : %s\n"
 
-#: nis/nis_print.c:328
+#: nis/nis_print.c:325
 #, c-format
 msgid "Owner         : %s\n"
 msgstr "Sahibi        : %s\n"
 
-#: nis/nis_print.c:329
+#: nis/nis_print.c:326
 #, c-format
 msgid "Group         : %s\n"
 msgstr "Grup          : %s\n"
 
-#: nis/nis_print.c:330
+#: nis/nis_print.c:327
 msgid "Access Rights : "
 msgstr "Erişim Hakları: "
 
-#: nis/nis_print.c:332
+#: nis/nis_print.c:329
 #, c-format
 msgid ""
 "\n"
@@ -3605,36 +3487,36 @@ msgstr ""
 "\n"
 "Yaşam süresi  : "
 
-#: nis/nis_print.c:335
+#: nis/nis_print.c:332
 #, c-format
 msgid "Creation Time : %s"
 msgstr "Oluşturma Zamanı: %s"
 
-#: nis/nis_print.c:337
+#: nis/nis_print.c:334
 #, c-format
 msgid "Mod. Time     : %s"
 msgstr "Değiş. Zamanı : %s"
 
-#: nis/nis_print.c:338
+#: nis/nis_print.c:335
 msgid "Object Type   : "
 msgstr "Nesne Türü    : "
 
-#: nis/nis_print.c:358
+#: nis/nis_print.c:355
 #, c-format
 msgid "    Data Length = %u\n"
 msgstr "    Veri uzunluğu = %u\n"
 
-#: nis/nis_print.c:372
+#: nis/nis_print.c:369
 #, c-format
 msgid "Status            : %s\n"
 msgstr "Durum             : %s\n"
 
-#: nis/nis_print.c:373
+#: nis/nis_print.c:370
 #, c-format
 msgid "Number of objects : %u\n"
 msgstr "Nesne sayısı      : %u\n"
 
-#: nis/nis_print.c:377
+#: nis/nis_print.c:374
 #, c-format
 msgid "Object #%d:\n"
 msgstr "Nesne #%d:\n"
@@ -3828,259 +3710,259 @@ msgstr " - bütün veri: "
 msgid " - remaining data %p: "
 msgstr " - kalan veriler %p: "
 
-#: nscd/connections.c:519
+#: nscd/connections.c:530
 #, c-format
 msgid "invalid persistent database file \"%s\": %s"
 msgstr "kalıcı veritabanı dosyası \"%s\" geçersiz: %s"
 
-#: nscd/connections.c:527
+#: nscd/connections.c:538
 msgid "uninitialized header"
 msgstr "başlatılmamış başlık"
 
-#: nscd/connections.c:532
+#: nscd/connections.c:543
 msgid "header size does not match"
 msgstr "başlık boyutu uyumsuz"
 
-#: nscd/connections.c:542
+#: nscd/connections.c:553
 msgid "file size does not match"
 msgstr "dosya boyutu uyumsuz"
 
-#: nscd/connections.c:559
+#: nscd/connections.c:570
 msgid "verification failed"
 msgstr "doğrulanamadı"
 
-#: nscd/connections.c:573
+#: nscd/connections.c:584
 #, c-format
 msgid "suggested size of table for database %s larger than the persistent database's table"
 msgstr "%s veritabanı için önerilen tablo boyutu kalıcı veritabanı tablosundan büyük"
 
-#: nscd/connections.c:584 nscd/connections.c:668
+#: nscd/connections.c:595 nscd/connections.c:679
 #, c-format
 msgid "cannot create read-only descriptor for \"%s\"; no mmap"
 msgstr "\"%s\" için salt-okunur tanıtıcı oluşturulamıyor; mmap yok"
 
-#: nscd/connections.c:600
+#: nscd/connections.c:611
 #, c-format
 msgid "cannot access '%s'"
 msgstr "`%s' erişemiyor"
 
-#: nscd/connections.c:648
+#: nscd/connections.c:659
 #, c-format
 msgid "database for %s corrupted or simultaneously used; remove %s manually if necessary and restart"
 msgstr "%s için ya veritabanı yok ya da şu an kullanımda; gerekiyorsa %s'i kendiniz silip yeniden başlatın"
 
-#: nscd/connections.c:654
+#: nscd/connections.c:665
 #, c-format
 msgid "cannot create %s; no persistent database used"
 msgstr "%s oluşturulamıyor; kullanımda bir kalıcı veritabanı yok"
 
-#: nscd/connections.c:657
+#: nscd/connections.c:668
 #, c-format
 msgid "cannot create %s; no sharing possible"
 msgstr "%s oluşturulamıyor; paylaşım mümkün değil"
 
-#: nscd/connections.c:728
+#: nscd/connections.c:739
 #, c-format
 msgid "cannot write to database file %s: %s"
 msgstr "veritabanı dosyası %s yazılamıyor: %s"
 
-#: nscd/connections.c:784
+#: nscd/connections.c:795
 #, c-format
 msgid "cannot open socket: %s"
 msgstr "soket açılamıyor: %s"
 
-#: nscd/connections.c:803
+#: nscd/connections.c:814
 #, c-format
 msgid "cannot enable socket to accept connections: %s"
 msgstr "bağlantıları kabul etmek üzere soket etkinleştirilemiyor: %s"
 
-#: nscd/connections.c:860
+#: nscd/connections.c:871
 #, c-format
 msgid "disabled inotify-based monitoring for file `%s': %s"
 msgstr "dosya için inotify tabanlı izleme devre dışı `%s': %s"
 
-#: nscd/connections.c:864
+#: nscd/connections.c:875
 #, c-format
 msgid "monitoring file `%s` (%d)"
 msgstr "izlenen dosya `%s` (%d)"
 
-#: nscd/connections.c:877
+#: nscd/connections.c:888
 #, c-format
 msgid "disabled inotify-based monitoring for directory `%s': %s"
 msgstr "klasör için inotify tabanlı izleme devre dışı `%s': %s"
 
-#: nscd/connections.c:881
+#: nscd/connections.c:892
 #, c-format
 msgid "monitoring directory `%s` (%d)"
 msgstr "izleme dizini `%s` (%d)"
 
-#: nscd/connections.c:909
+#: nscd/connections.c:920
 #, c-format
 msgid "monitoring file %s for database %s"
 msgstr "veritabanı %s için %s izleme dosyası"
 
-#: nscd/connections.c:919
+#: nscd/connections.c:930
 #, c-format
 msgid "stat failed for file `%s'; will try again later: %s"
 msgstr "stat `%s' dosyası için başarısız oldu; daha sonra tekrar deneyin: %s"
 
-#: nscd/connections.c:1038
+#: nscd/connections.c:1049
 #, c-format
 msgid "provide access to FD %d, for %s"
 msgstr "%2$s için dosya tanıtıcı %1$d'ye erişim sağlar"
 
-#: nscd/connections.c:1050
+#: nscd/connections.c:1061
 #, c-format
 msgid "cannot handle old request version %d; current version is %d"
 msgstr "eski istem sürümü %d elde edilemedi; mevcut sürüm %d"
 
-#: nscd/connections.c:1073
+#: nscd/connections.c:1084
 #, c-format
 msgid "request from %ld not handled due to missing permission"
 msgstr "%ld den talep edilen eksik izin nedeniyle işlemez"
 
-#: nscd/connections.c:1078
+#: nscd/connections.c:1089
 #, c-format
 msgid "request from '%s' [%ld] not handled due to missing permission"
 msgstr "'%s' [%ld] den talep edilen eksik izin nedeniyle işlemez"
 
-#: nscd/connections.c:1083
+#: nscd/connections.c:1094
 msgid "request not handled due to missing permission"
 msgstr "istek eksik izin nedeniyle işlemez"
 
-#: nscd/connections.c:1121 nscd/connections.c:1147
+#: nscd/connections.c:1132 nscd/connections.c:1158
 #, c-format
 msgid "cannot write result: %s"
 msgstr "sonuç yazılamıyor: %s"
 
-#: nscd/connections.c:1238
+#: nscd/connections.c:1249
 #, c-format
 msgid "error getting caller's id: %s"
 msgstr "çağrıcı kimliği alınırken hata: %s"
 
-#: nscd/connections.c:1348
+#: nscd/connections.c:1359
 #, c-format
 msgid "cannot open /proc/self/cmdline: %m; disabling paranoia mode"
 msgstr "/proc/self/cmdline açılammıyor: %m; paranoya kipi iptal ediliyor"
 
-#: nscd/connections.c:1371
+#: nscd/connections.c:1382
 #, c-format
 msgid "cannot change to old UID: %s; disabling paranoia mode"
 msgstr "eski UID'e dönülemedi: %s; paranoya kipi iptal ediliyor"
 
-#: nscd/connections.c:1382
+#: nscd/connections.c:1393
 #, c-format
 msgid "cannot change to old GID: %s; disabling paranoia mode"
 msgstr "eski GID'e dönülemedi: %s; paranoya kipi iptal ediliyor"
 
-#: nscd/connections.c:1396
+#: nscd/connections.c:1407
 #, c-format
 msgid "cannot change to old working directory: %s; disabling paranoia mode"
 msgstr "eski çalışma dizinine dönülemiyor: %s; paranoya kipi iptal ediliyor"
 
-#: nscd/connections.c:1443
+#: nscd/connections.c:1454
 #, c-format
 msgid "re-exec failed: %s; disabling paranoia mode"
 msgstr "re-exec başarısız: %s; paranoya kipi iptal ediliyor"
 
-#: nscd/connections.c:1452
+#: nscd/connections.c:1463
 #, c-format
 msgid "cannot change current working directory to \"/\": %s"
 msgstr "çalışma dizini \"/\" yapılamadı: %s"
 
-#: nscd/connections.c:1636
+#: nscd/connections.c:1647
 #, c-format
 msgid "short read while reading request: %s"
 msgstr "istenen okuma kısa: %s"
 
-#: nscd/connections.c:1669
+#: nscd/connections.c:1680
 #, c-format
 msgid "key length in request too long: %d"
 msgstr "istenen anahtar/tuş uzunluğu fazla: %d"
 
-#: nscd/connections.c:1682
+#: nscd/connections.c:1693
 #, c-format
 msgid "short read while reading request key: %s"
 msgstr "istenen anahtar/tuş okunurken kısa okuma: %s"
 
-#: nscd/connections.c:1692
+#: nscd/connections.c:1703
 #, c-format
 msgid "handle_request: request received (Version = %d) from PID %ld"
 msgstr "handle_request: %2$ld numaralı süreçden istek alındı (Sürüm = %1$d)"
 
-#: nscd/connections.c:1697
+#: nscd/connections.c:1708
 #, c-format
 msgid "handle_request: request received (Version = %d)"
 msgstr "handle_request: istek alındı (Sürüm = %d)"
 
-#: nscd/connections.c:1837
+#: nscd/connections.c:1848
 #, c-format
 msgid "ignored inotify event for `%s` (file exists)"
 msgstr "inotify etkinlik için `%s` (dosya içerir) ihmat edilmiştir"
 
-#: nscd/connections.c:1842
+#: nscd/connections.c:1853
 #, c-format
 msgid "monitored file `%s` was %s, removing watch"
 msgstr "izlenen dosya `%s` %s di, kaldırılmadan izle"
 
-#: nscd/connections.c:1850 nscd/connections.c:1892
+#: nscd/connections.c:1861 nscd/connections.c:1903
 #, c-format
 msgid "failed to remove file watch `%s`: %s"
 msgstr "izlenen dosyayı kaldırmada hata `%s`: %s"
 
-#: nscd/connections.c:1865
+#: nscd/connections.c:1876
 #, c-format
 msgid "monitored file `%s` was written to"
 msgstr "izlenen dosya `%s`  e yazılmıştır"
 
-#: nscd/connections.c:1889
+#: nscd/connections.c:1900
 #, c-format
 msgid "monitored parent directory `%s` was %s, removing watch on `%s`"
 msgstr "izlenen üst dizin `%s` %s di, `%s` kaldırılmadan izle"
 
-#: nscd/connections.c:1915
+#: nscd/connections.c:1926
 #, c-format
 msgid "monitored file `%s` was %s, adding watch"
 msgstr "izlenen dosya `%s` %s di, izleme ekle"
 
-#: nscd/connections.c:1927
+#: nscd/connections.c:1938
 #, c-format
 msgid "failed to add file watch `%s`: %s"
 msgstr "izlenen dosya `%s` eklemek için başarısız oldu: %s"
 
-#: nscd/connections.c:2105 nscd/connections.c:2270
+#: nscd/connections.c:2116 nscd/connections.c:2281
 #, c-format
 msgid "disabled inotify-based monitoring after read error %d"
 msgstr "okuma hatasından sonra devre dışı inotify-tabanlı izleme %d"
 
-#: nscd/connections.c:2385
+#: nscd/connections.c:2397
 msgid "could not initialize conditional variable"
 msgstr "koşullu değişkeni başlamadı"
 
-#: nscd/connections.c:2393
+#: nscd/connections.c:2405
 msgid "could not start clean-up thread; terminating"
 msgstr "temizleme iş parçacığı başlatamadı; sonlandırıcı"
 
-#: nscd/connections.c:2407
+#: nscd/connections.c:2419
 msgid "could not start any worker thread; terminating"
 msgstr "herhangi bir işçi iş parçacığı başlatamadı; sonlandırıcı"
 
-#: nscd/connections.c:2462 nscd/connections.c:2464 nscd/connections.c:2480
-#: nscd/connections.c:2490 nscd/connections.c:2508 nscd/connections.c:2519
-#: nscd/connections.c:2529
+#: nscd/connections.c:2474 nscd/connections.c:2476 nscd/connections.c:2492
+#: nscd/connections.c:2502 nscd/connections.c:2520 nscd/connections.c:2531
+#: nscd/connections.c:2541
 #, c-format
 msgid "Failed to run nscd as user '%s'"
 msgstr "Nscd '%s' kullanıcısı olarak çalıştırılamadı"
 
-#: nscd/connections.c:2482
+#: nscd/connections.c:2494
 msgid "initial getgrouplist failed"
 msgstr "ilk getgrouplist başarısız"
 
-#: nscd/connections.c:2491
+#: nscd/connections.c:2503
 msgid "getgrouplist failed"
 msgstr "getgrouplist başarısız"
 
-#: nscd/connections.c:2509
+#: nscd/connections.c:2521
 msgid "setgroups failed"
 msgstr "setgroups başarısız"
 
@@ -4105,32 +3987,32 @@ msgstr "\"%s\" grup arabelleğine yeniden yükleniyor!"
 msgid "Invalid numeric gid \"%s\"!"
 msgstr "\"%s\" grup numarası geçersiz!"
 
-#: nscd/mem.c:424
+#: nscd/mem.c:420
 #, c-format
 msgid "freed %zu bytes in %s cache"
 msgstr "%2$s arabelleğinde %1$zu bayt serbest bırakıldı"
 
-#: nscd/mem.c:567
+#: nscd/mem.c:563
 #, c-format
 msgid "no more memory for database '%s'"
 msgstr "veritabanı '%s' için bellek kalmadı"
 
-#: nscd/netgroupcache.c:121
+#: nscd/netgroupcache.c:198
 #, c-format
 msgid "Haven't found \"%s\" in netgroup cache!"
 msgstr "\"%s\" netgrup arabelleğindebulunaması!"
 
-#: nscd/netgroupcache.c:123
+#: nscd/netgroupcache.c:200
 #, c-format
 msgid "Reloading \"%s\" in netgroup cache!"
 msgstr "\"%s\" netgrup arabelleğine yeniden yükleniyor!"
 
-#: nscd/netgroupcache.c:469
+#: nscd/netgroupcache.c:486
 #, c-format
 msgid "Haven't found \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "\"%s (%s,%s,%s)\" netgrup arabelleğinde bulunamadı!"
 
-#: nscd/netgroupcache.c:472
+#: nscd/netgroupcache.c:489
 #, c-format
 msgid "Reloading \"%s (%s,%s,%s)\" in netgroup cache!"
 msgstr "\"%s (%s,%s,%s)\" netgrup arabelleğine yeniden yükleniyor!"
@@ -4167,10 +4049,6 @@ msgstr "Sunucuyu indirir"
 msgid "Print current configuration statistics"
 msgstr "Geçerli yapılandırma istatistiklerini yazdırma"
 
-#: nscd/nscd.c:117
-msgid "TABLE"
-msgstr "TABLO"
-
 #: nscd/nscd.c:118
 msgid "Invalidate the specified cache"
 msgstr "Belirtilen arabellek geçersiz kılındı"
@@ -4187,7 +4065,7 @@ msgstr "Her kullanıcı için ayrı arabellek kullanılır"
 msgid "Name Service Cache Daemon."
 msgstr "Name Service Cache Daemon."
 
-#: nscd/nscd.c:158 nss/getent.c:986 nss/makedb.c:206
+#: nscd/nscd.c:158 nss/getent.c:995 nss/makedb.c:208
 #, c-format
 msgid "wrong number of arguments"
 msgstr "argüman sayısı hatalı"
@@ -4593,59 +4471,59 @@ msgstr "Kullanılacak yapılandırmayı hizmete alır"
 msgid "disable IDN encoding"
 msgstr "kod çözümü IDN devre dışı"
 
-#: nss/getent.c:65
+#: nss/getent.c:67
 msgid "Get entries from administrative database."
 msgstr "Yönetici veritabanından giriş alın."
 
-#: nss/getent.c:149 nss/getent.c:461 nss/getent.c:508
+#: nss/getent.c:154 nss/getent.c:466 nss/getent.c:513
 #, c-format
 msgid "Enumeration not supported on %s\n"
 msgstr "Numaralama %s ile desteklenmiyor\n"
 
-#: nss/getent.c:516 nss/getent.c:529
+#: nss/getent.c:521 nss/getent.c:534
 #, c-format
 msgid "Could not allocate group list: %m\n"
 msgstr "Grup listesi tahsis edilemedi: %m\n"
 
-#: nss/getent.c:900
+#: nss/getent.c:905
 #, c-format
 msgid "Unknown database name"
 msgstr "Bilinmeyen veritabanı ismi"
 
-#: nss/getent.c:930
+#: nss/getent.c:939
 msgid "Supported databases:\n"
 msgstr "Desteklenen veritabanları:\n"
 
-#: nss/getent.c:996
+#: nss/getent.c:1005
 #, c-format
 msgid "Unknown database: %s\n"
 msgstr "Bilinmeyen veritabanı: %s\n"
 
-#: nss/makedb.c:119
+#: nss/makedb.c:121
 msgid "Convert key to lower case"
 msgstr "Küçük harfe çevirir"
 
-#: nss/makedb.c:122
+#: nss/makedb.c:124
 msgid "Do not print messages while building database"
 msgstr "Veritabanı oluşturulurken iletiler basılmaz"
 
-#: nss/makedb.c:124
+#: nss/makedb.c:126
 msgid "Print content of database file, one entry a line"
 msgstr "Veritabanı içeriği her satırda bir girdi olarak basılır"
 
-#: nss/makedb.c:125
+#: nss/makedb.c:127
 msgid "CHAR"
 msgstr "CHAR"
 
-#: nss/makedb.c:126
+#: nss/makedb.c:128
 msgid "Generated line not part of iteration"
 msgstr "Oluşturulan satır yinelemenin bir parçası değil"
 
-#: nss/makedb.c:131
+#: nss/makedb.c:133
 msgid "Create simple database from textual input."
 msgstr "Metin girişinden basit veritabanı oluşturun."
 
-#: nss/makedb.c:134
+#: nss/makedb.c:136
 msgid ""
 "INPUT-FILE OUTPUT-FILE\n"
 "-o OUTPUT-FILE INPUT-FILE\n"
@@ -4655,86 +4533,86 @@ msgstr ""
 "-o ÇIKTI-DOSYASI GİRDİ-DOSYASI\n"
 "-u GİRDİ-DOSYASI"
 
-#: nss/makedb.c:227
+#: nss/makedb.c:229
 #, c-format
 msgid "cannot open database file `%s'"
 msgstr "`%s' veritabanı dosyası açılamıyor"
 
-#: nss/makedb.c:272
+#: nss/makedb.c:274
 #, c-format
 msgid "no entries to be processed"
 msgstr "işlenecek hiçbir giriş yok"
 
-#: nss/makedb.c:282
+#: nss/makedb.c:284
 #, c-format
 msgid "cannot create temporary file name"
 msgstr "geçici dosya adı oluşturulamıyor"
 
-#: nss/makedb.c:288
+#: nss/makedb.c:290
 #, c-format
 msgid "cannot create temporary file"
 msgstr "geçici dosya oluşturulamıyor"
 
-#: nss/makedb.c:304
+#: nss/makedb.c:306
 #, c-format
 msgid "cannot stat newly created file"
 msgstr "yeni oluşturulan dosyayı istatistik edemez"
 
-#: nss/makedb.c:315
+#: nss/makedb.c:317
 #, c-format
 msgid "cannot rename temporary file"
 msgstr "geçici dosyayı yeniden adlandıramaz"
 
-#: nss/makedb.c:527 nss/makedb.c:550
+#: nss/makedb.c:529 nss/makedb.c:552
 #, c-format
 msgid "cannot create search tree"
 msgstr "arama ağacı oluşturulamıyor"
 
-#: nss/makedb.c:556
+#: nss/makedb.c:558
 msgid "duplicate key"
 msgstr "yinelenen anahtar/tuş"
 
-#: nss/makedb.c:568
+#: nss/makedb.c:570
 #, c-format
 msgid "problems while reading `%s'"
 msgstr "`%s' okunurken sorunlar"
 
-#: nss/makedb.c:804
+#: nss/makedb.c:814
 #, c-format
 msgid "failed to write new database file"
 msgstr "veritabanı dosyası yazılırken hata oluştu"
 
-#: nss/makedb.c:821
+#: nss/makedb.c:833
 #, c-format
 msgid "cannot stat database file"
 msgstr "istatistik veritabanı dosyası olamaz"
 
-#: nss/makedb.c:826
+#: nss/makedb.c:838
 #, c-format
 msgid "cannot map database file"
 msgstr "veritabanı dosyası haritalanamaz"
 
-#: nss/makedb.c:829
+#: nss/makedb.c:841
 #, c-format
 msgid "file not a database file"
 msgstr "bir veritabanı dosyası dosya değildir"
 
-#: nss/makedb.c:887
+#: nss/makedb.c:902
 #, c-format
 msgid "cannot set file creation context for `%s'"
 msgstr "`%s' için dosya oluşturma bağlamı ayarlayamıyor"
 
-#: posix/getconf.c:417
+#: posix/getconf.c:419
 #, c-format
 msgid "Usage: %s [-v specification] variable_name [pathname]\n"
 msgstr "Kullanımı: %s [-v özellik] değişken_ismi [dosyayolu_ismi]\n"
 
-#: posix/getconf.c:420
+#: posix/getconf.c:422
 #, c-format
 msgid "       %s -a [pathname]\n"
 msgstr "       %s -a [yolismi]\n"
 
-#: posix/getconf.c:496
+#: posix/getconf.c:498
 #, c-format
 msgid ""
 "Usage: getconf [-v SPEC] VAR\n"
@@ -4753,56 +4631,56 @@ msgstr ""
 "SPEC ortamı.\n"
 "\n"
 
-#: posix/getconf.c:572
+#: posix/getconf.c:574
 #, c-format
 msgid "unknown specification \"%s\""
 msgstr "özellik \"%s\" bilinmiyor"
 
-#: posix/getconf.c:624
+#: posix/getconf.c:626
 #, c-format
 msgid "Couldn't execute %s"
 msgstr "%s çalıştırılamadı"
 
-#: posix/getconf.c:669 posix/getconf.c:685
+#: posix/getconf.c:671 posix/getconf.c:687
 msgid "undefined"
 msgstr "atanmamış"
 
-#: posix/getconf.c:707
+#: posix/getconf.c:709
 #, c-format
 msgid "Unrecognized variable `%s'"
 msgstr "Tanınmayan değişken `%s'"
 
-#: posix/getopt.c:277
+#: posix/getopt.c:278
 #, c-format
 msgid "%s: option '%s%s' is ambiguous\n"
 msgstr "%s: seçenek'%s%s' belirsizdir\n"
 
-#: posix/getopt.c:283
+#: posix/getopt.c:284
 #, c-format
 msgid "%s: option '%s%s' is ambiguous; possibilities:"
 msgstr "%s: '%s%s' seçeneği belirsizdir, olasılıklar:"
 
-#: posix/getopt.c:318
+#: posix/getopt.c:319
 #, c-format
 msgid "%s: unrecognized option '%s%s'\n"
 msgstr "%s: tanınmayan seçenek '%s%s'\n"
 
-#: posix/getopt.c:344
+#: posix/getopt.c:345
 #, c-format
 msgid "%s: option '%s%s' doesn't allow an argument\n"
 msgstr "%s: '%s%s' seçeneği bir bağımsız değişkene izin vermez\n"
 
-#: posix/getopt.c:359
+#: posix/getopt.c:360
 #, c-format
 msgid "%s: option '%s%s' requires an argument\n"
 msgstr "%s: '%s%s' seçeneği bir argüman gerektirir\n"
 
-#: posix/getopt.c:620
+#: posix/getopt.c:621
 #, c-format
 msgid "%s: invalid option -- '%c'\n"
 msgstr "%s: geçersiz seçenek  -- '%c'\n"
 
-#: posix/getopt.c:635 posix/getopt.c:681
+#: posix/getopt.c:636 posix/getopt.c:682
 #, c-format
 msgid "%s: option requires an argument -- '%c'\n"
 msgstr "%s: seçenek bir argümanla gerektirir -- '%c'\n"
@@ -4907,27 +4785,27 @@ msgstr "Çözümleyici içsel hatası"
 msgid "Unknown resolver error"
 msgstr "Bilinmeyen çözümleyici hatası"
 
-#: resolv/res_hconf.c:117
+#: resolv/res_hconf.c:118
 #, c-format
 msgid "%s: line %d: cannot specify more than %d trim domains"
 msgstr "%s: satır %d: en çok %d saf alan ismi belirtilebilir"
 
-#: resolv/res_hconf.c:138
+#: resolv/res_hconf.c:139
 #, c-format
 msgid "%s: line %d: list delimiter not followed by domain"
 msgstr "%s: satır %d: liste ayracından sonra bir alan ismi gelmemeli"
 
-#: resolv/res_hconf.c:175
+#: resolv/res_hconf.c:176
 #, c-format
 msgid "%s: line %d: expected `on' or `off', found `%s'\n"
 msgstr "%s: satır %d: `%s' değil, `on' ya da `off' olmalıydı\n"
 
-#: resolv/res_hconf.c:218
+#: resolv/res_hconf.c:219
 #, c-format
 msgid "%s: line %d: bad command `%s'\n"
 msgstr "%s: satır %d: `%s' komutu hatalı\n"
 
-#: resolv/res_hconf.c:251
+#: resolv/res_hconf.c:252
 #, c-format
 msgid "%s: line %d: ignoring trailing garbage `%s'\n"
 msgstr "%s: satır %d: bozuk kısım `%s' yoksayılıyor\n"
@@ -5060,7 +4938,7 @@ msgstr "Çıkış arabellekleri kullanılabilir"
 msgid "Input message available"
 msgstr "Giriş iletisi kullanılabilir"
 
-#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:375 timezone/zic.c:564
+#: stdio-common/psiginfo-data.h:46 timezone/zdump.c:445 timezone/zic.c:652
 msgid "I/O error"
 msgstr "G/Ç hatası"
 
@@ -5118,7 +4996,7 @@ msgstr "Bilinmeyen sinyal %d\n"
 msgid "%s%sUnknown signal %d\n"
 msgstr "%s%sBilinmeyen sinyal %d\n"
 
-#: stdio-common/psignal.c:44
+#: stdio-common/psignal.c:44 string/strsignal.c:57
 msgid "Unknown signal"
 msgstr "Bilinmeyen sinyal"
 
@@ -5126,12 +5004,12 @@ msgstr "Bilinmeyen sinyal"
 msgid "Unknown error "
 msgstr "Bilinmeyen hata "
 
-#: string/strsignal.c:39
+#: string/strsignal.c:42
 #, c-format
 msgid "Real-time signal %d"
 msgstr "Gerçek-zamanlı sinyal %d"
 
-#: string/strsignal.c:43
+#: string/strsignal.c:46
 #, c-format
 msgid "Unknown signal %d"
 msgstr "Bilinmeyen sinyal %d"
@@ -6142,122 +6020,126 @@ msgid "Invalid slot"
 msgstr "Geçersiz yuva"
 
 #: sysdeps/gnu/errlist.h:597
+msgid "File locking deadlock error"
+msgstr "Dosya kilitlemede ölükilit hatası"
+
+#: sysdeps/gnu/errlist.h:600
 msgid "Bad font file format"
 msgstr "Yazıtipi dosyası biçemi hatalı"
 
-#: sysdeps/gnu/errlist.h:600
+#: sysdeps/gnu/errlist.h:603
 msgid "Machine is not on the network"
 msgstr "Makina bir ağ üzerinde değil"
 
-#: sysdeps/gnu/errlist.h:603
+#: sysdeps/gnu/errlist.h:606
 msgid "Package not installed"
 msgstr "Paket yüklenmedi"
 
-#: sysdeps/gnu/errlist.h:606
+#: sysdeps/gnu/errlist.h:609
 msgid "Advertise error"
 msgstr "Tanıtım hatası"
 
-#: sysdeps/gnu/errlist.h:609
+#: sysdeps/gnu/errlist.h:612
 msgid "Srmount error"
 msgstr "Srmount hatası"
 
-#: sysdeps/gnu/errlist.h:612
+#: sysdeps/gnu/errlist.h:615
 msgid "Communication error on send"
 msgstr "Yollama sırasında haberleşme hatası"
 
-#: sysdeps/gnu/errlist.h:615
+#: sysdeps/gnu/errlist.h:618
 msgid "RFS specific error"
 msgstr "RFS-özgü hata"
 
-#: sysdeps/gnu/errlist.h:618
+#: sysdeps/gnu/errlist.h:621
 msgid "Name not unique on network"
 msgstr "Ağ üzerinde isim eşsiz değil"
 
-#: sysdeps/gnu/errlist.h:621
+#: sysdeps/gnu/errlist.h:624
 msgid "File descriptor in bad state"
 msgstr "Dosya betimleyici hatalı durumda"
 
-#: sysdeps/gnu/errlist.h:624
+#: sysdeps/gnu/errlist.h:627
 msgid "Remote address changed"
 msgstr "Uzak adres değişti"
 
-#: sysdeps/gnu/errlist.h:627
+#: sysdeps/gnu/errlist.h:630
 msgid "Can not access a needed shared library"
 msgstr "Gereken paylaşımlı kitaplığa erişilemiyor"
 
-#: sysdeps/gnu/errlist.h:630
+#: sysdeps/gnu/errlist.h:633
 msgid "Accessing a corrupted shared library"
 msgstr "Bir bozulmuş paylaşımlı kitaplığa erişiliyor"
 
-#: sysdeps/gnu/errlist.h:633
+#: sysdeps/gnu/errlist.h:636
 msgid ".lib section in a.out corrupted"
 msgstr "a.out içindeki .lib bölümü bozulmuş"
 
-#: sysdeps/gnu/errlist.h:636
+#: sysdeps/gnu/errlist.h:639
 msgid "Attempting to link in too many shared libraries"
 msgstr "Çok fazla sayıdaki paylaşımlı kitaplıkta bağ kurulmaya çalışılıyor"
 
-#: sysdeps/gnu/errlist.h:639
+#: sysdeps/gnu/errlist.h:642
 msgid "Cannot exec a shared library directly"
 msgstr "Bir paylaşımlı kitaplık doğrudan çalıştırılamaz"
 
-#: sysdeps/gnu/errlist.h:642
+#: sysdeps/gnu/errlist.h:645
 msgid "Streams pipe error"
 msgstr "Veri hattı hatası"
 
-#: sysdeps/gnu/errlist.h:645
+#: sysdeps/gnu/errlist.h:648
 msgid "Structure needs cleaning"
 msgstr "Veri ağacı temizlenmek ister"
 
-#: sysdeps/gnu/errlist.h:648
+#: sysdeps/gnu/errlist.h:651
 msgid "Not a XENIX named type file"
 msgstr "Bir XENIX named türü dosya değil"
 
-#: sysdeps/gnu/errlist.h:651
+#: sysdeps/gnu/errlist.h:654
 msgid "No XENIX semaphores available"
 msgstr "Hiç XENIX semaforu yok"
 
-#: sysdeps/gnu/errlist.h:654
+#: sysdeps/gnu/errlist.h:657
 msgid "Is a named type file"
 msgstr "Bir \"named\" türü dosya"
 
-#: sysdeps/gnu/errlist.h:657
+#: sysdeps/gnu/errlist.h:660
 msgid "Remote I/O error"
 msgstr "Uzak G/Ç hatası"
 
-#: sysdeps/gnu/errlist.h:660
+#: sysdeps/gnu/errlist.h:663
 msgid "No medium found"
 msgstr "Medium yok"
 
-#: sysdeps/gnu/errlist.h:663
+#: sysdeps/gnu/errlist.h:666
 msgid "Wrong medium type"
 msgstr "Yanlış ortam türü"
 
-#: sysdeps/gnu/errlist.h:666
+#: sysdeps/gnu/errlist.h:669
 msgid "Required key not available"
 msgstr "Gerekli anahtar/tuş kullanılamaz durumda"
 
-#: sysdeps/gnu/errlist.h:669
+#: sysdeps/gnu/errlist.h:672
 msgid "Key has expired"
 msgstr "Anahtarın vakti doldu"
 
-#: sysdeps/gnu/errlist.h:672
+#: sysdeps/gnu/errlist.h:675
 msgid "Key has been revoked"
 msgstr "Anahtar yürürlükten kaldırılmıştı"
 
-#: sysdeps/gnu/errlist.h:675
+#: sysdeps/gnu/errlist.h:678
 msgid "Key was rejected by service"
 msgstr "Anahtar hizmet tarafından reddedildi"
 
-#: sysdeps/gnu/errlist.h:678
+#: sysdeps/gnu/errlist.h:681
 msgid "Operation not possible due to RF-kill"
 msgstr "RF-kill nedeniyle operasyon mümkün değil"
 
-#: sysdeps/gnu/errlist.h:681
+#: sysdeps/gnu/errlist.h:684
 msgid "Memory page has hardware error"
 msgstr "Bellek sayfasında donanım hatası var"
 
-#: sysdeps/gnu/errlist.h:684
+#: sysdeps/gnu/errlist.h:687
 msgid "RPC struct is bad"
 msgstr "RPC yapısı hatalı"
 
@@ -6266,43 +6148,43 @@ msgstr "RPC yapısı hatalı"
 #. TRANS
 #. TRANS On some systems @code{chmod} returns this error if you try to set the
 #. TRANS sticky bit on a non-directory file; @pxref{Setting Permissions}.
-#: sysdeps/gnu/errlist.h:693
+#: sysdeps/gnu/errlist.h:696
 msgid "Inappropriate file type or format"
 msgstr "Dosya türü ya da biçemi uygun değil"
 
-#: sysdeps/gnu/errlist.h:696
+#: sysdeps/gnu/errlist.h:699
 msgid "RPC bad procedure for program"
 msgstr "RPC program için uygun altyordam değil"
 
-#: sysdeps/gnu/errlist.h:699
+#: sysdeps/gnu/errlist.h:702
 msgid "Authentication error"
 msgstr "Kanıtlama hatası"
 
 #. TRANS On @gnuhurdsystems{}, opening a file returns this error when the file is
 #. TRANS translated by a program and the translator program dies while starting
 #. TRANS up, before it has connected to the file.
-#: sysdeps/gnu/errlist.h:706
+#: sysdeps/gnu/errlist.h:709
 msgid "Translator died"
 msgstr "Çevirmen uygulama ölmüş"
 
-#: sysdeps/gnu/errlist.h:709
+#: sysdeps/gnu/errlist.h:712
 msgid "RPC version wrong"
 msgstr "RPC sürümü yanlış"
 
 #. TRANS You did @strong{what}?
-#: sysdeps/gnu/errlist.h:714
+#: sysdeps/gnu/errlist.h:717
 msgid "You really blew it this time"
 msgstr "Bu sefer gerçekten mahvettin"
 
 #. TRANS This means that the per-user limit on new process would be exceeded by
 #. TRANS an attempted @code{fork}.  @xref{Limits on Resources}, for details on
 #. TRANS the @code{RLIMIT_NPROC} limit.
-#: sysdeps/gnu/errlist.h:721
+#: sysdeps/gnu/errlist.h:724
 msgid "Too many processes"
 msgstr "Çok fazla süreç var"
 
 #. TRANS This error code has no purpose.
-#: sysdeps/gnu/errlist.h:726
+#: sysdeps/gnu/errlist.h:729
 msgid "Gratuitous error"
 msgstr "Bu hata lotodan çıktı"
 
@@ -6318,11 +6200,11 @@ msgstr "Bu hata lotodan çıktı"
 #. TRANS
 #. TRANS If the entire function is not available at all in the implementation,
 #. TRANS it returns @code{ENOSYS} instead.
-#: sysdeps/gnu/errlist.h:742
+#: sysdeps/gnu/errlist.h:745
 msgid "Not supported"
 msgstr "Desteklenmiyor"
 
-#: sysdeps/gnu/errlist.h:745
+#: sysdeps/gnu/errlist.h:748
 msgid "RPC program version wrong"
 msgstr "RPC uygulaması sürümü yanlış"
 
@@ -6332,7 +6214,7 @@ msgstr "RPC uygulaması sürümü yanlış"
 #. TRANS error because functions such as @code{read} and @code{write} translate
 #. TRANS it into a @code{SIGTTIN} or @code{SIGTTOU} signal.  @xref{Job Control},
 #. TRANS for information on process groups and these signals.
-#: sysdeps/gnu/errlist.h:755
+#: sysdeps/gnu/errlist.h:758
 msgid "Inappropriate operation for background process"
 msgstr "Artalan süreç için işlem uygun değil"
 
@@ -6350,7 +6232,7 @@ msgstr "Artalan süreç için işlem uygun değil"
 #. TRANS @c
 #. TRANS @c Translators, please do not translate this litteraly, translate it into
 #. TRANS @c an idiomatic funny way of saying that the computer died.
-#: sysdeps/gnu/errlist.h:773
+#: sysdeps/gnu/errlist.h:776
 msgid "Computer bought the farm"
 msgstr "Bilgisayar çiftliği satın aldı"
 
@@ -6359,160 +6241,144 @@ msgstr "Bilgisayar çiftliği satın aldı"
 #. TRANS
 #. TRANS C libraries in many older Unix systems have @code{EWOULDBLOCK} as a
 #. TRANS separate error code.
-#: sysdeps/gnu/errlist.h:782
+#: sysdeps/gnu/errlist.h:785
 msgid "Operation would block"
 msgstr "İşlem bloklanacaktı"
 
-#: sysdeps/gnu/errlist.h:785
+#: sysdeps/gnu/errlist.h:788
 msgid "Need authenticator"
 msgstr "Kanıtlayıcı gerekir"
 
 #. TRANS The experienced user will know what is wrong.
 #. TRANS @c This error code is a joke.  Its perror text is part of the joke.
 #. TRANS @c Don't change it.
-#: sysdeps/gnu/errlist.h:792
+#: sysdeps/gnu/errlist.h:795
 msgid "?"
 msgstr "?"
 
-#: sysdeps/gnu/errlist.h:795
+#: sysdeps/gnu/errlist.h:798
 msgid "RPC program not available"
 msgstr "RPC uygulaması yok"
 
-#: sysdeps/mach/_strerror.c:43
+#: sysdeps/hppa/dl-fptr.c:96
+msgid "cannot map pages for fdesc table"
+msgstr "fdesc tablosu için sayfalar eşlenemiyor"
+
+#: sysdeps/hppa/dl-fptr.c:214
+msgid "cannot map pages for fptr table"
+msgstr "fptr tablosu için sayfalar eşlenemiyor"
+
+#: sysdeps/hppa/dl-fptr.c:243
+msgid "internal error: symidx out of range of fptr table"
+msgstr "dahili hata: fptr tablosundaki symidx aralık dışında"
+
+#: sysdeps/mach/_strerror.c:43 sysdeps/mach/xpg-strerror.c:55
 msgid "Error in unknown error system: "
 msgstr "Bilinmeyen hata sisteminde hata: "
 
-#: sysdeps/posix/gai_strerror-strs.h:1
+#: sysdeps/posix/gai_strerror-strs.h:2
 msgid "Address family for hostname not supported"
 msgstr "Makina ismi için adres ailesi desteklenmiyor"
 
-#: sysdeps/posix/gai_strerror-strs.h:2
+#: sysdeps/posix/gai_strerror-strs.h:3
 msgid "Temporary failure in name resolution"
 msgstr "İsim çözünürlüğünde geçici başarısızlık"
 
-#: sysdeps/posix/gai_strerror-strs.h:3
+#: sysdeps/posix/gai_strerror-strs.h:4
 msgid "Bad value for ai_flags"
 msgstr "Değer ai_flags için hatalı"
 
-#: sysdeps/posix/gai_strerror-strs.h:4
+#: sysdeps/posix/gai_strerror-strs.h:5
 msgid "Non-recoverable failure in name resolution"
 msgstr "İsim çözümlemesinde düzeltilebilir olmayan bozukluk"
 
-#: sysdeps/posix/gai_strerror-strs.h:5
+#: sysdeps/posix/gai_strerror-strs.h:6
 msgid "ai_family not supported"
 msgstr "ai_family desteklenmiyor"
 
-#: sysdeps/posix/gai_strerror-strs.h:6
+#: sysdeps/posix/gai_strerror-strs.h:7
 msgid "Memory allocation failure"
 msgstr "Bellek tahsisi başarısız"
 
-#: sysdeps/posix/gai_strerror-strs.h:7
+#: sysdeps/posix/gai_strerror-strs.h:8
 msgid "No address associated with hostname"
 msgstr "Makina ismiyle ilişkili adres yok"
 
-#: sysdeps/posix/gai_strerror-strs.h:8
+#: sysdeps/posix/gai_strerror-strs.h:9
 msgid "Name or service not known"
 msgstr "İsim ya da servis bilinmiyor"
 
-#: sysdeps/posix/gai_strerror-strs.h:9
+#: sysdeps/posix/gai_strerror-strs.h:10
 msgid "Servname not supported for ai_socktype"
 msgstr "Sunucu ai_socktype için ismi desteklenmiyor"
 
-#: sysdeps/posix/gai_strerror-strs.h:10
+#: sysdeps/posix/gai_strerror-strs.h:11
 msgid "ai_socktype not supported"
 msgstr "ai_socktype desteklenmiyor"
 
-#: sysdeps/posix/gai_strerror-strs.h:11
+#: sysdeps/posix/gai_strerror-strs.h:12
 msgid "System error"
 msgstr "Sistem hatası"
 
-#: sysdeps/posix/gai_strerror-strs.h:12
+#: sysdeps/posix/gai_strerror-strs.h:13
 msgid "Processing request in progress"
 msgstr "İşlem zaten süreç dahilinde"
 
-#: sysdeps/posix/gai_strerror-strs.h:13
+#: sysdeps/posix/gai_strerror-strs.h:14
 msgid "Request canceled"
 msgstr "İstem iptal edildi"
 
-#: sysdeps/posix/gai_strerror-strs.h:14
+#: sysdeps/posix/gai_strerror-strs.h:15
 msgid "Request not canceled"
 msgstr "İstem iptal edilmedi"
 
-#: sysdeps/posix/gai_strerror-strs.h:15
+#: sysdeps/posix/gai_strerror-strs.h:16
 msgid "All requests done"
 msgstr "Tüm istekler yerine getirildi"
 
-#: sysdeps/posix/gai_strerror-strs.h:16
+#: sysdeps/posix/gai_strerror-strs.h:17
 msgid "Interrupted by a signal"
 msgstr "Bir sinyal ile engellendi"
 
-#: sysdeps/posix/gai_strerror-strs.h:17
+#: sysdeps/posix/gai_strerror-strs.h:18
 msgid "Parameter string not correctly encoded"
 msgstr "Parametre dizgesi yanlış kodlanmış"
-
-#: sysdeps/unix/sysv/linux/ia64/makecontext.c:57
-#, c-format
-msgid "makecontext: does not know how to handle more than 8 arguments\n"
-msgstr "makecontext: 8 argümandan fazlasının nasıl elde edileceği bilinmiyor\n"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:59
-#, c-format
-msgid ""
-"Usage: lddlibc4 FILE\n"
-"\n"
-msgstr ""
-"Kullanım: lddlibc4 DOSYA\n"
-"\n"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:80
-#, c-format
-msgid "cannot open `%s'"
-msgstr "`%s' açılamıyor"
-
-#: sysdeps/unix/sysv/linux/lddlibc4.c:84
-#, c-format
-msgid "cannot read header from `%s'"
-msgstr "başlık `%s'den okunamıyor"
-
-#: sysdeps/unix/sysv/linux/x86/readelflib.c:64
-#, c-format
-msgid "%s is for unknown machine %d.\n"
-msgstr "%s bilinmeyen makina %d içindir.\n"
-
-#: sysdeps/x86/dl-cet.c:154
-msgid "rebuild shared object with IBT support enabled"
-msgstr "destek IBT etkinken paylaşılan nesneyi yeniden oluşturma"
-
-#: sysdeps/x86/dl-cet.c:165
-msgid "rebuild shared object with SHSTK support enabled"
-msgstr "destek SHSTK etkinken paylaşılan nesneyi yeniden oluştur"
-
-#: sysdeps/x86/dl-cet.c:194
-msgid "can't disable CET"
-msgstr "devre dışı CET bırakılamaz"
 
 #: sysdeps/x86/dl-prop.h:61
 msgid "CPU ISA level is lower than required"
 msgstr "CPU ISA düzeyi gerekenden daha düşük"
 
-#: timezone/zdump.c:332
+#: sysdeps/x86/readelflib.c:49
+#, c-format
+msgid "%s is for unknown machine %d.\n"
+msgstr "%s bilinmeyen makina %d içindir.\n"
+
+#: sysdeps/x86_64/dl-cet.c:214
+msgid "rebuild shared object with IBT support enabled"
+msgstr "destek IBT etkinken paylaşılan nesneyi yeniden oluşturma"
+
+#: sysdeps/x86_64/dl-cet.c:233
+msgid "rebuild shared object with SHSTK support enabled"
+msgstr "destek SHSTK etkinken paylaşılan nesneyi yeniden oluştur"
+
+#: timezone/zdump.c:402
 msgid "has characters other than ASCII alphanumerics, '-' or '+'"
 msgstr "alfanümerik ASCII, '-' veya '+' dışındaki karakterlere sahiptir"
 
-#: timezone/zdump.c:334
+#: timezone/zdump.c:404
 msgid "has fewer than 3 characters"
 msgstr "3 karakterden az"
 
-#: timezone/zdump.c:336
+#: timezone/zdump.c:406
 msgid "has more than 6 characters"
 msgstr "6'dan fazla karaktere sahiptir"
 
-#: timezone/zdump.c:341
+#: timezone/zdump.c:411
 #, c-format
 msgid "%s: warning: zone \"%s\" abbreviation \"%s\" %s\n"
 msgstr "%s: uyarı: zaman dilimi \"%s\"  kısaltma \"%s\" %s\n"
 
-#: timezone/zdump.c:387
+#: timezone/zdump.c:457
 #, c-format
 msgid ""
 "%s: usage: %s OPTIONS TIMEZONE ...\n"
@@ -6539,496 +6405,422 @@ msgstr ""
 "\n"
 "Hataları bildirme %s.\n"
 
-#: timezone/zdump.c:473
+#: timezone/zdump.c:543
 #, c-format
 msgid "%s: wild -c argument %s\n"
 msgstr "%s: ilkel -c argümanı %s\n"
 
-#: timezone/zdump.c:506
+#: timezone/zdump.c:576
 #, c-format
 msgid "%s: wild -t argument %s\n"
 msgstr "%s: ilkel -t argümanı %s\n"
 
-#: timezone/zic.c:432
+#: timezone/zic.c:463
 #, c-format
 msgid "%s: Memory exhausted: %s\n"
 msgstr "%s: Bellek tükendi: %s\n"
 
-#: timezone/zic.c:440
+#: timezone/zic.c:470
 msgid "size overflow"
 msgstr "boyut taşması"
 
-#: timezone/zic.c:450
-msgid "alignment overflow"
-msgstr "hizalama taşması"
-
-#: timezone/zic.c:498
+#: timezone/zic.c:559
 msgid "integer overflow"
 msgstr "tamsayı taşması"
 
-#: timezone/zic.c:532
+#: timezone/zic.c:585
+msgid "command line"
+msgstr "komut satırı"
+
+#: timezone/zic.c:588
+msgid "standard input"
+msgstr "standart girdi"
+
+#: timezone/zic.c:616
 #, c-format
 msgid "\"%s\", line %<PRIdMAX>: "
 msgstr "\"%s\", satır %<PRIdMAX>: "
 
-#: timezone/zic.c:535
+#: timezone/zic.c:620
 #, c-format
 msgid " (rule from \"%s\", line %<PRIdMAX>)"
 msgstr " (\"%s\", %<PRIdMAX> satırından kural)"
 
-#: timezone/zic.c:554
+#: timezone/zic.c:639
 #, c-format
 msgid "warning: "
 msgstr "uyarı: "
 
-#: timezone/zic.c:579
-#, c-format
-msgid ""
-"%s: usage is %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
-"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
-"\t[ filename ... ]\n"
-"\n"
-"Report bugs to %s.\n"
-msgstr ""
-"%s: kullanım %s [ --version ] [ --help ] [ -v ] \\\n"
-"\t[ -b {slim|fat} ] [ -d directory ] [ -l localtime ] [ -L leapseconds ] \\\n"
-"\t[ -p posixrules ] [ -r '[@lo][/@hi]' ] [ -t localtime-link ] \\\n"
-"\t[ filename ... ]\n"
-"\n"
-"Hataları bildirmek için %s.\n"
-
-#: timezone/zic.c:604
+#: timezone/zic.c:695
 #, c-format
 msgid "%s: Can't chdir to %s: %s\n"
 msgstr "%s: %s için chdir olamaz: %s\n"
 
-#: timezone/zic.c:698
+#: timezone/zic.c:992
 msgid "wild compilation-time specification of zic_t"
 msgstr "zic_t'nin derleme zamanı belirtimine güvenilmez"
 
-#: timezone/zic.c:716 timezone/zic.c:720
+#: timezone/zic.c:1011 timezone/zic.c:1015
 msgid "incompatible -b options"
 msgstr "uyumsuz -b seçenekleri"
 
-#: timezone/zic.c:723
+#: timezone/zic.c:1018
 #, c-format
 msgid "invalid option: -b '%s'"
 msgstr "geçersiz seçenek: -b '%s'"
 
-#: timezone/zic.c:730
+#: timezone/zic.c:1025
 #, c-format
 msgid "%s: More than one -d option specified\n"
 msgstr "%s: Birden fazla -d seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:740
+#: timezone/zic.c:1036
 #, c-format
 msgid "%s: More than one -l option specified\n"
 msgstr "%s: Birden fazla -l seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:750
+#: timezone/zic.c:1047
 #, c-format
 msgid "%s: More than one -p option specified\n"
 msgstr "%s: Birden fazla -p seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:758
+#: timezone/zic.c:1056
 #, c-format
 msgid "%s: More than one -t option specified\n"
 msgstr "%s: Birden fazla -t seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:767
-msgid "-y is obsolescent"
-msgstr "-y eskimişdir"
-
-#: timezone/zic.c:771
-#, c-format
-msgid "%s: More than one -y option specified\n"
-msgstr "%s: Birden fazla -y seçeneği belirtilmiş\n"
-
-#: timezone/zic.c:781
+#: timezone/zic.c:1071
 #, c-format
 msgid "%s: More than one -L option specified\n"
 msgstr "%s: Birden fazla -L seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:792
+#: timezone/zic.c:1083
 #, c-format
 msgid "%s: More than one -r option specified\n"
 msgstr "%s: Birden fazla -r seçeneği belirtilmiş\n"
 
-#: timezone/zic.c:798
+#: timezone/zic.c:1090
 #, c-format
 msgid "%s: invalid time range: %s\n"
 msgstr "%s: geçersiz zaman aralığı: %s\n"
 
-#: timezone/zic.c:805
+#: timezone/zic.c:1104
 msgid "-s ignored"
 msgstr "-s ihmal edildi"
 
-#: timezone/zic.c:848
-msgid "link to link"
-msgstr "bağlantıdan bağlantıya"
-
-#: timezone/zic.c:851 timezone/zic.c:855
-msgid "command line"
-msgstr "komut satırı"
-
-#: timezone/zic.c:871
+#: timezone/zic.c:1171
 msgid "empty file name"
 msgstr "boş dosya adı"
 
-#: timezone/zic.c:874
+#: timezone/zic.c:1174
 #, c-format
 msgid "file name '%s' begins with '/'"
 msgstr "dosya adı '%s' ile başlar '/'"
 
-#: timezone/zic.c:884
+#: timezone/zic.c:1184
 #, c-format
 msgid "file name '%s' contains '%.*s' component"
 msgstr "dosya adı '%s' '%.*s' bileşenini içerir"
 
-#: timezone/zic.c:890
+#: timezone/zic.c:1190
 #, c-format
 msgid "file name '%s' component contains leading '-'"
 msgstr "dosya adı '%s' bileşen satır aralığı '-' içerir"
 
-#: timezone/zic.c:893
+#: timezone/zic.c:1193
 #, c-format
 msgid "file name '%s' contains overlength component '%.*s...'"
 msgstr "dosya adı '%s' fazla uzunluk bileşeni '%.*s...' içerir"
 
-#: timezone/zic.c:921
+#: timezone/zic.c:1221
 #, c-format
 msgid "file name '%s' contains byte '%c'"
 msgstr "dosya adı '%s' bayt '%c' içerir"
 
-#: timezone/zic.c:922
+#: timezone/zic.c:1222
 #, c-format
 msgid "file name '%s' contains byte '\\%o'"
 msgstr "dosya adı '%s' bayt '\\%o' içerir"
 
-#: timezone/zic.c:992
-#, c-format
-msgid "%s: link from %s/%s failed: %s\n"
-msgstr "%s: %s/%s den bağ kurulamıyor: %s\n"
-
-#: timezone/zic.c:1002 timezone/zic.c:1992
-#, c-format
-msgid "%s: Can't remove %s/%s: %s\n"
-msgstr "%s:  %s/%s kaldırılamaz: %s\n"
-
-#: timezone/zic.c:1026
-#, c-format
-msgid "symbolic link used because hard link failed: %s"
-msgstr "sabit bağlantı başarısız olduğu için kullanılan sembolik bağlantı: %s"
-
-#: timezone/zic.c:1034
-#, c-format
-msgid "%s: Can't read %s/%s: %s\n"
-msgstr "%s: %s/%s okunamaz: %s\n"
-
-#: timezone/zic.c:1041 timezone/zic.c:2005
+#: timezone/zic.c:1369
 #, c-format
 msgid "%s: Can't create %s/%s: %s\n"
 msgstr "%s: %s/%s oluşturulamaz: %s\n"
 
-#: timezone/zic.c:1050
+#: timezone/zic.c:1463
+#, c-format
+msgid "%s: Can't remove %s/%s: %s\n"
+msgstr "%s:  %s/%s kaldırılamaz: %s\n"
+
+#: timezone/zic.c:1536
+#, c-format
+msgid "symbolic link used because hard link failed: %s"
+msgstr "sabit bağlantı başarısız olduğu için kullanılan sembolik bağlantı: %s"
+
+#: timezone/zic.c:1544
+#, c-format
+msgid "%s: Can't read %s/%s: %s\n"
+msgstr "%s: %s/%s okunamaz: %s\n"
+
+#: timezone/zic.c:1554
 #, c-format
 msgid "copy used because hard link failed: %s"
 msgstr "sabit bağlantı başarısız olduğu için kullanılan kopya: %s"
 
-#: timezone/zic.c:1053
+#: timezone/zic.c:1557
 #, c-format
 msgid "copy used because symbolic link failed: %s"
 msgstr "sembolik bağlantı başarısız olduğundan kullanılan kopya: %s"
 
-#: timezone/zic.c:1122 timezone/zic.c:1124
+#: timezone/zic.c:1608 timezone/zic.c:1610
 msgid "same rule name in multiple files"
 msgstr "bir çok dosyada aynı kural ismi var"
 
-#: timezone/zic.c:1171
+#: timezone/zic.c:1656
 #, c-format
 msgid "%s in ruleless zone"
 msgstr "%s kuralsız zaman diliminde"
 
-#: timezone/zic.c:1191
-msgid "standard input"
-msgstr "standart girdi"
+#: timezone/zic.c:1688
+msgid "line too long"
+msgstr "satır çok uzun"
 
-#: timezone/zic.c:1196
+#: timezone/zic.c:1709
 #, c-format
 msgid "%s: Can't open %s: %s\n"
 msgstr "%s: %s açılamıyor: %s\n"
 
-#: timezone/zic.c:1207
-msgid "line too long"
-msgstr "satır çok uzun"
-
-#: timezone/zic.c:1230
+#: timezone/zic.c:1734
 msgid "input line of unknown type"
 msgstr "girdi satırının türü bilinmiyor"
 
-#: timezone/zic.c:1253 timezone/zic.c:1699 timezone/zic.c:1721
-#, c-format
-msgid "%s: panic: Invalid l_value %d\n"
-msgstr "%s: panik: sol değer (l_value) %d geçersiz\n"
-
-#: timezone/zic.c:1262
+#: timezone/zic.c:1761
 msgid "expected continuation line not found"
 msgstr "gereken süreklilik satırı bulunamadı"
 
-#: timezone/zic.c:1298
+#: timezone/zic.c:1797
 msgid "fractional seconds rejected by pre-2018 versions of zic"
 msgstr "zic'in 2018 öncesi sürümleri tarafından reddedilen kesirli saniyeler"
 
-#: timezone/zic.c:1316 timezone/zic.c:3282
+#: timezone/zic.c:1815 timezone/zic.c:3760
 msgid "time overflow"
 msgstr "zaman taşması"
 
-#: timezone/zic.c:1322
+#: timezone/zic.c:1821
 msgid "values over 24 hours not handled by pre-2007 versions of zic"
 msgstr "zic'in 2007 öncesi sürümlerinde 24 saatin üzerindeki değerlerle işlem yapılmaz"
 
-#: timezone/zic.c:1340
+#: timezone/zic.c:1839
 msgid "invalid saved time"
 msgstr "kazanılmış zaman geçersiz"
 
-#: timezone/zic.c:1351
+#: timezone/zic.c:1850
 msgid "wrong number of fields on Rule line"
 msgstr "`Rule' satırının alanları eksik ya da fazla"
 
-#: timezone/zic.c:1360
+#: timezone/zic.c:1859
 #, c-format
 msgid "Invalid rule name \"%s\""
 msgstr "\"%s\" geçersiz kural adı"
 
-#: timezone/zic.c:1382
+#: timezone/zic.c:1883
 msgid "wrong number of fields on Zone line"
 msgstr "`Zone' satırının alanları eksik ya da fazla"
 
-#: timezone/zic.c:1387
+#: timezone/zic.c:1887
 #, c-format
 msgid "\"Zone %s\" line and -l option are mutually exclusive"
 msgstr "\"Zone %s\" satırı ve -l seçeneği çelişiyor"
 
-#: timezone/zic.c:1393
+#: timezone/zic.c:1892
 #, c-format
 msgid "\"Zone %s\" line and -p option are mutually exclusive"
 msgstr "\"Zone %s\" satırı ve -p seçeneği çelişiyor"
 
-#: timezone/zic.c:1400
+#: timezone/zic.c:1899
 #, c-format
 msgid "duplicate zone name %s (file \"%s\", line %<PRIdMAX>)"
 msgstr "dilim ismi %s tekrarlanmış (dosya \"%s\", satır %<PRIdMAX>)"
 
-#: timezone/zic.c:1414
+#: timezone/zic.c:1913
 msgid "wrong number of fields on Zone continuation line"
 msgstr "`Zone' devam satırının alanları eksik ya da fazla"
 
-#: timezone/zic.c:1454
+#: timezone/zic.c:1952
 msgid "invalid UT offset"
 msgstr "geçersiz UT offset"
 
-#: timezone/zic.c:1458
+#: timezone/zic.c:1956
 msgid "invalid abbreviation format"
 msgstr "kısaltma biçemi geçersiz"
 
-#: timezone/zic.c:1467
+#: timezone/zic.c:1986
+msgid "Zone continuation line end time is not after end time of previous line"
+msgstr "`Zone' devamlılık satırının bitiş zamanı önceki satırın bitiş zamanından sonra değil"
+
+#: timezone/zic.c:1997
 #, c-format
 msgid "format '%s' not handled by pre-2015 versions of zic"
 msgstr "format '%s' 2015 öncesi zic sürümleri tarafından elde edilemez"
 
-#: timezone/zic.c:1494
-msgid "Zone continuation line end time is not after end time of previous line"
-msgstr "`Zone' devamlılık satırının bitiş zamanı önceki satırın bitiş zamanından sonra değil"
-
-#: timezone/zic.c:1526
+#: timezone/zic.c:2027
 msgid "invalid leaping year"
 msgstr "artık yıl geçersiz"
 
-#: timezone/zic.c:1548 timezone/zic.c:1653
+#: timezone/zic.c:2049 timezone/zic.c:2154
 msgid "invalid month name"
 msgstr "ay ismi geçersiz"
 
-#: timezone/zic.c:1561 timezone/zic.c:1769 timezone/zic.c:1783
+#: timezone/zic.c:2062 timezone/zic.c:2252 timezone/zic.c:2266
 msgid "invalid day of month"
 msgstr "ayın günü geçersiz"
 
-#: timezone/zic.c:1566
+#: timezone/zic.c:2067
 msgid "time too small"
 msgstr "süre çok kısa"
 
-#: timezone/zic.c:1570
+#: timezone/zic.c:2071
 msgid "time too large"
 msgstr "süre çok uzun"
 
-#: timezone/zic.c:1574 timezone/zic.c:1682
+#: timezone/zic.c:2075 timezone/zic.c:2183
 msgid "invalid time of day"
 msgstr "günün tarihi geçersiz"
 
-#: timezone/zic.c:1577
+#: timezone/zic.c:2078
 msgid "leap second precedes Epoch"
 msgstr "sıçrama ikinci Dönem öncesinde"
 
-#: timezone/zic.c:1585
+#: timezone/zic.c:2086
 msgid "wrong number of fields on Leap line"
 msgstr "`Leap' satırının alanları eksik ya da fazla"
 
-#: timezone/zic.c:1591
+#: timezone/zic.c:2092
 msgid "invalid Rolling/Stationary field on Leap line"
 msgstr "sıçrama çizgisinde geçersiz Yuvarlanma/Sabit alan"
 
-#: timezone/zic.c:1599
+#: timezone/zic.c:2100
 msgid "invalid CORRECTION field on Leap line"
 msgstr "sıçrama satırında geçersiz DÜZELTME alanı"
 
-#: timezone/zic.c:1611
+#: timezone/zic.c:2112
 msgid "wrong number of fields on Expires line"
 msgstr "sona erme satırındaki yanlış alan sayısı"
 
-#: timezone/zic.c:1613
+#: timezone/zic.c:2114
 msgid "multiple Expires lines"
 msgstr "çoklu Sona Eren satır"
 
-#: timezone/zic.c:1624
+#: timezone/zic.c:2125
 msgid "wrong number of fields on Link line"
 msgstr "`Link' satırının alanları eksik ya da fazla"
 
-#: timezone/zic.c:1628
-msgid "blank FROM field on Link line"
-msgstr "`Link' satırında FROM alanı boş"
-
-#: timezone/zic.c:1703
+#: timezone/zic.c:2199
 msgid "invalid starting year"
 msgstr "başlangıç yılı geçersiz"
 
-#: timezone/zic.c:1725
+#: timezone/zic.c:2214
 msgid "invalid ending year"
 msgstr "bitiş yılı geçersiz"
 
-#: timezone/zic.c:1729
+#: timezone/zic.c:2218
 msgid "starting year greater than ending year"
 msgstr "başlangıç yılı bitiş yılından büyük"
 
-#: timezone/zic.c:1736
-msgid "typed single year"
-msgstr "türünde tek yıl"
-
-#: timezone/zic.c:1739
-#, c-format
-msgid "year type \"%s\" is obsolete; use \"-\" instead"
-msgstr "yıl türü \"%s\" eskidir; yerine \"-\" kullanın"
-
-#: timezone/zic.c:1774
+#: timezone/zic.c:2257
 msgid "invalid weekday name"
 msgstr "gün ismi geçersiz"
 
-#: timezone/zic.c:1935
+#: timezone/zic.c:2435
 #, c-format
 msgid "reference clients mishandle more than %d transition times"
 msgstr "referans istemciler %d geçiş sürelerinin daha fazlasını yanlış yapabilir"
 
-#: timezone/zic.c:1939
+#: timezone/zic.c:2439
 msgid "pre-2014 clients may mishandle more than 1200 transition times"
 msgstr "pre-2014 istemciler 1200 geçiş süresinden daha fazla kötü görev yapabilir"
 
-#: timezone/zic.c:2058
+#: timezone/zic.c:2537
 msgid "too many transition times"
 msgstr "çok fazla geçiş zamanı"
 
-#: timezone/zic.c:2297
+#: timezone/zic.c:2801
 #, c-format
 msgid "%%z UT offset magnitude exceeds 99:59:59"
 msgstr "%%z UT ofset büyüklüğünü aşıyor 99:59:59"
 
-#: timezone/zic.c:2673
-msgid "no POSIX environment variable for zone"
-msgstr "zaman dilimi için POSIX ortam değişkeni yok"
-
-#: timezone/zic.c:2679
+#: timezone/zic.c:3186
 #, c-format
 msgid "%s: pre-%d clients may mishandle distant timestamps"
 msgstr "%s: pre-%d istemciler uzaktaki zaman damgalarını yanlış görevlendirebilir"
 
-#: timezone/zic.c:2818
+#: timezone/zic.c:3315
 msgid "two rules for same instant"
 msgstr "aynlı anlık için iki kural"
 
-#: timezone/zic.c:2889
+#: timezone/zic.c:3388
 msgid "can't determine time zone abbreviation to use just after until time"
 msgstr "süreye değinden hemen sonra kullanılacak zaman dilimi kısaltması saptanamadı"
 
-#: timezone/zic.c:2964
+#: timezone/zic.c:3489
 msgid "UT offset out of range"
 msgstr "UT'ye göre saat farkı aralık dışında"
 
-#: timezone/zic.c:2987
+#: timezone/zic.c:3512
 msgid "too many local time types"
 msgstr "yerel zaman türleri çok fazla"
 
-#: timezone/zic.c:3005
+#: timezone/zic.c:3530
 msgid "too many leap seconds"
 msgstr "çok fazla artık saniye"
 
-#: timezone/zic.c:3032
+#: timezone/zic.c:3561
 msgid "Leap seconds too close together"
 msgstr "Sıçrama saniyeleri birbirine çok yakın"
 
-#: timezone/zic.c:3043
-msgid "\"#expires\" is obsolescent; use \"Expires\""
-msgstr "\"#expires\" eskimiş; \"Son kullanma tarihi\" kullan"
-
-#: timezone/zic.c:3049
+#: timezone/zic.c:3572
 msgid "last Leap time does not precede Expires time"
 msgstr "son Sıçrama süresi Sona Ereme zamanından önce değil"
 
-#: timezone/zic.c:3095
-msgid "Wild result from command execution"
-msgstr "Komut icrasından alınan sonuç garip"
-
-#: timezone/zic.c:3096
-#, c-format
-msgid "%s: command was '%s', result was %d\n"
-msgstr "%s: komut `%s' idi, sonuç %d oldu\n"
-
-#: timezone/zic.c:3202
+#: timezone/zic.c:3679
 #, c-format
 msgid "\"%s\" is undocumented; use \"last%s\" instead"
 msgstr "\"%s\" belgesizdir, \"last%s\" yerine kullan"
 
-#: timezone/zic.c:3233
+#: timezone/zic.c:3710
 #, c-format
 msgid "\"%s\" is ambiguous in pre-2017c zic"
 msgstr "\"%s\" 2017c öncesi zic belirsizdir"
 
-#: timezone/zic.c:3267
+#: timezone/zic.c:3741
 msgid "Odd number of quotation marks"
 msgstr "Tırnak işaretleri tek sayıda"
 
-#: timezone/zic.c:3361
+#: timezone/zic.c:3838
 msgid "use of 2/29 in non leap-year"
 msgstr "artık olmayan yıl içinde 2/29 kullanımı"
 
-#: timezone/zic.c:3396
+#: timezone/zic.c:3864
 msgid "rule goes past start/end of month; will not work with pre-2004 versions of zic"
 msgstr "kural ay başından/sonundan geçer; zic 2004 öncesi sürümleri ile çalışmaz"
 
-#: timezone/zic.c:3423
+#: timezone/zic.c:3891
 msgid "time zone abbreviation has fewer than 3 characters"
 msgstr "saat dilimi kısaltması 3 karakterden az"
 
-#: timezone/zic.c:3425
+#: timezone/zic.c:3893
 msgid "time zone abbreviation has too many characters"
 msgstr "saat dilimi kısaltması çok fazla karaktere sahiptir"
 
-#: timezone/zic.c:3427
+#: timezone/zic.c:3895
 msgid "time zone abbreviation differs from POSIX standard"
 msgstr "zaman dilimi kısaltması POSIX standardından farklı"
 
-#: timezone/zic.c:3433
+#: timezone/zic.c:3901
 msgid "too many, or too long, time zone abbreviations"
 msgstr "çok fazla ya da çok uzun zaman dilimi kısaltmaları"
 
-#: timezone/zic.c:3479
+#: timezone/zic.c:3952
 #, c-format
 msgid "%s: Can't create directory %s: %s"
 msgstr "%s: %s dizini oluşturulamıyor: %s"

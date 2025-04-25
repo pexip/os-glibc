@@ -1,5 +1,5 @@
 /* Test strlen functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -43,17 +43,30 @@
 
 typedef size_t (*proto_t) (const CHAR *, size_t);
 
-IMPL (STRNLEN, 1)
-
-/* Naive implementation to verify results.  */
-size_t
-SIMPLE_STRNLEN (const CHAR *s, size_t maxlen)
-{
-  size_t i;
-
-  for (i = 0; i < maxlen && s[i]; ++i);
-  return i;
-}
+/* Also check the default implementation.  */
+#undef STRNLEN
+#ifndef WIDE
+# define MEMCHR __memchr_default
+# define weak_alias(a, b)
+# define libc_hidden_def(a)
+# define libc_hidden_builtin_def(a)
+# include "string/memchr.c"
+# undef STRNLEN
+# define STRNLEN __strnlen_default
+# define memchr __memchr_default
+# include "string/strnlen.c"
+IMPL (__strnlen_default, 1)
+#else
+# define WMEMCHR __wmemchr_default
+# define weak_alias(a, b)
+# define libc_hidden_def(a)
+# define libc_hidden_weak(a)
+# include "wcsmbs/wmemchr.c"
+# define WCSNLEN __wcsnlen_default
+# define wmemchr __wmemchr_default
+# include "wcsmbs/wcsnlen.c"
+IMPL (__wcsnlen_default, 1)
+#endif
 
 static void
 do_one_test (impl_t *impl, const CHAR *s, size_t maxlen, size_t exp_len)
@@ -73,7 +86,7 @@ do_test (size_t align, size_t len, size_t maxlen, int max_char)
 {
   size_t i;
 
-  align &= 63;
+  align &= (getpagesize () / sizeof (CHAR) - 1);
   if ((align + len) * sizeof (CHAR) >= page_size)
     return;
 
@@ -90,38 +103,50 @@ do_test (size_t align, size_t len, size_t maxlen, int max_char)
 static void
 do_overflow_tests (void)
 {
-  size_t i, j, len;
+  size_t i, j, al_idx, repeats, len;
   const size_t one = 1;
   uintptr_t buf_addr = (uintptr_t) buf1;
+  const size_t alignments[] = { 0, 1, 7, 9, 31, 33, 63, 65, 95, 97, 127, 129 };
 
-  for (i = 0; i < 750; ++i)
+  for (al_idx = 0; al_idx < sizeof (alignments) / sizeof (alignments[0]);
+       al_idx++)
     {
-      do_test (1, i, SIZE_MAX, BIG_CHAR);
+      for (repeats = 0; repeats < 2; ++repeats)
+	{
+	  size_t align = repeats ? (getpagesize () - alignments[al_idx])
+				 : alignments[al_idx];
+	  align /= sizeof (CHAR);
+	  for (i = 0; i < 750; ++i)
+	    {
+	      do_test (align, i, SIZE_MAX, BIG_CHAR);
 
-      do_test (0, i, SIZE_MAX - i, BIG_CHAR);
-      do_test (0, i, i - buf_addr, BIG_CHAR);
-      do_test (0, i, -buf_addr - i, BIG_CHAR);
-      do_test (0, i, SIZE_MAX - buf_addr - i, BIG_CHAR);
-      do_test (0, i, SIZE_MAX - buf_addr + i, BIG_CHAR);
+	      do_test (align, i, SIZE_MAX - i, BIG_CHAR);
+	      do_test (align, i, i - buf_addr, BIG_CHAR);
+	      do_test (align, i, -buf_addr - i, BIG_CHAR);
+	      do_test (align, i, SIZE_MAX - buf_addr - i, BIG_CHAR);
+	      do_test (align, i, SIZE_MAX - buf_addr + i, BIG_CHAR);
 
-      len = 0;
-      for (j = 8 * sizeof(size_t) - 1; j ; --j)
-        {
-          len |= one << j;
-          do_test (0, i, len - i, BIG_CHAR);
-          do_test (0, i, len + i, BIG_CHAR);
-          do_test (0, i, len - buf_addr - i, BIG_CHAR);
-          do_test (0, i, len - buf_addr + i, BIG_CHAR);
+	      len = 0;
+	      for (j = 8 * sizeof (size_t) - 1; j; --j)
+		{
+		  len |= one << j;
+		  do_test (align, i, len, BIG_CHAR);
+		  do_test (align, i, len - i, BIG_CHAR);
+		  do_test (align, i, len + i, BIG_CHAR);
+		  do_test (align, i, len - buf_addr - i, BIG_CHAR);
+		  do_test (align, i, len - buf_addr + i, BIG_CHAR);
 
-          do_test (0, i, ~len - i, BIG_CHAR);
-          do_test (0, i, ~len + i, BIG_CHAR);
-          do_test (0, i, ~len - buf_addr - i, BIG_CHAR);
-          do_test (0, i, ~len - buf_addr + i, BIG_CHAR);
+		  do_test (align, i, ~len - i, BIG_CHAR);
+		  do_test (align, i, ~len + i, BIG_CHAR);
+		  do_test (align, i, ~len - buf_addr - i, BIG_CHAR);
+		  do_test (align, i, ~len - buf_addr + i, BIG_CHAR);
 
-          do_test (0, i, -buf_addr, BIG_CHAR);
-          do_test (0, i, j - buf_addr, BIG_CHAR);
-          do_test (0, i, -buf_addr - j, BIG_CHAR);
-        }
+		  do_test (align, i, -buf_addr, BIG_CHAR);
+		  do_test (align, i, j - buf_addr, BIG_CHAR);
+		  do_test (align, i, -buf_addr - j, BIG_CHAR);
+		}
+	    }
+	}
     }
 }
 
@@ -235,7 +260,7 @@ do_page_tests (void)
 }
 
 /* Tests meant to unveil fail on implementations that access bytes
-   beyond the maxium length.  */
+   beyond the maximum length.  */
 
 static void
 do_page_2_tests (void)

@@ -1,5 +1,5 @@
 /* Test compilation of tgmath macros.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -48,7 +48,7 @@ volatile int count_cdouble;
 volatile int count_cfloat;
 volatile int count_cldouble;
 
-#define NCALLS     158
+#define NCALLS     183
 #define NCALLS_INT 4
 #define NCCALLS    47
 
@@ -232,12 +232,19 @@ F(compile_test) (void)
   uintmax_t um;
 
   a = cos (cos (x));
+  a = cospi (cospi (x));
+  b = acospi (acospi (a));
   b = acos (acos (a));
   a = sin (sin (x));
+  b = sinpi (sinpi (x));
+  b = asinpi (asinpi (a));
   b = asin (asin (a));
   a = tan (tan (x));
+  b = tanpi (tanpi (x));
+  b = atanpi (atanpi (a));
   b = atan (atan (a));
   c = atan2 (atan2 (a, c), atan2 (b, x));
+  b = atan2pi (atan2pi (a, c), atan2pi (b, x));
   a = cosh (cosh (x));
   b = acosh (acosh (a));
   a = sinh (sinh (x));
@@ -250,11 +257,16 @@ F(compile_test) (void)
   b = ldexp (ldexp (a, 1), 5);
   a = frexp (frexp (x, &i), &i);
   b = expm1 (expm1 (a));
+  a = exp2m1 (exp2m1 (b));
+  b = exp10m1 (exp10m1 (a));
   a = log1p (log1p (x));
   b = logb (logb (a));
   a = exp2 (exp2 (x));
   a = exp10 (exp10 (x));
   b = log2 (log2 (a));
+  a = log2p1 (log2p1 (x));
+  a = log10p1 (log10p1 (x));
+  a = logp1 (logp1 (x));
   a = pow (pow (x, a), pow (c, b));
   b = sqrt (sqrt (a));
   a = hypot (hypot (x, b), hypot (c, a));
@@ -345,12 +357,19 @@ F(compile_test) (void)
   if (0)
     {
       a = cos (y);
+      a = cospi (y);
       a = acos (y);
+      a = acospi (y);
       a = sin (y);
+      a = sinpi (y);
       a = asin (y);
+      a = asinpi (y);
       a = tan (y);
+      a = tanpi (y);
       a = atan (y);
+      a = atanpi (y);
       a = atan2 (y, y);
+      a = atan2pi (y, y);
       a = cosh (y);
       a = acosh (y);
       a = sinh (y);
@@ -363,11 +382,16 @@ F(compile_test) (void)
       a = ldexp (y, 5);
       a = frexp (y, &i);
       a = expm1 (y);
+      a = exp2m1 (y);
+      a = exp10m1 (y);
       a = log1p (y);
       a = logb (y);
       a = exp2 (y);
       a = exp10 (y);
       a = log2 (y);
+      a = log2p1 (y);
+      a = log10p1 (y);
+      a = logp1 (y);
       a = pow (y, y);
       a = sqrt (y);
       a = hypot (y, y);
@@ -458,7 +482,23 @@ TYPE
 }
 
 TYPE
+(F(cospi)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
 (F(acos)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(acospi)) (TYPE x)
 {
   ++count;
   P ();
@@ -474,6 +514,14 @@ TYPE
 }
 
 TYPE
+(F(sinpi)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
 (F(asin)) (TYPE x)
 {
   ++count;
@@ -482,7 +530,23 @@ TYPE
 }
 
 TYPE
+(F(asinpi)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
 (F(tan)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(tanpi)) (TYPE x)
 {
   ++count;
   P ();
@@ -499,6 +563,22 @@ TYPE
 
 TYPE
 (F(atan2)) (TYPE x, TYPE y)
+{
+  ++count;
+  P ();
+  return x + y;
+}
+
+TYPE
+(F(atanpi)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(atan2pi)) (TYPE x, TYPE y)
 {
   ++count;
   P ();
@@ -602,6 +682,22 @@ TYPE
 }
 
 TYPE
+(F(exp2m1)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(exp10m1)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
 (F(log1p)) (TYPE x)
 {
   ++count;
@@ -635,6 +731,30 @@ TYPE
 
 TYPE
 (F(log2)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(log2p1)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(log10p1)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(logp1)) (TYPE x)
 {
   ++count;
   P ();

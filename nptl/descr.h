@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2022 Free Software Foundation, Inc.
+/* Copyright (C) 2002-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@
 #include <bits/types/res_state.h>
 #include <kernel-features.h>
 #include <tls-internal-struct.h>
-#include <sys/rseq.h>
 #include <internal-sigset.h>
 
 #ifndef TCB_ALIGNMENT
@@ -119,7 +118,7 @@ struct robust_list_head
 };
 
 
-/* Data strcture used to handle thread priority protection.  */
+/* Data structure used to handle thread priority protection.  */
 struct priority_protection_data
 {
   int priomax;
@@ -390,6 +389,9 @@ struct pthread
      masked.)  */
   internal_sigset_t sigmask;
 
+  /* Used by the exception handling implementation in the dynamic loader.  */
+  struct rtld_catch *rtld_catch;
+
   /* Indicates whether is a C11 thread created by thrd_creat.  */
   bool c11;
 
@@ -402,15 +404,33 @@ struct pthread
   /* Used on strsignal.  */
   struct tls_internal_t tls_state;
 
-  /* rseq area registered with the kernel.  */
-  struct rseq rseq_area;
+  /* getrandom vDSO per-thread opaque state.  */
+  void *getrandom_buf;
 
-  /* This member must be last.  */
-  char end_padding[];
-
+  /* Amount of end padding, if any, in this structure.
+     This definition relies on getrandom_buf being last.  */
 #define PTHREAD_STRUCT_END_PADDING \
-  (sizeof (struct pthread) - offsetof (struct pthread, end_padding))
+  (sizeof (struct pthread) - offsetof (struct pthread, getrandom_buf) \
+   + sizeof ((struct pthread) {}.getrandom_buf))
 } __attribute ((aligned (TCB_ALIGNMENT)));
+
+static inline bool
+cancel_enabled (int value)
+{
+  return (value & CANCELSTATE_BITMASK) == 0;
+}
+
+static inline bool
+cancel_async_enabled (int value)
+{
+  return (value & CANCELTYPE_BITMASK) != 0;
+}
+
+static inline bool
+cancel_exiting (int value)
+{
+  return (value & EXITING_BITMASK) != 0;
+}
 
 static inline bool
 cancel_enabled_and_canceled (int value)

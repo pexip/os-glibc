@@ -1,5 +1,5 @@
 /* Conversion module for UTF-7.
-   Copyright (C) 2000-2022 Free Software Foundation, Inc.
+   Copyright (C) 2000-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -189,7 +189,7 @@ gconv_init (struct __gconv_step *step)
 
   enum variant var = 0;
   for (const char *name = names; *name != '\0';
-       name = __rawmemchr (name, '\0') + 1)
+       name = strchr (name, '\0') + 1)
     {
       if (__strcasecmp (step->__from_name, name) == 0)
 	{

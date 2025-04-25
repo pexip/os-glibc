@@ -1,5 +1,5 @@
 /* strchrnul dispatch for RTLD and non-multiarch build
-   Copyright (C) 2009-2022 Free Software Foundation, Inc.
+   Copyright (C) 2009-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -24,4 +24,5 @@
 
 #include "isa-default-impl.h"
 
+libc_hidden_def (__strchrnul)
 weak_alias (__strchrnul, strchrnul)

@@ -1,5 +1,5 @@
 /* memcopy.h -- definitions for memory copy functions.  Generic C version.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -55,10 +55,9 @@
      [I fail to understand.  I feel stupid.  --roland]
 */
 
-/* Type to use for aligned memory operations.
-   This should normally be the biggest type supported by a single load
-   and store.  */
-#define	op_t	unsigned long int
+/* Type to use for aligned memory operations.  */
+#include <string-optype.h>
+#include <string-opthr.h>
 #define OPSIZ	(sizeof (op_t))
 
 /* Type to use for unaligned operations.  */
@@ -189,9 +188,6 @@ extern void _wordcopy_bwd_dest_aligned (long int, long int, size_t)
 # define PAGE_COPY_FWD_MAYBE(dstp, srcp, nbytes_left, nbytes) /* nada */
 
 #endif
-
-/* Threshold value for when to enter the unrolled loops.  */
-#define	OP_T_THRES	16
 
 /* Set to 1 if memcpy is safe to use for forward-copying memmove with
    overlapping addresses.  This is 0 by default because memcpy implementations

@@ -1,5 +1,5 @@
 /* Measure STRCHR functions.
-   Copyright (C) 2013-2022 Free Software Foundation, Inc.
+   Copyright (C) 2013-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -28,30 +28,20 @@
 #define BIG_CHAR MAX_CHAR
 
 #ifdef WIDE
-# define SIMPLE_STRRCHR simple_wcsrchr
 # define SMALL_CHAR 1273
 #else
-# define SIMPLE_STRRCHR simple_strrchr
 # define SMALL_CHAR 127
+
+char *
+generic_strrchr (const char *, int);
+
+IMPL (generic_strrchr, 0)
+
 #endif
 
 typedef CHAR *(*proto_t) (const CHAR *, int);
-CHAR *SIMPLE_STRRCHR (const CHAR *, int);
 
-IMPL (SIMPLE_STRRCHR, 0)
 IMPL (STRRCHR, 1)
-
-CHAR *
-SIMPLE_STRRCHR (const CHAR *s, int c)
-{
-  const CHAR *ret = NULL;
-
-  for (; *s != '\0'; ++s)
-    if (*s == (CHAR) c)
-      ret = s;
-
-  return (CHAR *) (c == '\0' ? s : ret);
-}
 
 static void
 do_one_test (json_ctx_t *json_ctx, impl_t *impl, const CHAR *s, int c,
@@ -151,7 +141,7 @@ int
 test_main (void)
 {
   json_ctx_t json_ctx;
-  size_t i, j;
+  size_t i, j, k;
   int seek;
 
   test_init ();
@@ -173,7 +163,7 @@ test_main (void)
 
   for (seek = 0; seek <= 23; seek += 23)
     {
-      for (j = 1; j < 32; j += j)
+      for (j = 1; j <= 256; j = (j * 4))
 	{
 	  for (i = 1; i < 9; ++i)
 	    {
@@ -197,6 +187,30 @@ test_main (void)
 	      do_test (&json_ctx, getpagesize () - i / 2 - 1, i, i + 1, seek,
 		       SMALL_CHAR, j);
 	    }
+
+	  for (i = (16 / sizeof (CHAR)); i <= (288 / sizeof (CHAR)); i += 32)
+	    {
+	      do_test (&json_ctx, 0, i - 16, i, seek, SMALL_CHAR, j);
+	      do_test (&json_ctx, 0, i, i + 16, seek, SMALL_CHAR, j);
+	    }
+
+	  for (i = (16 / sizeof (CHAR)); i <= (2048 / sizeof (CHAR)); i += i)
+	    {
+	      for (k = 0; k <= (288 / sizeof (CHAR));
+		   k += (48 / sizeof (CHAR)))
+		{
+		  do_test (&json_ctx, 0, k, i, seek, SMALL_CHAR, j);
+		  do_test (&json_ctx, 0, i, i + k, seek, SMALL_CHAR, j);
+
+		  if (k < i)
+		    {
+		      do_test (&json_ctx, 0, i - k, i, seek, SMALL_CHAR, j);
+		      do_test (&json_ctx, 0, k, i - k, seek, SMALL_CHAR, j);
+		      do_test (&json_ctx, 0, i, i - k, seek, SMALL_CHAR, j);
+		    }
+		}
+	    }
+
 	  if (seek == 0)
 	    {
 	      break;
@@ -213,3 +227,12 @@ test_main (void)
 }
 
 #include <support/test-driver.c>
+
+#define weak_alias(X,Y)
+#define libc_hidden_builtin_def(X)
+#ifndef WIDE
+# undef STRRCHR
+# define STRRCHR generic_strrchr
+# define __memrchr memrchr
+# include <string/strrchr.c>
+#endif

@@ -1,5 +1,5 @@
 /* Test and measure string and memory functions.
-   Copyright (C) 1999-2022 Free Software Foundation, Inc.
+   Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -40,16 +40,7 @@ extern impl_t __start_impls[], __stop_impls[];
 
 #undef __USE_STRING_INLINES
 
-/* We are compiled under _ISOMAC, so libc-symbols.h does not do this
-   for us.  */
-#include "config.h"
-#ifdef HAVE_CC_INHIBIT_LOOP_TO_LIBCALL
-# define inhibit_loop_to_libcall \
-    __attribute__ ((__optimize__ ("-fno-tree-loop-distribute-patterns")))
-#else
-# define inhibit_loop_to_libcall
-#endif
-
+#include <libc-misc.h>
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -130,8 +121,8 @@ cmdline_process_function (int c)
 /* Increase size of FUNC_LIST if assert is triggered at run-time.  */
 static struct libc_ifunc_impl func_list[32];
 static int func_count;
-static int impl_count = -1;
-static impl_t *impl_array;
+static int impl_count __attribute__ ((unused)) = -1;
+static impl_t *impl_array __attribute__ ((unused));
 
 # define FOR_EACH_IMPL(impl, notall) \
   impl_t *impl;								\

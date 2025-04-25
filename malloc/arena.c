@@ -1,5 +1,5 @@
 /* Malloc implementation for multiple threads without lock contention.
-   Copyright (C) 2001-2022 Free Software Foundation, Inc.
+   Copyright (C) 2001-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,10 +17,9 @@
    not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdbool.h>
+#include <setvmaname.h>
 
-#if HAVE_TUNABLES
-# define TUNABLE_NAMESPACE malloc
-#endif
+#define TUNABLE_NAMESPACE malloc
 #include <elf/dl-tunables.h>
 
 /* Compile-time constants.  */
@@ -41,27 +40,19 @@
    mmap threshold, so that requests with a size just below that
    threshold can be fulfilled without creating too many heaps.  */
 
-/* When huge pages are used to create new arenas, the maximum and minumum
+/* When huge pages are used to create new arenas, the maximum and minimum
    size are based on the runtime defined huge page size.  */
 
 static inline size_t
 heap_min_size (void)
 {
-#if HAVE_TUNABLES
   return mp_.hp_pagesize == 0 ? HEAP_MIN_SIZE : mp_.hp_pagesize;
-#else
-  return HEAP_MIN_SIZE;
-#endif
 }
 
 static inline size_t
 heap_max_size (void)
 {
-#if HAVE_TUNABLES
   return mp_.hp_pagesize == 0 ? HEAP_MAX_SIZE : mp_.hp_pagesize * 4;
-#else
-  return HEAP_MAX_SIZE;
-#endif
 }
 
 /***************************************************************************/
@@ -239,8 +230,7 @@ __malloc_fork_unlock_child (void)
   __libc_lock_init (list_lock);
 }
 
-#if HAVE_TUNABLES
-# define TUNABLE_CALLBACK_FNDECL(__name, __type) \
+#define TUNABLE_CALLBACK_FNDECL(__name, __type) \
 static inline int do_ ## __name (__type value);				      \
 static void									      \
 TUNABLE_CALLBACK (__name) (tunable_val_t *valp)				      \
@@ -263,47 +253,6 @@ TUNABLE_CALLBACK_FNDECL (set_tcache_unsorted_limit, size_t)
 #endif
 TUNABLE_CALLBACK_FNDECL (set_mxfast, size_t)
 TUNABLE_CALLBACK_FNDECL (set_hugetlb, size_t)
-#else
-/* Initialization routine. */
-#include <string.h>
-extern char **_environ;
-
-static char *
-next_env_entry (char ***position)
-{
-  char **current = *position;
-  char *result = NULL;
-
-  while (*current != NULL)
-    {
-      if (__builtin_expect ((*current)[0] == 'M', 0)
-          && (*current)[1] == 'A'
-          && (*current)[2] == 'L'
-          && (*current)[3] == 'L'
-          && (*current)[4] == 'O'
-          && (*current)[5] == 'C'
-          && (*current)[6] == '_')
-        {
-          result = &(*current)[7];
-
-          /* Save current position for next visit.  */
-          *position = ++current;
-
-          break;
-        }
-
-      ++current;
-    }
-
-  return result;
-}
-#endif
-
-
-#ifdef SHARED
-extern struct dl_open_hook *_dl_open_hook;
-libc_hidden_proto (_dl_open_hook);
-#endif
 
 #if USE_TCACHE
 static void tcache_key_initialize (void);
@@ -348,7 +297,6 @@ ptmalloc_init (void)
 
   malloc_init_state (&main_arena);
 
-#if HAVE_TUNABLES
   TUNABLE_GET (top_pad, size_t, TUNABLE_CALLBACK (set_top_pad));
   TUNABLE_GET (perturb, int32_t, TUNABLE_CALLBACK (set_perturb_byte));
   TUNABLE_GET (mmap_threshold, size_t, TUNABLE_CALLBACK (set_mmap_threshold));
@@ -364,69 +312,17 @@ ptmalloc_init (void)
 # endif
   TUNABLE_GET (mxfast, size_t, TUNABLE_CALLBACK (set_mxfast));
   TUNABLE_GET (hugetlb, size_t, TUNABLE_CALLBACK (set_hugetlb));
+
   if (mp_.hp_pagesize > 0)
-    /* Force mmap for main arena instead of sbrk, so hugepages are explicitly
-       used.  */
-    __always_fail_morecore = true;
-#else
-  if (__glibc_likely (_environ != NULL))
     {
-      char **runp = _environ;
-      char *envline;
-
-      while (__builtin_expect ((envline = next_env_entry (&runp)) != NULL,
-                               0))
-        {
-          size_t len = strcspn (envline, "=");
-
-          if (envline[len] != '=')
-            /* This is a "MALLOC_" variable at the end of the string
-               without a '=' character.  Ignore it since otherwise we
-               will access invalid memory below.  */
-            continue;
-
-          switch (len)
-            {
-            case 8:
-              if (!__builtin_expect (__libc_enable_secure, 0))
-                {
-                  if (memcmp (envline, "TOP_PAD_", 8) == 0)
-                    __libc_mallopt (M_TOP_PAD, atoi (&envline[9]));
-                  else if (memcmp (envline, "PERTURB_", 8) == 0)
-                    __libc_mallopt (M_PERTURB, atoi (&envline[9]));
-                }
-              break;
-            case 9:
-              if (!__builtin_expect (__libc_enable_secure, 0))
-                {
-                  if (memcmp (envline, "MMAP_MAX_", 9) == 0)
-                    __libc_mallopt (M_MMAP_MAX, atoi (&envline[10]));
-                  else if (memcmp (envline, "ARENA_MAX", 9) == 0)
-                    __libc_mallopt (M_ARENA_MAX, atoi (&envline[10]));
-                }
-              break;
-            case 10:
-              if (!__builtin_expect (__libc_enable_secure, 0))
-                {
-                  if (memcmp (envline, "ARENA_TEST", 10) == 0)
-                    __libc_mallopt (M_ARENA_TEST, atoi (&envline[11]));
-                }
-              break;
-            case 15:
-              if (!__builtin_expect (__libc_enable_secure, 0))
-                {
-                  if (memcmp (envline, "TRIM_THRESHOLD_", 15) == 0)
-                    __libc_mallopt (M_TRIM_THRESHOLD, atoi (&envline[16]));
-                  else if (memcmp (envline, "MMAP_THRESHOLD_", 15) == 0)
-                    __libc_mallopt (M_MMAP_THRESHOLD, atoi (&envline[16]));
-                }
-              break;
-            default:
-              break;
-            }
-        }
+      /* Force mmap for main arena instead of sbrk, so MAP_HUGETLB is always
+         tried.  Also tune the mmap threshold, so allocation smaller than the
+	 large page will also try to use large pages by falling back
+	 to sysmalloc_mmap_fallback on sysmalloc.  */
+      if (!TUNABLE_IS_INITIALIZED (mmap_threshold))
+	do_set_mmap_threshold (mp_.hp_pagesize);
+      __always_fail_morecore = true;
     }
-#endif
 }
 
 /* Managing heaps and arenas (for concurrent threads) */
@@ -444,7 +340,7 @@ dump_heap (heap_info *heap)
   fprintf (stderr, "Heap %p, size %10lx:\n", heap, (long) heap->size);
   ptr = (heap->ar_ptr != (mstate) (heap + 1)) ?
         (char *) (heap + 1) : (char *) (heap + 1) + sizeof (struct malloc_state);
-  p = (mchunkptr) (((unsigned long) ptr + MALLOC_ALIGN_MASK) &
+  p = (mchunkptr) (((uintptr_t) ptr + MALLOC_ALIGN_MASK) &
                    ~MALLOC_ALIGN_MASK);
   for (;; )
     {
@@ -493,7 +389,7 @@ alloc_new_heap  (size_t size, size_t top_pad, size_t pagesize,
   else if (size + top_pad <= max_size)
     size += top_pad;
   else if (size > max_size)
-    return 0;
+    return NULL;
   else
     size = max_size;
   size = ALIGN_UP (size, pagesize);
@@ -515,10 +411,10 @@ alloc_new_heap  (size_t size, size_t top_pad, size_t pagesize,
     }
   if (p2 == MAP_FAILED)
     {
-      p1 = (char *) MMAP (0, max_size << 1, PROT_NONE, mmap_flags);
+      p1 = (char *) MMAP (NULL, max_size << 1, PROT_NONE, mmap_flags);
       if (p1 != MAP_FAILED)
         {
-          p2 = (char *) (((unsigned long) p1 + (max_size - 1))
+          p2 = (char *) (((uintptr_t) p1 + (max_size - 1))
                          & ~(max_size - 1));
           ul = p2 - p1;
           if (ul)
@@ -531,22 +427,25 @@ alloc_new_heap  (size_t size, size_t top_pad, size_t pagesize,
         {
           /* Try to take the chance that an allocation of only max_size
              is already aligned. */
-          p2 = (char *) MMAP (0, max_size, PROT_NONE, mmap_flags);
+          p2 = (char *) MMAP (NULL, max_size, PROT_NONE, mmap_flags);
           if (p2 == MAP_FAILED)
-            return 0;
+            return NULL;
 
           if ((unsigned long) p2 & (max_size - 1))
             {
               __munmap (p2, max_size);
-              return 0;
+              return NULL;
             }
         }
     }
   if (__mprotect (p2, size, mtag_mmap_flags | PROT_READ | PROT_WRITE) != 0)
     {
       __munmap (p2, max_size);
-      return 0;
+      return NULL;
     }
+
+  /* Only considere the actual usable range.  */
+  __set_vma_name (p2, size, " glibc: malloc arena");
 
   madvise_thp (p2, size);
 
@@ -561,19 +460,14 @@ alloc_new_heap  (size_t size, size_t top_pad, size_t pagesize,
 static heap_info *
 new_heap (size_t size, size_t top_pad)
 {
-#if HAVE_TUNABLES
   if (__glibc_unlikely (mp_.hp_pagesize != 0))
     {
-      /* MAP_NORESERVE is not used for huge pages because some kernel may
-	 not reserve the mmap region and a subsequent access may trigger
-	 a SIGBUS if there is no free pages in the pool.  */
       heap_info *h = alloc_new_heap (size, top_pad, mp_.hp_pagesize,
 				     mp_.hp_flags);
       if (h != NULL)
 	return h;
     }
-#endif
-  return alloc_new_heap (size, top_pad, GLRO (dl_pagesize), MAP_NORESERVE);
+  return alloc_new_heap (size, top_pad, GLRO (dl_pagesize), 0);
 }
 
 /* Grow a heap.  size is automatically rounded up to a
@@ -750,7 +644,7 @@ _int_new_arena (size_t size)
          to deal with the large request via mmap_chunk().  */
       h = new_heap (sizeof (*h) + sizeof (*a) + MALLOC_ALIGNMENT, mp_.top_pad);
       if (!h)
-        return 0;
+        return NULL;
     }
   a = h->ar_ptr = (mstate) (h + 1);
   malloc_init_state (a);
@@ -760,7 +654,7 @@ _int_new_arena (size_t size)
 
   /* Set up the top chunk, with proper alignment. */
   ptr = (char *) (a + 1);
-  misalign = (unsigned long) chunk2mem (ptr) & MALLOC_ALIGN_MASK;
+  misalign = (uintptr_t) chunk2mem (ptr) & MALLOC_ALIGN_MASK;
   if (misalign > 0)
     ptr += MALLOC_ALIGNMENT - misalign;
   top (a) = (mchunkptr) ptr;
@@ -937,7 +831,7 @@ arena_get2 (size_t size, mstate avoid_arena)
             narenas_limit = mp_.arena_max;
           else if (narenas > mp_.arena_test)
             {
-              int n = __get_nprocs_sched ();
+              int n = __get_nprocs ();
 
               if (n >= 1)
                 narenas_limit = NARENAS_FROM_NCORES (n);

@@ -1,5 +1,5 @@
 /* File tree walker functions.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -535,7 +535,7 @@ fail:
 
   /* Next, update the `struct FTW' information.  */
   ++data->ftw.level;
-  startp = __rawmemchr (data->dirbuf, '\0');
+  startp = strchr (data->dirbuf, '\0');
   /* There always must be a directory name.  */
   assert (startp != data->dirbuf);
   if (startp[-1] != '/')

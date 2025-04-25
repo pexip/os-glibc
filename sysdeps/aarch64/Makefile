@@ -9,7 +9,9 @@ LDFLAGS-rtld += -Wl,-z,force-bti,--fatal-warnings
 endif
 
 ifeq ($(subdir),elf)
-sysdep-dl-routines += dl-bti
+sysdep-dl-routines += \
+  dl-bti \
+  dl-gcs
 
 tests += tst-audit26 \
 	 tst-audit27
@@ -35,7 +37,9 @@ endif
 ifeq ($(subdir),elf)
 sysdep-rtld-routines += dl-start
 sysdep-dl-routines += tlsdesc dl-tlsdesc
-gen-as-const-headers += dl-link.sym
+gen-as-const-headers += \
+  dl-link.sym \
+  rtld-global-offsets.sym
 
 tests-internal += tst-ifunc-arg-1 tst-ifunc-arg-2
 
@@ -48,7 +52,9 @@ endif
 endif
 
 ifeq ($(subdir),csu)
-gen-as-const-headers += tlsdesc.sym
+gen-as-const-headers += \
+  tlsdesc.sym \
+  rtld-global-offsets.sym
 endif
 
 ifeq ($(subdir),gmon)
@@ -57,12 +63,19 @@ endif
 
 ifeq ($(subdir),math)
 CPPFLAGS += -I../soft-fp
+CFLAGS-feupdateenv.c += $(config-cflags-wno-ignored-attributes)
 endif
 
 ifeq ($(subdir),misc)
 sysdep_headers += sys/ifunc.h
-sysdep_routines += __mtag_tag_zero_region \
-		   __mtag_tag_region
+sysdep_routines += \
+  __mtag_tag_zero_region \
+  __mtag_tag_region \
+  __arm_za_disable \
+  __alloc_gcs
+
+tests += \
+  tst-sme-jmp
 endif
 
 ifeq ($(subdir),malloc)

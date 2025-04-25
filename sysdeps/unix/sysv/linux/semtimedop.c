@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ semtimedop_syscall (int semid, struct sembuf *sops, size_t nsops,
 #endif
 }
 
-/* Perform user-defined atomical operation of array of semaphores.  */
+/* Perform user-defined atomic operation of array of semaphores.  */
 int
 __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
 		const struct __timespec64 *timeout)
@@ -42,7 +42,7 @@ __semtimedop64 (int semid, struct sembuf *sops, size_t nsops,
 #ifdef __ASSUME_TIME64_SYSCALLS
   return semtimedop_syscall (semid, sops, nsops, timeout);
 #else
-  bool need_time64 = timeout != NULL && !in_time_t_range (timeout->tv_sec);
+  bool need_time64 = timeout != NULL && !in_int32_t_range (timeout->tv_sec);
   if (need_time64)
     {
       int r = semtimedop_syscall (semid, sops, nsops, timeout);

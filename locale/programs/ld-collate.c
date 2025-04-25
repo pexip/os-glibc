@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -1059,7 +1059,7 @@ insert_value (struct linereader *ldfile, const char *symstr, size_t symlen,
   /* Test whether this element is not already in the list.  */
   if (elem->next != NULL || elem == collate->cursor)
     {
-      lr_error (ldfile, _("order for `%.*s' already defined at %s:%Zu"),
+      lr_error (ldfile, _("order for `%.*s' already defined at %s:%zu"),
 		(int) symlen, symstr, elem->file, elem->line);
       lr_ignore_rest (ldfile, 0);
       return 1;
@@ -1235,7 +1235,7 @@ range is not lower than that of the last character"), "LC_COLLATE");
 					     && elem->next == collate->cursor))
 		    {
 		      lr_error (ldfile, _("\
-order for `%.*s' already defined at %s:%Zu"),
+order for `%.*s' already defined at %s:%zu"),
 				(int) namelen, seq->name,
 				elem->file, elem->line);
 		      goto increment;
@@ -1378,7 +1378,7 @@ order for `%.*s' already defined at %s:%Zu"),
 					     && elem->next == collate->cursor))
 		    {
 		      lr_error (ldfile, _("\
-%s: order for `%.*s' already defined at %s:%Zu"),
+%s: order for `%.*s' already defined at %s:%zu"),
 				"LC_COLLATE", (int) lenfrom, buf,
 				elem->file, elem->line);
 		      continue;
@@ -2678,7 +2678,7 @@ collate_read (struct linereader *ldfile, struct localedef_t *result,
       if (nowtok == tok_eof)
 	break;
 
-      /* Ingore empty lines.  */
+      /* Ignore empty lines.  */
       if (nowtok == tok_eol)
 	{
 	  now = lr_token (ldfile, charmap, result, NULL, verbose);
@@ -3728,7 +3728,7 @@ error while adding equivalent collating symbol"));
 	      || &collate->undefined == collate->cursor)
 	    {
 	      lr_error (ldfile,
-			_("%s: order for `%.*s' already defined at %s:%Zu"),
+			_("%s: order for `%.*s' already defined at %s:%zu"),
 			"LC_COLLATE", 9, "UNDEFINED",
 			collate->undefined.file,
 			collate->undefined.line);

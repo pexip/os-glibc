@@ -1,4 +1,4 @@
-# Copyright (C) 1991-2022 Free Software Foundation, Inc.
+# Copyright (C) 1991-2025 Free Software Foundation, Inc.
 # This file is part of the GNU C Library.
 
 # The GNU C Library is free software; you can redistribute it and/or
@@ -28,11 +28,12 @@ headers := \
   bits/indirect-return.h \
   bits/monetary-ldbl.h \
   bits/stdint-intn.h \
+  bits/stdint-least.h \
   bits/stdint-uintn.h \
   bits/stdlib-bsearch.h \
   bits/stdlib-float.h \
-  bits/stdlib.h \
   bits/stdlib-ldbl.h \
+  bits/stdlib.h \
   bits/time64.h \
   bits/timesize.h \
   bits/types/error_t.h \
@@ -41,6 +42,7 @@ headers := \
   fmtmsg.h \
   inttypes.h \
   monetary.h \
+  stdbit.h \
   stdint.h \
   stdlib.h \
   sys/errno.h \
@@ -59,7 +61,7 @@ routines := \
   atof \
   atoi \
   atol\
-  atoll	\
+  atoll \
   bsearch \
   canonicalize \
   cxa_at_quick_exit \
@@ -96,7 +98,6 @@ routines := \
   mbtowc \
   mrand48 \
   mrand48_r \
-  msort \
   nrand48 \
   nrand48_r \
   old_atexit  \
@@ -116,6 +117,76 @@ routines := \
   setenv \
   srand48 \
   srand48_r \
+  stdc_bit_ceil_uc \
+  stdc_bit_ceil_ui \
+  stdc_bit_ceil_ul \
+  stdc_bit_ceil_ull \
+  stdc_bit_ceil_us \
+  stdc_bit_floor_uc \
+  stdc_bit_floor_ui \
+  stdc_bit_floor_ul \
+  stdc_bit_floor_ull \
+  stdc_bit_floor_us \
+  stdc_bit_width_uc \
+  stdc_bit_width_ui \
+  stdc_bit_width_ul \
+  stdc_bit_width_ull \
+  stdc_bit_width_us \
+  stdc_count_ones_uc \
+  stdc_count_ones_ui \
+  stdc_count_ones_ul \
+  stdc_count_ones_ull \
+  stdc_count_ones_us \
+  stdc_count_zeros_uc \
+  stdc_count_zeros_ui \
+  stdc_count_zeros_ul \
+  stdc_count_zeros_ull \
+  stdc_count_zeros_us \
+  stdc_first_leading_one_uc \
+  stdc_first_leading_one_ui \
+  stdc_first_leading_one_ul \
+  stdc_first_leading_one_ull \
+  stdc_first_leading_one_us \
+  stdc_first_leading_zero_uc \
+  stdc_first_leading_zero_ui \
+  stdc_first_leading_zero_ul \
+  stdc_first_leading_zero_ull \
+  stdc_first_leading_zero_us \
+  stdc_first_trailing_one_uc \
+  stdc_first_trailing_one_ui \
+  stdc_first_trailing_one_ul \
+  stdc_first_trailing_one_ull \
+  stdc_first_trailing_one_us \
+  stdc_first_trailing_zero_uc \
+  stdc_first_trailing_zero_ui \
+  stdc_first_trailing_zero_ul \
+  stdc_first_trailing_zero_ull \
+  stdc_first_trailing_zero_us \
+  stdc_has_single_bit_uc \
+  stdc_has_single_bit_ui \
+  stdc_has_single_bit_ul \
+  stdc_has_single_bit_ull \
+  stdc_has_single_bit_us \
+  stdc_leading_ones_uc \
+  stdc_leading_ones_ui \
+  stdc_leading_ones_ul \
+  stdc_leading_ones_ull \
+  stdc_leading_ones_us \
+  stdc_leading_zeros_uc \
+  stdc_leading_zeros_ui \
+  stdc_leading_zeros_ul \
+  stdc_leading_zeros_ull \
+  stdc_leading_zeros_us \
+  stdc_trailing_ones_uc \
+  stdc_trailing_ones_ui \
+  stdc_trailing_ones_ul \
+  stdc_trailing_ones_ull \
+  stdc_trailing_ones_us \
+  stdc_trailing_zeros_uc \
+  stdc_trailing_zeros_ui \
+  stdc_trailing_zeros_ul \
+  stdc_trailing_zeros_ull \
+  stdc_trailing_zeros_us \
   strfmon \
   strfmon_l \
   strfromd \
@@ -145,6 +216,13 @@ routines := \
   xpg_basename \
   # routines
 
+# Exclude fortified routines from being built with _FORTIFY_SOURCE
+routines_no_fortify += \
+  mbstowcs \
+  wcstombs \
+  wctomb \
+  # routines_no_fortify
+
 aux = \
   grouping \
   groupingwc \
@@ -155,8 +233,8 @@ aux = \
 # Instead the static object files will be included in a special archive
 # linked against when the shared library will be used.
 static-only-routines = \
-  atexit \
   at_quick_exit \
+  atexit \
   # static-only-routines
 
 test-srcs := \
@@ -171,6 +249,7 @@ tests := \
   test-a64l \
   test-at_quick_exit-race \
   test-atexit-race \
+  test-atexit-recursive \
   test-bz22786 \
   test-canon \
   test-canon2 \
@@ -183,6 +262,7 @@ tests := \
   testmb2 \
   testrand \
   testsort \
+  tst-abs \
   tst-arc4random-fork \
   tst-arc4random-stats \
   tst-arc4random-thread \
@@ -193,10 +273,23 @@ tests := \
   tst-bsearch \
   tst-bz20544 \
   tst-canon-bz26341 \
+  tst-concurrent-exit \
+  tst-concurrent-quick_exit \
   tst-cxa_atexit \
   tst-environ \
+  tst-environ-change-1 \
+  tst-environ-change-2 \
+  tst-environ-change-3 \
+  tst-environ-change-4 \
+  tst-getenv-signal \
+  tst-getenv-thread \
+  tst-getenv-unsetenv \
   tst-getrandom \
+  tst-getrandom-errno \
+  tst-getrandom2 \
+  tst-labs \
   tst-limits \
+  tst-llabs \
   tst-makecontext \
   tst-makecontext-align \
   tst-makecontext2 \
@@ -204,10 +297,14 @@ tests := \
   tst-on_exit \
   tst-qsort \
   tst-qsort2 \
+  tst-qsort3 \
+  tst-qsort6 \
   tst-quick_exit \
+  tst-rand-sequence \
   tst-rand48 \
   tst-rand48-2 \
   tst-random \
+  tst-random-bz30584 \
   tst-random2 \
   tst-realpath \
   tst-realpath-toolong \
@@ -221,6 +318,25 @@ tests := \
   tst-setcontext7 \
   tst-setcontext8 \
   tst-setcontext9 \
+  tst-setcontext10 \
+  tst-setcontext11 \
+  tst-setenv-environ \
+  tst-stdbit-Wconversion \
+  tst-stdbit-builtins \
+  tst-stdc_bit_ceil \
+  tst-stdc_bit_floor \
+  tst-stdc_bit_width \
+  tst-stdc_count_ones \
+  tst-stdc_count_zeros \
+  tst-stdc_first_leading_one \
+  tst-stdc_first_leading_zero \
+  tst-stdc_first_trailing_one \
+  tst-stdc_first_trailing_zero \
+  tst-stdc_has_single_bit \
+  tst-stdc_leading_ones \
+  tst-stdc_leading_zeros \
+  tst-stdc_trailing_ones \
+  tst-stdc_trailing_zeros \
   tst-strfmon_l \
   tst-strfrom \
   tst-strfrom-locale \
@@ -234,9 +350,14 @@ tests := \
   tst-strtod5 \
   tst-strtod6 \
   tst-strtol \
+  tst-strtol-binary-c11 \
+  tst-strtol-binary-c23 \
+  tst-strtol-binary-gnu11 \
+  tst-strtol-binary-gnu23 \
   tst-strtol-locale \
   tst-strtoll \
   tst-swapcontext1 \
+  tst-swapcontext2 \
   tst-thread-quick_exit \
   tst-tininess \
   tst-unsetenv1 \
@@ -246,6 +367,7 @@ tests := \
   # tests
 
 tests-internal := \
+  tst-qsort4 \
   tst-strtod1i \
   tst-strtod3 \
   tst-strtod4 \
@@ -276,10 +398,31 @@ LDLIBS-test-on_exit-race = $(shared-thread-library)
 LDLIBS-tst-canon-bz26341 = $(shared-thread-library)
 LDLIBS-tst-arc4random-fork = $(shared-thread-library)
 LDLIBS-tst-arc4random-thread = $(shared-thread-library)
+LDLIBS-tst-system = $(shared-thread-library)
 
 LDLIBS-test-dlclose-exit-race = $(shared-thread-library)
 LDFLAGS-test-dlclose-exit-race = $(LDFLAGS-rdynamic)
 LDLIBS-test-dlclose-exit-race-helper.so = $(libsupport) $(shared-thread-library)
+
+CFLAGS-tst-abs.c += -fno-builtin
+CFLAGS-tst-labs.c += -fno-builtin
+CFLAGS-tst-llabs.c += -fno-builtin
+
+CFLAGS-tst-stdbit-Wconversion.c += -Wconversion -Werror
+CFLAGS-tst-stdc_trailing_zeros.c += -fno-builtin
+CFLAGS-tst-stdc_trailing_ones.c += -fno-builtin
+CFLAGS-tst-stdc_leading_zeros.c += -fno-builtin
+CFLAGS-tst-stdc_leading_ones.c += -fno-builtin
+CFLAGS-tst-stdc_has_single_bit.c += -fno-builtin
+CFLAGS-tst-stdc_first_trailing_zero.c += -fno-builtin
+CFLAGS-tst-stdc_first_trailing_one.c += -fno-builtin
+CFLAGS-tst-stdc_first_leading_zero.c += -fno-builtin
+CFLAGS-tst-stdc_first_leading_one.c += -fno-builtin
+CFLAGS-tst-stdc_count_zeros.c += -fno-builtin
+CFLAGS-tst-stdc_count_ones.c += -fno-builtin
+CFLAGS-tst-stdc_bit_width.c += -fno-builtin
+CFLAGS-tst-stdc_bit_floor.c += -fno-builtin
+CFLAGS-tst-stdc_bit_ceil.c += -fno-builtin
 
 ifeq ($(have-cxx-thread_local),yes)
 CFLAGS-tst-quick_exit.o = -std=c++11
@@ -360,7 +503,6 @@ generated += \
   # generated
 
 CFLAGS-bsearch.c += $(uses-callbacks)
-CFLAGS-msort.c += $(uses-callbacks)
 CFLAGS-qsort.c += $(uses-callbacks)
 CFLAGS-system.c += -fexceptions
 CFLAGS-system.os = -fomit-frame-pointer
@@ -375,12 +517,33 @@ CFLAGS-strfromd.c += $(libio-mtsafe)
 CFLAGS-strfromf.c += $(libio-mtsafe)
 CFLAGS-strfroml.c += $(libio-mtsafe)
 
+CFLAGS-strtol.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtoul.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtoll.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtoull.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtof.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtof_l.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtod.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtod_l.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtold.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strtold_l.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-secure-getenv.c += $(config-cflags-wno-ignored-attributes)
+
 CFLAGS-tst-bsearch.c += $(stack-align-test-flags)
 CFLAGS-tst-qsort.c += $(stack-align-test-flags)
 CFLAGS-tst-makecontext.c += -funwind-tables
 CFLAGS-tst-makecontext2.c += $(stack-align-test-flags)
 
-CFLAGS-testmb.c += -D_FORTIFY_SOURCE=2 -Wall -Werror
+CFLAGS-testmb.c += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -Wall -Werror
+
+# Some versions of GCC supported for building glibc do not support -std=c23
+# or -std=gnu23 (added in GCC 14), or the older names -std=c2x or -std=gnu2x
+# (added in GCC 9), so the tests for those versions use -std=c11 and -std=gnu11
+# and then _ISOC23_SOURCE is defined in the test as needed.
+CFLAGS-tst-strtol-binary-c11.c += -std=c11
+CFLAGS-tst-strtol-binary-c23.c += -std=c11
+CFLAGS-tst-strtol-binary-gnu11.c += -std=gnu11
+CFLAGS-tst-strtol-binary-gnu23.c += -std=gnu11
 
 
 # Run a test on the header files we use.
@@ -454,6 +617,8 @@ $(objpfx)bug-strtod2: $(libm)
 $(objpfx)tst-strtod-round: $(libm)
 $(objpfx)tst-tininess: $(libm)
 $(objpfx)tst-strtod-underflow: $(libm)
+$(objpfx)tst-strtod5: $(libm)
+$(objpfx)tst-strtod5i: $(libm)
 $(objpfx)tst-strtod6: $(libm)
 $(objpfx)tst-strtod-nan-locale: $(libm)
 $(objpfx)tst-strtod-nan-sign: $(libm)
@@ -472,3 +637,11 @@ $(objpfx)tst-setcontext3.out: tst-setcontext3.sh $(objpfx)tst-setcontext3
 		 '$(run-program-env)' '$(test-program-prefix-after-env)' \
 		 $(common-objpfx)stdlib/; \
 	$(evaluate-test)
+
+$(objpfx)tst-qsort5: $(libm)
+$(objpfx)tst-concurrent-exit: $(shared-thread-library)
+$(objpfx)tst-concurrent-quick_exit: $(shared-thread-library)
+$(objpfx)tst-getrandom2: $(shared-thread-library)
+$(objpfx)tst-getenv-signal: $(shared-thread-library)
+$(objpfx)tst-getenv-thread: $(shared-thread-library)
+$(objpfx)tst-getenv-unsetenv: $(shared-thread-library)

@@ -1,5 +1,5 @@
 /* Function to parse a `long long int' from text.
-   Copyright (C) 1996-2022 Free Software Foundation, Inc.
+   Copyright (C) 1996-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -22,3 +22,4 @@
 
 weak_alias (wcstoll, wcstoq)
 weak_alias (wcstoll, wcstoimax)
+weak_alias (__isoc23_wcstoll, __isoc23_wcstoimax)

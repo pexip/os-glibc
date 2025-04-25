@@ -1,5 +1,5 @@
 /* memcopy.h -- definitions for memory copy functions.  i386 version.
-   Copyright (C) 1991-2022 Free Software Foundation, Inc.
+   Copyright (C) 1991-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,9 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <sysdeps/generic/memcopy.h>
-
-#undef	OP_T_THRES
-#define	OP_T_THRES	8
 
 #undef	BYTE_COPY_FWD
 #define BYTE_COPY_FWD(dst_bp, src_bp, nbytes)				      \

@@ -1,4 +1,4 @@
-/* Copyright (C) 1999-2022 Free Software Foundation, Inc.
+/* Copyright (C) 1999-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@
 #include <gnu/lib-names.h>
 
 #include <ldconfig.h>
+#include <endswith.h>
 
 #define Elf32_CLASS ELFCLASS32
 #define Elf64_CLASS ELFCLASS64
@@ -43,30 +44,14 @@ struct known_names
   int flag;
 };
 
-static struct known_names interpreters[] =
-{
-  { "/lib/" LD_SO, FLAG_ELF_LIBC6 },
-#ifdef SYSDEP_KNOWN_INTERPRETER_NAMES
-  SYSDEP_KNOWN_INTERPRETER_NAMES
-#endif
-};
-
-static struct known_names known_libs[] =
-{
-  { LIBC_SO, FLAG_ELF_LIBC6 },
-  { LIBM_SO, FLAG_ELF_LIBC6 },
-#ifdef SYSDEP_KNOWN_LIBRARY_NAMES
-  SYSDEP_KNOWN_LIBRARY_NAMES
-#endif
-};
-
-
-/* Check if string corresponds to a GDB Python file.  */
+/* Check if string corresponds to a GDB extension file.  */
 static bool
-is_gdb_python_file (const char *name)
+is_gdb_extension_file (const char *name)
 {
   size_t len = strlen (name);
-  return len > 7 && strcmp (name + len - 7, "-gdb.py") == 0;
+  return (endswithn (name, len, "-gdb.gdb")
+	  || endswithn (name, len, "-gdb.py")
+	  || endswithn (name, len, "-gdb.scm"));
 }
 
 /* Returns 0 if everything is ok, != 0 in case of error.  */
@@ -83,7 +68,8 @@ process_file (const char *real_file_name, const char *file_name,
   struct exec *aout_header;
 
   ret = 0;
-  *flag = FLAG_ANY;
+  /* Just set FLAG_ELF_LIBC6 as old formats are not supported anymore.  */
+  *flag = FLAG_ELF_LIBC6;
   *soname = NULL;
 
   file = fopen (real_file_name, "rb");
@@ -121,7 +107,7 @@ process_file (const char *real_file_name, const char *file_name,
       return 1;
     }
 
-  file_contents = mmap (0, statbuf.st_size, PROT_READ, MAP_SHARED,
+  file_contents = mmap (NULL, statbuf.st_size, PROT_READ, MAP_SHARED,
 			fileno (file), 0);
   if (file_contents == MAP_FAILED)
     {
@@ -150,7 +136,6 @@ process_file (const char *real_file_name, const char *file_name,
 	    *dot = '\0';
 	}
       *soname = copy;
-      *flag = FLAG_LIBC4;
       goto done;
     }
 
@@ -163,7 +148,7 @@ process_file (const char *real_file_name, const char *file_name,
       size_t len = MIN (statbuf.st_size, 512);
       if (memmem (file_contents, len, "GROUP", 5) == NULL
 	  && memmem (file_contents, len, "GNU ld script", 13) == NULL
-	  && !is_gdb_python_file (file_name))
+	  && !is_gdb_extension_file (file_name))
 	error (0, 0, _("%s is not an ELF file - it has the wrong magic bytes at the start.\n"),
 	       file_name);
       ret = 1;
@@ -182,28 +167,6 @@ process_file (const char *real_file_name, const char *file_name,
 
   *stat_buf = statbuf;
   return ret;
-}
-
-/* Returns made up soname if lib doesn't have explicit DT_SONAME.  */
-
-char *
-implicit_soname (const char *lib, int flag)
-{
-  char *soname = xstrdup (lib);
-
-  if ((flag & FLAG_TYPE_MASK) != FLAG_LIBC4)
-    return soname;
-
-  /* Aout files don't have a soname, just return the name
-     including the major number.  */
-  char *major = strstr (soname, ".so.");
-  if (major)
-    {
-      char *dot = strstr (major + 4, ".");
-      if (dot)
-	*dot = '\0';
-    }
-  return soname;
 }
 
 /* Get architecture specific version of process_elf_file.  */

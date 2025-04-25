@@ -1,6 +1,6 @@
 /* Multiple versions of strncmp.
    All versions must be listed in ifunc-impl-list.c.
-   Copyright (C) 2017-2022 Free Software Foundation, Inc.
+   Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -41,12 +41,12 @@ IFUNC_SELECTOR (void)
   const struct cpu_features *cpu_features = __get_cpu_features ();
 
   if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX2)
+      && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, BMI2)
       && X86_ISA_CPU_FEATURES_ARCH_P (cpu_features,
 				      AVX_Fast_Unaligned_Load, ))
     {
       if (X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512VL)
-	  && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512BW)
-	  && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, BMI2))
+	  && X86_ISA_CPU_FEATURE_USABLE_P (cpu_features, AVX512BW))
 	return OPTIMIZE (evex);
 
       if (CPU_FEATURE_USABLE_P (cpu_features, RTM))

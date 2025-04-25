@@ -1,5 +1,5 @@
 /* Assembly macros for LoongArch.
-   Copyright (C) 2022 Free Software Foundation, Inc.
+   Copyright (C) 2022-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,7 +19,8 @@
 #ifndef _LINUX_LOONGARCH_SYSDEP_H
 #define _LINUX_LOONGARCH_SYSDEP_H 1
 
-#include <sysdeps/unix/sysv/linux/generic/sysdep.h>
+#include <sysdeps/unix/sysv/linux/sysdep.h>
+#include <sysdeps/unix/sysdep.h>
 #include <tls.h>
 
 #ifdef __ASSEMBLER__
@@ -82,7 +83,7 @@
 #undef ret_NOERRNO
 #define ret_NOERRNO ret
 
-/* Perfroms a system call, returning the error code.  */
+/* Performs a system call, returning the error code.  */
 #undef PSEUDO_ERRVAL
 #define PSEUDO_ERRVAL(name, syscall_name, args) \
   PSEUDO_NOERRNO (name, syscall_name, args); \
@@ -116,7 +117,9 @@
 /* List of system calls which are supported as vsyscalls.  */
 #define HAVE_CLOCK_GETRES64_VSYSCALL "__vdso_clock_getres"
 #define HAVE_CLOCK_GETTIME64_VSYSCALL "__vdso_clock_gettime"
+#define HAVE_GETTIMEOFDAY_VSYSCALL "__vdso_gettimeofday"
 #define HAVE_GETCPU_VSYSCALL "__vdso_getcpu"
+#define HAVE_GETRANDOM_VSYSCALL "__vdso_getrandom"
 
 #define HAVE_CLONE3_WRAPPER 1
 
@@ -312,9 +315,5 @@
 extern long int __syscall_error (long int neg_errno);
 
 #endif /* ! __ASSEMBLER__ */
-
-/* Pointer mangling is not supported.  */
-#define PTR_MANGLE(var) (void) (var)
-#define PTR_DEMANGLE(var) (void) (var)
 
 #endif /* linux/loongarch/sysdep.h */
