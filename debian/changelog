@@ -1,3 +1,34 @@
+glibc (2.41-8) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * debian/testsuite-xfail-debian.mk: xfail tst-execstack-prog-static-tunable
+    on hurd-any. Drop duplicate unsupported stances commited uptream.
+  * debian/patches/hurd-i386/git-dup-refcnt.diff: Fix detecting too many dups.
+  * debian/patches/hurd-i386/git-xstate.diff: Fix restoring SSE state on
+    signals.
+  * debian/patches/hurd-i386/local-intr-msg-clobber.diff: Drop now-useless
+    patch.
+  * debian/patches/hurd-i386/git-utime-EINVAL.diff: Make *utime*s catch invalid
+    times.
+  * debian/patches/hurd-i386/git-xstate-initialized.diff: Fix crash in dash.
+  * debian/patches/hurd-i386/git-signal-fpe-exceptions.diff: Fix crash in FPE
+    handlers.
+  * debian/patches/hurd-i386/git-symlink-eexist.diff: Fix gnulib testsuite.
+
+  [ Adriano Rafael Gomes ]
+  * Update Brazilian Portuguese debconf translation.  Closes: #1103446.
+
+  [ Aurelien Jarno ]
+  * debian/rules.d/debhelper.mk: do not replace LIBC in debhelper.in files.
+    This was used for lintian overrides, but it is not used anymore.  Closes:
+    #1104099.
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix elf/tst-audit10 test failure on x86 systems without AVX.  Closes:
+      #1103303.
+    - Fix pthread_getattr_np failure when executable stack tunable is set.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 17 May 2025 17:15:43 +0200
+
 glibc (2.41-7) unstable; urgency=medium
 
   [ Samuel Thibault ]

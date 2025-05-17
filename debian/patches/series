@@ -25,15 +25,19 @@ arm/local-arm-futex.diff
 
 # Commited for 2.42
 hurd-i386/git-proc_reauth.diff
-
-# Commited for 2.42
 hurd-i386/git-mig-strncpy.diff
-hurd-i386/local-pthread_once.diff
 hurd-i386/git-pthread_sigmask_nothread.diff
 hurd-i386/git-rt-timedwait-realtime.diff
 hurd-i386/git-pthread_setcancel.diff
+hurd-i386/git-dup-refcnt.diff
+hurd-i386/git-xstate.diff
+hurd-i386/git-utime-EINVAL.diff
+hurd-i386/git-xstate-initialized.diff
+hurd-i386/git-signal-fpe-exceptions.diff
+hurd-i386/git-symlink-eexist.diff
 
-hurd-i386/local-intr-msg-clobber.diff
+hurd-i386/local-pthread_once.diff
+
 hurd-i386/local-enable-ldconfig.diff
 hurd-i386/tg-sysvshm.diff
 hurd-i386/tg-thread-cancel.diff

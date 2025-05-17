@@ -306,17 +306,6 @@ test-xfail-tst-open-tmpfile = yes
 test-xfail-tst-closedir-leaks = yes
 test-xfail-tst-closedir-leaks-mem = yes
 
-# Missing RLIMIT_AS/overcommit enforcement
-tests-unsupported += tst-basic7
-tests-unsupported += test-lfs
-tests-unsupported += tst-asprintf-null
-tests-unsupported += bug18240
-tests-unsupported += tst-vfprintf-width-prec
-tests-unsupported += tst-vfprintf-width-prec-mem
-tests-unsupported += tst-vfprintf-width-prec-alloc
-tests-unsupported += test-bz22786 tst-strtod-overflow
-tests-unsupported += tst-tzset
-
 # new in 2.22
 test-xfail-tst-prelink = yes
 
@@ -443,6 +432,7 @@ test-xfail-tst-execstack-prog-noexecstack = yes
 test-xfail-tst-support-process_state = yes
 test-xfail-tst-audit12 = yes
 test-xfail-tst-audit28 = yes
+test-xfail-tst-execstack-prog-static-tunable = yes
 
 # actually never succeded
 test-xfail-tst-create_format1 = yes
