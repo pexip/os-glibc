@@ -1,3 +1,50 @@
+glibc (2.41-11) unstable; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix iconv to not create executable files with -o.
+    - Fix double-free after allocation failure in regcomp (GLIBC-SA-2025-0005
+      / CVE-2025-8058).  Closes: #1109803.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sat, 26 Jul 2025 20:29:12 +0200
+
+glibc (2.41-10) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * debian/testsuite-xfail-debian.mk: Update xfails.
+  * debian/patches/hurd-i386/local-pthread_once.diff: Pave the way for 2.42.
+
+  [ Helmut Grohne ]
+  * Partially restore init restarting. (Closes: #1108193)
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix sparc32 Fix argument passing to __libc_start_main
+    - Fix error reporting (false negatives) in SGID tests
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 17 Jul 2025 13:21:32 +0200
+
+glibc (2.41-9) unstable; urgency=medium
+
+  [ Aurelien Jarno ]
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix loading TLS-using modules using LD_AUDIT.
+    - Add tests for CVE-2025-4802.
+    - Fix swapped wcsncpy and wcpncpy function names in IFUNC definition.
+    - Fix elf/tst-execstack-prog-static-tunable on sparc64.
+    - Remove POWER10 optimized strcmp function (GLIBC-SA-2025-0003 /
+      CVE-2025-5702).  Closes: #1107365.
+    - Remove POWER10 optimized strncmp function (GLIBC-SA-2025-0004 /
+      CVE-2025-5745).  Closes: #1107366.
+    - Remove POWER10 optimized memchr function.
+
+  [ Samuel Thibault ]
+  * debian/patches/hurd-i386/git-rename.diff: Make rename refuse trailing
+    slashes.
+  * debian/patches/hurd-i386/local-64b-align.diff: Avoid 64b typing error on
+    RPCs using 64b fields in structures.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Wed, 18 Jun 2025 06:49:31 +0200
+
 glibc (2.41-8) unstable; urgency=medium
 
   [ Samuel Thibault ]
