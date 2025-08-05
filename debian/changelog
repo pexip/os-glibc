@@ -1,3 +1,11 @@
+glibc (2.41-12) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * debian/debhelper.in/libc.postinst: Don't restart systemd when it does not
+    work.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 05 Aug 2025 19:34:49 +0200
+
 glibc (2.41-11) unstable; urgency=medium
 
   * debian/patches/git-updates.diff: update from upstream stable branch:
