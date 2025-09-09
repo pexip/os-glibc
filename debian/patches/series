@@ -27,6 +27,7 @@ arm/local-arm-futex.diff
 arm/git-atomic-compiler-builtins.diff
 
 arm64/local-revert-aarch64-check-kernel-version-for-sve-ifuncs.diff
+arm64/local-revert-aarch64-use-prefer_sve_ifuncs-for-sve-memset.diff
 
 hppa/local-inlining.diff
 

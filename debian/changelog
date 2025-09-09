@@ -1,3 +1,38 @@
+glibc (2.36-9+pexip24u5+deb12u13) pexip; urgency=medium
+
+  * New upstream release with security fixes
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Tue, 09 Sep 2025 15:53:17 +0100
+
+glibc (2.36-9+deb12u13) bookworm; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix error reporting (false negatives) in SGID tests
+    - Fix double-free after allocation failure in regcomp (GLIBC-SA-2025-0005
+      / CVE-2025-8058).  Closes: #1109803.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 25 Aug 2025 21:11:05 +0200
+
+glibc (2.36-9+deb12u12) bookworm; urgency=medium
+
+  * d/p/local-revert-aarch64-use-prefer_sve_ifuncs-for-sve-memset.diff: revert
+    upstream commit "AArch64: Use prefer_sve_ifuncs for SVE memset" as
+    upstream commit "AArch64: Check kernel version for SVE ifuncs" has been
+    reverted in 2.36-9+deb12u9.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 02 Jun 2025 22:53:56 +0200
+
+glibc (2.36-9+deb12u11) bookworm; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fixed incorrect LD_LIBRARY_PATH search in dlopen for static setuid
+      binaries (GLIBC-SA-2025-0002 / CVE-2025-4802).
+    - Improve memory layout of structures in exp/exp10/expf functions.
+    - Add an SVE implementation of memset on aarch64.
+    - Improve generic implementation of memset on aarch64.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Thu, 29 May 2025 11:41:11 +0200
+
 glibc (2.36-9+pexip24u4+deb12u10) pexip; urgency=medium
 
   * New upstream release
