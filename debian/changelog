@@ -1,3 +1,9 @@
+glibc (2.41-12+pexip25u1) pexip-trixie; urgency=medium
+
+  * New upstream release
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 05 Nov 2025 11:02:42 +0000
+
 glibc (2.41-12) unstable; urgency=medium
 
   [ Helmut Grohne ]
