@@ -16,7 +16,8 @@ if [ "$1" = configure ]; then
         mv "$LEGACY_EE" "$EE"
     fi
     if [ ! -e "$LEGACY_EE"  ]; then
-        ln -sfr "$EE" "$LEGACY_EE"
+        # Pexip: avoid use of -r switch due to busybox
+        ln -sf "../locale.conf" "$LEGACY_EE"
     fi
 
     # Load debconf
