@@ -1,3 +1,9 @@
+glibc (2.41-12+pexip25u4) pexip-trixie; urgency=medium
+
+  * Update fix-icc patch for Trixie-based glibc.
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Mon, 15 Dec 2025 10:14:24 +0000
+
 glibc (2.41-12+pexip25u3) pexip-trixie; urgency=medium
 
   * Change locales script to avoid use of -r switch to ln.
