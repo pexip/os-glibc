@@ -1,8 +1,13 @@
-Index: os-glibc/misc/sys/cdefs.h
+Fix up some system headers to work with the older Intel Compiler suite.  This
+patch only has any effect if __INTEL_COMPILER is defined which will only happen
+when using that compiler.  Once we fully move to using ICX, this patch can be
+dropped.
+
+Index: glibc/misc/sys/cdefs.h
 ===================================================================
---- os-glibc.orig/misc/sys/cdefs.h
-+++ os-glibc/misc/sys/cdefs.h
-@@ -674,7 +674,7 @@ _Static_assert (0, "IEEE 128-bits long d
+--- glibc.orig/misc/sys/cdefs.h
++++ glibc/misc/sys/cdefs.h
+@@ -844,7 +844,7 @@ _Static_assert (0, "IEEE 128-bits long d
  #  else
  #    define __fortified_attr_access(a, o, s) __attr_access ((a, o, s))
  #  endif
@@ -11,7 +16,7 @@ Index: os-glibc/misc/sys/cdefs.h
  #    define __attr_access_none(argno) __attribute__ ((__access__ (__none__, argno)))
  #  else
  #    define __attr_access_none(argno)
-@@ -685,7 +685,7 @@ _Static_assert (0, "IEEE 128-bits long d
+@@ -855,7 +855,7 @@ _Static_assert (0, "IEEE 128-bits long d
  #  define __attr_access_none(argno)
  #endif
  
@@ -20,3 +25,113 @@ Index: os-glibc/misc/sys/cdefs.h
  /* Designates dealloc as a function to call to deallocate objects
     allocated by the declared function.  */
  # define __attr_dealloc(dealloc, argno) \
+Index: glibc/bits/libc-header-start.h
+===================================================================
+--- glibc.orig/bits/libc-header-start.h
++++ glibc/bits/libc-header-start.h
+@@ -64,6 +64,30 @@
+    __STDC_WANT_IEC_60559_EXT__.  (There are currently no features
+    conditional on __STDC_WANT_IEC_60559_EXT__ that are not in TS
+    18661-1.)  */
++
++/* Pexip: disable all support here if we're on the old Intel compiler */
++#if defined(__INTEL_COMPILER)
++
++#undef __GLIBC_USE_IEC_60559_BFP_EXT
++# define __GLIBC_USE_IEC_60559_BFP_EXT 0
++
++#undef __GLIBC_USE_IEC_60559_BFP_EXT_C23
++# define __GLIBC_USE_IEC_60559_BFP_EXT_C23 0
++
++#undef __GLIBC_USE_IEC_60559_EXT
++# define __GLIBC_USE_IEC_60559_EXT 0
++
++#undef __GLIBC_USE_IEC_60559_FUNCS_EXT
++# define __GLIBC_USE_IEC_60559_FUNCS_EXT 0
++
++#undef __GLIBC_USE_IEC_60559_FUNCS_EXT_C23
++# define __GLIBC_USE_IEC_60559_FUNCS_EXT_C23 0
++
++#undef __GLIBC_USE_IEC_60559_TYPES_EXT
++# define __GLIBC_USE_IEC_60559_TYPES_EXT 0
++
++#else /* __INTEL_COMPILER */
++
+ #undef __GLIBC_USE_IEC_60559_BFP_EXT
+ #if defined __USE_GNU || defined __STDC_WANT_IEC_60559_BFP_EXT__
+ # define __GLIBC_USE_IEC_60559_BFP_EXT 1
+@@ -108,3 +132,5 @@
+ #else
+ # define __GLIBC_USE_IEC_60559_TYPES_EXT 0
+ #endif
++
++#endif /* __INTEL_COMPILER */
+Index: glibc/bits/floatn-common.h
+===================================================================
+--- glibc.orig/bits/floatn-common.h
++++ glibc/bits/floatn-common.h
+@@ -28,6 +28,28 @@
+    where the same definitions, or definitions based only on the macros
+    in bits/floatn.h, are appropriate for all glibc configurations.  */
+ 
++#if defined(__INTEL_COMPILER)
++
++#define __HAVE_FLOAT16 0
++#define __HAVE_FLOAT32 0
++#define __HAVE_FLOAT64 0
++#define __HAVE_FLOAT32X 0
++#define __HAVE_FLOAT128X 0
++
++#define __HAVE_DISTINCT_FLOAT16 0
++#define __HAVE_DISTINCT_FLOAT32 0
++#define __HAVE_DISTINCT_FLOAT64 0
++#define __HAVE_DISTINCT_FLOAT32X 0
++#define __HAVE_DISTINCT_FLOAT64X 0
++#define __HAVE_DISTINCT_FLOAT128X 0
++
++#define __HAVE_FLOAT128_UNLIKE_LDBL 0
++
++#define __HAVE_FLOATN_NOT_TYPEDEF 0
++
++
++#else /* __INTEL_COMPILER */
++
+ /* Defined to 1 if the current compiler invocation provides a
+    floating-point type with the right format for this type, and this
+    glibc includes corresponding *fN or *fNx interfaces for it.  */
+@@ -326,4 +348,6 @@ typedef _Float128 _Float64x;
+ 
+ #endif /* !__ASSEMBLER__.  */
+ 
++#endif /* __INTEL_COMPILER */
++
+ #endif /* _BITS_FLOATN_COMMON_H */
+Index: glibc/sysdeps/x86/bits/floatn.h
+===================================================================
+--- glibc.orig/sysdeps/x86/bits/floatn.h
++++ glibc/sysdeps/x86/bits/floatn.h
+@@ -21,6 +21,15 @@
+ 
+ #include <features.h>
+ 
++#if defined(__INTEL_COMPILER)
++
++# define __HAVE_FLOAT128 0
++# define __HAVE_DISTINCT_FLOAT128 0
++# define __HAVE_FLOAT64X 0
++# define __HAVE_FLOAT64X_LONG_DOUBLE 0
++
++#else /* __INTEL_COMPILER */
++
+ /* Defined to 1 if the current compiler invocation provides a
+    floating-point type with the IEEE 754 binary128 format, and this
+    glibc includes corresponding *f128 interfaces for it.  The required
+@@ -128,6 +137,8 @@ typedef __float128 _Float128;
+ 
+ #endif /* !__ASSEMBLER__.  */
+ 
++#endif /* __INTEL_COMPILER */
++
+ #include <bits/floatn-common.h>
+ 
+ #endif /* _BITS_FLOATN_H */
