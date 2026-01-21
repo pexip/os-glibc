@@ -1,3 +1,25 @@
+glibc (2.41-12+pexip25u5+deb13u1) pexip-trixie; urgency=medium
+
+  * New upstream release
+
+ -- Mark Hymers <mark.hymers@pexip.com>  Wed, 21 Jan 2026 12:50:03 +0000
+
+glibc (2.41-12+deb13u1) trixie; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix a double lock init issue after fork()
+    - Fix _dl_find_object when ld.so has LOAD segment gaps, causing wrong
+      backtrace unwinding. This affects at least arm64.
+    - Fix SYSCALL_CANCEL for return values larger than INT_MAX (closes:
+      #1115729).
+    - Fix crash in ifunc functions on arm64 when hardening with
+      -ftrivial-auto-var-init=zero.
+    - Optimize inverse trig functions on arm64.
+    - Optimize arm64 SVE exp, hyperbolic, and log1p functions.
+    - Optimize arm64 SVE expf and log1p helpers.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Sun, 28 Dec 2025 17:32:33 +0100
+
 glibc (2.41-12+pexip25u4) pexip-trixie; urgency=medium
 
   * Update fix-icc patch for Trixie-based glibc.
@@ -21,22 +43,6 @@ glibc (2.41-12+pexip25u1) pexip-trixie; urgency=medium
   * New upstream release
 
  -- Mark Hymers <mark.hymers@pexip.com>  Wed, 05 Nov 2025 11:02:42 +0000
-
-glibc (2.41-12+deb13u1) trixie; urgency=medium
-
-  * debian/patches/git-updates.diff: update from upstream stable branch:
-    - Fix a double lock init issue after fork()
-    - Fix _dl_find_object when ld.so has LOAD segment gaps, causing wrong
-      backtrace unwinding. This affects at least arm64.
-    - Fix SYSCALL_CANCEL for return values larger than INT_MAX (closes:
-      #1115729).
-    - Fix crash in ifunc functions on arm64 when hardening with
-      -ftrivial-auto-var-init=zero.
-    - Optimize inverse trig functions on arm64.
-    - Optimize arm64 SVE exp, hyperbolic, and log1p functions.
-    - Optimize arm64 SVE expf and log1p helpers.
-
- -- Aurelien Jarno <aurel32@debian.org>  Sun, 28 Dec 2025 17:32:33 +0100
 
 glibc (2.41-12) unstable; urgency=medium
 
