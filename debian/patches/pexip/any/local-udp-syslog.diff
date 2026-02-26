@@ -1,3 +1,5 @@
+Always log via UDP, for consistent logging
+
 diff --git a/misc/syslog.c b/misc/syslog.c
 index 554089bfc..b460cee0e 100644
 --- a/misc/syslog.c
