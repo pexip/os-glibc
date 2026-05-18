@@ -1,3 +1,9 @@
+glibc (2.41-12+pexip25u7+deb13u3) pexip-trixie; urgency=medium
+
+  * New upstream release
+
+ -- Huw Jones <huw@pexip.com>  Mon, 18 May 2026 14:45:37 +0100
+
 glibc (2.41-12+deb13u3) trixie; urgency=medium
 
   * debian/control.in/libc: ensure that libdpkg-perl is fixed wrt symbol
