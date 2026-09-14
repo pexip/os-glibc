@@ -3622,6 +3622,20 @@ index 0000000000..66a0db4f51
 +}
 +
 +#include <support/test-driver.c>
+diff --git a/iconv/Makefile b/iconv/Makefile
+index 9a94a41ba4..028d24ffc3 100644
+--- a/iconv/Makefile
++++ b/iconv/Makefile
+@@ -138,7 +138,8 @@ $(objpfx)test-iconvconfig.out: $(objpfx)iconvconfig
+ 	 rm -f $$tmp) > $@; \
+ 	$(evaluate-test)
+ 
+-$(objpfx)tst-iconv_prog.out: tst-iconv_prog.sh $(objpfx)iconv_prog
++$(objpfx)tst-iconv_prog.out: tst-iconv_prog.sh $(objpfx)iconv_prog \
++  $(gen-locales)
+ 	$(BASH) $< $(common-objdir) '$(test-wrapper-env)' \
+ 		 '$(run-program-env)' > $@; \
+ 	$(evaluate-test)
 diff --git a/iconv/iconv_prog.c b/iconv/iconv_prog.c
 index 7dba5d8dff..558cfb11a3 100644
 --- a/iconv/iconv_prog.c
@@ -3644,6 +3658,23 @@ index 7dba5d8dff..558cfb11a3 100644
        if (output_fd >= 0)
  	output_buffer_size = copy_buffer_size;
        else
+diff --git a/iconv/loop.c b/iconv/loop.c
+index 1378d23147..74b2a3e26d 100644
+--- a/iconv/loop.c
++++ b/iconv/loop.c
+@@ -144,8 +144,10 @@
+     if (irreversible == NULL)						      \
+       {									      \
+ 	/* This means we are in call from __gconv_transliterate.  In this     \
+-	   case we are not doing any error recovery ourselves.  */	      \
+-	result = __gconv_mark_illegal_input (step_data);		      \
++	   case we are not doing any error recovery ourselves.  Do not create \
++	   a persistent error state.  If __gconv_transliterate exhausts all   \
++	   alternatives, it will call __gconv_mark_illegal_input itself.  */  \
++	result = __GCONV_ILLEGAL_INPUT;					      \
+ 	break;								      \
+       }									      \
+ 									      \
 diff --git a/iconv/tst-iconv_prog-buffer.sh b/iconv/tst-iconv_prog-buffer.sh
 index 1c499d590d..40340c38fa 100644
 --- a/iconv/tst-iconv_prog-buffer.sh
@@ -3659,6 +3690,61 @@ index 1c499d590d..40340c38fa 100644
      if ! cmp -s "$tmp/out" "$tmp/expected" ; then
          echo "error: iconv output difference" >&$logfd
          echo "*** expected ***" >&$logfd
+diff --git a/iconv/tst-iconv_prog.sh b/iconv/tst-iconv_prog.sh
+index e2a43280d2..7d7948b7aa 100644
+--- a/iconv/tst-iconv_prog.sh
++++ b/iconv/tst-iconv_prog.sh
+@@ -27,10 +27,10 @@ LIBPATH=$codir:$codir/iconvdata
+ 
+ # How the start the iconv(1) program.  $from is not defined/expanded yet.
+ ICONV='
++$test_wrapper_env $run_program_env
+ $codir/elf/ld.so --library-path $LIBPATH --inhibit-rpath ${from}.so
+ $codir/iconv/iconv_prog
+ '
+-ICONV="$test_wrapper_env $run_program_env $ICONV"
+ 
+ TIMEOUTFACTOR=${TIMEOUTFACTOR:-1}
+ 
+@@ -218,6 +218,7 @@ testarray=(
+ "\x00\x00;;INVALID;UTF-8;1"
+ "\x00\x00;;UTF-8;INVALID;1"
+ "\xc3\xa9;;UTF-8;ASCII//TRANSLIT;0"
++"X\xc2\xbdY;;UTF-8;ASCII//TRANSLIT;0"
+ )
+ 
+ # Requires $twobyte input, $c flag, $from, and $to to be set; sets $ret
+@@ -278,12 +279,21 @@ check_errtest_result ()
+   fi
+ }
+ 
+-for testcommand in "${testarray[@]}"; do
+-  twobyte="$(echo "$testcommand" | cut -d";" -f 1)"
+-  c="$(echo "$testcommand" | cut -d";" -f 2)"
+-  from="$(echo "$testcommand" | cut -d";" -f 3)"
+-  to="$(echo "$testcommand" | cut -d";" -f 4)"
+-  eret="$(echo "$testcommand" | cut -d";" -f 5)"
+-  execute_test
+-  check_errtest_result
+-done
++run_test_array ()
++{
++  for testcommand in "${testarray[@]}"; do
++    twobyte="$(echo "$testcommand" | cut -d";" -f 1)"
++    c="$(echo "$testcommand" | cut -d";" -f 2)"
++    from="$(echo "$testcommand" | cut -d";" -f 3)"
++    to="$(echo "$testcommand" | cut -d";" -f 4)"
++    eret="$(echo "$testcommand" | cut -d";" -f 5)"
++    execute_test
++    check_errtest_result
++  done
++}
++
++echo "info: testing C locale"
++run_test_array
++echo "info: testing en_US.UTF-8 locale"
++run_program_env="$run_program_env LC_ALL=en_US.UTF-8"
++run_test_array
 diff --git a/iconvdata/Makefile b/iconvdata/Makefile
 index 5a2abeea24..cc689f63e9 100644
 --- a/iconvdata/Makefile
@@ -4076,6 +4162,108 @@ index f5cee6caef..ba967833ad 100644
  
  #define RPC_THREAD_VARIABLE(x) (__rpc_thread_variables()->x)
  
+diff --git a/io/fcntl.c b/io/fcntl.c
+index e88e28664c..b7dab1bb39 100644
+--- a/io/fcntl.c
++++ b/io/fcntl.c
+@@ -18,6 +18,10 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ 
++#ifndef __O_CLOEXEC
++# error __O_CLOEXEC not defined by fcntl.h/cloexec.h
++#endif
++
+ /* Perform file control operations on FD.  */
+ int
+ __fcntl (int fd, int cmd, ...)
+diff --git a/libio/Makefile b/libio/Makefile
+index e143ccdb2c..43ee8db06d 100644
+--- a/libio/Makefile
++++ b/libio/Makefile
+@@ -83,6 +83,7 @@ tests = \
+   bug-ungetwc1 \
+   bug-ungetwc2 \
+   bug-wfflush \
++  bug-wgenops-bz33998 \
+   bug-wmemstream1 \
+   bug-wsetpos \
+   test-fmemopen \
+diff --git a/libio/bug-wgenops-bz33998.c b/libio/bug-wgenops-bz33998.c
+new file mode 100644
+index 0000000000..cc4067da99
+--- /dev/null
++++ b/libio/bug-wgenops-bz33998.c
+@@ -0,0 +1,54 @@
++/* Regression test for ungetwc operating on byte stream (BZ #33998)
++   Copyright (C) 2026 The GNU Toolchain Authors.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include "support/temp_file.h"
++#include "support/xstdio.h"
++#include "support/xunistd.h"
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <stdio.h>
++#include <wchar.h>
++#include <support/check.h>
++
++static int
++do_test (void)
++{
++  char *filename;
++  int fd = create_temp_file ("tst-bz33998-", &filename);
++  TEST_VERIFY (fd != -1);
++  xwrite (fd, "A", sizeof ("A")); // write "A\0" by design
++  xclose (fd);
++
++  FILE *fp = xfopen (filename, "r+");
++  TEST_COMPARE (getwc (fp), L'A');
++  /* If the bug is fixed, then ungetwc should not touch byte stream.
++     If the bug is not fixed, ungetwc firstly match last read char, L'A',
++     failed, then the pbackfail branch, matching last read char in byte
++     stream, that is, '\0' (initialized when setup wide stream). */
++  char *old_read_ptr = fp->_IO_read_ptr;
++  TEST_COMPARE (ungetwc (L'\0', fp), L'\0');
++  TEST_VERIFY (fp->_IO_read_ptr == old_read_ptr);
++
++  xfclose (fp);
++  free (filename);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/libio/wgenops.c b/libio/wgenops.c
+index 0a11d1b1de..9e0b2c00ea 100644
+--- a/libio/wgenops.c
++++ b/libio/wgenops.c
+@@ -108,8 +108,8 @@ _IO_wdefault_pbackfail (FILE *fp, wint_t c)
+ {
+   if (fp->_wide_data->_IO_read_ptr > fp->_wide_data->_IO_read_base
+       && !_IO_in_backup (fp)
+-      && (wint_t) fp->_IO_read_ptr[-1] == c)
+-    --fp->_IO_read_ptr;
++      && (wint_t) fp->_wide_data->_IO_read_ptr[-1] == c)
++    --fp->_wide_data->_IO_read_ptr;
+   else
+     {
+       /* Need to handle a filebuf in write mode (switch to read mode). FIXME!*/
 diff --git a/locale/lc-ctype.c b/locale/lc-ctype.c
 index 867f829be5..47be1c9a39 100644
 --- a/locale/lc-ctype.c
@@ -4166,6 +4354,19 @@ index 30c094d43a..5e25c0e4b8 100644
  const struct __locale_struct _nl_C_locobj attribute_hidden =
    {
      .__locales =
+diff --git a/localedata/Makefile b/localedata/Makefile
+index 94014370f5..d5e9f76899 100644
+--- a/localedata/Makefile
++++ b/localedata/Makefile
+@@ -236,6 +236,8 @@ tests = \
+   bug-iconv-trans \
+   bug-setlocale1 \
+   bug-usesetlocale \
++  tst-bz12701-lc \
++  tst-bz12701-lc2 \
+   tst-c-utf8-consistency \
+   tst-digits \
+   tst-iconv-emojis-trans \
 diff --git a/localedata/locales/bg_BG b/localedata/locales/bg_BG
 index 159a6c3334..eda2a8d01b 100644
 --- a/localedata/locales/bg_BG
@@ -4181,6 +4382,283 @@ index 159a6c3334..eda2a8d01b 100644
  mon_decimal_point         ","
  mon_thousands_sep         " "
  mon_grouping              3
+diff --git a/localedata/tst-bz12701-lc.c b/localedata/tst-bz12701-lc.c
+new file mode 100644
+index 0000000000..23c2ab7d2a
+--- /dev/null
++++ b/localedata/tst-bz12701-lc.c
+@@ -0,0 +1,218 @@
++/* Verify scanf field width handling with the 'lc' conversion (BZ #12701).
++   Copyright (C) 2025-2026 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <locale.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <string.h>
++#include <wchar.h>
++
++#include <libc-diag.h>
++#include <support/check.h>
++#include <support/next_to_fault.h>
++#include <support/xstdio.h>
++
++/* Compare character-wise the initial part of the wide character object
++   pointed to by WS corresponding to wide characters obtained by the
++   conversion of first N bytes of the multibyte character object pointed
++   to by S.  */
++
++static int
++tst_bz12701_lc_memcmp (const wchar_t *ds, const char *s, size_t n)
++{
++  size_t nc = mbsnrtowcs (NULL, &s, n, 0, NULL);
++
++  struct support_next_to_fault ntf;
++  ntf = support_next_to_fault_allocate (nc * sizeof (wchar_t));
++  wchar_t *ss = (wchar_t *) ntf.buffer;
++
++  mbsnrtowcs (ss, &s, n, nc, NULL);
++  int r = wmemcmp (ds, ss, nc);
++
++  support_next_to_fault_free (&ntf);
++
++  return r;
++}
++
++/* Verify various aspects of field width handling, including the data
++   obtained, the number of bytes consumed, and the stream position.  */
++
++static int
++do_test (void)
++{
++  if (setlocale (LC_ALL, "pl_PL.UTF-8") == NULL)
++    FAIL_EXIT1 ("setlocale (LC_ALL, \"pl_PL.UTF-8\")");
++
++  /* Part of a tongue-twister in Polish, which says:
++     "On a rainy morning cuckoos and warblers, rather than starting
++     on earthworms, stuffed themselves fasted with the flesh of cress."  */
++  static const char s[126] = "Dżdżystym rankiem gżegżółki i piegże, "
++			     "zamiast wziąć się za dżdżownice, "
++			     "nażarły się na czczo miąższu rzeżuchy";
++
++  const char *sp = s;
++  size_t nc;
++  TEST_VERIFY_EXIT ((nc = mbsnrtowcs (NULL, &sp, sizeof (s), 0, NULL)) == 108);
++
++  struct support_next_to_fault ntfo, ntfi;
++  ntfo = support_next_to_fault_allocate (nc * sizeof (wchar_t));
++  ntfi = support_next_to_fault_allocate (sizeof (s));
++  wchar_t *e = (wchar_t *) ntfo.buffer + nc;
++  char *b = ntfi.buffer;
++
++  wchar_t *c;
++  FILE *f;
++  int ic;
++  int n;
++  int i;
++
++  memcpy (ntfi.buffer, s, sizeof (s));
++
++  ic = i = 0;
++  f = xfmemopen (b, sizeof (s), "r");
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  /* Avoid: "warning: zero width in gnu_scanf format [-Werror=format=]".  */
++  DIAG_PUSH_NEEDS_COMMENT;
++  DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wformat");
++  TEST_VERIFY_EXIT (fscanf (f, "%0lc%n", c, &n) == 1);
++  DIAG_POP_NEEDS_COMMENT;
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 1;
++  i += n;
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 2);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 1;
++  i += n;
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%1lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 1;
++  i += n;
++
++  c = e - 2;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 3);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 2;
++  i += n;
++
++  c = e - 4;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%4lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 4);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 4;
++  i += n;
++
++  c = e - 8;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%8lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 8);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 8;
++  i += n;
++
++  c = e - 16;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%16lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 20);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 16;
++  i += n;
++
++  c = e - 32;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%32lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 38);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 32;
++  i += n;
++
++  c = e - (nc - ic);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_COMPARE (fscanf (f, "%64lc%n", c, &n), 1);
++  TEST_COMPARE (n , 49);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, sizeof (s) - i) == 0);
++
++  TEST_VERIFY_EXIT (ftell (f) == sizeof (s));
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  ic = i = 0;
++  f = xfmemopen (b, 3, "r");
++
++  c = e - 2;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 3);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 2;
++  i += n;
++
++  c = e - (nc - ic);
++  TEST_VERIFY_EXIT (feof (f) == 0);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2lc%n", c, &n) == EOF);
++  TEST_VERIFY_EXIT (n == 3);
++
++  TEST_VERIFY_EXIT (ftell (f) == 3);
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  ic = i = 0;
++  f = xfmemopen (b, 3, "r");
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, n) == 0);
++  ic += 1;
++  i += n;
++
++  c = e - (nc - ic);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2lc%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 2);
++  TEST_VERIFY_EXIT (tst_bz12701_lc_memcmp (c, s + i, 3 - i) == 0);
++
++  TEST_VERIFY_EXIT (ftell (f) == 3);
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  support_next_to_fault_free (&ntfi);
++  support_next_to_fault_free (&ntfo);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/localedata/tst-bz12701-lc2.c b/localedata/tst-bz12701-lc2.c
+new file mode 100644
+index 0000000000..b24e86df0b
+--- /dev/null
++++ b/localedata/tst-bz12701-lc2.c
+@@ -0,0 +1,47 @@
++/* Verify scanf memory handling with the 'c' conversion (BZ #12701).
++   Copyright (C) 2026 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <malloc.h>
++#include <string.h>
++
++#include <libc-diag.h>
++#include <support/check.h>
++#include <support/next_to_fault.h>
++#include <support/xstdio.h>
++
++static int
++do_test (void)
++{
++  wchar_t *c = NULL;
++  int i;
++
++  TEST_VERIFY (sscanf ("1234", "%30mlc", &c) == 1);
++
++  TEST_VERIFY (c != NULL);
++  TEST_COMPARE_BLOB (c, 5 * sizeof (wchar_t),
++		     L"1234\0", 5 * sizeof (wchar_t));
++  for (i = 5; i < 30; i ++)
++    TEST_VERIFY (c[i] == L'\0');
++
++  TEST_VERIFY (malloc_usable_size (c) >= 30 * sizeof(wchar_t));
++
++  return 0;
++}
++
++#include <support/test-driver.c>
 diff --git a/malloc/malloc.c b/malloc/malloc.c
 index 27dfd1eb90..9423aba987 100644
 --- a/malloc/malloc.c
@@ -5933,6 +6411,37 @@ index d9f69649d0..181be80835 100644
    check_reverse (1,
                   "name: 1.in-addr.arpa\n"
                   "net: 0x00000001\n");
+diff --git a/stdio-common/Makefile b/stdio-common/Makefile
+index 840289afd9..72c18e5dc1 100644
+--- a/stdio-common/Makefile
++++ b/stdio-common/Makefile
+@@ -232,6 +232,8 @@ tests := \
+   tllformat \
+   tst-bz11319 \
+   tst-bz11319-fortify2 \
++  tst-bz12701-c \
++  tst-bz12701-c2 \
+   tst-cookie \
+   tst-dprintf-length \
+   tst-fdopen \
+@@ -309,6 +311,7 @@ tests := \
+   tst-vfprintf-user-type \
+   tst-vfprintf-width-i18n \
+   tst-vfprintf-width-prec-alloc \
++  tst-vfscanf-bz34008 \
+   tst-wc-printf \
+   tstdiomisc \
+   tstgetln \
+@@ -513,6 +516,9 @@ tst-printf-bz18872-ENV = MALLOC_TRACE=$(objpfx)tst-printf-bz18872.mtrace \
+ tst-vfprintf-width-prec-ENV = \
+   MALLOC_TRACE=$(objpfx)tst-vfprintf-width-prec.mtrace \
+   LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
++tst-vfscanf-bz34008-ENV = \
++  MALLOC_CHECK_=3 \
++  LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
+ tst-printf-bz25691-ENV = \
+   MALLOC_TRACE=$(objpfx)tst-printf-bz25691.mtrace \
+   LD_PRELOAD=$(common-objpfx)/malloc/libc_malloc_debug.so
 diff --git a/stdio-common/printf-parsemb.c b/stdio-common/printf-parsemb.c
 index aad697abbc..a7ba52a9fa 100644
 --- a/stdio-common/printf-parsemb.c
@@ -5945,6 +6454,364 @@ index aad697abbc..a7ba52a9fa 100644
  #include <limits.h>
  #include <stdlib.h>
  #include <string.h>
+diff --git a/stdio-common/tst-bz12701-c.c b/stdio-common/tst-bz12701-c.c
+new file mode 100644
+index 0000000000..4f3616fbfd
+--- /dev/null
++++ b/stdio-common/tst-bz12701-c.c
+@@ -0,0 +1,169 @@
++/* Verify scanf field width handling with the 'c' conversion (BZ #12701).
++   Copyright (C) 2025-2026 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <string.h>
++
++#include <libc-diag.h>
++#include <support/check.h>
++#include <support/next_to_fault.h>
++#include <support/xstdio.h>
++
++/* Verify various aspects of field width handling, including the data
++   obtained, the number of bytes consumed, and the stream position.  */
++
++static int
++do_test (void)
++{
++  static const char s[43] = "The quick brown fox jumps over the lazy dog";
++  struct support_next_to_fault ntfo, ntfi;
++  ntfo = support_next_to_fault_allocate (sizeof (s));
++  ntfi = support_next_to_fault_allocate (sizeof (s));
++  char *e = ntfo.buffer + sizeof (s);
++  char *b = ntfi.buffer;
++
++  char *c;
++  FILE *f;
++  int n;
++  int i;
++
++  memcpy (ntfi.buffer, s, sizeof (s));
++
++  i = 0;
++  f = xfmemopen (b, sizeof (s), "r");
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  /* Avoid: "warning: zero width in gnu_scanf format [-Werror=format=]".  */
++  DIAG_PUSH_NEEDS_COMMENT;
++  DIAG_IGNORE_NEEDS_COMMENT (4.9, "-Wformat");
++  TEST_VERIFY_EXIT (fscanf (f, "%0c%n", c, &n) == 1);
++  DIAG_POP_NEEDS_COMMENT;
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%1c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 2;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 2);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 4;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%4c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 4);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 8;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%8c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 8);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 16;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%16c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 16);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - (sizeof (s) - i);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%32c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 10);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, sizeof (s) - i) == 0);
++
++  TEST_VERIFY_EXIT (ftell (f) == sizeof (s));
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  i = 0;
++  f = xfmemopen (b, 3, "r");
++
++  c = e - 1;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - 2;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 2);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - (3 - i);
++  TEST_VERIFY_EXIT (feof (f) == 0);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2c%n", c, &n) == EOF);
++  TEST_VERIFY_EXIT (n == 2);
++
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  i = 0;
++  f = xfmemopen (b, 3, "r");
++
++  c = e - 2;
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 2);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, n) == 0);
++  i += n;
++
++  c = e - (3 - i);
++  TEST_VERIFY_EXIT (ftell (f) == i);
++  TEST_VERIFY_EXIT (fscanf (f, "%2c%n", c, &n) == 1);
++  TEST_VERIFY_EXIT (n == 1);
++  TEST_VERIFY_EXIT (memcmp (c, s + i, 3 - i) == 0);
++
++  TEST_VERIFY_EXIT (ftell (f) == 3);
++  TEST_VERIFY_EXIT (feof (f) != 0);
++
++  xfclose (f);
++
++  support_next_to_fault_free (&ntfi);
++  support_next_to_fault_free (&ntfo);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/tst-bz12701-c2.c b/stdio-common/tst-bz12701-c2.c
+new file mode 100644
+index 0000000000..5f9ca7c592
+--- /dev/null
++++ b/stdio-common/tst-bz12701-c2.c
+@@ -0,0 +1,46 @@
++/* Verify scanf memory handling with the 'c' conversion (BZ #12701).
++   Copyright (C) 2026 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <stdio.h>
++#include <malloc.h>
++#include <string.h>
++
++#include <libc-diag.h>
++#include <support/check.h>
++#include <support/next_to_fault.h>
++#include <support/xstdio.h>
++
++static int
++do_test (void)
++{
++  char *c = NULL;
++  int i;
++
++  TEST_VERIFY (sscanf ("1234", "%30mc", &c) == 1);
++
++  TEST_VERIFY (c != NULL);
++  TEST_COMPARE_BLOB (c, 5, "1234\0", 5);
++  for (i = 5; i < 30; i ++)
++    TEST_VERIFY (c[i] == '\0');
++
++  TEST_VERIFY (malloc_usable_size (c) >= 30);
++
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/tst-vfscanf-bz34008.c b/stdio-common/tst-vfscanf-bz34008.c
+new file mode 100644
+index 0000000000..48371c8a3d
+--- /dev/null
++++ b/stdio-common/tst-vfscanf-bz34008.c
+@@ -0,0 +1,48 @@
++/* Regression test for vfscanf %Nmc out-of-bound write (BZ #34008)
++   Copyright (C) 2026 The GNU Toolchain Authors.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include "malloc/mcheck.h"
++#include <stddef.h>
++#include <stdio.h>
++#include <string.h>
++#include <wchar.h>
++#include <stdlib.h>
++#include <malloc.h>
++#include <support/check.h>
++
++#define WIDTH 0x410
++#define SCANFSTR "%1040mc"
++static int
++do_test (void)
++{
++  mcheck_pedantic (NULL);
++  char *input = malloc (WIDTH + 1);
++  TEST_VERIFY (input != NULL);
++  memset (input, 'A', WIDTH);
++  input[WIDTH] = '\0';
++
++  char *buf = NULL;
++  TEST_VERIFY (sscanf (input, SCANFSTR, &buf) != -1);
++  TEST_VERIFY (buf != NULL);
++
++  free (buf);
++  free (input);
++  return 0;
++}
++
++#include <support/test-driver.c>
+diff --git a/stdio-common/vfscanf-internal.c b/stdio-common/vfscanf-internal.c
+index 87f23b5845..fabb0ec874 100644
+--- a/stdio-common/vfscanf-internal.c
++++ b/stdio-common/vfscanf-internal.c
+@@ -780,9 +780,9 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 		    conv_error ();					      \
+ 		} while (0)
+ #ifdef COMPILE_WSCANF
+-	      STRING_ARG (str, char, 100);
++	      STRING_ARG (str, char, (width > 0 ? width : 1));
+ #else
+-	      STRING_ARG (str, char, (width > 1024 ? 1024 : width));
++	      STRING_ARG (str, char, (width > 0 ? width : 1));
+ #endif
+ 
+ 	      c = inchar ();
+@@ -853,8 +853,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 			{
+ 			  /* Enlarge the buffer.  */
+ 			  size_t newsize
+-			    = strsize
+-			      + (strsize >= width ? width - 1 : strsize);
++			    = strsize + (strsize >= width ? width : strsize);
+ 
+ 			  str = (char *) realloc (*strptr, newsize);
+ 			  if (str == NULL)
+@@ -892,6 +891,11 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 
+ 	      if (!(flags & SUPPRESS))
+ 		{
++		  /* If the buffer isn't completely filled, pad it with NULs.  */
++		  if (flags & MALLOC)
++		    while (width-- > 0)
++		      *str++ = '\0';
++
+ 		  if ((flags & MALLOC) && str - *strptr != strsize)
+ 		    {
+ 		      char *cp = (char *) realloc (*strptr, str - *strptr);
+@@ -909,7 +913,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 	  if (width == -1)
+ 	    width = 1;
+ 
+-	  STRING_ARG (wstr, wchar_t, (width > 1024 ? 1024 : width));
++	  STRING_ARG (wstr, wchar_t, (width > 0 ? width : 1));
+ 
+ 	  c = inchar ();
+ 	  if (__glibc_unlikely (c == EOF))
+@@ -925,7 +929,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 		      && wstr == (wchar_t *) *strptr + strsize)
+ 		    {
+ 		      size_t newsize
+-			= strsize + (strsize > width ? width - 1 : strsize);
++			= strsize + (strsize >= width ? width : strsize);
+ 		      /* Enlarge the buffer.  */
+ 		      wstr = (wchar_t *) realloc (*strptr,
+ 						  newsize * sizeof (wchar_t));
+@@ -980,7 +984,7 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 		    && wstr == (wchar_t *) *strptr + strsize)
+ 		  {
+ 		    size_t newsize
+-		      = strsize + (strsize > width ? width - 1 : strsize);
++		      = strsize + (strsize >= width ? width : strsize);
+ 		    /* Enlarge the buffer.  */
+ 		    wstr = (wchar_t *) realloc (*strptr,
+ 						newsize * sizeof (wchar_t));
+@@ -1045,6 +1049,11 @@ __vfscanf_internal (FILE *s, const char *format, va_list argptr,
+ 
+ 	  if (!(flags & SUPPRESS))
+ 	    {
++	      /* If the buffer isn't completely filled, pad it with NULs.  */
++	      if (flags & MALLOC)
++		while (width-- > 0)
++		  *wstr++ = L'\0';
++
+ 	      if ((flags & MALLOC) && wstr - (wchar_t *) *strptr != strsize)
+ 		{
+ 		  wchar_t *cp = (wchar_t *) realloc (*strptr,
 diff --git a/stdlib/Makefile b/stdlib/Makefile
 index 1c4fa2382f..c9c8f702a2 100644
 --- a/stdlib/Makefile
@@ -6097,6 +6964,18 @@ index a04b7ec47f..e20f0a6230 100644
  #include <shlib-compat.h>
  #include <libc-symbols.h>
  
+diff --git a/support/Makefile b/support/Makefile
+index 59a9974539..37741ab405 100644
+--- a/support/Makefile
++++ b/support/Makefile
+@@ -134,6 +134,7 @@ libsupport-routines = \
+   xfclose \
+   xfdopendir \
+   xfgets \
++  xfmemopen \
+   xfopen \
+   xfork \
+   xfread \
 diff --git a/support/capture_subprocess.h b/support/capture_subprocess.h
 index 91d75e5d6b..b37462d0d1 100644
 --- a/support/capture_subprocess.h
@@ -6369,6 +7248,55 @@ index 79d3189e2f..e35cd7316f 100644
 +      fclose (f);
        if (cnt == 1 && val != files[i].bad_value)
  	continue;
+ 
+diff --git a/support/xfmemopen.c b/support/xfmemopen.c
+new file mode 100644
+index 0000000000..f1dbc72c67
+--- /dev/null
++++ b/support/xfmemopen.c
+@@ -0,0 +1,31 @@
++/* fmemopen with error checking.
++   Copyright (C) 2025 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++#include <support/xstdio.h>
++
++#include <support/check.h>
++#include <stdlib.h>
++
++FILE *
++xfmemopen (void *mem, size_t len, const char *mode)
++{
++  FILE *fp = fmemopen (mem, len, mode);
++  if (fp == NULL)
++    FAIL_EXIT1 ("fmemopen (mode \"%s\"): %m", mode);
++  return fp;
++}
+diff --git a/support/xstdio.h b/support/xstdio.h
+index c3fdf9496f..70b83f11da 100644
+--- a/support/xstdio.h
++++ b/support/xstdio.h
+@@ -27,6 +27,7 @@ __BEGIN_DECLS
+ FILE *xfopen (const char *path, const char *mode);
+ void xfclose (FILE *);
+ FILE *xfreopen (const char *path, const char *mode, FILE *stream);
++FILE *xfmemopen (void *mem, size_t len, const char *mode);
+ void xfread (void *ptr, size_t size, size_t nmemb, FILE *stream);
+ char *xfgets (char *s, int size, FILE *stream);
  
 diff --git a/sysdeps/aarch64/Makefile b/sysdeps/aarch64/Makefile
 index 4b7f8a5c07..53f5bd4ce0 100644
@@ -13985,6 +14913,18 @@ index c9c25c2e47..08e1e77210 100644
    /* Let libc do the rest of the initialization, and call main.  */
  	call    __libc_start_main
  	 nop
+diff --git a/sysdeps/unix/sysv/linux/Makefile b/sysdeps/unix/sysv/linux/Makefile
+index 395d2d6593..77ef32ee43 100644
+--- a/sysdeps/unix/sysv/linux/Makefile
++++ b/sysdeps/unix/sysv/linux/Makefile
+@@ -129,6 +129,7 @@ CFLAGS-test-errno-linux.c += $(no-fortify-source)
+ 
+ sysdep_headers += \
+   bits/a.out.h \
++  bits/cloexec.h \
+   bits/epoll.h \
+   bits/eventfd.h \
+   bits/inotify.h \
 diff --git a/sysdeps/unix/sysv/linux/aarch64/Makefile b/sysdeps/unix/sysv/linux/aarch64/Makefile
 index 1fdad67fae..0839f0b08c 100644
 --- a/sysdeps/unix/sysv/linux/aarch64/Makefile
@@ -14906,6 +15846,35 @@ index d5943a7485..2600bc9be3 100644
  	mov	x0, #0x4111	/* CLONE_VM | CLONE_VFORK | SIGCHLD */
  	mov	x1, sp
  	DO_CALL (clone, 2)
+diff --git a/sysdeps/unix/sysv/linux/alpha/bits/cloexec.h b/sysdeps/unix/sysv/linux/alpha/bits/cloexec.h
+new file mode 100644
+index 0000000000..f381f28a53
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/alpha/bits/cloexec.h
+@@ -0,0 +1 @@
++#define __O_CLOEXEC 010000000
+diff --git a/sysdeps/unix/sysv/linux/bits/cloexec.h b/sysdeps/unix/sysv/linux/bits/cloexec.h
+new file mode 100644
+index 0000000000..3059fb6473
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/bits/cloexec.h
+@@ -0,0 +1 @@
++#define __O_CLOEXEC 02000000
+diff --git a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
+index dfc554aafc..9f93ee0325 100644
+--- a/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
++++ b/sysdeps/unix/sysv/linux/bits/fcntl-linux.h
+@@ -81,9 +81,7 @@
+ #ifndef __O_NOFOLLOW
+ # define __O_NOFOLLOW	0400000
+ #endif
+-#ifndef __O_CLOEXEC
+-# define __O_CLOEXEC   02000000
+-#endif
++#include <bits/cloexec.h>
+ #ifndef __O_DIRECT
+ # define __O_DIRECT	 040000
+ #endif
 diff --git a/sysdeps/unix/sysv/linux/bits/sched.h b/sysdeps/unix/sysv/linux/bits/sched.h
 index 3656e98eda..39b0b3d19c 100644
 --- a/sysdeps/unix/sysv/linux/bits/sched.h
@@ -15005,6 +15974,13 @@ index f03ecd4da9..0e66944570 100644
        goto out;
      }
  
+diff --git a/sysdeps/unix/sysv/linux/hppa/bits/cloexec.h b/sysdeps/unix/sysv/linux/hppa/bits/cloexec.h
+new file mode 100644
+index 0000000000..f381f28a53
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/hppa/bits/cloexec.h
+@@ -0,0 +1 @@
++#define __O_CLOEXEC 010000000
 diff --git a/sysdeps/unix/sysv/linux/rseq-internal.h b/sysdeps/unix/sysv/linux/rseq-internal.h
 index f89e784243..d2ab4cb829 100644
 --- a/sysdeps/unix/sysv/linux/rseq-internal.h
@@ -15028,6 +16004,57 @@ index f89e784243..d2ab4cb829 100644
  
        int ret = INTERNAL_SYSCALL_CALL (rseq, RSEQ_SELF (), size, 0, RSEQ_SIG);
        if (!INTERNAL_SYSCALL_ERROR_P (ret))
+diff --git a/sysdeps/unix/sysv/linux/sparc/bits/cloexec.h b/sysdeps/unix/sysv/linux/sparc/bits/cloexec.h
+new file mode 100644
+index 0000000000..6706eaa7d5
+--- /dev/null
++++ b/sysdeps/unix/sysv/linux/sparc/bits/cloexec.h
+@@ -0,0 +1 @@
++#define __O_CLOEXEC 0x400000
+diff --git a/sysdeps/unix/sysv/linux/sys/mount.h b/sysdeps/unix/sysv/linux/sys/mount.h
+index 7c6d0805d7..bd6a089709 100644
+--- a/sysdeps/unix/sysv/linux/sys/mount.h
++++ b/sysdeps/unix/sysv/linux/sys/mount.h
+@@ -21,7 +21,6 @@
+ #ifndef _SYS_MOUNT_H
+ #define _SYS_MOUNT_H	1
+ 
+-#include <fcntl.h>
+ #include <features.h>
+ #include <stdint.h>
+ #include <stddef.h>
+@@ -265,9 +264,16 @@ enum fsconfig_command
+ #define FSOPEN_CLOEXEC          0x00000001
+ 
+ /* open_tree flags.  */
+-#define OPEN_TREE_CLONE    1         /* Clone the target tree and attach the clone */
+-#define OPEN_TREE_CLOEXEC  O_CLOEXEC /* Close the file on execve() */
+-
++#ifndef OPEN_TREE_CLONE
++# define OPEN_TREE_CLONE    1 /* Clone the target tree and attach the clone */
++#endif
++#ifndef O_CLOEXEC
++# include <bits/cloexec.h>
++# define O_CLOEXEC __O_CLOEXEC
++#endif
++#ifndef OPEN_TREE_CLOEXEC
++# define OPEN_TREE_CLOEXEC  O_CLOEXEC /* Close the file on execve() */
++#endif
+ 
+ __BEGIN_DECLS
+ 
+diff --git a/sysdeps/unix/sysv/linux/tst-mount.c b/sysdeps/unix/sysv/linux/tst-mount.c
+index 40913c7082..78a2772b2f 100644
+--- a/sysdeps/unix/sysv/linux/tst-mount.c
++++ b/sysdeps/unix/sysv/linux/tst-mount.c
+@@ -20,6 +20,7 @@
+ #include <support/check.h>
+ #include <support/xunistd.h>
+ #include <support/namespace.h>
++#include <fcntl.h> /* For AT_ constants.  */
+ #include <sys/mount.h>
+ 
+ _Static_assert (sizeof (struct mount_attr) == MOUNT_ATTR_SIZE_VER0,
 diff --git a/sysdeps/unix/sysv/linux/tst-rseq.c b/sysdeps/unix/sysv/linux/tst-rseq.c
 index 00181cfefb..e83ea2b939 100644
 --- a/sysdeps/unix/sysv/linux/tst-rseq.c

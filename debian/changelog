@@ -1,3 +1,19 @@
+glibc (2.41-12+pexip25u8+deb13u4) pexip-trixie; urgency=medium
+
+  * New upstream release with security fixes
+
+ -- Steve McIntyre <steve.mcintyre@pexip.com>  Mon, 14 Sep 2026 11:47:10 +0100
+
+glibc (2.41-12+deb13u4) trixie; urgency=medium
+
+  * debian/patches/git-updates.diff: update from upstream stable branch:
+    - Fix build against linux 7.0 headers.  Closes: #1135405.
+    - Fix ungetwc operating on byte stream (CVE-2026-5928).  Closes: #1134544.
+    - Fix buffer overflow in scanf %mc (CVE-2026-5450).  Closes: #1134543.
+    - Suppress iconv intermediate errors with //TRANSLIT.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Mon, 29 Jun 2026 23:37:52 +0200
+
 glibc (2.41-12+pexip25u7+deb13u3) pexip-trixie; urgency=medium
 
   * New upstream release
